@@ -1,0 +1,804 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  password  String     // Argon2id Hashed
+  role      UserRole   @default(STUDENT)
+  firstName String
+  lastName  String
+  accountStatus AccountStatus @default(PENDING_VERIFICATION)
+  
+  // Auth Tracking
+  emailVerified              Boolean   @default(false)
+  emailVerificationToken     String?   @unique
+  emailVerificationExpiresAt DateTime?
+  failedLoginAttempts        Int       @default(0)
+  lockedUntil                DateTime?
+  
+  // MFA
+  mfaEnabled                 Boolean   @default(false)
+  mfaSecret                  String?
+  mfaBackupCodes             String?
+
+  // Preferences
+  timezone               String   @default("Australia/Sydney")
+  emailNotifications     Boolean  @default(true)
+  smsNotifications       Boolean  @default(false)
+  pushNotifications      Boolean  @default(true)
+  
+  // Global Permissions for non-org users
+  permissions        String[]
+  
+  // Relations
+  applications       Application[]
+  leases             Lease[]
+  maintenance        MaintenanceRequest[]
+  orgStaffRoles      OrgStaff[]
+  documents          Document[]
+  sessions           Session[]
+  passwordHistory    PasswordHistory[]
+  loginHistory       LoginHistory[]
+  identityProviders  IdentityProvider[]
+  invitations        Invitation[]
+  savedSearches      SavedSearch[]
+  recentSearches     RecentSearch[]
+  recentlyViewed     RecentlyViewed[]
+  notificationTriggers NotificationTrigger[]
+  savedProperties    SavedProperty[]
+  enquiries          Enquiry[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? 
+
+  @@index([email])
+}
+
+enum AccountStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  LOCKED
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum UserRole {
+  STUDENT
+  PARENT
+  ORG_STAFF
+  ADMIN
+  SUPER_ADMIN
+}
+
+model Organization {
+  id          String   @id @default(uuid())
+  name        String
+  type        OrgType
+  abn         String?  @unique
+  status      OrgStatus @default(PENDING)
+  
+  // Business Fields
+  timezone        String?  @default("Australia/Sydney")
+  branding        Json?
+  settings        Json?
+  billingProfile  Json?
+  
+  offices     Office[]
+  properties  Property[]
+  staff       OrgStaff[]
+  apiKeys     ApiKey[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([abn])
+}
+
+enum OrgType {
+  PROVIDER
+  UNIVERSITY
+  AGENCY
+}
+
+enum OrgStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+model Office {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  region         String?
+  
+  staff          OrgStaff[]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+}
+
+model OrgStaff {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  officeId       String?
+  office         Office?      @relation(fields: [officeId], references: [id])
+  
+  role           UserRole     @default(ORG_STAFF)
+  permissions    String[]     // Granular permissions e.g., ["property:read"]
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model Property {
+  id             String          @id @default(uuid())
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  
+  name           String
+  address        String
+  suburbId       String
+  suburb         Suburb          @relation(fields: [suburbId], references: [id])
+  postcode       String
+  lat            Float
+  lng            Float
+  description    String
+  status         PropertyStatus  @default(DRAFT)
+
+  roomTypes      RoomType[]
+  maintenance    MaintenanceRequest[]
+  media          Media[]
+  amenities      PropertyAmenity[]
+  recentlyViewed RecentlyViewed[]
+  buildings      Building[]
+  versions       PropertyVersion[]
+  savedBy        SavedProperty[]
+  enquiries      Enquiry[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime? 
+
+  @@index([organizationId])
+  @@index([suburbId])
+  @@index([lat, lng])
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_APPROVAL
+  PUBLISHED
+  UNLISTED
+  ARCHIVED
+}
+
+model Building {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  name       String   // e.g., "East Tower"
+  
+  floors     Floor[]
+  
+  @@index([propertyId])
+}
+
+model Floor {
+  id         String   @id @default(uuid())
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id])
+  level      Int      // e.g., 5
+  name       String?  // e.g., "Mezzanine"
+  
+  @@index([buildingId])
+}
+
+model PropertyVersion {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  versionNum Int
+  payload    Json     
+  changes    Json     
+  authorId   String   
+  
+  createdAt  DateTime @default(now())
+  
+  @@index([propertyId, versionNum])
+}
+
+model RoomType {
+  id           String   @id @default(uuid())
+  propertyId   String
+  property     Property @relation(fields: [propertyId], references: [id])
+  
+  name         String
+  description  String?
+  pricePerWeek Int      // In cents
+  inventory    Int      @default(0)
+
+  applications         Application[]
+  pricingHistory       PricingHistory[]
+  availabilityCalendar AvailabilityCalendar[]
+  enquiries            Enquiry[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime? 
+
+  @@index([propertyId])
+  @@index([pricePerWeek])
+}
+
+model Application {
+  id            String            @id @default(uuid())
+  studentId     String
+  student       User              @relation(fields: [studentId], references: [id])
+  roomTypeId    String
+  roomType      RoomType          @relation(fields: [roomTypeId], references: [id])
+  
+  status        ApplicationStatus @default(PENDING_REVIEW)
+  moveInDate    DateTime
+  durationMonths Int
+  lockedPrice   Int               // Locked price in cents at time of application
+
+  lease         Lease?
+  documents     Document[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? 
+
+  @@index([studentId, status])
+  @@index([roomTypeId])
+}
+
+enum ApplicationStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  LEASE_PENDING
+  BOOKED
+  EXPIRED
+}
+
+model Lease {
+  id            String      @id @default(uuid())
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+  studentId     String
+  student       User        @relation(fields: [studentId], references: [id])
+
+  startDate     DateTime
+  endDate       DateTime
+  status        LeaseStatus @default(DRAFT)
+
+  invoices      Invoice[]
+  documents     Document[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? 
+
+  @@index([studentId, status])
+  @@index([startDate, endDate])
+}
+
+enum LeaseStatus {
+  DRAFT
+  SIGNED
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  leaseId       String
+  lease         Lease         @relation(fields: [leaseId], references: [id])
+  
+  amount        Int           // In cents
+  type          InvoiceType
+  status        InvoiceStatus @default(PENDING)
+  dueDate       DateTime
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? 
+
+  @@index([leaseId, status])
+  @@index([dueDate])
+}
+
+enum InvoiceType {
+  BOND
+  RENT
+  FEE
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model MaintenanceRequest {
+  id          String       @id @default(uuid())
+  studentId   String
+  student     User         @relation(fields: [studentId], references: [id])
+  propertyId  String
+  property    Property     @relation(fields: [propertyId], references: [id])
+
+  title       String
+  description String
+  status      TicketStatus @default(OPEN)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? 
+
+  @@index([propertyId, status])
+  @@index([studentId])
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Document {
+  id            String   @id @default(uuid())
+  key           String   // R2/S3 Object Key
+  filename      String
+  mimeType      String
+  size          Int
+
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  applicationId String?
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  leaseId       String?
+  lease         Lease?       @relation(fields: [leaseId], references: [id])
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime? 
+
+  @@index([userId])
+  @@index([applicationId])
+  @@index([leaseId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  
+  refreshToken String   @unique // Hashed
+  deviceInfo   String?
+  ipAddress    String?
+  expiresAt    DateTime
+  isRevoked    Boolean  @default(false)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  @@index([userId, isRevoked])
+  @@index([refreshToken])
+}
+
+model PasswordHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  password  String   // Argon2id Hashed
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId])
+}
+
+model LoginHistory {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  event             AuthEvent
+  ipAddress         String?
+  userAgent         String?
+  browser           String?
+  os                String?
+  country           String?
+  city              String?
+  deviceFingerprint String?
+  isSuccess         Boolean
+  reason            String?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  @@index([userId])
+  @@index([event])
+}
+
+enum AuthEvent {
+  LOGIN_ATTEMPT
+  LOGIN_SUCCESS
+  LOGOUT
+  TOKEN_REFRESHED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_CHANGED
+  MFA_CHALLENGE
+  MFA_SUCCESS
+  MFA_FAILURE
+  ACCOUNT_LOCKED
+}
+
+model IdentityProvider {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  providerType   ProviderType
+  providerUserId String
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@unique([providerType, providerUserId])
+  @@index([userId])
+}
+
+enum ProviderType {
+  LOCAL
+  GOOGLE
+  APPLE
+  UNIVERSITY_SSO
+}
+
+model Invitation {
+  id              String       @id @default(uuid())
+  email           String
+  inviterId       String
+  inviter         User         @relation(fields: [inviterId], references: [id])
+  roleType        UserRole
+  organizationId  String?
+  status          InviteStatus @default(PENDING)
+  token           String       @unique
+  expiresAt       DateTime
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  @@index([email])
+  @@index([token])
+  @@index([inviterId])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+model ApiKey {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  keyHash        String       @unique // Argon2id hashed
+  prefix         String       // e.g., "jes_live_"
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([organizationId])
+  @@index([prefix])
+}
+
+model AuditLog {
+  id             String       @id @default(uuid())
+  actorId        String       // ID of User or ApiKey
+  actorType      ActorType
+  action         String       // e.g., "property.update", "lease.void"
+  resourceType   String
+  resourceId     String
+  changes        Json?        // Stores old and new values
+  ipAddress      String?
+  
+  createdAt      DateTime     @default(now())
+
+  @@index([resourceType, resourceId])
+  @@index([actorId])
+}
+
+enum ActorType {
+  USER
+  SYSTEM
+  API_KEY
+}
+
+// ---------------------------------------------------------
+// SEARCH, RECOMMENDATIONS & ANALYTICS
+// ---------------------------------------------------------
+
+model SavedSearch {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String?
+  query     Json     // { lat, lng, radius, minPrice, roomType, amenities }
+  notify    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model RecentSearch {
+  id        String   @id @default(uuid())
+  userId    String?  // Optional for guests
+  user      User?    @relation(fields: [userId], references: [id])
+  sessionId String?  // Browser fingerprint
+  queryText String
+  filters   Json?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+}
+
+model RecentlyViewed {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  sessionId  String?
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  
+  viewedAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([propertyId])
+}
+
+model SearchAnalytics {
+  id            String   @id @default(uuid())
+  queryText     String
+  resultCount   Int
+  filtersUsed   Json?
+  campusId      String?
+  campus        Campus?  @relation(fields: [campusId], references: [id])
+  clickedPropId String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([campusId])
+  @@index([clickedPropId])
+}
+
+model NotificationTrigger {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  type         String   // e.g. "PRICE_DROP", "NEW_LISTING_IN_SAVED_SEARCH"
+  propertyId   String?
+  status       String   // PENDING, SENT, READ
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([userId, status])
+}
+
+// ---------------------------------------------------------
+// GEO & DISCOVERY FOUNDATION
+// ---------------------------------------------------------
+
+model Country {
+  id      String  @id @default(uuid())
+  isoCode String  @unique // e.g. "AU"
+  name    String
+  states  State[]
+}
+
+model State {
+  id        String   @id @default(uuid())
+  countryId String
+  country   Country  @relation(fields: [countryId], references: [id])
+  code      String   // e.g. "VIC"
+  name      String
+  cities    City[]
+
+  @@index([countryId])
+}
+
+model City {
+  id      String   @id @default(uuid())
+  stateId String
+  state   State    @relation(fields: [stateId], references: [id])
+  name    String
+  suburbs Suburb[]
+
+  @@index([stateId])
+}
+
+model Suburb {
+  id       String   @id @default(uuid())
+  cityId   String
+  city     City     @relation(fields: [cityId], references: [id])
+  name     String
+  postcode String
+  lat      Float
+  lng      Float
+  
+  properties Property[]
+  campuses   Campus[]
+
+  @@index([cityId])
+  @@index([postcode])
+}
+
+model University {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  slug     String    @unique
+  campuses Campus[]
+}
+
+model Campus {
+  id           String     @id @default(uuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+  name         String
+  lat          Float
+  lng          Float
+  suburbId     String
+  suburb       Suburb     @relation(fields: [suburbId], references: [id])
+  
+  searchAnalytics SearchAnalytics[]
+
+  @@index([universityId])
+  @@index([suburbId])
+}
+
+model Amenity {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  category String  
+  icon     String?
+
+  properties PropertyAmenity[]
+}
+
+model PropertyAmenity {
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  amenityId  String
+  amenity    Amenity  @relation(fields: [amenityId], references: [id])
+
+  @@id([propertyId, amenityId])
+  @@index([amenityId])
+}
+
+model Media {
+  id           String   @id @default(uuid())
+  propertyId   String
+  property     Property @relation(fields: [propertyId], references: [id])
+  url          String
+  type         String   // IMAGE, VIDEO, 3D_TOUR
+  displayOrder Int
+
+  createdAt    DateTime @default(now())
+
+  @@index([propertyId])
+}
+
+model PricingHistory {
+  id            String   @id @default(uuid())
+  roomTypeId    String
+  roomType      RoomType @relation(fields: [roomTypeId], references: [id])
+  pricePerWeek  Int
+  effectiveFrom DateTime
+
+  createdAt     DateTime @default(now())
+
+  @@index([roomTypeId])
+}
+
+model AvailabilityCalendar {
+  id           String   @id @default(uuid())
+  roomTypeId   String
+  roomType     RoomType @relation(fields: [roomTypeId], references: [id])
+  date         DateTime
+  available    Int      
+
+  @@unique([roomTypeId, date])
+}
+
+model SavedProperty {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  
+  createdAt  DateTime @default(now())
+
+  @@unique([studentId, propertyId])
+  @@index([studentId])
+}
+
+model Enquiry {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  roomTypeId String?
+  roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
+  
+  message    String   @db.Text
+  
+  createdAt  DateTime @default(now())
+
+  @@index([studentId])
+  @@index([propertyId])
+}
+
+// ---------------------------------------------------------
+// SYSTEM SETTINGS
+// ---------------------------------------------------------
+
+model FeatureFlag {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  enabled     Boolean  @default(false)
+  updatedBy   String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
