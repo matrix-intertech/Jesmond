@@ -9,6 +9,7 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "prettier": "^3.7.4",
     "turbo": "^2.10.8",
     "typescript": "5.9.2"
@@ -18,8 +19,8 @@
   },
   "devEngines": {
     "packageManager": {
-      "name": "npm",
-      "version": "10.9.0"
+      "name": "pnpm",
+      "version": "9.15.9"
     }
   },
   "workspaces": [

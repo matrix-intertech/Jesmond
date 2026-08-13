@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { setAccessToken, setCurrentUser } from '@/utils/auth';
 
 export default function RegisterPage() {
   const [accountType, setAccountType] = useState<'student' | 'provider'>('student');
@@ -62,9 +63,9 @@ export default function RegisterPage() {
       }
 
       if (data.access_token) {
-        localStorage.setItem('access_token', data.access_token);
+        setAccessToken(data.access_token);
         if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
+          setCurrentUser(data.user);
         }
         router.push(accountType === 'student' ? '/student' : '/portal');
       } else {

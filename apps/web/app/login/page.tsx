@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { setAccessToken, setCurrentUser } from '@/utils/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -28,8 +29,8 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      setAccessToken(data.access_token);
+      setCurrentUser(data.user);
 
       // Role-based redirect
       switch (data.user.role) {

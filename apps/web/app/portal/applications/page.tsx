@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import Link from 'next/link';
 
 interface Application {
   id: string;
@@ -36,8 +39,13 @@ export default function ProviderApplicationsPage() {
 
   const fetchApplications = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/login');
+      const token = getAccessToken();
+      const currentUser = getCurrentUser();
+      if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
+        if (!currentUser) clearAuth();
+        router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
+        return;
+      }
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -53,10 +61,9 @@ export default function ProviderApplicationsPage() {
   if (loading) return <div className="p-10 text-center">Loading applications...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <GlobalNav />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Student Applications</h1>
+    <DashboardShell role="PROVIDER">
+      <PageHeader title="Student Applications" description="Review applications for your properties" onBack={() => router.push('/portal')} />
+      <div className="max-w-7xl mx-auto py-8">
 
         {applications.length === 0 ? (
           <div className="bg-white p-10 rounded-xl shadow-sm text-center border">
@@ -81,8 +88,10 @@ export default function ProviderApplicationsPage() {
                 {applications.map(app => (
                   <tr key={app.id} className="hover:bg-slate-50 transition">
                     <td className="p-4">
-                      <div className="font-bold text-slate-900">{app.student.firstName} {app.student.lastName}</div>
-                      <div className="text-xs text-slate-500">{app.student.email}</div>
+                      <Link href={`/portal/applications/${app.id}`} className="block hover:text-indigo-600 transition">
+                        <div className="font-bold text-slate-900">{app.student.firstName} {app.student.lastName}</div>
+                        <div className="text-xs text-slate-500">{app.student.email}</div>
+                      </Link>
                     </td>
                     <td className="p-4 font-medium">{app.roomType.property.name}</td>
                     <td className="p-4">{app.roomType.name}</td>
@@ -104,7 +113,7 @@ export default function ProviderApplicationsPage() {
             </table>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

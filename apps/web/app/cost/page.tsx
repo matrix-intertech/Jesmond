@@ -1,7 +1,7 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 
-export default function CostofLivingPage() {
+export default function Page() {
   return (
     <div className="min-h-screen bg-white">
       <GlobalNav />
@@ -10,7 +10,7 @@ export default function CostofLivingPage() {
           Cost of Living
         </h1>
         <p className="text-lg text-slate-500 max-w-2xl mb-8">
-          This section is currently being updated. Please check back later for full details.
+          Discover comprehensive resources and essential information tailored for the Jesmond community. Explore our latest updates and detailed policies.
         </p>
         <div className="w-16 h-1 bg-indigo-500 mx-auto rounded-full"></div>
       </main>

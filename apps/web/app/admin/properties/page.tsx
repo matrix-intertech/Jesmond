@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import { getAccessToken, clearAuth, getCurrentUser } from '@/utils/auth';
 
 export default function AdminPendingPropertiesPage() {
   const router = useRouter();
@@ -11,9 +13,14 @@ export default function AdminPendingPropertiesPage() {
   const [error, setError] = useState('');
 
   const fetchPending = async () => {
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     if (!token) {
       router.push('/login');
+      return;
+    }
+    const currentUser = getCurrentUser();
+    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN')) {
+      router.push(currentUser?.role === 'PROVIDER' ? '/portal' : currentUser?.role === 'STUDENT' ? '/student' : '/');
       return;
     }
 
@@ -42,10 +49,8 @@ export default function AdminPendingPropertiesPage() {
   if (error) return <div className="p-12 text-center text-red-600">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <GlobalNav />
-      <main className="max-w-5xl mx-auto px-6 py-12">
-        <h1 className="text-3xl font-medium text-slate-900 font-outfit mb-8">Pending Properties</h1>
+    <DashboardShell role="ADMIN">
+      <PageHeader title="Pending Properties" description="Review properties submitted by providers" />
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left">
@@ -81,7 +86,6 @@ export default function AdminPendingPropertiesPage() {
             </tbody>
           </table>
         </div>
-      </main>
-    </div>
+    </DashboardShell>
   );
 }

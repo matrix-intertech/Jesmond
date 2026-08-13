@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
 
 interface ApplicationDetail {
   id: string;
@@ -42,8 +44,13 @@ export default function ApplicationDetailPage() {
 
   const fetchApplication = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/login');
+      const token = getAccessToken();
+      const currentUser = getCurrentUser();
+      if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
+        if (!currentUser) clearAuth();
+        router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
+        return;
+      }
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -62,7 +69,7 @@ export default function ApplicationDetailPage() {
     setActionLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getAccessToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${id}/${action}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -86,12 +93,9 @@ export default function ApplicationDetailPage() {
   if (!app) return <div className="p-10 text-center text-rose-500">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <GlobalNav />
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
-        <div className="mb-6">
-          <button onClick={() => router.back()} className="text-indigo-600 font-semibold text-sm hover:underline">&larr; Back to Applications</button>
-        </div>
+    <DashboardShell role="PROVIDER">
+      <PageHeader title="Application Details" onBack={() => router.push('/portal/applications')} />
+      <div className="max-w-4xl mx-auto py-8">
         
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <div className="flex justify-between items-start mb-8">
@@ -170,7 +174,7 @@ export default function ApplicationDetailPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

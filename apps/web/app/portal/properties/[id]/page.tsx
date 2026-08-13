@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { GlobalNav } from "../../../../components/marketing/GlobalNav";
+import { SafeImage } from '../../../../components/ui/SafeImage';
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
 
 export default function AccommodationManagementPage() {
   const router = useRouter();
@@ -11,6 +14,8 @@ export default function AccommodationManagementPage() {
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState('');
+  const [submitConfirm, setSubmitConfirm] = useState(false);
   
   // Forms
   const [newRoom, setNewRoom] = useState({ name: '', description: '', price: '', inventory: '' });
@@ -18,9 +23,11 @@ export default function AccommodationManagementPage() {
   const [availCount, setAvailCount] = useState('');
 
   const fetchProperty = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/login');
+    const token = getAccessToken();
+    const currentUser = getCurrentUser();
+    if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
+      if (!currentUser) clearAuth();
+      router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
       return;
     }
 
@@ -49,7 +56,7 @@ export default function AccommodationManagementPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     const formData = new FormData();
     formData.append('file', file);
 
@@ -61,18 +68,21 @@ export default function AccommodationManagementPage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        alert(err.message || 'Upload failed');
+        setError(err.message || 'Upload failed');
+      } else {
+        setToast('Image uploaded successfully');
+        setTimeout(() => setToast(''), 3000);
       }
       fetchProperty();
     } catch (err) {
       console.error(err);
-      alert('Upload failed');
+      setError('Upload failed');
     }
   };
 
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms`, {
         method: 'POST',
@@ -89,19 +99,22 @@ export default function AccommodationManagementPage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        alert(Array.isArray(err.message) ? err.message.join(', ') : err.message);
+        setError(Array.isArray(err.message) ? err.message.join(', ') : err.message);
         return;
       }
       setNewRoom({ name: '', description: '', price: '', inventory: '' });
+      setToast('Room created successfully');
+      setTimeout(() => setToast(''), 3000);
       fetchProperty();
     } catch (err) {
       console.error(err);
+      setError('Failed to create room');
     }
   };
 
   const handleUpdateAvailability = async (roomId: string) => {
-    if (!availDate || !availCount) return alert('Date and count required');
-    const token = localStorage.getItem('access_token');
+    if (!availDate || !availCount) return setError('Date and count required');
+    const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms/${roomId}/availability`, {
         method: 'PUT',
@@ -116,20 +129,22 @@ export default function AccommodationManagementPage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        alert(Array.isArray(err.message) ? err.message.join(', ') : err.message);
+        setError(Array.isArray(err.message) ? err.message.join(', ') : err.message);
         return;
       }
       setAvailDate('');
       setAvailCount('');
+      setToast('Availability updated');
+      setTimeout(() => setToast(''), 3000);
       fetchProperty();
     } catch (err) {
       console.error(err);
+      setError('Failed to update availability');
     }
   };
 
   const handleSubmitReview = async () => {
-    if (!confirm('Submit this property for review? You will not be able to edit it while pending.')) return;
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/submit`, {
         method: 'POST',
@@ -137,13 +152,18 @@ export default function AccommodationManagementPage() {
       });
       if (!res.ok) {
         const err = await res.json();
-        alert(err.message);
+        setError(err.message);
+        setSubmitConfirm(false);
         return;
       }
-      alert('Property submitted for review!');
+      setToast('Property submitted for review!');
+      setSubmitConfirm(false);
+      setTimeout(() => setToast(''), 3000);
       fetchProperty();
     } catch (err) {
       console.error(err);
+      setError('Failed to submit');
+      setSubmitConfirm(false);
     }
   };
 
@@ -155,9 +175,9 @@ export default function AccommodationManagementPage() {
   const isPublished = property.status === 'PUBLISHED';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <GlobalNav />
-      <main className="max-w-5xl mx-auto px-6 py-12">
+    <DashboardShell role="PROVIDER">
+      <PageHeader title={property.name} description={`${property.address}, ${property.suburb.name}`} onBack={() => router.push('/portal')} />
+      <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-medium text-slate-900 font-outfit">{property.name}</h1>
@@ -168,9 +188,21 @@ export default function AccommodationManagementPage() {
               {property.status}
             </span>
             {property.status === 'DRAFT' && (
-              <button onClick={handleSubmitReview} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">
-                Submit for Review
-              </button>
+              <div className="relative">
+                <button onClick={() => setSubmitConfirm(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">
+                  Submit for Review
+                </button>
+                {submitConfirm && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border shadow-lg rounded-xl p-4 z-10">
+                    <h3 className="font-semibold text-sm mb-2">Submit for Review?</h3>
+                    <p className="text-xs text-gray-600 mb-4">You will not be able to edit it while pending.</p>
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-gray-500">Cancel</button>
+                      <button onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-indigo-600 text-white rounded">Submit</button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             {isPublished && (
               <a href={`/property/${property.id}`} target="_blank" className="text-indigo-600 text-sm hover:underline">
@@ -179,6 +211,12 @@ export default function AccommodationManagementPage() {
             )}
           </div>
         </div>
+
+        {error && <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-8 relative">
+          {error}
+          <button onClick={() => setError('')} className="absolute top-4 right-4 text-red-500 hover:text-red-700">✕</button>
+        </div>}
+        {toast && <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-8">{toast}</div>}
         
         {isPending && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-8">
@@ -194,7 +232,7 @@ export default function AccommodationManagementPage() {
             <div className="flex flex-wrap gap-4 mb-4">
               {property.media.map((m: any) => (
                 <div key={m.id} className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                  <img src={m.url} alt="Property" className="object-cover w-full h-full" />
+                  <SafeImage src={m.url} alt="Property" fill className="object-cover w-full h-full" />
                 </div>
               ))}
             </div>
@@ -266,7 +304,7 @@ export default function AccommodationManagementPage() {
           </section>
 
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

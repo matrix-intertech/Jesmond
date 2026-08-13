@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import { SafeImage } from '@/components/ui/SafeImage';
+import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
 
 export default function AdminPropertyReviewPage() {
   const router = useRouter();
@@ -11,9 +14,18 @@ export default function AdminPropertyReviewPage() {
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [rejectPrompt, setRejectPrompt] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const fetchProperty = async () => {
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
+    const currentUser = getCurrentUser();
+    if (!token || !currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN')) {
+      if (!currentUser) clearAuth();
+      router.push(currentUser?.role === 'PROVIDER' ? '/portal' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
+      return;
+    }
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -34,24 +46,23 @@ export default function AdminPropertyReviewPage() {
 
   const handleApprove = async () => {
     if (!confirm('Approve and publish this property?')) return;
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/approve`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) throw new Error(await res.text());
-      alert('Approved!');
-      router.push('/admin/properties');
+      setSuccess('Approved successfully!');
+      setTimeout(() => router.push('/admin/properties'), 1500);
     } catch (err: any) {
-      alert(err.message);
+      setError(err.message);
     }
   };
 
   const handleReject = async () => {
-    const reason = prompt('Reason for rejection? (Will be saved in audit log)');
-    if (reason === null) return;
-    const token = localStorage.getItem('access_token');
+    if (!rejectReason) return;
+    const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/reject`, {
         method: 'POST',
@@ -59,13 +70,14 @@ export default function AdminPropertyReviewPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ reason })
+        body: JSON.stringify({ reason: rejectReason })
       });
       if (!res.ok) throw new Error(await res.text());
-      alert('Rejected!');
-      router.push('/admin/properties');
+      setSuccess('Rejected successfully!');
+      setTimeout(() => router.push('/admin/properties'), 1500);
     } catch (err: any) {
-      alert(err.message);
+      setError(err.message);
+      setRejectPrompt(false);
     }
   };
 
@@ -76,9 +88,9 @@ export default function AdminPropertyReviewPage() {
   const isPending = property.status === 'PENDING_APPROVAL';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <GlobalNav />
-      <main className="max-w-5xl mx-auto px-6 py-12">
+    <DashboardShell role="ADMIN">
+      <PageHeader title="Property Review" description="Review and approve property submissions" onBack={() => router.push('/admin/properties')} />
+      <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-medium text-slate-900 font-outfit mb-2">{property.name}</h1>
@@ -90,17 +102,35 @@ export default function AdminPropertyReviewPage() {
               {property.status}
             </span>
             {isPending && (
-              <div className="flex gap-2">
-                <button onClick={handleReject} className="bg-red-50 text-red-700 px-4 py-2 rounded-md hover:bg-red-100 text-sm font-medium">
+              <div className="flex gap-2 relative">
+                <button onClick={() => setRejectPrompt(true)} className="bg-red-50 text-red-700 px-4 py-2 rounded-md hover:bg-red-100 text-sm font-medium">
                   Reject
                 </button>
                 <button onClick={handleApprove} className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium">
                   Approve & Publish
                 </button>
+                {rejectPrompt && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border shadow-lg rounded-xl p-4 z-10">
+                    <h3 className="font-semibold text-sm mb-2">Reason for rejection</h3>
+                    <textarea 
+                      className="w-full border rounded p-2 text-sm mb-3"
+                      placeholder="Will be saved in audit log"
+                      value={rejectReason}
+                      onChange={e => setRejectReason(e.target.value)}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => setRejectPrompt(false)} className="text-xs px-3 py-1 text-gray-500">Cancel</button>
+                      <button onClick={handleReject} className="text-xs px-3 py-1 bg-red-600 text-white rounded">Confirm Reject</button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
+
+        {success && <div className="bg-green-100 text-green-700 p-4 rounded-xl mb-6 font-semibold">{success}</div>}
+        {error && <div className="bg-red-100 text-red-700 p-4 rounded-xl mb-6 font-semibold">{error}</div>}
 
         <div className="space-y-8">
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -113,7 +143,7 @@ export default function AdminPropertyReviewPage() {
             <div className="flex flex-wrap gap-4">
               {property.media.map((m: any) => (
                 <div key={m.id} className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden">
-                  <img src={m.url} alt="Property" className="object-cover w-full h-full" />
+                  <SafeImage src={m.url} alt="Property" className="object-cover w-full h-full" width={128} height={128} />
                 </div>
               ))}
             </div>
@@ -139,7 +169,7 @@ export default function AdminPropertyReviewPage() {
             </div>
           </section>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

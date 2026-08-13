@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlobalNav } from "../../../components/marketing/GlobalNav";
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
@@ -22,9 +24,11 @@ export default function CreatePropertyPage() {
   });
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      router.push('/login');
+    const token = getAccessToken();
+    const currentUser = getCurrentUser();
+    if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
+      if (!currentUser) clearAuth();
+      router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
       return;
     }
 
@@ -43,7 +47,7 @@ export default function CreatePropertyPage() {
     setLoading(true);
     setError('');
 
-    const token = localStorage.getItem('access_token');
+    const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties`, {
         method: 'POST',
@@ -86,18 +90,9 @@ export default function CreatePropertyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <GlobalNav />
-      <main className="max-w-[800px] mx-auto px-6 py-12">
-        <div className="mb-8 flex justify-between items-center">
-          <h1 className="text-3xl font-medium text-slate-900 font-outfit">
-            Create Accommodation
-          </h1>
-          <button onClick={() => router.push('/portal')} className="text-gray-500 hover:text-gray-700">
-            Cancel
-          </button>
-        </div>
-
+    <DashboardShell role="PROVIDER">
+      <PageHeader title="Create Accommodation" onBack={() => router.push('/portal')} />
+      <div className="max-w-[800px] mx-auto py-12">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6">
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-md text-sm">{error}</div>}
 
@@ -153,7 +148,7 @@ export default function CreatePropertyPage() {
             </button>
           </div>
         </form>
-      </main>
-    </div>
+      </div>
+    </DashboardShell>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { getAccessToken } from '@/utils/auth';
 
 export function PropertyActions({ propertyId, roomTypes }: { propertyId: string, roomTypes: any[] }) {
   const [showEnquiry, setShowEnquiry] = useState(false);
@@ -18,7 +19,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
 
   const isLoggedIn = () => {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem("access_token");
+    return !!getAccessToken();
   };
 
   const handleEnquiry = async (e: React.FormEvent) => {
@@ -28,7 +29,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
     setSuccess("");
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getAccessToken();
       if (!token) throw new Error("Please login to send an enquiry");
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${propertyId}/enquiries`, {
@@ -38,7 +39,8 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
       });
 
       if (!res.ok) {
-        const err = await res.json();
+        const isJson = res.headers.get('content-type')?.includes('application/json');
+        const err = isJson ? await res.json() : { message: await res.text() };
         throw new Error(err.message || "Failed to send enquiry");
       }
 
@@ -58,7 +60,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
     setSuccess("");
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getAccessToken();
       if (!token) throw new Error("Please login to apply");
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications`, {
@@ -68,7 +70,8 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
       });
 
       if (!res.ok) {
-        const err = await res.json();
+        const isJson = res.headers.get('content-type')?.includes('application/json');
+        const err = isJson ? await res.json() : { message: await res.text() };
         throw new Error(err.message || "Failed to submit application");
       }
 

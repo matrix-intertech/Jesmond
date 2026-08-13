@@ -2,93 +2,179 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+import { getAccessToken, getCurrentUser, clearAuth, User } from '@/utils/auth';
+import { fetchFeatureFlag, handleApiError } from '@/utils/api';
+import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
+import DashboardShell from '@/components/layout/DashboardShell';
+import PageHeader from '@/components/ui/PageHeader';
+import StatusBadge from '@/components/ui/StatusBadge';
+import Link from 'next/link';
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
+
+  const [user, setUser] = useState<User | null>(null);
   const [paymentsEnabled, setPaymentsEnabled] = useState<boolean | null>(null);
+  const [pendingProperties, setPendingProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"enable" | "disable" | null>(null);
 
-  const router = useRouter();
-
+  // Initialise user, feature flag (if SUPER_ADMIN) and pending list
   useEffect(() => {
-    fetchFeatures();
+    const init = async () => {
+      try {
+        const token = getAccessToken();
+        const currentUser = getCurrentUser();
+        if (!token || !currentUser) {
+          clearAuth();
+          return router.push('/login');
+        }
+        if (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN') {
+          return router.push(currentUser.role === 'PROVIDER' ? '/portal' : currentUser.role === 'STUDENT' ? '/student' : '/');
+        }
+        setUser(currentUser);
+
+        // Load feature flag for SUPER_ADMIN only
+        if (currentUser.role === 'SUPER_ADMIN') {
+          const flag = await fetchFeatureFlag('PAYMENTS_BOOKING', token);
+          if (flag) setPaymentsEnabled(flag.enabled);
+        }
+
+        // Load pending properties (available to both ADMIN and SUPER_ADMIN)
+        const pendingRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/pending`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const status = await handleApiError(pendingRes, () => { clearAuth(); router.push('/login'); });
+        if (status === 'ok') {
+          const data = await pendingRes.json();
+          // Expected to be an array of properties
+          setPendingProperties(Array.isArray(data) ? data : data.properties || []);
+        } else {
+          setError('Failed to load pending properties.');
+        }
+      } catch (e) {
+        setError('An unexpected error occurred while loading the dashboard.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, []);
 
-  const fetchFeatures = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      if (!token) return router.push('/login');
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features/PAYMENTS_BOOKING`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPaymentsEnabled(data.enabled);
-      } else {
-        if (res.status === 401 || res.status === 403) {
-          router.push('/login');
-        } else {
-          setError('Failed to load feature states.');
-        }
-      }
-    } catch (e) {
-      setError('An error occurred loading features.');
-    } finally {
-      setLoading(false);
-    }
+  const confirmToggle = (action: "enable" | "disable") => {
+    setPendingAction(action);
+    setShowConfirm(true);
   };
 
-  const togglePayments = async () => {
-    const action = paymentsEnabled ? 'Disable' : 'Enable';
-    const confirmMessage = paymentsEnabled 
-      ? "Are you sure you want to disable Payments & Booking? Students will no longer be able to start new payments or activate bookings. Existing confirmed bookings must remain unaffected."
-      : "Enable Payments & Booking? Students will be able to make payments and activate bookings.";
-
-    if (!window.confirm(confirmMessage)) return;
-
+  const performToggle = async () => {
+    if (!pendingAction) return;
+    const enable = pendingAction === 'enable';
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getAccessToken();
+      if (!token) return;
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features/PAYMENTS_BOOKING`, {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enabled: !paymentsEnabled })
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: enable }),
       });
-
-      if (res.ok) {
+      const status = await handleApiError(res, () => { clearAuth(); router.push('/login'); });
+      if (status === 'ok') {
         const data = await res.json();
         setPaymentsEnabled(data.enabled);
         setToast(`Payments & Booking ${data.enabled ? 'enabled' : 'disabled'}.`);
         setTimeout(() => setToast(''), 3000);
+      } else if (status === 'forbidden') {
+        setError('You do not have permission to modify this feature.');
       } else {
         setError('Unable to update feature status.');
       }
     } catch (e) {
       setError('Unable to update feature status.');
+    } finally {
+      setShowConfirm(false);
+      setPendingAction(null);
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading dashboard...</div>;
+  if (loading) {
+    return <div className="p-10 text-center">Loading dashboard...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <GlobalNav />
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">Super Admin Dashboard</h1>
-        
-        {error && <div className="bg-rose-100 text-rose-700 p-4 rounded-xl mb-6 font-semibold">{error}</div>}
-        {toast && <div className="bg-emerald-100 text-emerald-700 p-4 rounded-xl mb-6 font-semibold">{toast}</div>}
+    <DashboardShell role={user?.role as any}>
+      <PageHeader
+        title={user?.role === 'SUPER_ADMIN' ? 'Super Admin Dashboard' : 'Admin Dashboard'}
+        description="Manage accommodation listings, review submissions and oversee marketplace activity."
+        primaryAction={{ label: 'View All Properties', href: '/admin/properties', onClick: () => router.push('/admin/properties') }}
+      />
 
-        <div className="bg-white rounded-2xl shadow-sm border p-8">
+      {error && <div className="bg-rose-100 text-rose-700 p-4 rounded-xl mb-6 font-semibold">{error}</div>}
+      {toast && <div className="bg-emerald-100 text-emerald-700 p-4 rounded-xl mb-6 font-semibold">{toast}</div>}
+
+      {/* Needs Your Attention Section */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">Needs Your Attention</h2>
+        {pendingProperties.length === 0 ? (
+          <div className="bg-slate-100 p-6 rounded-xl text-center">
+            <p className="font-medium text-slate-700">You're all caught up</p>
+            <p className="text-slate-600">No properties are currently waiting for review.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <table className="min-w-full table-auto hidden md:table">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium text-slate-600">Property</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-600">Location</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-600">Provider</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-600">Status</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-600">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingProperties.map((prop) => (
+                  <tr key={prop.id} className="border-b border-slate-200">
+                    <td className="px-4 py-2">{prop.name}</td>
+                    <td className="px-4 py-2">{prop.suburb?.name}, {prop.suburb?.city?.name}</td>
+                    <td className="px-4 py-2">{prop.organization?.name}</td>
+                    <td className="px-4 py-2"><StatusBadge status="PENDING_APPROVAL" /></td>
+                    <td className="px-4 py-2">
+                      <Link href={`/admin/properties/${prop.id}`} className="text-indigo-600 hover:underline">Review</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Mobile Cards */}
+            <div className="grid gap-4 md:hidden mt-4">
+              {pendingProperties.map((prop) => (
+                <div key={prop.id} className="bg-white rounded-xl shadow-sm p-4 border">
+                  <h3 className="font-semibold text-slate-900 mb-1">{prop.name}</h3>
+                  <p className="text-sm text-slate-600 mb-1">{prop.suburb?.name}, {prop.suburb?.city?.name}</p>
+                  <p className="text-sm text-slate-600 mb-1">Provider: {prop.organization?.name}</p>
+                  <StatusBadge status="PENDING_APPROVAL" />
+                  <div className="mt-2">
+                    <Link href={`/admin/properties/${prop.id}`} className="text-indigo-600 hover:underline text-sm">Review</Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Feature Controls – only for SUPER_ADMIN */}
+      {user?.role === 'SUPER_ADMIN' && (
+        <section className="bg-white rounded-2xl shadow-sm border p-8">
           <h2 className="text-2xl font-bold text-slate-900 mb-6 pb-4 border-b">Feature Controls</h2>
-          
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-50 p-6 rounded-xl border">
             <div className="mb-4 md:mb-0 max-w-lg">
-              <h3 className="font-bold text-lg text-slate-900 mb-2">Payments & Booking</h3>
+              <h3 className="font-bold text-lg text-slate-900 mb-2">Payments &amp; Booking</h3>
               <p className="text-slate-600 mb-3">Allow students to make payments and activate accommodation bookings.</p>
-              
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-slate-500">Status:</span>
                 {paymentsEnabled ? (
@@ -102,20 +188,23 @@ export default function AdminDashboardPage() {
                 )}
               </div>
             </div>
-            
             <button
-              onClick={togglePayments}
-              className={`font-bold py-3 px-6 rounded-xl transition min-w-[120px] ${
-                paymentsEnabled 
-                  ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' 
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
-              }`}
+              onClick={() => confirmToggle(paymentsEnabled ? 'disable' : 'enable')}
+              className={`font-bold py-3 px-6 rounded-xl transition min-w-[120px] ${paymentsEnabled ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
             >
               {paymentsEnabled ? 'Disable' : 'Enable'}
             </button>
           </div>
-        </div>
-      </main>
-    </div>
+        </section>
+      )}
+
+      <ConfirmationDialog
+        open={showConfirm}
+        title={pendingAction === 'enable' ? 'Enable Payments & Booking' : 'Disable Payments & Booking'}
+        message={pendingAction === 'enable' ? 'Enable Payments & Booking? Students will be able to make payments and activate bookings.' : 'Are you sure you want to disable Payments & Booking? Students will no longer be able to start new payments or activate bookings.'}
+        onConfirm={performToggle}
+        onCancel={() => setShowConfirm(false)}
+      />
+    </DashboardShell>
   );
 }

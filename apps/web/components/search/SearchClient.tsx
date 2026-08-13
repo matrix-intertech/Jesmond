@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { SafeImage } from "../ui/SafeImage";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { SaveButton } from "../student/SaveButton";
@@ -167,7 +168,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
         {!isLoading && !error && properties.length > 0 && (
           <div className="px-6 sm:px-10 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
             {properties.map((prop) => {
-              const image = (prop.media && prop.media.length > 0 && !prop.media[0].url.includes('/properties/')) ? prop.media[0].url : '/assets/prop_1.png';
+              const image = (prop.media && prop.media.length > 0) ? prop.media[0].url : '/assets/property-placeholder.png';
               const location = `${prop.suburb}, ${prop.city}`;
               const verified = prop.provider?.verified;
 
@@ -183,7 +184,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                     <SaveButton propertyId={prop.id} />
                   </div>
                   <div className="relative w-full sm:w-[300px] h-[240px] sm:h-auto shrink-0 bg-slate-100">
-                    <Image src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
+                    <SafeImage src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
                     {verified && (
                       <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm">
                         Verified

@@ -4,16 +4,23 @@ import { prisma } from "@jesmond/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { SafeImage } from "../../../components/ui/SafeImage";
 
 import { SaveButton } from "../../../components/student/SaveButton";
 import { PropertyActions } from "../../../components/student/PropertyActions";
 
 export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  const property = await prisma.property.findUnique({
-    where: { id: resolvedParams.id },
-    include: { suburb: { include: { city: true } }, organization: true, media: true, roomTypes: true }
-  });
+  let property;
+  try {
+    property = await prisma.property.findUnique({
+      where: { id: resolvedParams.id },
+      include: { suburb: { include: { city: true } }, organization: true, media: true, roomTypes: true }
+    });
+  } catch (error) {
+    // If the ID is an invalid UUID, Prisma will throw an error. We treat this as a 404.
+    return notFound();
+  }
 
   if (!property) return notFound();
 
@@ -36,8 +43,8 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         </div>
         
         <div className="relative w-full h-[500px] rounded-[32px] overflow-hidden mb-16 bg-slate-100">
-          <Image 
-            src={(property.media.length > 0 && !property.media[0].url.includes('/properties/')) ? property.media[0].url : '/assets/prop_1.png'} 
+          <SafeImage 
+            src={(property.media.length > 0) ? property.media[0].url : '/assets/property-placeholder.png'} 
             alt={property.name} 
             fill 
             sizes="100vw"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getAccessToken } from '@/utils/auth';
 
 export function SaveButton({ propertyId }: { propertyId: string }) {
   const [isSaved, setIsSaved] = useState(false);
@@ -10,7 +11,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
     // Check initial state
     const checkSavedState = async () => {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken();
         if (!token) {
           setLoading(false);
           return;
@@ -34,9 +35,9 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
   const toggleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const token = localStorage.getItem("access_token");
+    const token = getAccessToken();
     if (!token) {
-      alert("Please login to save properties.");
+      window.location.href = '/login';
       return;
     }
 
@@ -50,8 +51,6 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
       });
       if (res.ok) {
         setIsSaved(!isSaved);
-      } else {
-        alert("Failed to update save status.");
       }
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { SafeImage } from "../ui/SafeImage";
 import Link from "next/link";
 
 const PROPERTIES = [
@@ -72,7 +73,7 @@ export function PropertyDiscovery() {
             
             {/* Massive Image Header */}
             <div className="relative w-full h-[360px] overflow-hidden bg-slate-100">
-              <Image 
+              <SafeImage 
                 src={property.image}
                 alt={property.name}
                 fill
@@ -169,7 +170,7 @@ export function PropertyDiscovery() {
               </div>
 
               {/* Ultimate CTA */}
-              <Link href={`/property/${property.id}`} className="w-full mt-auto">
+              <Link href="/search" className="w-full mt-auto">
                 <button className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 group/btn">
                   View Property
                   <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
