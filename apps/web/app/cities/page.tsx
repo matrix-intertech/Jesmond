@@ -1,10 +1,13 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
-import { City, State } from "@prisma/client";
 import Link from "next/link";
 
-type CityWithState = City & { state: State };
+interface CityWithState {
+  id: string;
+  name: string;
+  state: { name: string };
+}
 
 export default async function CitiesPage() {
   const cities = await prisma.city.findMany({ include: { state: true } });

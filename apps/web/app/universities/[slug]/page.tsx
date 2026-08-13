@@ -1,11 +1,14 @@
 import { GlobalNav } from "../../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
-import { Campus, Suburb, City } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-type CampusWithLocation = Campus & { suburb: Suburb & { city: City } };
+interface CampusWithLocation {
+  id: string;
+  name: string;
+  suburb: { name: string; city: { name: string } };
+}
 
 export default async function UniversityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;

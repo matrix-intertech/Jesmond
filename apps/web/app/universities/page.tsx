@@ -1,12 +1,21 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
-import { University, Campus, Suburb, City } from "@prisma/client";
 import Link from "next/link";
 import Image from "next/image";
 
-type CampusWithLocation = Campus & { suburb: Suburb & { city: City } };
-type UniversityWithCampuses = University & { campuses: CampusWithLocation[] };
+interface CampusWithLocation {
+  id: string;
+  name: string;
+  suburb: { name: string; city: { name: string } };
+}
+
+interface UniversityWithCampuses {
+  id: string;
+  name: string;
+  slug: string;
+  campuses: CampusWithLocation[];
+}
 
 export default async function UniversitiesPage() {
   const universities = await prisma.university.findMany({
