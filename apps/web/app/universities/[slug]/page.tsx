@@ -1,8 +1,11 @@
 import { GlobalNav } from "../../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
+import { Campus, Suburb, City } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+
+type CampusWithLocation = Campus & { suburb: Suburb & { city: City } };
 
 export default async function UniversityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
@@ -22,7 +25,7 @@ export default async function UniversityDetailPage({ params }: { params: Promise
           {uni.name}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-          {uni.campuses.map((c) => (
+          {uni.campuses.map((c: CampusWithLocation) => (
             <div key={c.id} className="border border-slate-200 rounded-[24px] p-6 flex flex-col justify-between">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">{c.name}</h3>

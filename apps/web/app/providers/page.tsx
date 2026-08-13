@@ -1,6 +1,7 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
+import { Organization } from "@prisma/client";
 import Link from "next/link";
 
 export default async function ProvidersPage() {
@@ -15,7 +16,7 @@ export default async function ProvidersPage() {
         </h1>
         <p className="text-lg text-slate-500 max-w-2xl mb-12">Discover properties managed by Australia's most trusted student accommodation providers.</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {providers.map((provider) => (
+          {providers.map((provider: Organization) => (
             <div key={provider.id} className="group border border-slate-200 rounded-[24px] p-8 flex flex-col justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">{provider.name}</h2>

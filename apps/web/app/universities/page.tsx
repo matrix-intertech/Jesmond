@@ -1,8 +1,12 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
+import { University, Campus, Suburb, City } from "@prisma/client";
 import Link from "next/link";
 import Image from "next/image";
+
+type CampusWithLocation = Campus & { suburb: Suburb & { city: City } };
+type UniversityWithCampuses = University & { campuses: CampusWithLocation[] };
 
 export default async function UniversitiesPage() {
   const universities = await prisma.university.findMany({
@@ -25,13 +29,13 @@ export default async function UniversitiesPage() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {universities.map((uni) => (
+          {universities.map((uni: UniversityWithCampuses) => (
             <Link key={uni.id} href={`/universities/${uni.slug}`} className="group border border-slate-200 rounded-[24px] p-8 hover:shadow-lg transition-all flex flex-col justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">{uni.name}</h2>
                 <p className="text-slate-500 mb-4">{uni.campuses.length} Campuses</p>
                 <div className="flex flex-wrap gap-2 mt-4">
-                  {uni.campuses.slice(0,3).map(c => (
+                  {uni.campuses.slice(0,3).map((c: CampusWithLocation) => (
                     <span key={c.id} className="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full">{c.name} ({c.suburb.city.name})</span>
                   ))}
                 </div>
