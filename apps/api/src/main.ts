@@ -10,6 +10,9 @@ import { Request, Response, NextFunction } from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
+const expressApp = app.getHttpAdapter().getInstance();
+expressApp.set('trust proxy', 1);
+
   // 1. Request Logging via Pino
   app.useLogger(app.get(Logger));
 
@@ -35,7 +38,10 @@ async function bootstrap() {
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // limit each IP to 100 requests per windowMs
+      max: 100, // limit each client IP to 100 requests per windowMs
+      standardHeaders: true,
+      legacyHeaders: true,
+      message: 'Too many requests, please try again later.',
     }),
   );
 

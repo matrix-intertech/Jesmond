@@ -1,6 +1,15 @@
-version: '3.8'
-
 services:
+
+  jesmond-redis:
+    image: redis:7-alpine
+    container_name: jesmond-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - jesmond-redis-data:/data
+    networks:
+      - jesmond-network
+
   jesmond-api:
     build:
       context: .
@@ -8,12 +17,15 @@ services:
     container_name: jesmond-api
     restart: unless-stopped
     ports:
-      # Exposing to 3001 locally, Nginx will proxy to localhost:3001
-      - "127.0.0.1:3001:3001"
+      - "127.0.0.1:3301:3001"
     env_file:
       - .env.production
     environment:
-      - NODE_ENV=production
+      NODE_ENV: production
+      REDIS_HOST: jesmond-redis
+      REDIS_PORT: 6379
+    depends_on:
+      - jesmond-redis
     networks:
       - jesmond-network
 
@@ -21,20 +33,29 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://jesmondapi.matrixspaces.com
+        NEXT_PUBLIC_R2_PUBLIC_URL: https://pub-a858d2d933774b55b48ab730707eac3d.r2.dev
+        DATABASE_URL: postgresql://jesmond:Jesmond123@jesmond-postgres:5432/jesmond
     container_name: jesmond-web
     restart: unless-stopped
     ports:
-      # Exposing to 3000 locally, Nginx will proxy to localhost:3000
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3300:3000"
     env_file:
       - .env.production
     environment:
-      - NODE_ENV=production
-    networks:
-      - jesmond-network
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://jesmondapi.matrixspaces.com
+      NEXT_PUBLIC_R2_PUBLIC_URL: https://pub-a858d2d933774b55b48ab730707eac3d.r2.dev
     depends_on:
       - jesmond-api
+    networks:
+      - jesmond-network
 
 networks:
   jesmond-network:
-    driver: bridge
+    external: true
+
+volumes:
+  jesmond-redis-data:
+    external: true

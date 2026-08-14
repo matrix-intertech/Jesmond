@@ -2,7 +2,16 @@
 # Build stage
 FROM node:22-alpine AS builder
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
+
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_R2_PUBLIC_URL
+ARG DATABASE_URL
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_R2_PUBLIC_URL=$NEXT_PUBLIC_R2_PUBLIC_URL
+ENV DATABASE_URL=$DATABASE_URL
+
 WORKDIR /app
 
 # Enable corepack for pnpm
@@ -16,6 +25,7 @@ COPY packages/ ./packages/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @jesmond/db run db:generate
 
 # Copy the rest of the application code
 COPY . .

@@ -195,7 +195,7 @@ async function main() {
             data: {
               studentId: student.id,
               roomTypeId: rt1.id,
-              status: 'PENDING',
+              status: 'PENDING_REVIEW',
               moveInDate: new Date(),
               durationMonths: 6,
               lockedPrice: rt1.pricePerWeek
@@ -278,7 +278,6 @@ async function main() {
       data: {
         key: 'PAYMENTS_BOOKING',
         enabled: true,
-        description: 'Enable payment booking functionality'
       }
     });
     console.log('Created feature flag PAYMENTS_BOOKING');

@@ -1,6 +1,7 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 
 interface OrganizationRecord {

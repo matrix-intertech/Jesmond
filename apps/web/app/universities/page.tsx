@@ -2,6 +2,7 @@ import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
 import Link from "next/link";
+export const dynamic = "force-dynamic";
 import Image from "next/image";
 
 interface CampusWithLocation {
