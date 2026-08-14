@@ -172,4 +172,49 @@ export class ApplicationsService {
 
     return updatedApp;
   }
+
+  // Admin: list all applications with necessary relations
+  async adminFindAll() {
+    return this.prisma.application.findMany({
+      include: {
+        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        roomType: {
+          include: {
+            property: {
+              select: {
+                id: true,
+                name: true,
+                organization: { select: { name: true } },
+                suburb: { select: { name: true, city: { select: { name: true } } } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // Admin: get single application detail with relations
+  async adminFindOne(id: string) {
+    return this.prisma.application.findUnique({
+      where: { id },
+      include: {
+        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        roomType: {
+          include: {
+            property: {
+              select: {
+                id: true,
+                name: true,
+                organization: { select: { name: true } },
+                suburb: { select: { name: true, city: { select: { name: true } } } },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
 }
