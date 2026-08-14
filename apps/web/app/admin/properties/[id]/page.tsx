@@ -102,8 +102,8 @@ export default function AdminPropertyReviewPage() {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-medium text-slate-900 font-outfit mb-2">{property.name}</h1>
-            <p className="text-gray-500 mb-1">Provider: <strong>{property.organization.name}</strong></p>
-            <p className="text-gray-500">{property.address}, {property.suburb.name}</p>
+            <p className="text-gray-600 mb-1">Provider: <strong>{property.organization.name}</strong></p>
+            <p className="text-gray-600">{property.address}, {property.suburb.name}</p>
           </div>
           <div className="flex flex-col items-end gap-4">
             <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
@@ -127,7 +127,7 @@ export default function AdminPropertyReviewPage() {
                       onChange={e => setRejectReason(e.target.value)}
                     />
                     <div className="flex gap-2 justify-end">
-                      <button onClick={() => setRejectPrompt(false)} className="text-xs px-3 py-1 text-gray-500">Cancel</button>
+                      <button onClick={() => setRejectPrompt(false)} className="text-xs px-3 py-1 text-gray-600">Cancel</button>
                       <button onClick={handleReject} className="text-xs px-3 py-1 bg-red-600 text-white rounded">Confirm Reject</button>
                     </div>
                   </div>
@@ -165,11 +165,11 @@ export default function AdminPropertyReviewPage() {
                   <div className="flex justify-between">
                     <div>
                       <h3 className="font-medium">{room.name}</h3>
-                      <p className="text-sm text-gray-500">{room.description}</p>
+                      <p className="text-sm text-gray-600">{room.description}</p>
                     </div>
                     <div className="text-right">
                       <div className="font-medium">${(room.pricePerWeek / 100).toFixed(2)}/wk</div>
-                      <div className="text-sm text-gray-500">Inv: {room.inventory}</div>
+                      <div className="text-sm text-gray-600">Inv: {room.inventory}</div>
                     </div>
                   </div>
                 </div>

@@ -225,9 +225,9 @@ export default function Sidebar({ role }: { role: string }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-sm' : 'text-gray-800 hover:bg-gray-50 hover:text-gray-900'}`}
                 >
-                  <div className={`${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
+                  <div className={`${isActive ? 'text-indigo-600' : 'text-gray-600'}`}>
                     {item.icon}
                   </div>
                   <span>{item.label}</span>
@@ -243,12 +243,12 @@ export default function Sidebar({ role }: { role: string }) {
             </div>
             <div className="flex-1 text-sm overflow-hidden">
               <div className="font-semibold text-slate-900 truncate">{user?.firstName} {user?.lastName}</div>
-              <div className="text-slate-500 text-xs truncate">{user?.email}</div>
+              <div className="text-gray-500 text-xs truncate">{user?.email}</div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all font-medium text-sm shadow-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all font-medium text-sm shadow-sm"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

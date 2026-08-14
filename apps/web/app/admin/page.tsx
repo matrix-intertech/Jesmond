@@ -109,8 +109,8 @@ export default function AdminDashboardPage() {
         <h2 className="text-2xl font-bold text-slate-900 mb-4">Needs Your Attention</h2>
         {pendingProperties.length === 0 ? (
           <div className="bg-slate-100 p-6 rounded-xl text-center">
-            <p className="font-medium text-slate-700">You're all caught up</p>
-            <p className="text-slate-600">No properties are currently waiting for review.</p>
+            <p className="font-medium text-slate-900">You're all caught up</p>
+            <p className="text-slate-500">No properties are currently waiting for review.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -118,21 +118,21 @@ export default function AdminDashboardPage() {
             <table className="min-w-full table-auto hidden md:table">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-slate-600">Property</th>
-                  <th className="px-4 py-2 text-left font-medium text-slate-600">Location</th>
-                  <th className="px-4 py-2 text-left font-medium text-slate-600">Provider</th>
-                  <th className="px-4 py-2 text-left font-medium text-slate-600">Status</th>
-                  <th className="px-4 py-2 text-left font-medium text-slate-600">Action</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-900">Property</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-900">Location</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-900">Provider</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-900">Status</th>
+                  <th className="px-4 py-2 text-left font-medium text-slate-900">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingProperties.map((prop) => (
                   <tr key={prop.id} className="border-b border-slate-200">
-                    <td className="px-4 py-2">{prop.name}</td>
-                    <td className="px-4 py-2">{prop.suburb?.name}, {prop.suburb?.city?.name}</td>
-                    <td className="px-4 py-2">{prop.organization?.name}</td>
+                    <td className="px-4 py-2 text-slate-900">{prop.name}</td>
+                    <td className="px-4 py-2 text-slate-900">{prop.suburb?.name}, {prop.suburb?.city?.name}</td>
+                    <td className="px-4 py-2 text-slate-900">{prop.organization?.name}</td>
                     <td className="px-4 py-2"><StatusBadge status="PENDING_APPROVAL" /></td>
-                    <td className="px-4 py-2">
+                    <td className="px-4 py-2 text-slate-900">
                       <Link href={`/admin/properties/${prop.id}`} className="text-indigo-600 hover:underline">Review</Link>
                     </td>
                   </tr>
@@ -180,7 +180,7 @@ export default function AdminDashboardPage() {
             </div>
             <button
               onClick={() => confirmToggle(paymentsEnabled ? 'disable' : 'enable')}
-              className={`font-bold py-3 px-6 rounded-xl transition min-w-[120px] ${paymentsEnabled ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}`}
+              className={`font-bold py-3 px-6 rounded-xl transition min-w-[120px] ${paymentsEnabled ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-600 text-white hover:emerald-700'}`}
             >
               {paymentsEnabled ? 'Disable' : 'Enable'}
             </button>
