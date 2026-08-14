@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+import { useRouter } from 'next/navigation';
+
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 import StatCard from "@/components/ui/StatCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
-import { getAccessToken, clearAuth, getCurrentUser } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+
 
 interface Application {
   id: string;
@@ -27,46 +28,43 @@ interface Application {
 }
 
 export default function StudentDashboardPage() {
+  const router = useRouter();
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
   const [applications, setApplications] = useState<Application[]>([]);
   const [paymentsEnabled, setPaymentsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = getAccessToken();
+        if (!token) { onAuthError(); return; }
+
+        const appRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/my`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const appStatus = await handleApiError(appRes, onAuthError);
+        if (appStatus === 'ok') {
+          setApplications(await appRes.json());
+        } else if (appStatus === 'forbidden') {
+          setError('You are not authorized to view applications.');
+        } else {
+          setError('Failed to load applications.');
+        }
+
+        const flagRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/payments/status`);
+        if (flagRes.ok) {
+          const flagData = await flagRes.json();
+          setPaymentsEnabled(flagData.enabled);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
   }, []);
-
-  const fetchData = async () => {
-    try {
-      const token = getAccessToken();
-      const currentUser = getCurrentUser();
-      if (!token || !currentUser || currentUser.role !== 'STUDENT') {
-        if (!currentUser) clearAuth();
-        return router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'PROVIDER' ? '/portal' : '/login');
-      }
-
-      const appRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/my`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const appStatus = await handleApiError(appRes, () => { clearAuth(); router.push('/login'); });
-      if (appStatus === 'ok') {
-        setApplications(await appRes.json());
-      } else if (appStatus === 'forbidden') {
-        setError('You are not authorized to view applications.');
-      } else {
-        setError('Failed to load applications.');
-      }
-
-      const flagRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/payments/status`);
-      if (flagRes.ok) {
-        const flagData = await flagRes.json();
-        setPaymentsEnabled(flagData.enabled);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const pendingCount = applications.filter(a => a.status === 'PENDING_REVIEW').length;
   const approvedCount = applications.filter(a => a.status === 'APPROVED').length;
@@ -76,9 +74,7 @@ export default function StudentDashboardPage() {
   if (error) return <div className="p-10 text-center text-rose-600">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <GlobalNav />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 pt-24">
+    <div className="flex-1 max-w-7xl w-full mx-auto py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
             <h1 className="text-3xl font-bold font-outfit text-slate-900">Student Dashboard</h1>
@@ -161,7 +157,6 @@ export default function StudentDashboardPage() {
             </table>
           </div>
         )}
-      </main>
     </div>
   );
 }

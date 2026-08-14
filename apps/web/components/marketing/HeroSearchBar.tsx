@@ -81,7 +81,7 @@ export function HeroSearchBar() {
                 <div className="flex items-center w-full">
                   <div className="flex-1 px-6 py-3 bg-white hover:bg-slate-50 rounded-full cursor-text transition-colors shadow-[0_0_0_2px_white,0_0_0_4px_#e2e8f0] focus-within:shadow-[0_0_0_2px_white,0_0_0_4px_#4f46e5]">
                     <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-widest mb-0.5">Where</label>
-                    <input autoFocus type="text" placeholder="Search university or city" className="w-full bg-transparent outline-none text-slate-900 placeholder-slate-400 text-sm font-medium" />
+                    <input autoFocus type="text" placeholder="Search university or city" className="w-full bg-transparent outline-none text-sm font-medium" />
                   </div>
                   <div className="flex-1 px-6 py-3 hover:bg-slate-50 rounded-full cursor-pointer transition-colors ml-2 border border-transparent hover:border-slate-200">
                     <label className="block text-[10px] font-bold text-slate-800 uppercase tracking-widest mb-0.5">Move In</label>

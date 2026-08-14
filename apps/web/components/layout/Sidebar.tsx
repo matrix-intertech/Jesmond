@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { clearAuth, getCurrentUser } from '@/utils/auth';
+import { clearAuth, getCurrentUser, User } from '@/utils/auth';
 import { useState, useEffect } from 'react';
 
 /**
@@ -176,7 +176,11 @@ export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const user = getCurrentUser?.();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
 
   const visibleItems = navConfig.filter((i) => i.roles.includes(role as any));
 
@@ -203,53 +207,55 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* Sidebar – hidden on mobile unless open */}
       <nav
-        className={`bg-white border-r border-slate-200 w-64 flex flex-col flex-shrink-0 transition-transform duration-200 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} fixed lg:static inset-y-0 left-0 z-30`}
+        className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:static inset-y-0 left-0 z-30`}
       >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-200">
-          <span className="text-xl font-semibold text-slate-900">Jesmond</span>
-          <button className="lg:hidden" onClick={() => setOpen(false)} aria-label="Close navigation">
+        <div className="flex items-center justify-between px-6 py-6">
+          <span className="text-2xl font-bold text-slate-900 font-outfit tracking-tight">Jesmond</span>
+          <button className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition" onClick={() => setOpen(false)} aria-label="Close navigation">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
             </svg>
           </button>
         </div>
-        <ul className="flex-1 overflow-y-auto">
+        <ul className="flex-1 overflow-y-auto px-4 space-y-1 mt-2">
           {visibleItems.map((item) => {
-            const isActive = pathname?.startsWith(item.href);
+            const isActive = pathname?.startsWith(item.href) && (item.href === pathname || item.href !== '/admin' && item.href !== '/portal' && item.href !== '/student' || pathname === item.href);
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 hover:bg-slate-100 transition-colors ${isActive ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                 >
-                  {item.icon}
+                  <div className={`${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    {item.icon}
+                  </div>
                   <span>{item.label}</span>
                 </Link>
               </li>
             );
           })}
         </ul>
-        <div className="border-t border-slate-200 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-slate-300 flex items-center justify-center text-sm font-medium text-white">
+        <div className="p-4 mx-4 mb-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
               {user?.firstName?.[0] ?? 'U'}
             </div>
-            <div className="flex-1 text-sm">
-              <div className="font-medium text-slate-900">{user?.firstName} {user?.lastName}</div>
-              <div className="text-slate-500">{user?.email}</div>
+            <div className="flex-1 text-sm overflow-hidden">
+              <div className="font-semibold text-slate-900 truncate">{user?.firstName} {user?.lastName}</div>
+              <div className="text-slate-500 text-xs truncate">{user?.email}</div>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full text-left flex items-center gap-2 text-slate-600 hover:text-slate-900"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all font-medium text-sm shadow-sm"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
               <polyline points="16 17 21 12 16 7" />
               <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
-            Logout
+            Sign Out
           </button>
         </div>
       </nav>

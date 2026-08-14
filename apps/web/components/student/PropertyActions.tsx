@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
+import { useRouter } from 'next/navigation';
 
 export function PropertyActions({ propertyId, roomTypes }: { propertyId: string, roomTypes: any[] }) {
   const [showEnquiry, setShowEnquiry] = useState(false);
@@ -17,7 +19,9 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
   const [success, setSuccess] = useState("");
   const [applicationResult, setApplicationResult] = useState<any>(null);
 
-  const isLoggedIn = () => {
+  const router = useRouter();
+// Auth error handling will use clearAuth directly in fetch calls
+const isLoggedIn = () => {
     if (typeof window === 'undefined') return false;
     return !!getAccessToken();
   };
@@ -29,24 +33,23 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
     setSuccess("");
 
     try {
-      const token = getAccessToken();
-      if (!token) throw new Error("Please login to send an enquiry");
+        const token = getAccessToken();
+        if (!token) throw new Error("Please login to send an enquiry");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${propertyId}/enquiries`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ message })
-      });
-
-      if (!res.ok) {
-        const isJson = res.headers.get('content-type')?.includes('application/json');
-        const err = isJson ? await res.json() : { message: await res.text() };
-        throw new Error(err.message || "Failed to send enquiry");
-      }
-
-      setSuccess("Enquiry sent successfully!");
-      setTimeout(() => setShowEnquiry(false), 2000);
-    } catch (err: any) {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${propertyId}/enquiries`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ message })
+        });
+        const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+        if (status !== 'ok') {
+          const isJson = res.headers.get('content-type')?.includes('application/json');
+          const err = isJson ? await res.json() : { message: await res.text() };
+          throw new Error(err.message || "Failed to send enquiry");
+        }
+        setSuccess("Enquiry sent successfully!");
+        setTimeout(() => setShowEnquiry(false), 2000);
+      } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
@@ -60,26 +63,25 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
     setSuccess("");
 
     try {
-      const token = getAccessToken();
-      if (!token) throw new Error("Please login to apply");
+        const token = getAccessToken();
+        if (!token) throw new Error("Please login to apply");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ propertyId, roomTypeId: showApply, moveInDate, durationMonths })
-      });
-
-      if (!res.ok) {
-        const isJson = res.headers.get('content-type')?.includes('application/json');
-        const err = isJson ? await res.json() : { message: await res.text() };
-        throw new Error(err.message || "Failed to submit application");
-      }
-
-      const result = await res.json();
-      const selectedRoom = roomTypes.find(r => r.id === showApply);
-      setApplicationResult({ ...result, roomName: selectedRoom?.name, roomPrice: selectedRoom?.pricePerWeek });
-      setSuccess("Application submitted successfully!");
-    } catch (err: any) {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ propertyId, roomTypeId: showApply, moveInDate, durationMonths })
+        });
+        const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+        if (status !== 'ok') {
+          const isJson = res.headers.get('content-type')?.includes('application/json');
+          const err = isJson ? await res.json() : { message: await res.text() };
+          throw new Error(err.message || "Failed to submit application");
+        }
+        const result = await res.json();
+        const selectedRoom = roomTypes.find(r => r.id === showApply);
+        setApplicationResult({ ...result, roomName: selectedRoom?.name, roomPrice: selectedRoom?.pricePerWeek });
+        setSuccess("Application submitted successfully!");
+      } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);

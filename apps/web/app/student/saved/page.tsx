@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { SafeImage } from '../../../components/ui/SafeImage';
 import Link from 'next/link';
-import { GlobalNav } from "@/components/marketing/GlobalNav";
 import EmptyState from "@/components/ui/EmptyState";
-import { getAccessToken, clearAuth, getCurrentUser } from '@/utils/auth';
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { useRouter } from 'next/navigation';
 import { handleApiError } from '@/utils/api';
 
 interface SavedProperty {
@@ -24,7 +23,9 @@ export default function StudentSavedPage() {
   const [properties, setProperties] = useState<SavedProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
   const router = useRouter();
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
 
   useEffect(() => {
     fetchSavedProperties();
@@ -33,16 +34,12 @@ export default function StudentSavedPage() {
   const fetchSavedProperties = async () => {
     try {
       const token = getAccessToken();
-      const currentUser = getCurrentUser();
-      if (!token || !currentUser || currentUser.role !== 'STUDENT') {
-        if (!currentUser) clearAuth();
-        return router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'PROVIDER' ? '/portal' : '/login');
-      }
+      if (!token) return;
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/saved`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const status = await handleApiError(res, () => { clearAuth(); router.push('/login'); });
+      const status = await handleApiError(res, onAuthError);
       if (status === 'ok') {
         setProperties(await res.json());
       } else if (status === 'forbidden') {
@@ -60,20 +57,23 @@ export default function StudentSavedPage() {
   const unsaveProperty = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     const token = getAccessToken();
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${id}/save`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${id}/save`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    setProperties(properties.filter(p => p.id !== id));
+    const status = await handleApiError(res, onAuthError);
+    if (status === 'ok') {
+      setProperties(properties.filter(p => p.id !== id));
+    } else {
+      // Optionally handle errors, keep existing list
+    }
   };
 
   if (loading) return <div className="p-10 text-center">Loading saved properties...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <GlobalNav />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Saved Properties</h1>
+    <div className="flex-1 max-w-7xl w-full mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">Saved Properties</h1>
 
         {properties.length === 0 ? (
           <div className="bg-white p-8 rounded-xl shadow-sm border">
@@ -111,7 +111,6 @@ export default function StudentSavedPage() {
             ))}
           </div>
         )}
-      </main>
     </div>
   );
 }

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken, getCurrentUser, clearAuth, User } from '@/utils/auth';
+import { getAccessToken, clearAuth, User } from '@/utils/auth';
 import { fetchFeatureFlag, handleApiError } from '@/utils/api';
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import Link from 'next/link';
@@ -22,39 +21,30 @@ export default function AdminDashboardPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingAction, setPendingAction] = useState<"enable" | "disable" | null>(null);
 
-  // Initialise user, feature flag (if SUPER_ADMIN) and pending list
   useEffect(() => {
     const init = async () => {
       try {
         const token = getAccessToken();
-        const currentUser = getCurrentUser();
-        if (!token || !currentUser) {
-          clearAuth();
-          return router.push('/login');
-        }
-        if (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN') {
-          return router.push(currentUser.role === 'PROVIDER' ? '/portal' : currentUser.role === 'STUDENT' ? '/student' : '/');
-        }
-        setUser(currentUser);
+        if (!token) return;
 
-        // Load feature flag for SUPER_ADMIN only
-        if (currentUser.role === 'SUPER_ADMIN') {
-          const flag = await fetchFeatureFlag('PAYMENTS_BOOKING', token);
-          if (flag) setPaymentsEnabled(flag.enabled);
-        }
-
-        // Load pending properties (available to both ADMIN and SUPER_ADMIN)
+        // Load pending properties with unified error handling
         const pendingRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/pending`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const status = await handleApiError(pendingRes, () => { clearAuth(); router.push('/login'); });
-        if (status === 'ok') {
+        const pendingStatus = await handleApiError(pendingRes, () => { clearAuth(); router.replace('/login'); });
+        if (pendingStatus === 'ok') {
           const data = await pendingRes.json();
-          // Expected to be an array of properties
           setPendingProperties(Array.isArray(data) ? data : data.properties || []);
+        } else if (pendingStatus === 'forbidden') {
+          setError('You do not have permission to view pending properties.');
         } else {
           setError('Failed to load pending properties.');
         }
+
+        // Try load feature flag silently
+        const flag = await fetchFeatureFlag('PAYMENTS_BOOKING', token, () => { clearAuth(); router.replace('/login'); });
+        if (flag) setPaymentsEnabled(flag.enabled);
+
       } catch (e) {
         setError('An unexpected error occurred while loading the dashboard.');
       } finally {
@@ -104,7 +94,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <DashboardShell role={user?.role as any}>
+    <>
       <PageHeader
         title={user?.role === 'SUPER_ADMIN' ? 'Super Admin Dashboard' : 'Admin Dashboard'}
         description="Manage accommodation listings, review submissions and oversee marketplace activity."
@@ -205,6 +195,6 @@ export default function AdminDashboardPage() {
         onConfirm={performToggle}
         onCancel={() => setShowConfirm(false)}
       />
-    </DashboardShell>
+    </>
   );
 }

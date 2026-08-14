@@ -1,9 +1,6 @@
 // apps/web/components/layout/Header.tsx
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { getCurrentUser, clearAuth } from "@/utils/auth";
 
 /**
  * Dashboard top header.
@@ -12,50 +9,19 @@ import { getCurrentUser, clearAuth } from "@/utils/auth";
  * - Uses Tailwind utility classes for a premium dark header that adapts to mobile.
  * - Relies solely on the existing inline SVG icons (the logout icon) and the auth utilities.
  */
-export default function Header({ role }: { role: string }) {
-  const router = useRouter();
-  const user = getCurrentUser?.();
-
-  const handleLogout = () => {
-    clearAuth();
-    router.push("/login");
-  };
-
+export default function Header() {
   return (
-    <header className="flex items-center justify-between bg-slate-900 text-white px-4 lg:px-8 h-16 shadow-md">
-      {/* Logo / brand */}
-      <Link href="/" className="text-2xl font-outfit font-medium">
-        Jesmond
-      </Link>
-
-      {/* User info and logout */}
+    <header className="flex items-center justify-end bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-6 h-[76px] sticky top-0 z-20">
       <div className="flex items-center gap-4">
-        <div className="flex flex-col text-right">
-          <span className="font-medium">
-            {user?.firstName} {user?.lastName}
-          </span>
-          <span className="text-sm text-slate-300">{user?.email}</span>
-        </div>
         <button
-          onClick={handleLogout}
-          className="flex items-center gap-1 text-slate-200 hover:text-white"
-          aria-label="Logout"
+          className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition"
+          aria-label="Notifications"
         >
-          {/* Inline SVG for logout – same icon used in Sidebar */}
-          <svg
-            className="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full ring-2 ring-white"></span>
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
           </svg>
-          Logout
         </button>
       </div>
     </header>

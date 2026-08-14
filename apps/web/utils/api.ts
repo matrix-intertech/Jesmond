@@ -1,4 +1,4 @@
-export async function handleApiError(response: Response, onAuthError?: () => void): Promise<'ok' | 'unauthorized' | 'forbidden' | 'error'> {
+export async function handleApiError(response: Response, onAuthError?: () => void): Promise<'ok' | 'unauthorized' | 'forbidden' | 'error' | 'notfound'> {
   if (response.ok) return 'ok';
   if (response.status === 401) {
     // Authentication error – clear auth and redirect
@@ -9,14 +9,17 @@ export async function handleApiError(response: Response, onAuthError?: () => voi
     // Authorization error – do not logout
     return 'forbidden';
   }
+  if (response.status === 404) {
+    return 'notfound';
+  }
   return 'error';
 }
 
-export async function fetchFeatureFlag(flagKey: string, token: string): Promise<{ enabled: boolean } | null> {
+export async function fetchFeatureFlag(flagKey: string, token: string, onAuthError?: () => void): Promise<{ enabled: boolean } | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features/${flagKey}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  const status = await handleApiError(res);
+  const status = await handleApiError(res, onAuthError);
   if (status === 'ok') {
     return await res.json();
   }

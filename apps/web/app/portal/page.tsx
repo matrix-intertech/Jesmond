@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAccessToken, getCurrentUser, clearAuth, User } from '@/utils/auth';
+import { getAccessToken, clearAuth, User } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -14,6 +13,8 @@ import ErrorState from '@/components/ui/ErrorState';
 
 export default function ProviderPortalPage() {
   const router = useRouter();
+
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
 
   const [user, setUser] = useState<User | null>(null);
   const [properties, setProperties] = useState<any[]>([]);
@@ -25,18 +26,13 @@ export default function ProviderPortalPage() {
   useEffect(() => {
     const init = async () => {
       const token = getAccessToken();
-      const currentUser = getCurrentUser();
-      if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
-        if (!currentUser) clearAuth();
-        return router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
-      }
-      setUser(currentUser);
+      if (!token) return;
 
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const status = await handleApiError(res, () => { clearAuth(); router.push('/login'); });
+        const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
         if (status === 'ok') {
           const data = await res.json();
           setProperties(data);
@@ -53,8 +49,11 @@ export default function ProviderPortalPage() {
         const appRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (appRes.ok) {
+        const appStatus = await handleApiError(appRes, onAuthError);
+        if (appStatus === 'ok') {
           setApplications(await appRes.json());
+        } else if (appStatus === 'forbidden') {
+          // keep existing behavior: applications may be empty
         }
       } catch (e) {
         // ignore apps error for now
@@ -67,14 +66,14 @@ export default function ProviderPortalPage() {
 
   if (loadingProps) {
     return (
-      <DashboardShell role="PROVIDER">
+      <>
         <PageHeader title="Provider Dashboard" description="Manage your accommodations and applications" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <StatCard label="My Properties" value="..." loading />
           <StatCard label="Draft" value="..." loading />
           <StatCard label="Pending Approval" value="..." loading />
         </div>
-      </DashboardShell>
+      </>
     );
   }
 
@@ -85,7 +84,7 @@ export default function ProviderPortalPage() {
   const appsNeedingAttention = applications.filter(a => a.status !== 'APPROVED');
 
   return (
-    <DashboardShell role="PROVIDER">
+    <>
       <PageHeader title="Provider Dashboard" description="Manage your accommodations and applications" primaryAction={{ label: 'Create Accommodation', href: '/portal/create' }} />
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard label="My Properties" value={total} />
@@ -174,6 +173,6 @@ export default function ProviderPortalPage() {
           </table>
         )}
       </section>
-    </DashboardShell>
+    </>
   );
 }

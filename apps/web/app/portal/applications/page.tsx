@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 import Link from 'next/link';
 
 interface Application {
@@ -29,6 +29,10 @@ interface Application {
 }
 
 export default function ProviderApplicationsPage() {
+  const onAuthError = () => {
+    clearAuth();
+    router.replace('/login');
+  };
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -40,19 +44,20 @@ export default function ProviderApplicationsPage() {
   const fetchApplications = async () => {
     try {
       const token = getAccessToken();
-      const currentUser = getCurrentUser();
-      if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
-        if (!currentUser) clearAuth();
-        router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
-        return;
-      }
+      if (!token) { onAuthError(); return; }
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
         setApplications(await res.json());
+      } else if (status === 'forbidden') {
+        // unauthorized but not logout; keep empty list
+        setApplications([]);
       }
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -61,7 +66,7 @@ export default function ProviderApplicationsPage() {
   if (loading) return <div className="p-10 text-center">Loading applications...</div>;
 
   return (
-    <DashboardShell role="PROVIDER">
+    <>
       <PageHeader title="Student Applications" description="Review applications for your properties" onBack={() => router.push('/portal')} />
       <div className="max-w-7xl mx-auto py-8">
 
@@ -114,6 +119,6 @@ export default function ProviderApplicationsPage() {
           </div>
         )}
       </div>
-    </DashboardShell>
+    </>
   );
 }

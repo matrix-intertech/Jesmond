@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAccessToken } from '@/utils/auth';
+import { useRouter } from 'next/navigation';
+import { handleApiError } from '@/utils/api';
+import { getAccessToken, clearAuth } from '@/utils/auth';
 
 export function SaveButton({ propertyId }: { propertyId: string }) {
+  const router = useRouter();
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -12,15 +16,12 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
     const checkSavedState = async () => {
       try {
         const token = getAccessToken();
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-        
+        if (!token) { onAuthError(); return; }
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/saved`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) {
+        const status = await handleApiError(res, onAuthError);
+        if (status === 'ok') {
           const savedList = await res.json();
           if (savedList.some((p: any) => p.id === propertyId)) {
             setIsSaved(true);
@@ -36,10 +37,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
     e.preventDefault();
     e.stopPropagation();
     const token = getAccessToken();
-    if (!token) {
-      window.location.href = '/login';
-      return;
-    }
+    if (!token) { onAuthError(); return; }
 
     setLoading(true);
     const method = isSaved ? 'DELETE' : 'POST';
@@ -49,7 +47,8 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
         method,
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
         setIsSaved(!isSaved);
       }
     } finally {

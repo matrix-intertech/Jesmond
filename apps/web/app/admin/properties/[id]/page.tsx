@@ -1,11 +1,10 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import DashboardShell from '@/components/layout/DashboardShell';
+import { clearAuth, getAccessToken } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import { SafeImage } from '@/components/ui/SafeImage';
-import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function AdminPropertyReviewPage() {
   const router = useRouter();
@@ -20,19 +19,20 @@ export default function AdminPropertyReviewPage() {
 
   const fetchProperty = async () => {
     const token = getAccessToken();
-    const currentUser = getCurrentUser();
-    if (!token || !currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN')) {
-      if (!currentUser) clearAuth();
-      router.push(currentUser?.role === 'PROVIDER' ? '/portal' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
-      return;
-    }
+    if (!token) return;
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error('Failed to fetch property details');
-      const data = await res.json();
-      setProperty(data);
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        const data = await res.json();
+        setProperty(data);
+      } else if (status === 'forbidden' || status === 'error') {
+        setError('Failed to fetch property details');
+      } else {
+        setError('Failed to fetch property details');
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -52,9 +52,13 @@ export default function AdminPropertyReviewPage() {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!res.ok) throw new Error(await res.text());
-      setSuccess('Approved successfully!');
-      setTimeout(() => router.push('/admin/properties'), 1500);
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        setSuccess('Approved successfully!');
+        setTimeout(() => router.push('/admin/properties'), 1500);
+      } else {
+        setError('Failed to approve property');
+      }
     } catch (err: any) {
       setError(err.message);
     }
@@ -72,9 +76,13 @@ export default function AdminPropertyReviewPage() {
         },
         body: JSON.stringify({ reason: rejectReason })
       });
-      if (!res.ok) throw new Error(await res.text());
-      setSuccess('Rejected successfully!');
-      setTimeout(() => router.push('/admin/properties'), 1500);
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        setSuccess('Rejected successfully!');
+        setTimeout(() => router.push('/admin/properties'), 1500);
+      } else {
+        setError('Failed to reject property');
+      }
     } catch (err: any) {
       setError(err.message);
       setRejectPrompt(false);
@@ -88,7 +96,7 @@ export default function AdminPropertyReviewPage() {
   const isPending = property.status === 'PENDING_APPROVAL';
 
   return (
-    <DashboardShell role="ADMIN">
+    <>
       <PageHeader title="Property Review" description="Review and approve property submissions" onBack={() => router.push('/admin/properties')} />
       <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-start mb-8">
@@ -170,6 +178,6 @@ export default function AdminPropertyReviewPage() {
           </section>
         </div>
       </div>
-    </DashboardShell>
+    </>
   );
 }

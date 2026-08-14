@@ -1,6 +1,5 @@
 import { GlobalNav } from "../../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../../components/marketing/EditorialFooter";
-import { prisma } from "@jesmond/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,15 +11,18 @@ import { PropertyActions } from "../../../components/student/PropertyActions";
 export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   let property;
-  try {
-    property = await prisma.property.findUnique({
-      where: { id: resolvedParams.id },
-      include: { suburb: { include: { city: true } }, organization: true, media: true, roomTypes: true }
-    });
-  } catch (error) {
-    // If the ID is an invalid UUID, Prisma will throw an error. We treat this as a 404.
+  
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/public/${resolvedParams.id}`, { cache: 'no-store' });
+  
+  if (res.status === 404 || res.status === 400) {
     return notFound();
   }
+  
+  if (!res.ok) {
+    throw new Error(`Failed to fetch property details: ${res.statusText}`);
+  }
+  
+  property = await res.json();
 
   if (!property) return notFound();
 

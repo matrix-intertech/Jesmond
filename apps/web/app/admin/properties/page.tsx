@@ -1,10 +1,11 @@
 'use client';
+import { clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, clearAuth, getCurrentUser } from '@/utils/auth';
+import { getAccessToken } from '@/utils/auth';
 
 export default function AdminPendingPropertiesPage() {
   const router = useRouter();
@@ -14,26 +15,19 @@ export default function AdminPendingPropertiesPage() {
 
   const fetchPending = async () => {
     const token = getAccessToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    const currentUser = getCurrentUser();
-    if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN')) {
-      router.push(currentUser?.role === 'PROVIDER' ? '/portal' : currentUser?.role === 'STUDENT' ? '/student' : '/');
-      return;
-    }
+    if (!token) return;
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/pending`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.status === 401 || res.status === 403) {
-        throw new Error('Unauthorized or not an admin');
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        const data = await res.json();
+        setProperties(data);
+      } else {
+        setError('Failed to fetch pending properties');
       }
-      if (!res.ok) throw new Error('Failed to fetch pending properties');
-      const data = await res.json();
-      setProperties(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -49,7 +43,7 @@ export default function AdminPendingPropertiesPage() {
   if (error) return <div className="p-12 text-center text-red-600">{error}</div>;
 
   return (
-    <DashboardShell role="ADMIN">
+    <>
       <PageHeader title="Pending Properties" description="Review properties submitted by providers" />
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -86,6 +80,6 @@ export default function AdminPendingPropertiesPage() {
             </tbody>
           </table>
         </div>
-    </DashboardShell>
+    </>
   );
 }

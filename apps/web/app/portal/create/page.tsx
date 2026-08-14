@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
   const [suburbs, setSuburbs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,13 +25,6 @@ export default function CreatePropertyPage() {
   });
 
   useEffect(() => {
-    const token = getAccessToken();
-    const currentUser = getCurrentUser();
-    if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
-      if (!currentUser) clearAuth();
-      router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
-      return;
-    }
 
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs`)
       .then(res => res.json())
@@ -48,6 +42,7 @@ export default function CreatePropertyPage() {
     setError('');
 
     const token = getAccessToken();
+    if (!token) { onAuthError(); return; }
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties`, {
         method: 'POST',
@@ -61,16 +56,14 @@ export default function CreatePropertyPage() {
           lng: parseFloat(formData.lng),
         })
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(Array.isArray(data.message) ? data.message.join(', ') : data.message || 'Failed to create property');
+      const status = await handleApiError(res, onAuthError);
+      if (status !== 'ok') {
+        const errData = await res.json();
+        throw new Error(Array.isArray(errData.message) ? errData.message.join(', ') : errData.message || 'Failed to create property');
       }
-
+      // Success
       setSuccess(true);
-      setTimeout(() => {
-        router.push('/portal');
-      }, 2000);
+      setTimeout(() => { router.push('/portal'); }, 2000);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -90,7 +83,7 @@ export default function CreatePropertyPage() {
   }
 
   return (
-    <DashboardShell role="PROVIDER">
+    <>
       <PageHeader title="Create Accommodation" onBack={() => router.push('/portal')} />
       <div className="max-w-[800px] mx-auto py-12">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6">
@@ -149,6 +142,6 @@ export default function CreatePropertyPage() {
           </div>
         </form>
       </div>
-    </DashboardShell>
+    </>
   );
 }

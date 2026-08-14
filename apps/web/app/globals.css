@@ -5,12 +5,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --input-bg: #ffffff;
+  --input-fg: #111827;
+  --input-placeholder: #6b7280;
+  --input-border: #d1d5db;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --input-bg: #1f2937;
+    --input-fg: #f9fafb;
+    --input-placeholder: #9ca3af;
+    --input-border: #4b5563;
   }
 }
 
@@ -50,5 +58,29 @@ a {
   }
   .imgDark {
     display: unset;
+  }
+}
+
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]), 
+  textarea, 
+  select {
+    background-color: var(--input-bg);
+    color: var(--input-fg);
+    border-color: var(--input-border);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--input-placeholder);
+    opacity: 1;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
+    -webkit-text-fill-color: var(--input-fg) !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 }

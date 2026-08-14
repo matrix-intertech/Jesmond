@@ -6,6 +6,8 @@ import { SafeImage } from "../ui/SafeImage";
 import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { SaveButton } from "../student/SaveButton";
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 
 // Dynamically import Leaflet map to avoid window is not defined SSR error
 const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), { 
@@ -16,6 +18,7 @@ const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExp
 export function SearchClient({ initialParams }: { initialParams: any }) {
   const router = useRouter();
   const pathname = usePathname();
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
   
   // API State
@@ -71,15 +74,19 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
         });
         
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        const response = await fetch(`${apiUrl}/api/v1/properties/search?${searchParams.toString()}`, {
+        const token = getAccessToken();
+        const onAuthError = () => { clearAuth(); router.replace('/login'); };
+        const res = await fetch(`${apiUrl}/api/v1/properties/search?${searchParams.toString()}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           signal: controller.signal
         });
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch properties');
+        const status = await handleApiError(res, onAuthError);
+        if (status !== 'ok') {
+          // Non-success statuses (including forbidden, notfound, error) are handled without logout
+          setError('Failed to fetch properties');
+          return;
         }
-        
-        const json = await response.json();
+        const json = await res.json();
         setProperties(json.data || []);
         setMeta(json.meta || { total: 0, page: 1, limit: 20, totalPages: 1 });
       } catch (err: any) {

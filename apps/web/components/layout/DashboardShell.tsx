@@ -29,7 +29,7 @@ export default function DashboardShell({ role, children }: DashboardShellProps) 
       {/* Main area */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Header */}
-        <Header role={effectiveRole as any} />
+        <Header />
         {/* Content */}
         <main className="flex-1 overflow-auto p-6 lg:p-8">{children}</main>
       </div>

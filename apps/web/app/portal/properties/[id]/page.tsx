@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+
 import { SafeImage } from '../../../../components/ui/SafeImage';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth } from '@/utils/auth';
+
+import { handleApiError } from '@/utils/api';
 
 export default function AccommodationManagementPage() {
   const router = useRouter();
+  const onAuthError = () => { clearAuth(); router.replace('/login'); };
   const params = useParams();
   const id = params.id as string;
   const [property, setProperty] = useState<any>(null);
@@ -24,23 +27,19 @@ export default function AccommodationManagementPage() {
 
   const fetchProperty = async () => {
     const token = getAccessToken();
-    const currentUser = getCurrentUser();
-    if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
-      if (!currentUser) clearAuth();
-      router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
-      return;
-    }
+    if (!token) return;
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.status === 401 || res.status === 403) {
-        throw new Error('Unauthorized');
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        const data = await res.json();
+        setProperty(data);
+      } else {
+        setError('Failed to fetch property');
       }
-      if (!res.ok) throw new Error('Failed to fetch property');
-      const data = await res.json();
-      setProperty(data);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -66,12 +65,13 @@ export default function AccommodationManagementPage() {
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
-      if (!res.ok) {
-        const err = await res.json();
-        setError(err.message || 'Upload failed');
-      } else {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
         setToast('Image uploaded successfully');
         setTimeout(() => setToast(''), 3000);
+      } else {
+        const err = await res.json();
+        setError(err.message || 'Upload failed');
       }
       fetchProperty();
     } catch (err) {
@@ -97,15 +97,16 @@ export default function AccommodationManagementPage() {
           inventory: parseInt(newRoom.inventory)
         })
       });
-      if (!res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        setNewRoom({ name: '', description: '', price: '', inventory: '' });
+        setToast('Room created successfully');
+        setTimeout(() => setToast(''), 3000);
+        fetchProperty();
+      } else {
         const err = await res.json();
         setError(Array.isArray(err.message) ? err.message.join(', ') : err.message);
-        return;
       }
-      setNewRoom({ name: '', description: '', price: '', inventory: '' });
-      setToast('Room created successfully');
-      setTimeout(() => setToast(''), 3000);
-      fetchProperty();
     } catch (err) {
       console.error(err);
       setError('Failed to create room');
@@ -127,16 +128,17 @@ export default function AccommodationManagementPage() {
           available: parseInt(availCount)
         })
       });
-      if (!res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        setAvailDate('');
+        setAvailCount('');
+        setToast('Availability updated');
+        setTimeout(() => setToast(''), 3000);
+        fetchProperty();
+      } else {
         const err = await res.json();
         setError(Array.isArray(err.message) ? err.message.join(', ') : err.message);
-        return;
       }
-      setAvailDate('');
-      setAvailCount('');
-      setToast('Availability updated');
-      setTimeout(() => setToast(''), 3000);
-      fetchProperty();
     } catch (err) {
       console.error(err);
       setError('Failed to update availability');
@@ -150,16 +152,17 @@ export default function AccommodationManagementPage() {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        setToast('Property submitted for review!');
+        setSubmitConfirm(false);
+        setTimeout(() => setToast(''), 3000);
+        fetchProperty();
+      } else {
         const err = await res.json();
         setError(err.message);
         setSubmitConfirm(false);
-        return;
       }
-      setToast('Property submitted for review!');
-      setSubmitConfirm(false);
-      setTimeout(() => setToast(''), 3000);
-      fetchProperty();
     } catch (err) {
       console.error(err);
       setError('Failed to submit');
@@ -175,7 +178,7 @@ export default function AccommodationManagementPage() {
   const isPublished = property.status === 'PUBLISHED';
 
   return (
-    <DashboardShell role="PROVIDER">
+    <>
       <PageHeader title={property.name} description={`${property.address}, ${property.suburb.name}`} onBack={() => router.push('/portal')} />
       <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-center mb-8">
@@ -305,6 +308,6 @@ export default function AccommodationManagementPage() {
 
         </div>
       </div>
-    </DashboardShell>
+    </>
   );
 }

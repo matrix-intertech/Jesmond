@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import DashboardShell from '@/components/layout/DashboardShell';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth } from '@/utils/auth';
+import { handleApiError } from '@/utils/api';
 
 interface ApplicationDetail {
   id: string;
@@ -29,15 +29,19 @@ interface ApplicationDetail {
 }
 
 export default function ApplicationDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
+  const onAuthError = () => {
+    clearAuth();
+    router.replace('/login');
+  };
   const [app, setApp] = useState<ApplicationDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const router = useRouter();
-  const params = useParams();
-  const id = params.id as string;
-
   useEffect(() => {
     fetchApplication();
   }, [id]);
@@ -45,21 +49,19 @@ export default function ApplicationDetailPage() {
   const fetchApplication = async () => {
     try {
       const token = getAccessToken();
-      const currentUser = getCurrentUser();
-      if (!token || !currentUser || currentUser.role !== 'PROVIDER') {
-        if (!currentUser) clearAuth();
-        router.push(currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' ? '/admin' : currentUser?.role === 'STUDENT' ? '/student' : '/login');
-        return;
-      }
+      if (!token) { onAuthError(); return; }
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
         setApp(await res.json());
       } else {
         setError('Application not found');
       }
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -75,13 +77,14 @@ export default function ApplicationDetailPage() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
-      if (!res.ok) {
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        // Refresh
+        await fetchApplication();
+      } else {
         const err = await res.json();
-        throw new Error(err.message || `Failed to ${action} application`);
+        setError(err.message || `Failed to ${action} application`);
       }
-      
-      // Refresh
-      await fetchApplication();
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -93,7 +96,7 @@ export default function ApplicationDetailPage() {
   if (!app) return <div className="p-10 text-center text-rose-500">{error}</div>;
 
   return (
-    <DashboardShell role="PROVIDER">
+    <>
       <PageHeader title="Application Details" onBack={() => router.push('/portal/applications')} />
       <div className="max-w-4xl mx-auto py-8">
         
@@ -175,6 +178,6 @@ export default function ApplicationDetailPage() {
           )}
         </div>
       </div>
-    </DashboardShell>
+    </>
   );
 }
