@@ -28,7 +28,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       if (usr.role !== 'STUDENT') {
         // redirect to appropriate dashboard based on role
         if (usr.role === 'ADMIN' || usr.role === 'SUPER_ADMIN') router.replace('/admin');
-        else if (usr.role === 'PROVIDER') router.replace('/portal');
+        else if (usr.role === 'ORG_STAFF') router.replace('/portal');
         else router.replace('/');
         return;
       }

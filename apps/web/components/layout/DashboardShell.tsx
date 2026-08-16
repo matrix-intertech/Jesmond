@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 import { getCurrentUser } from '@/utils/auth';
 
 interface DashboardShellProps {
-  role: 'ADMIN' | 'SUPER_ADMIN' | 'PROVIDER' | 'STUDENT';
+  role: 'ADMIN' | 'SUPER_ADMIN' | 'ORG_STAFF' | 'STUDENT';
   children: ReactNode;
 }
 

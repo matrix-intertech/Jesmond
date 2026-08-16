@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       const allowed = ['ADMIN', 'SUPER_ADMIN'];
       if (!allowed.includes(usr.role)) {
         // redirect to correct dashboard based on role
-        if (usr.role === 'PROVIDER') router.replace('/portal');
+        if (usr.role === 'ORG_STAFF') router.replace('/portal');
         else if (usr.role === 'STUDENT') router.replace('/student');
         else router.replace('/');
         return;
