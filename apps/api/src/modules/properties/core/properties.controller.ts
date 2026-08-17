@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto } from '../dtos/property.dto';
+import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdatePropertyDto, UpdateRoomTypeDto, UpdateAmenitiesDto, CreateBuildingDto, CreateFloorDto, CreateRoomDto } from '../dtos/property.dto';
 
 @Controller('properties')
 export class PropertiesController {
@@ -29,6 +29,16 @@ export class PropertiesController {
       throw new BadRequestException('User is not associated with an organization.');
     }
     return this.propertiesService.getMyProperties(req.user.organizationId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id')
+  async updateProperty(@Param('id') id: string, @Body() dto: UpdatePropertyDto, @Request() req: any) {
+    if (!req.user.organizationId) {
+      throw new BadRequestException('User is not associated with an organization.');
+    }
+    return this.propertiesService.updateProperty(id, req.user.organizationId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -73,6 +83,98 @@ export class PropertiesController {
   async createRoomType(@Param('id') id: string, @Body() dto: CreateRoomTypeDto, @Request() req: any) {
     if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
     return this.propertiesService.createRoomType(id, req.user.organizationId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id/rooms/:roomId')
+  async updateRoomType(@Param('id') id: string, @Param('roomId') roomId: string, @Body() dto: UpdateRoomTypeDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.updateRoomType(id, req.user.organizationId, roomId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Delete('my/:id/rooms/:roomId')
+  async deleteRoomType(@Param('id') id: string, @Param('roomId') roomId: string, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.deleteRoomType(id, req.user.organizationId, roomId);
+  }
+
+  // --- Buildings ---
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Post('my/:id/buildings')
+  async createBuilding(@Param('id') id: string, @Body() dto: CreateBuildingDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.addBuilding(id, req.user.organizationId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id/buildings/:buildingId')
+  async updateBuilding(@Param('id') id: string, @Param('buildingId') buildingId: string, @Body() dto: CreateBuildingDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.updateBuilding(id, req.user.organizationId, buildingId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Delete('my/:id/buildings/:buildingId')
+  async deleteBuilding(@Param('id') id: string, @Param('buildingId') buildingId: string, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.deleteBuilding(id, req.user.organizationId, buildingId);
+  }
+
+  // --- Floors ---
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Post('my/:id/buildings/:buildingId/floors')
+  async createFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Body() dto: CreateFloorDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.addFloor(id, req.user.organizationId, buildingId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id/buildings/:buildingId/floors/:floorId')
+  async updateFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Param('floorId') floorId: string, @Body() dto: CreateFloorDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.updateFloor(id, req.user.organizationId, buildingId, floorId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Delete('my/:id/buildings/:buildingId/floors/:floorId')
+  async deleteFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Param('floorId') floorId: string, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.deleteFloor(id, req.user.organizationId, buildingId, floorId);
+  }
+
+  // --- Actual Rooms ---
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Post('my/:id/room-types/:roomTypeId/rooms')
+  async createRoom(@Param('id') id: string, @Param('roomTypeId') roomTypeId: string, @Body() dto: CreateRoomDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.addRoom(id, req.user.organizationId, roomTypeId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Delete('my/:id/room-types/:roomTypeId/rooms/:roomId')
+  async deleteRoom(@Param('id') id: string, @Param('roomTypeId') roomTypeId: string, @Param('roomId') roomId: string, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.deleteRoom(id, req.user.organizationId, roomTypeId, roomId);
+  }
+
+  // --- Amenities ---
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id/amenities')
+  async updateAmenities(@Param('id') id: string, @Body() dto: UpdateAmenitiesDto, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.updateAmenities(id, req.user.organizationId, dto.amenities);
   }
 
   // --- Availability Endpoints ---

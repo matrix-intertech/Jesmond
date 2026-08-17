@@ -18,7 +18,7 @@ model User {
   firstName String
   lastName  String
   accountStatus AccountStatus @default(PENDING_VERIFICATION)
-  
+
   // Auth Tracking
   emailVerified              Boolean   @default(false)
   emailVerificationToken     String?   @unique
@@ -27,7 +27,7 @@ model User {
   emailOtpLastSentAt         DateTime?
   failedLoginAttempts        Int       @default(0)
   lockedUntil                DateTime?
-  
+
   // MFA
   mfaEnabled                 Boolean   @default(false)
   mfaSecret                  String?
@@ -38,10 +38,10 @@ model User {
   emailNotifications     Boolean  @default(true)
   smsNotifications       Boolean  @default(false)
   pushNotifications      Boolean  @default(true)
-  
+
   // Global Permissions for non-org users
   permissions        String[]
-  
+
   // Relations
   applications       Application[]
   leases             Lease[]
@@ -89,18 +89,18 @@ model Organization {
   type        OrgType
   abn         String?  @unique
   status      OrgStatus @default(PENDING)
-  
+
   // Business Fields
   timezone        String?  @default("Australia/Sydney")
   branding        Json?
   settings        Json?
   billingProfile  Json?
-  
+
   offices     Office[]
   properties  Property[]
   staff       OrgStaff[]
   apiKeys     ApiKey[]
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
@@ -127,9 +127,9 @@ model Office {
   organization   Organization @relation(fields: [organizationId], references: [id])
   name           String
   region         String?
-  
+
   staff          OrgStaff[]
-  
+
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -145,10 +145,10 @@ model OrgStaff {
   organization   Organization @relation(fields: [organizationId], references: [id])
   officeId       String?
   office         Office?      @relation(fields: [officeId], references: [id])
-  
+
   role           UserRole     @default(ORG_STAFF)
   permissions    String[]     // Granular permissions e.g., ["property:read"]
-  
+
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -161,7 +161,7 @@ model Property {
   id             String          @id @default(uuid())
   organizationId String
   organization   Organization    @relation(fields: [organizationId], references: [id])
-  
+
   name           String
   address        String
   suburbId       String
@@ -204,9 +204,9 @@ model Building {
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
   name       String   // e.g., "East Tower"
-  
+
   floors     Floor[]
-  
+
   @@index([propertyId])
 }
 
@@ -216,7 +216,9 @@ model Floor {
   building   Building @relation(fields: [buildingId], references: [id])
   level      Int      // e.g., 5
   name       String?  // e.g., "Mezzanine"
-  
+
+  roomTypes  RoomType[]
+
   @@index([buildingId])
 }
 
@@ -228,9 +230,9 @@ model PropertyVersion {
   payload    Json     
   changes    Json     
   authorId   String   
-  
+
   createdAt  DateTime @default(now())
-  
+
   @@index([propertyId, versionNum])
 }
 
@@ -238,16 +240,20 @@ model RoomType {
   id           String   @id @default(uuid())
   propertyId   String
   property     Property @relation(fields: [propertyId], references: [id])
-  
+
   name         String
   description  String?
   pricePerWeek Int      // In cents
   inventory    Int      @default(0)
 
+  floorId      String?
+  floor        Floor?   @relation(fields: [floorId], references: [id])
+
   applications         Application[]
   pricingHistory       PricingHistory[]
   availabilityCalendar AvailabilityCalendar[]
   enquiries            Enquiry[]
+  rooms                Room[]
 
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -255,6 +261,22 @@ model RoomType {
 
   @@index([propertyId])
   @@index([pricePerWeek])
+  @@index([floorId])
+}
+
+model Room {
+  id           String   @id @default(uuid())
+  roomTypeId   String
+  roomType     RoomType @relation(fields: [roomTypeId], references: [id])
+
+  identifier   String   // e.g. "Room 101"
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  @@unique([roomTypeId, identifier])
+  @@index([roomTypeId])
 }
 
 model Application {
@@ -263,7 +285,7 @@ model Application {
   student       User              @relation(fields: [studentId], references: [id])
   roomTypeId    String
   roomType      RoomType          @relation(fields: [roomTypeId], references: [id])
-  
+
   status        ApplicationStatus @default(PENDING_REVIEW)
   moveInDate    DateTime
   durationMonths Int
@@ -323,7 +345,7 @@ model Invoice {
   id            String        @id @default(uuid())
   leaseId       String
   lease         Lease         @relation(fields: [leaseId], references: [id])
-  
+
   amount        Int           // In cents
   type          InvoiceType
   status        InvoiceStatus @default(PENDING)
@@ -405,7 +427,7 @@ model Session {
   id           String   @id @default(uuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id])
-  
+
   refreshToken String   @unique // Hashed
   deviceInfo   String?
   ipAddress    String?
@@ -447,7 +469,7 @@ model LoginHistory {
   deviceFingerprint String?
   isSuccess         Boolean
   reason            String?
-  
+
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
@@ -475,7 +497,7 @@ model IdentityProvider {
   user           User         @relation(fields: [userId], references: [id])
   providerType   ProviderType
   providerUserId String
-  
+
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -501,7 +523,7 @@ model Invitation {
   status          InviteStatus @default(PENDING)
   token           String       @unique
   expiresAt       DateTime
-  
+
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   deletedAt       DateTime?
@@ -527,7 +549,7 @@ model ApiKey {
   prefix         String       // e.g., "jes_live_"
   expiresAt      DateTime?
   lastUsedAt     DateTime?
-  
+
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?
@@ -545,7 +567,7 @@ model AuditLog {
   resourceId     String
   changes        Json?        // Stores old and new values
   ipAddress      String?
-  
+
   createdAt      DateTime     @default(now())
 
   @@index([resourceType, resourceId])
@@ -569,10 +591,10 @@ model SavedSearch {
   name      String?
   query     Json     // { lat, lng, radius, minPrice, roomType, amenities }
   notify    Boolean  @default(false)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([userId])
 }
 
@@ -583,9 +605,9 @@ model RecentSearch {
   sessionId String?  // Browser fingerprint
   queryText String
   filters   Json?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([userId])
   @@index([sessionId])
 }
@@ -597,9 +619,9 @@ model RecentlyViewed {
   sessionId  String?
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
-  
+
   viewedAt   DateTime @default(now())
-  
+
   @@index([userId])
   @@index([sessionId])
   @@index([propertyId])
@@ -613,9 +635,9 @@ model SearchAnalytics {
   campusId      String?
   campus        Campus?  @relation(fields: [campusId], references: [id])
   clickedPropId String?
-  
+
   createdAt     DateTime @default(now())
-  
+
   @@index([campusId])
   @@index([clickedPropId])
 }
@@ -627,10 +649,10 @@ model NotificationTrigger {
   type         String   // e.g. "PRICE_DROP", "NEW_LISTING_IN_SAVED_SEARCH"
   propertyId   String?
   status       String   // PENDING, SENT, READ
-  
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
+
   @@index([userId, status])
 }
 
@@ -674,7 +696,7 @@ model Suburb {
   postcode String
   lat      Float
   lng      Float
-  
+
   properties Property[]
   campuses   Campus[]
 
@@ -698,7 +720,7 @@ model Campus {
   lng          Float
   suburbId     String
   suburb       Suburb     @relation(fields: [suburbId], references: [id])
-  
+
   searchAnalytics SearchAnalytics[]
 
   @@index([universityId])
@@ -765,7 +787,7 @@ model SavedProperty {
   student    User     @relation(fields: [studentId], references: [id])
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
-  
+
   createdAt  DateTime @default(now())
 
   @@unique([studentId, propertyId])
@@ -780,9 +802,9 @@ model Enquiry {
   property   Property @relation(fields: [propertyId], references: [id])
   roomTypeId String?
   roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
-  
+
   message    String   @db.Text
-  
+
   createdAt  DateTime @default(now())
 
   @@index([studentId])
@@ -798,7 +820,7 @@ model FeatureFlag {
   key         String   @unique
   enabled     Boolean  @default(false)
   updatedBy   String?
-  
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

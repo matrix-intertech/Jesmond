@@ -28,4 +28,12 @@ export class LocationsService {
       },
     });
   }
+
+  async getAmenities() {
+    return this.prisma.amenity.findMany({
+      orderBy: {
+        category: 'asc',
+      },
+    });
+  }
 }

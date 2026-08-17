@@ -9,4 +9,9 @@ export class LocationsController {
   async getSuburbs() {
     return this.locationsService.getSuburbs();
   }
+
+  @Get('amenities')
+  async getAmenities() {
+    return this.locationsService.getAmenities();
+  }
 }

@@ -8,6 +8,7 @@ import PageHeader from '@/components/ui/PageHeader';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 
 import { handleApiError } from '@/utils/api';
+import HierarchyManager from './HierarchyManager';
 
 export default function AccommodationManagementPage() {
   const router = useRouter();
@@ -19,11 +20,24 @@ export default function AccommodationManagementPage() {
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [submitConfirm, setSubmitConfirm] = useState(false);
-  
+
   // Forms
   const [newRoom, setNewRoom] = useState({ name: '', description: '', price: '', inventory: '' });
   const [availDate, setAvailDate] = useState('');
   const [availCount, setAvailCount] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditingProp, setIsEditingProp] = useState(false);
+  const [editPropForm, setEditPropForm] = useState({ name: '', address: '', postcode: '', lat: '', lng: '', description: '' });
+  const [allAmenities, setAllAmenities] = useState<any[]>([]);
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [isEditingAmenities, setIsEditingAmenities] = useState(false);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/amenities`)
+      .then(r => r.json())
+      .then(data => setAllAmenities(data))
+      .catch(console.error);
+  }, []);
 
   const fetchProperty = async () => {
     const token = getAccessToken();
@@ -37,6 +51,11 @@ export default function AccommodationManagementPage() {
       if (status === 'ok') {
         const data = await res.json();
         setProperty(data);
+        setEditPropForm({
+          name: data.name, address: data.address, postcode: data.postcode,
+          lat: data.lat, lng: data.lng, description: data.description
+        });
+        setSelectedAmenities(data.amenities?.map((a: any) => a.amenityId) || []);
       } else {
         setError('Failed to fetch property');
       }
@@ -80,9 +99,71 @@ export default function AccommodationManagementPage() {
     }
   };
 
+  const handleUpdateProperty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = getAccessToken();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...editPropForm,
+          lat: parseFloat(editPropForm.lat),
+          lng: parseFloat(editPropForm.lng),
+        })
+      });
+      if (await handleApiError(res, onAuthError) === 'ok') {
+        setToast('Property updated successfully');
+        setIsEditingProp(false);
+        fetchProperty();
+      } else {
+        setError((await res.json()).message || 'Update failed');
+      }
+    } catch (err) { setError('Update failed'); } finally { setIsSubmitting(false); }
+  };
+
+  const handleDeleteRoom = async (roomId: string) => {
+    if (!confirm('Are you sure you want to delete this room type?')) return;
+    const token = getAccessToken();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms/${roomId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (await handleApiError(res, onAuthError) === 'ok') {
+        setToast('Room deleted successfully');
+        fetchProperty();
+      } else {
+        setError((await res.json()).message || 'Delete failed');
+      }
+    } catch (err) { setError('Delete failed'); } finally { setIsSubmitting(false); }
+  };
+
+  const handleUpdateAmenities = async () => {
+    const token = getAccessToken();
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/amenities`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amenities: selectedAmenities })
+      });
+      if (await handleApiError(res, onAuthError) === 'ok') {
+        setToast('Amenities updated');
+        setIsEditingAmenities(false);
+        fetchProperty();
+      } else {
+        setError((await res.json()).message || 'Failed to update amenities');
+      }
+    } catch (err) { setError('Failed to update amenities'); } finally { setIsSubmitting(false); }
+  };
+
   const handleCreateRoom = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getAccessToken();
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms`, {
         method: 'POST',
@@ -110,12 +191,13 @@ export default function AccommodationManagementPage() {
     } catch (err) {
       console.error(err);
       setError('Failed to create room');
-    }
+    } finally { setIsSubmitting(false); }
   };
 
   const handleUpdateAvailability = async (roomId: string) => {
     if (!availDate || !availCount) return setError('Date and count required');
     const token = getAccessToken();
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms/${roomId}/availability`, {
         method: 'PUT',
@@ -142,11 +224,12 @@ export default function AccommodationManagementPage() {
     } catch (err) {
       console.error(err);
       setError('Failed to update availability');
-    }
+    } finally { setIsSubmitting(false); }
   };
 
   const handleSubmitReview = async () => {
     const token = getAccessToken();
+    setIsSubmitting(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/submit`, {
         method: 'POST',
@@ -167,7 +250,7 @@ export default function AccommodationManagementPage() {
       console.error(err);
       setError('Failed to submit');
       setSubmitConfirm(false);
-    }
+    } finally { setIsSubmitting(false); }
   };
 
   if (loading) return <div className="p-12 text-center">Loading...</div>;
@@ -190,9 +273,14 @@ export default function AccommodationManagementPage() {
             <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
               {property.status}
             </span>
+            {property.status === 'DRAFT' && !isEditingProp && (
+              <button onClick={() => setIsEditingProp(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm">
+                Edit Details
+              </button>
+            )}
             {property.status === 'DRAFT' && (
               <div className="relative">
-                <button onClick={() => setSubmitConfirm(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">
+                <button disabled={isSubmitting} onClick={() => setSubmitConfirm(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm disabled:opacity-50">
                   Submit for Review
                 </button>
                 {submitConfirm && (
@@ -200,8 +288,10 @@ export default function AccommodationManagementPage() {
                     <h3 className="font-semibold text-sm mb-2">Submit for Review?</h3>
                     <p className="text-xs text-gray-600 mb-4">You will not be able to edit it while pending.</p>
                     <div className="flex gap-2 justify-end">
-                      <button onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-gray-500">Cancel</button>
-                      <button onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-indigo-600 text-white rounded">Submit</button>
+                      <button disabled={isSubmitting} onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-gray-500 disabled:opacity-50">Cancel</button>
+                      <button disabled={isSubmitting} onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-indigo-600 text-white rounded disabled:opacity-50">
+                        {isSubmitting ? 'Submitting...' : 'Submit'}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -220,12 +310,32 @@ export default function AccommodationManagementPage() {
           <button onClick={() => setError('')} className="absolute top-4 right-4 text-red-500 hover:text-red-700">✕</button>
         </div>}
         {toast && <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-8">{toast}</div>}
-        
+
         {isPending && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-8">
             <h3 className="font-medium">Awaiting Admin Approval</h3>
             <p className="text-sm">This property is currently being reviewed by administrators. Editing is disabled until a decision is made.</p>
           </div>
+        )}
+
+        {isEditingProp && (
+          <form onSubmit={handleUpdateProperty} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 space-y-4">
+            <h2 className="text-xl font-medium mb-4">Edit Details</h2>
+            <div><label className="block text-sm text-gray-700 mb-1">Name</label><input required type="text" value={editPropForm.name} onChange={e => setEditPropForm({...editPropForm, name: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            <div><label className="block text-sm text-gray-700 mb-1">Address</label><input required type="text" value={editPropForm.address} onChange={e => setEditPropForm({...editPropForm, address: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            <div className="grid grid-cols-3 gap-4">
+              <div><label className="block text-sm text-gray-700 mb-1">Postcode</label><input required type="text" value={editPropForm.postcode} onChange={e => setEditPropForm({...editPropForm, postcode: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">Lat</label><input required type="number" step="any" value={editPropForm.lat} onChange={e => setEditPropForm({...editPropForm, lat: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">Lng</label><input required type="number" step="any" value={editPropForm.lng} onChange={e => setEditPropForm({...editPropForm, lng: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            </div>
+            <div><label className="block text-sm text-gray-700 mb-1">Description</label><textarea required rows={4} value={editPropForm.description} onChange={e => setEditPropForm({...editPropForm, description: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            <div className="flex gap-4 justify-end">
+              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50">Cancel</button>
+              <button disabled={isSubmitting} type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50">
+                {isSubmitting ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </form>
         )}
 
         <div className="space-y-8">
@@ -250,61 +360,59 @@ export default function AccommodationManagementPage() {
             )}
           </section>
 
-          {/* Rooms Section */}
+          {/* Amenities Section */}
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-medium mb-4">Room Types</h2>
-            <div className="space-y-4 mb-8">
-              {property.roomTypes.length === 0 ? (
-                <p className="text-gray-500 text-sm">No room types added yet.</p>
-              ) : (
-                property.roomTypes.map((room: any) => (
-                  <div key={room.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{room.name}</h3>
-                        <p className="text-sm text-gray-500">{room.description}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-medium text-lg">${(room.pricePerWeek / 100).toFixed(2)}/wk</div>
-                        <div className="text-sm text-gray-500">Inventory: {room.inventory}</div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <h4 className="text-sm font-medium mb-2">Update Availability</h4>
-                      <div className="flex gap-2">
-                        <input type="date" value={availDate} onChange={e => setAvailDate(e.target.value)} disabled={isPending} className="border border-gray-300 rounded px-2 py-1 text-sm disabled:bg-gray-100" />
-                        <input type="number" value={availCount} onChange={e => setAvailCount(e.target.value)} disabled={isPending} placeholder="Avail Count" className="border border-gray-300 rounded px-2 py-1 text-sm w-32 disabled:bg-gray-100" />
-                        <button onClick={() => handleUpdateAvailability(room.id)} disabled={isPending} className="bg-indigo-600 text-white px-3 py-1 text-sm rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">Set</button>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500 flex flex-wrap gap-2">
-                        {room.availabilityCalendar.map((cal: any) => (
-                          <span key={cal.date} className="bg-gray-100 px-2 py-1 rounded">
-                            {new Date(cal.date).toLocaleDateString()}: {cal.available}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-medium">Amenities</h2>
+              {!isPending && !isEditingAmenities && (
+                <button onClick={() => setIsEditingAmenities(true)} className="text-sm text-indigo-600 hover:underline">Edit Amenities</button>
               )}
             </div>
 
-            {!isPending && (
-              <form onSubmit={handleCreateRoom} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <h3 className="font-medium mb-4">Add New Room Type</h3>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <input required type="text" placeholder="Name (e.g. Standard Studio)" value={newRoom.name} onChange={e => setNewRoom({...newRoom, name: e.target.value})} className="border border-gray-300 rounded-md px-3 py-2" />
-                  <input type="text" placeholder="Description" value={newRoom.description} onChange={e => setNewRoom({...newRoom, description: e.target.value})} className="border border-gray-300 rounded-md px-3 py-2" />
-                  <input required type="number" step="0.01" min="1" placeholder="Weekly Price ($)" value={newRoom.price} onChange={e => setNewRoom({...newRoom, price: e.target.value})} className="border border-gray-300 rounded-md px-3 py-2" />
-                  <input required type="number" min="0" placeholder="Total Inventory" value={newRoom.inventory} onChange={e => setNewRoom({...newRoom, inventory: e.target.value})} className="border border-gray-300 rounded-md px-3 py-2" />
+            {isEditingAmenities ? (
+              <div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  {allAmenities.map(am => (
+                    <label key={am.id} className="flex items-center gap-2 text-sm border p-2 rounded cursor-pointer hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={selectedAmenities.includes(am.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) setSelectedAmenities([...selectedAmenities, am.id]);
+                          else setSelectedAmenities(selectedAmenities.filter(id => id !== am.id));
+                        }}
+                      />
+                      {am.name}
+                    </label>
+                  ))}
                 </div>
-                <button type="submit" className="bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 text-sm">
-                  Save Room Type
-                </button>
-              </form>
+                <div className="flex gap-3 justify-end">
+                  <button disabled={isSubmitting} onClick={() => {
+                    setSelectedAmenities(property.amenities?.map((a: any) => a.amenityId) || []);
+                    setIsEditingAmenities(false);
+                  }} className="text-sm text-gray-600 disabled:opacity-50">Cancel</button>
+                  <button disabled={isSubmitting} onClick={handleUpdateAmenities} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-700 disabled:opacity-50">
+                    {isSubmitting ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {property.amenities?.length > 0 ? (
+                  property.amenities.map((pa: any) => (
+                    <span key={pa.amenityId} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                      {pa.amenity.name}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500">No amenities selected.</p>
+                )}
+              </div>
             )}
           </section>
+
+          {/* Hierarchy Section */}
+          <HierarchyManager property={property} fetchProperty={fetchProperty} isPending={isPending} />
 
         </div>
       </div>
