@@ -23,6 +23,8 @@ model User {
   emailVerified              Boolean   @default(false)
   emailVerificationToken     String?   @unique
   emailVerificationExpiresAt DateTime?
+  emailOtpAttempts           Int       @default(0)
+  emailOtpLastSentAt         DateTime?
   failedLoginAttempts        Int       @default(0)
   lockedUntil                DateTime?
   

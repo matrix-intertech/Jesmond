@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
+import { Suspense } from 'react';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const [accountType, setAccountType] = useState<'student' | 'provider'>('student');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -16,6 +17,27 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // OTP Verification State
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (searchParams.get('verify') === 'true' && searchParams.get('email')) {
+      setEmail(searchParams.get('email') || '');
+      setShowOtp(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCooldown > 0) {
+      timer = setInterval(() => setResendCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +84,11 @@ export default function RegisterPage() {
         throw new Error(msg || 'Registration failed.');
       }
 
-      if (data.access_token) {
+      if (data.requiresEmailVerification) {
+        setShowOtp(true);
+        setResendCooldown(60);
+      } else if (data.access_token) {
+        // Fallback if verification disabled
         setAccessToken(data.access_token);
         if (data.user) {
           setCurrentUser(data.user);
@@ -81,6 +107,110 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (otp.length !== 6) {
+      setError('Please enter a valid 6-digit code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), otp }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Verification failed');
+      }
+      setAccessToken(data.access_token);
+      setCurrentUser(data.user);
+      router.push(data.user.role === 'STUDENT' ? '/student' : '/portal');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setError('');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/resend-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to resend code');
+      }
+      setResendCooldown(60);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  if (showOtp) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100 text-center">
+          <div>
+            <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 font-outfit">Verify your email</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              We've sent a 6-digit code to <span className="font-semibold text-gray-900">{email}</span>
+            </p>
+          </div>
+          <form className="space-y-6" onSubmit={handleVerifyOtp}>
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
+                {error}
+              </div>
+            )}
+            <div>
+              <label htmlFor="otp" className="sr-only">Verification Code</label>
+              <input
+                id="otp"
+                name="otp"
+                type="text"
+                maxLength={6}
+                required
+                className="appearance-none rounded relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg text-center tracking-widest font-mono"
+                placeholder="000000"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 6}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Verifying...' : 'Verify Email'}
+              </button>
+            </div>
+            <div className="text-sm">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={resendCooldown > 0}
+                className="text-indigo-600 hover:text-indigo-500 disabled:text-gray-400 font-medium"
+              >
+                {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend verification code'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -233,6 +363,8 @@ export default function RegisterPage() {
             </>
           )}
 
+
+
           <div>
             <button
               type="submit"
@@ -245,5 +377,13 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

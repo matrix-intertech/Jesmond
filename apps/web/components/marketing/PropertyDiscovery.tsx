@@ -30,12 +30,40 @@ const PROPERTIES = [
     roomType: "Premium En-suite",
     amenities: ["Rooftop BBQ", "Cafe", "Fitness Center"],
     image: "/assets/prop_2.png",
+  },
+  {
+    id: "prop-3",
+    name: "Yugo University Square",
+    provider: "Yugo",
+    verified: true,
+    rating: 4.7,
+    university: "University of Melbourne",
+    distance: "5 min walk",
+    rent: "$350",
+    availability: "Available Now",
+    roomType: "Shared Apartment",
+    amenities: ["Pool", "Gym", "Study Hub", "Events"],
+    image: "/assets/prop_1.png",
+  },
+  {
+    id: "prop-4",
+    name: "Student One Wharf Street",
+    provider: "Student One",
+    verified: true,
+    rating: 4.9,
+    university: "QUT",
+    distance: "15 min walk",
+    rent: "$410",
+    availability: "Semester 2 (July)",
+    roomType: "Private Studio",
+    amenities: ["Sky Lounge", "Gym", "Cinema", "Pool"],
+    image: "/assets/prop_2.png",
   }
 ];
 
 export function PropertyDiscovery() {
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-24 bg-slate-50">
+    <section className="w-full max-w-[1600px] mx-auto px-6 sm:px-12 lg:px-16 py-24 bg-slate-50">
       
       {/* Elegant Section Heading */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
@@ -67,12 +95,12 @@ export function PropertyDiscovery() {
       </div>
 
       {/* Property Grid Optimized for Student Conversion Psychology */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
         {PROPERTIES.map((property) => (
           <div key={property.id} className="group relative flex flex-col rounded-[24px] bg-white border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden hover:shadow-[0_20px_40px_rgb(0,0,0,0.12)] transition-all duration-500">
             
             {/* Massive Image Header */}
-            <div className="relative w-full h-[360px] overflow-hidden bg-slate-100">
+            <div className="relative w-full h-[240px] overflow-hidden bg-slate-100">
               <SafeImage 
                 src={property.image}
                 alt={property.name}
@@ -109,62 +137,62 @@ export function PropertyDiscovery() {
             </div>
 
             {/* Data Section Engineered for 5-second decision making */}
-            <div className="p-6 lg:p-10 flex flex-col flex-grow justify-between bg-white relative">
+            <div className="p-5 lg:p-6 flex flex-col flex-grow justify-between bg-white relative">
               
               {/* Priority 1: Affordability & Identity */}
-              <div className="flex justify-between items-start mb-6 border-b border-slate-100 pb-6">
+              <div className="flex justify-between items-start mb-5 border-b border-slate-100 pb-5">
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">{property.name}</h3>
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-1 line-clamp-1">{property.name}</h3>
                 </div>
-                <div className="text-right flex-shrink-0 ml-4">
+                <div className="text-right flex-shrink-0 ml-3">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">From</p>
-                  <p className="text-3xl font-bold text-indigo-600 tracking-tight leading-none">{property.rent}<span className="text-sm font-medium text-slate-500">/wk</span></p>
+                  <p className="text-2xl font-bold text-indigo-600 tracking-tight leading-none">{property.rent}<span className="text-xs font-medium text-slate-500">/wk</span></p>
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-y-6 gap-x-6 mb-8">
+              <div className="grid grid-cols-2 gap-y-4 gap-x-4 mb-6">
                 
                 {/* Priority 2: Distance to University (Visual Highlight) */}
-                <div className="col-span-2 bg-indigo-50 rounded-xl p-4 flex items-center gap-3 border border-indigo-100/50">
-                  <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <div className="col-span-2 bg-indigo-50 rounded-xl p-3 flex items-center gap-3 border border-indigo-100/50">
+                  <div className="bg-indigo-100 p-1.5 rounded-lg text-indigo-600">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">Distance</p>
-                    <p className="text-sm font-semibold text-indigo-900">{property.distance} to <span className="font-bold">{property.university}</span></p>
+                    <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">Distance</p>
+                    <p className="text-xs font-semibold text-indigo-900 line-clamp-1">{property.distance} to <span className="font-bold">{property.university}</span></p>
                   </div>
                 </div>
 
                 {/* Priority 3: Availability */}
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     Availability
                   </p>
-                  <p className="text-sm font-bold text-emerald-600 bg-emerald-50 inline-flex items-center px-2.5 py-1 rounded-md border border-emerald-100">{property.availability}</p>
+                  <p className="text-xs font-bold text-emerald-600 bg-emerald-50 inline-flex items-center px-2 py-0.5 rounded-md border border-emerald-100 line-clamp-1">{property.availability}</p>
                 </div>
 
                 {/* Priority 4: Room Type */}
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                     Room Type
                   </p>
-                  <p className="text-sm font-semibold text-slate-800">{property.roomType}</p>
+                  <p className="text-xs font-semibold text-slate-800 line-clamp-1">{property.roomType}</p>
                 </div>
 
               </div>
 
               {/* Priority 6: Amenities (Lowest Priority Data) */}
-              <div className="flex flex-wrap gap-2 mb-8">
-                {property.amenities.slice(0, 3).map(amenity => (
-                  <span key={amenity} className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-md text-[11px] font-bold uppercase tracking-wider border border-slate-200/60">
+              <div className="flex flex-wrap gap-1.5 mb-6">
+                {property.amenities.slice(0, 2).map(amenity => (
+                  <span key={amenity} className="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-slate-200/60">
                     {amenity}
                   </span>
                 ))}
-                {property.amenities.length > 3 && (
-                  <span className="px-3 py-1.5 bg-slate-50 text-slate-400 rounded-md text-[11px] font-bold uppercase tracking-wider border border-slate-200/60">
-                    +{property.amenities.length - 3} more
+                {property.amenities.length > 2 && (
+                  <span className="px-2 py-1 bg-slate-50 text-slate-400 rounded-md text-[10px] font-bold uppercase tracking-wider border border-slate-200/60">
+                    +{property.amenities.length - 2} more
                   </span>
                 )}
               </div>

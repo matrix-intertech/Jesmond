@@ -61,3 +61,21 @@ export class LoginDto {
   password!: string;
 }
 
+export class VerifyEmailDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(6)
+  otp!: string;
+}
+
+export class ResendOtpDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+}
+

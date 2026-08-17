@@ -26,6 +26,11 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
+        if (data.code === 'EMAIL_NOT_VERIFIED') {
+          // Push to register page or show specific error, ideally we would pass email to OTP view
+          router.push(`/register?email=${encodeURIComponent(email)}&verify=true`);
+          return;
+        }
         throw new Error(data.message || 'Login failed');
       }
 
