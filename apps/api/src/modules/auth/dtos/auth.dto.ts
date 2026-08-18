@@ -79,3 +79,15 @@ export class ResendOtpDto {
   email!: string;
 }
 
+export class Login2faDto {
+  @IsString()
+  @IsNotEmpty()
+  mfaToken!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(6)
+  code!: string;
+}
+

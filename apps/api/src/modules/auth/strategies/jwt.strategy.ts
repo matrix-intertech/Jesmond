@@ -25,8 +25,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
     });
     
-    if (!user) {
+    if (!user || user.accountStatus === 'SUSPENDED' || user.accountStatus === 'DEACTIVATED') {
       throw new UnauthorizedException();
+    }
+
+    if (payload.sessionId) {
+      const session = await this.prisma.session.findUnique({ where: { id: payload.sessionId } });
+      if (!session || session.isRevoked || session.expiresAt < new Date()) {
+        throw new UnauthorizedException('Session revoked or expired');
+      }
     }
     
     const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;

@@ -11,6 +11,13 @@ export class AdminFeaturesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
+  @Get()
+  async getAllFeatures() {
+    return this.featureFlagService.getAllFeatures();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
   @Get(':key')
   async getFeatureState(@Param('key') key: string) {
     return this.featureFlagService.getFeatureState(key);

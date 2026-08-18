@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { UserRole, AccountStatus, OrgType } from '@prisma/client';
 import { EmailService } from './email.service';
 import * as crypto from 'crypto';
+const { authenticator } = require('otplib');
 
 @Injectable()
 export class AuthService {
@@ -152,9 +153,78 @@ export class AuthService {
       });
     }
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    if (user.mfaEnabled) {
+      const mfaPayload = { sub: user.id, mfaPending: true };
+      const mfaToken = this.jwtService.sign(mfaPayload, { expiresIn: '5m' });
+      return { mfaRequired: true, mfaToken };
+    }
+
+    const session = await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: crypto.randomBytes(32).toString('hex'), // Minimal placeholder for refresh token requirement
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Match 7d from JwtModule
+      },
+    });
+
+    const payload = { sub: user.id, email: user.email, role: user.role, sessionId: session.id };
     const access_token = this.jwtService.sign(payload);
 
+    const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
+
+    return {
+      access_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        organizationId,
+      },
+    };
+  }
+
+  async login2fa(dto: { mfaToken: string; code: string }) {
+    let payload;
+    try {
+      payload = this.jwtService.verify(dto.mfaToken);
+    } catch (e) {
+      throw new UnauthorizedException('Invalid or expired MFA token');
+    }
+
+    if (!payload.mfaPending || !payload.sub) {
+      throw new UnauthorizedException('Invalid MFA token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      include: {
+        orgStaffRoles: {
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!user || !user.mfaEnabled || !user.mfaSecret) {
+      throw new UnauthorizedException('MFA is not configured for this user');
+    }
+
+    const isValid = authenticator.verify({ token: dto.code, secret: user.mfaSecret });
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid verification code');
+    }
+
+    const session = await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: crypto.randomBytes(32).toString('hex'),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const finalPayload = { sub: user.id, email: user.email, role: user.role, sessionId: session.id };
+    const access_token = this.jwtService.sign(finalPayload);
     const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
 
     return {
@@ -216,7 +286,15 @@ export class AuthService {
       },
     });
 
-    const payload = { sub: updatedUser.id, email: updatedUser.email, role: updatedUser.role };
+    const session = await this.prisma.session.create({
+      data: {
+        userId: updatedUser.id,
+        refreshToken: crypto.randomBytes(32).toString('hex'),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    const payload = { sub: updatedUser.id, email: updatedUser.email, role: updatedUser.role, sessionId: session.id };
     const access_token = this.jwtService.sign(payload);
     const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
 

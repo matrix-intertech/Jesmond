@@ -19,6 +19,12 @@ export class FeatureFlagService {
     return { key, enabled };
   }
 
+  async getAllFeatures() {
+    return this.prisma.featureFlag.findMany({
+      orderBy: { key: 'asc' }
+    });
+  }
+
   async setFeatureState(key: string, enabled: boolean, adminId: string) {
     try {
       // We use upsert so it gets created if it doesn't exist

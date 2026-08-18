@@ -59,6 +59,7 @@ model User {
   notificationTriggers NotificationTrigger[]
   savedProperties    SavedProperty[]
   enquiries          Enquiry[]
+  accountDeletionRequest AccountDeletionRequest?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -825,4 +826,27 @@ model FeatureFlag {
   updatedAt   DateTime @updatedAt
 
   @@index([key])
+}
+
+model PlatformSettings {
+  id               String   @id @default("singleton")
+  siteName         String   @default("Jesmond")
+  supportEmail     String   @default("support@jesmond.local")
+  supportPhone     String?
+  defaultTimezone  String   @default("Australia/Sydney")
+  defaultCurrency  String   @default("AUD")
+  maintenanceMode  Boolean  @default(false)
+
+  updatedAt        DateTime @updatedAt
+}
+
+model AccountDeletionRequest {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  reason      String?
+  status      String   @default("PENDING") // PENDING, COMPLETED, REJECTED
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

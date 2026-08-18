@@ -12,6 +12,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { StudentActionsModule } from './modules/student-actions/student-actions.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     StudentActionsModule,
     ApplicationsModule,
     PaymentsModule,
+    SettingsModule,
   ],
   controllers: [],
   providers: [],
