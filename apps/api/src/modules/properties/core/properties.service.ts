@@ -460,7 +460,7 @@ export class PropertiesService {
       where: { id, status: 'PUBLISHED' },
       include: {
         organization: { select: { name: true, abn: true } },
-        suburb: { select: { name: true, city: { select: { name: true } } } },
+        suburb: { select: { name: true, city: { select: { name: true } }, state: { select: { name: true, code: true } } } },
         media: { orderBy: { displayOrder: 'asc' } },
         roomTypes: {
           include: {
@@ -488,7 +488,8 @@ export class PropertiesService {
       name: property.name,
       address: property.address,
       suburb: property.suburb.name,
-      city: property.suburb.city.name,
+      city: property.suburb.city?.name || null,
+      state: property.suburb.state?.name || null,
       lat: property.lat,
       lng: property.lng,
       provider: {

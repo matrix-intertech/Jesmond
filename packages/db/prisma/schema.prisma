@@ -669,38 +669,62 @@ model Country {
 }
 
 model State {
-  id        String   @id @default(uuid())
-  countryId String
-  country   Country  @relation(fields: [countryId], references: [id])
-  code      String   // e.g. "VIC"
-  name      String
-  cities    City[]
+  id             String   @id @default(uuid())
+  countryId      String
+  country        Country  @relation(fields: [countryId], references: [id])
+  code           String   // e.g. "VIC"
+  name           String
+  normalizedName String   @default("")
 
+  cities         City[]
+  suburbs        Suburb[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([normalizedName, countryId])
+  @@unique([code, countryId])
   @@index([countryId])
 }
 
 model City {
-  id      String   @id @default(uuid())
-  stateId String
-  state   State    @relation(fields: [stateId], references: [id])
-  name    String
-  suburbs Suburb[]
+  id             String   @id @default(uuid())
+  stateId        String
+  state          State    @relation(fields: [stateId], references: [id])
+  name           String
+  normalizedName String   @default("")
+  officialCode   String?
 
+  suburbs        Suburb[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([normalizedName, stateId])
   @@index([stateId])
 }
 
 model Suburb {
-  id       String   @id @default(uuid())
-  cityId   String
-  city     City     @relation(fields: [cityId], references: [id])
-  name     String
-  postcode String
-  lat      Float
-  lng      Float
+  id             String   @id @default(uuid())
+  cityId         String?
+  city           City?    @relation(fields: [cityId], references: [id])
+  stateId        String
+  state          State    @relation(fields: [stateId], references: [id])
+  name           String
+  normalizedName String   @default("")
+  officialCode   String?
+  postcode       String
+  lat            Float?
+  lng            Float?
 
-  properties Property[]
-  campuses   Campus[]
+  properties     Property[]
+  campuses       Campus[]
 
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([stateId, normalizedName])
+  @@index([stateId])
   @@index([cityId])
   @@index([postcode])
 }

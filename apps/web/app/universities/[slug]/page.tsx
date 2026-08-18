@@ -4,17 +4,23 @@ import { prisma } from "@jesmond/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
+import { formatLocation } from "../../../utils/location";
+
 interface CampusWithLocation {
   id: string;
   name: string;
-  suburb: { name: string; city: { name: string } };
+  suburb: {
+    name: string;
+    city?: { name: string } | null;
+    state?: { name: string; code: string } | null;
+  };
 }
 
 export default async function UniversityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const uni = await prisma.university.findUnique({
     where: { slug: resolvedParams.slug },
-    include: { campuses: { include: { suburb: { include: { city: true } } } } }
+    include: { campuses: { include: { suburb: { include: { city: true, state: true } } } } }
   });
 
   if (!uni) return notFound();
@@ -32,9 +38,9 @@ export default async function UniversityDetailPage({ params }: { params: Promise
             <div key={c.id} className="border border-slate-200 rounded-[24px] p-6 flex flex-col justify-between">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">{c.name}</h3>
-                <p className="text-slate-500 mt-2">{c.suburb.name}, {c.suburb.city.name}</p>
+                <p className="text-slate-500 mt-2">{formatLocation({ suburb: c.suburb, state: c.suburb.state, city: c.suburb.city })}</p>
               </div>
-              <Link href={`/search?city=${c.suburb.city.name}`} className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-full font-semibold text-center hover:bg-slate-800 transition-colors">
+              <Link href={`/search?city=${c.suburb?.city?.name || c.suburb?.name}`} className="mt-6 px-6 py-2 bg-slate-900 text-white rounded-full font-semibold text-center hover:bg-slate-800 transition-colors">
                 Find properties near campus
               </Link>
             </div>

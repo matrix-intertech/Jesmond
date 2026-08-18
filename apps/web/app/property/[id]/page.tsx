@@ -7,6 +7,7 @@ import { SafeImage } from "../../../components/ui/SafeImage";
 
 import { SaveButton } from "../../../components/student/SaveButton";
 import { PropertyActions } from "../../../components/student/PropertyActions";
+import { formatLocation } from "../../../utils/location";
 
 export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -39,7 +40,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               </h1>
               <SaveButton propertyId={property.id} />
             </div>
-            <p className="text-lg text-slate-500">{property.address}, {property.suburb.name}, {property.suburb.city.name}</p>
+            <p className="text-lg text-slate-500">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
           </div>
           <div className="bg-slate-100 px-4 py-2 rounded-xl text-sm font-semibold text-slate-700">Managed by {property.organization.name}</div>
         </div>

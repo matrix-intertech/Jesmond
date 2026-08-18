@@ -8,13 +8,18 @@ import EmptyState from "@/components/ui/EmptyState";
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
 import { handleApiError } from '@/utils/api';
+import { formatLocation } from '@/utils/location';
 
 interface SavedProperty {
   id: string;
   name: string;
   status: string;
   organization: { name: string };
-  suburb: { name: string; city: { name: string } };
+  suburb: {
+    name: string;
+    city?: { name: string } | null;
+    state?: { name: string; code: string } | null;
+  };
   media: { url: string }[];
   roomTypes: { pricePerWeek: number }[];
 }
@@ -102,7 +107,7 @@ export default function StudentSavedPage() {
                 <div className="p-4">
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{prop.organization.name}</div>
                   <h3 className="font-bold text-lg leading-tight mb-1">{prop.name}</h3>
-                  <p className="text-slate-500 text-sm mb-3">{prop.suburb.name}, {prop.suburb.city.name}</p>
+                  <p className="text-slate-500 text-sm mb-3">{formatLocation({ suburb: prop.suburb, state: prop.suburb.state, city: prop.suburb.city })}</p>
                   <div className="font-bold text-indigo-600">
                     {prop.roomTypes[0] ? `From $${(prop.roomTypes[0].pricePerWeek / 100).toFixed(2)} /wk` : 'Price TBC'}
                   </div>
