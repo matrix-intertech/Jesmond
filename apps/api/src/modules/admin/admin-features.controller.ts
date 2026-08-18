@@ -10,21 +10,21 @@ export class AdminFeaturesController {
   constructor(private readonly featureFlagService: FeatureFlagService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get()
   async getAllFeatures() {
     return this.featureFlagService.getAllFeatures();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get(':key')
   async getFeatureState(@Param('key') key: string) {
     return this.featureFlagService.getFeatureState(key);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Patch(':key')
   async updateFeatureState(
     @Param('key') key: string, 
