@@ -207,7 +207,7 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* Sidebar – hidden on mobile unless open */}
       <nav
-        className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:static inset-y-0 left-0 z-30`}
+        className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:sticky lg:top-0 lg:h-screen inset-y-0 left-0 z-30`}
       >
         <div className="flex items-center justify-between px-6 py-6">
           <span className="text-2xl font-bold text-slate-900 font-outfit tracking-tight">Jesmond</span>
@@ -236,7 +236,7 @@ export default function Sidebar({ role }: { role: string }) {
             );
           })}
         </ul>
-        <div className="p-4 mx-4 mb-4 bg-slate-50 rounded-2xl border border-slate-100">
+        <div className="p-4 mx-4 mb-4 mt-auto bg-slate-50 rounded-2xl border border-slate-100">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
               {user?.firstName?.[0] ?? 'U'}
