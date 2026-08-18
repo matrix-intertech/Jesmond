@@ -1,6 +1,7 @@
 import { Controller, Get, Patch, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ChangePasswordDto } from './dtos/settings.dto';
 
 @Controller('settings')
 @UseGuards(JwtAuthGuard)
@@ -20,6 +21,11 @@ export class SettingsController {
   @Get('security')
   async getSecurity(@Request() req: any) {
     return this.settingsService.getSecurity(req.user.id);
+  }
+
+  @Post('security/change-password')
+  async changePassword(@Request() req: any, @Body() body: ChangePasswordDto) {
+    return this.settingsService.changePassword(req.user.id, body);
   }
 
   @Post('security/2fa-setup')

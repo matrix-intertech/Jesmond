@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as qrcode from 'qrcode';
+import * as bcrypt from 'bcrypt';
+import { ChangePasswordDto } from './dtos/settings.dto';
 const { authenticator } = require('otplib');
 
 @Injectable()
@@ -45,6 +47,24 @@ export class SettingsService {
       orderBy: { createdAt: 'desc' }
     });
     return { mfaEnabled: user?.mfaEnabled, sessions };
+  }
+
+  async changePassword(userId: string, data: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const isPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException('Incorrect current password');
+    }
+
+    const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    return { success: true, message: 'Password successfully changed' };
   }
 
   async setup2fa(userId: string) {

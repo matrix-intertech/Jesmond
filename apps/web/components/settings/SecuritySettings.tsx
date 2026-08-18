@@ -13,6 +13,14 @@ export default function SecuritySettings() {
   const [error, setError] = useState("");
   const [sessions, setSessions] = useState<any[]>([]);
 
+  // Password state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+
   useEffect(() => {
     fetchSecurityData();
   }, []);
@@ -117,10 +125,102 @@ export default function SecuritySettings() {
     }
   };
 
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    setPasswordSuccess("");
+
+    if (newPassword !== confirmPassword) {
+      return setPasswordError("New passwords do not match.");
+    }
+    if (newPassword.length < 8) {
+      return setPasswordError("New password must be at least 8 characters long.");
+    }
+
+    setPasswordSubmitting(true);
+    try {
+      const token = getAccessToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/security/change-password`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPasswordSuccess("Password successfully changed.");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        setPasswordError(data.message || "Failed to change password.");
+      }
+    } catch (e: any) {
+      setPasswordError(e.message || "An unexpected error occurred.");
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-slate-500">Loading security settings...</div>;
 
   return (
     <div className="space-y-6">
+      {/* Password Security */}
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h3 className="text-lg leading-6 font-medium text-gray-900">Change Password</h3>
+          <p className="mt-1 text-sm text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
+        </div>
+        <div className="p-6">
+          {passwordError && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{passwordError}</div>}
+          {passwordSuccess && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded text-sm">{passwordSuccess}</div>}
+
+          <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+              <input
+                type="password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+              />
+            </div>
+            <div>
+              <button
+                type="submit"
+                disabled={passwordSubmitting}
+                className={`px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${passwordSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {passwordSubmitting ? 'Updating...' : 'Change Password'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
           <h3 className="text-lg leading-6 font-medium text-gray-900">Two-Factor Authentication</h3>
