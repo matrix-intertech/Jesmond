@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterProviderDto, RegisterStudentDto, LoginDto, VerifyEmailDto, ResendOtpDto } from '../dtos/auth.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -22,7 +22,44 @@ export class AuthService {
     return crypto.randomInt(100000, 999999).toString();
   }
 
+  private async verifyTurnstileToken(token: string): Promise<void> {
+    if (!token) {
+      throw new BadRequestException('Security verification failed. Please try again.');
+    }
+
+    const secretKey = process.env.TURNSTILE_SECRET_KEY;
+    if (!secretKey) {
+      console.warn('TURNSTILE_SECRET_KEY is not configured. Bypassing check in development.');
+      if (process.env.NODE_ENV === 'production') {
+        throw new BadRequestException('Security verification failed. Please try again.');
+      }
+      return;
+    }
+
+    try {
+      const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          secret: secretKey,
+          response: token,
+        }),
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new BadRequestException('Security verification failed. Please try again.');
+      }
+    } catch (error) {
+      throw new BadRequestException('Security verification failed. Please try again.');
+    }
+  }
+
   async registerProvider(dto: RegisterProviderDto) {
+    await this.verifyTurnstileToken(dto.turnstileToken);
+
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -83,6 +120,8 @@ export class AuthService {
   }
 
   async registerStudent(dto: RegisterStudentDto) {
+    await this.verifyTurnstileToken(dto.turnstileToken);
+
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });

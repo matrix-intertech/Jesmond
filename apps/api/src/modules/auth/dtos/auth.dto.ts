@@ -2,6 +2,10 @@ import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty } from 'cla
 import { OrgType } from '@prisma/client';
 
 export class RegisterProviderDto {
+  @IsString()
+  @IsNotEmpty()
+  turnstileToken!: string;
+
   @IsEmail()
   @IsNotEmpty()
   email!: string;
@@ -31,6 +35,10 @@ export class RegisterProviderDto {
 }
 
 export class RegisterStudentDto {
+  @IsString()
+  @IsNotEmpty()
+  turnstileToken!: string;
+
   @IsEmail()
   @IsNotEmpty()
   email!: string;

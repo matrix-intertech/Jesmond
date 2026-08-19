@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
 import { Suspense } from 'react';
+import Turnstile from '@/components/ui/Turnstile';
 
 function RegisterForm() {
   const [accountType, setAccountType] = useState<'student' | 'provider'>('student');
@@ -14,6 +15,7 @@ function RegisterForm() {
   const [password, setPassword] = useState('');
   const [organizationName, setOrganizationName] = useState('');
   const [organizationType, setOrganizationType] = useState('PROVIDER');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -68,8 +70,8 @@ function RegisterForm() {
         : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/register`;
 
       const payload = accountType === 'student'
-        ? { firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password }
-        : { firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password, organizationName: organizationName.trim(), organizationType };
+        ? { firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password, turnstileToken }
+        : { firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password, organizationName: organizationName.trim(), organizationType, turnstileToken };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -103,6 +105,8 @@ function RegisterForm() {
       } else {
         setError(err.message);
       }
+      setTurnstileToken('');
+      if (window.turnstile) window.turnstile.reset();
     } finally {
       setLoading(false);
     }
@@ -365,10 +369,16 @@ function RegisterForm() {
 
 
 
+          <Turnstile
+            onVerify={(token) => setTurnstileToken(token)}
+            onError={() => { setTurnstileToken(''); setError('Security verification failed.'); }}
+            onExpire={() => setTurnstileToken('')}
+          />
+
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !turnstileToken}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create account'}
