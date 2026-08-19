@@ -37,6 +37,7 @@ services:
         NEXT_PUBLIC_API_URL: https://jesmondapi.matrixspaces.com
         NEXT_PUBLIC_R2_PUBLIC_URL: https://pub-a858d2d933774b55b48ab730707eac3d.r2.dev
         DATABASE_URL: postgresql://jesmond:Jesmond123@jesmond-postgres:5432/jesmond
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
     container_name: jesmond-web
     restart: unless-stopped
     ports:
