@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
+import LocationPicker from '@/components/ui/LocationPicker';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 
@@ -13,6 +14,7 @@ export default function CreatePropertyPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isManualLocation, setIsManualLocation] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,13 +35,43 @@ export default function CreatePropertyPage() {
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => {
+      const next = { ...prev, [name]: value };
+
+      if (name === 'suburbId') {
+        const selectedSuburb = suburbs.find(s => s.id === value);
+        if (selectedSuburb && selectedSuburb.lat && selectedSuburb.lng) {
+          if (!isManualLocation) {
+            next.lat = String(selectedSuburb.lat);
+            next.lng = String(selectedSuburb.lng);
+          }
+        }
+      }
+
+      return next;
+    });
+  };
+
+  const handleLocationChange = (lat: number, lng: number) => {
+    setIsManualLocation(true);
+    setFormData(prev => ({
+      ...prev,
+      lat: String(lat),
+      lng: String(lng)
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!formData.lat || !formData.lng) {
+      setError('Please select the accommodation location on the map.');
+      setLoading(false);
+      return;
+    }
 
     const token = getAccessToken();
     if (!token) { onAuthError(); return; }
@@ -115,16 +147,13 @@ export default function CreatePropertyPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-              <input required type="number" step="any" name="lat" value={formData.lat} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="-37.8136" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-              <input required type="number" step="any" name="lng" value={formData.lng} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="144.9631" />
-            </div>
-          </div>
+          <LocationPicker
+            lat={formData.lat}
+            lng={formData.lng}
+            onChange={handleLocationChange}
+            suburbLat={suburbs.find(s => s.id === formData.suburbId)?.lat}
+            suburbLng={suburbs.find(s => s.id === formData.suburbId)?.lng}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
