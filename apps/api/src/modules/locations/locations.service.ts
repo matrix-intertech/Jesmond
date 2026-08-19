@@ -22,6 +22,12 @@ export class LocationsService {
             },
           },
         },
+        state: {
+          select: {
+            name: true,
+            code: true,
+          }
+        },
       },
       orderBy: {
         name: 'asc',

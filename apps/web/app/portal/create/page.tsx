@@ -105,7 +105,7 @@ export default function CreatePropertyPage() {
               <select required name="suburbId" value={formData.suburbId} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2">
                 <option value="">Select Suburb</option>
                 {suburbs.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}, {s.city.name}</option>
+                  <option key={s.id} value={s.id}>{s.name}, {s.city ? s.city.name : s.state?.name}</option>
                 ))}
               </select>
             </div>
