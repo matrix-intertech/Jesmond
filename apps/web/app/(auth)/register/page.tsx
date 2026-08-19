@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
@@ -370,9 +370,9 @@ function RegisterForm() {
 
 
           <Turnstile
-            onVerify={(token) => setTurnstileToken(token)}
-            onError={() => { setTurnstileToken(''); setError('Security verification failed.'); }}
-            onExpire={() => setTurnstileToken('')}
+            onVerify={useCallback((token: string) => setTurnstileToken(token), [])}
+            onError={useCallback(() => { setTurnstileToken(''); setError('Security verification failed.'); }, [])}
+            onExpire={useCallback(() => setTurnstileToken(''), [])}
           />
 
           <div>

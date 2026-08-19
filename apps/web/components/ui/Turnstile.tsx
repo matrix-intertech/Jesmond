@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 
 interface TurnstileProps {
@@ -12,6 +12,14 @@ interface TurnstileProps {
 export default function Turnstile({ onVerify, onError, onExpire }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  useEffect(() => {
+    // If turnstile is already present from a previous render
+    if (window.turnstile) {
+      setScriptLoaded(true);
+    }
+  }, []);
 
   useEffect(() => {
     const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -20,22 +28,24 @@ export default function Turnstile({ onVerify, onError, onExpire }: TurnstileProp
       return;
     }
 
-    const renderWidget = () => {
-      if (window.turnstile && containerRef.current && !widgetIdRef.current) {
-        widgetIdRef.current = window.turnstile.render(containerRef.current, {
-          sitekey: siteKey,
-          callback: (token: string) => onVerify(token),
-          'error-callback': () => onError?.(),
-          'expired-callback': () => onExpire?.(),
-          theme: 'light',
-        });
-      }
-    };
+    if (!scriptLoaded || !window.turnstile || !containerRef.current) {
+      return;
+    }
 
-    if (window.turnstile) {
-      renderWidget();
-    } else {
-      window.onTurnstileLoad = renderWidget;
+    if (widgetIdRef.current) {
+      return;
+    }
+
+    try {
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: siteKey,
+        callback: onVerify,
+        'error-callback': onError,
+        'expired-callback': onExpire,
+        theme: 'light',
+      });
+    } catch (e) {
+      console.warn('Turnstile widget render failed', e);
     }
 
     return () => {
@@ -44,13 +54,14 @@ export default function Turnstile({ onVerify, onError, onExpire }: TurnstileProp
         widgetIdRef.current = null;
       }
     };
-  }, [onVerify, onError, onExpire]);
+  }, [scriptLoaded, onVerify, onError, onExpire]);
 
   return (
     <div className="flex justify-center mt-4 mb-4">
       <Script
-        src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad"
+        src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
         strategy="afterInteractive"
+        onLoad={() => setScriptLoaded(true)}
       />
       <div ref={containerRef} />
     </div>
@@ -60,6 +71,5 @@ export default function Turnstile({ onVerify, onError, onExpire }: TurnstileProp
 declare global {
   interface Window {
     turnstile: any;
-    onTurnstileLoad: () => void;
   }
 }
