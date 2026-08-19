@@ -7,9 +7,10 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { stateSlug: string, citySlug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ stateSlug: string, citySlug: string }> }) {
+  const { stateSlug, citySlug } = await params;
   const city = await prisma.city.findFirst({
-    where: { normalizedName: params.citySlug, state: { normalizedName: params.stateSlug } },
+    where: { normalizedName: citySlug, state: { normalizedName: stateSlug } },
     include: { state: true }
   });
 
@@ -21,7 +22,8 @@ export async function generateMetadata({ params }: { params: { stateSlug: string
   };
 }
 
-export default async function CityPage({ params }: { params: { stateSlug: string, citySlug: string } }) {
+export default async function CityPage({ params }: { params: Promise<{ stateSlug: string, citySlug: string }> }) {
+  const { stateSlug, citySlug } = await params;
   let city = null;
   let error = false;
 
@@ -29,8 +31,8 @@ export default async function CityPage({ params }: { params: { stateSlug: string
     // Attempt exact lookup first
     city = await prisma.city.findFirst({
       where: {
-        normalizedName: params.citySlug,
-        state: { normalizedName: params.stateSlug }
+        normalizedName: citySlug,
+        state: { normalizedName: stateSlug }
       },
       include: {
         state: true,
@@ -57,8 +59,8 @@ export default async function CityPage({ params }: { params: { stateSlug: string
         }
       });
       city = allCities.find(c =>
-        (c.normalizedName === params.citySlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.citySlug) &&
-        (c.state.normalizedName === params.stateSlug || c.state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.stateSlug)
+        (c.normalizedName === citySlug || c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === citySlug) &&
+        (c.state.normalizedName === stateSlug || c.state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === stateSlug)
       ) || null;
     }
   } catch (e) {
@@ -87,7 +89,7 @@ export default async function CityPage({ params }: { params: { stateSlug: string
             </li>
             <li><span className="mx-2 text-slate-300">/</span></li>
             <li>
-              <Link href={`/states/${params.stateSlug}`} className="hover:text-indigo-600 transition-colors">{city?.state.name}</Link>
+              <Link href={`/states/${stateSlug}`} className="hover:text-indigo-600 transition-colors">{city?.state.name}</Link>
             </li>
             <li><span className="mx-2 text-slate-300">/</span></li>
             <li className="text-slate-900 font-medium" aria-current="page">
@@ -126,13 +128,13 @@ export default async function CityPage({ params }: { params: { stateSlug: string
             <EmptyState
               title={`No suburbs found in ${city!.name}`}
               description="We're currently expanding our network. Check back soon for new locations."
-              action={{ label: `View All Cities in ${city!.state.name}`, href: `/states/${params.stateSlug}` }}
+              action={{ label: `View All Cities in ${city!.state.name}`, href: `/states/${stateSlug}` }}
             />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {city!.suburbs.map((suburb) => (
-              <Link key={suburb.id} href={`/states/${params.stateSlug}/${params.citySlug}/${suburb.normalizedName || suburb.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="group bg-white border border-slate-200 rounded-[24px] p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between h-full">
+              <Link key={suburb.id} href={`/states/${stateSlug}/${citySlug}/${suburb.normalizedName || suburb.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="group bg-white border border-slate-200 rounded-[24px] p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between h-full">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">{suburb.name}</h2>
                   <p className="text-slate-500 font-medium">

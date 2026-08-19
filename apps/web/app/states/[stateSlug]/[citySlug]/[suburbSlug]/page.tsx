@@ -9,12 +9,13 @@ import { formatLocation } from "../../../../../utils/location";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { stateSlug: string, citySlug: string, suburbSlug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ stateSlug: string, citySlug: string, suburbSlug: string }> }) {
+  const { stateSlug, citySlug, suburbSlug } = await params;
   const suburb = await prisma.suburb.findFirst({
     where: {
-      normalizedName: params.suburbSlug,
-      city: { normalizedName: params.citySlug },
-      state: { normalizedName: params.stateSlug }
+      normalizedName: suburbSlug,
+      city: { normalizedName: citySlug },
+      state: { normalizedName: stateSlug }
     },
     include: { city: true, state: true }
   });
@@ -27,7 +28,8 @@ export async function generateMetadata({ params }: { params: { stateSlug: string
   };
 }
 
-export default async function SuburbPage({ params }: { params: { stateSlug: string, citySlug: string, suburbSlug: string } }) {
+export default async function SuburbPage({ params }: { params: Promise<{ stateSlug: string, citySlug: string, suburbSlug: string }> }) {
+  const { stateSlug, citySlug, suburbSlug } = await params;
   let suburb = null;
   let properties: any[] = [];
   let error = false;
@@ -36,9 +38,9 @@ export default async function SuburbPage({ params }: { params: { stateSlug: stri
     // Attempt exact lookup first
     suburb = await prisma.suburb.findFirst({
       where: {
-        normalizedName: params.suburbSlug,
-        city: { normalizedName: params.citySlug },
-        state: { normalizedName: params.stateSlug }
+        normalizedName: suburbSlug,
+        city: { normalizedName: citySlug },
+        state: { normalizedName: stateSlug }
       },
       include: { city: true, state: true }
     });
@@ -49,9 +51,9 @@ export default async function SuburbPage({ params }: { params: { stateSlug: stri
         include: { city: true, state: true }
       });
       suburb = allSuburbs.find(s =>
-        (s.normalizedName === params.suburbSlug || s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.suburbSlug) &&
-        (s.city && (s.city.normalizedName === params.citySlug || s.city.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.citySlug)) &&
-        (s.state.normalizedName === params.stateSlug || s.state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.stateSlug)
+        (s.normalizedName === suburbSlug || s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === suburbSlug) &&
+        (s.city && (s.city.normalizedName === citySlug || s.city.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === citySlug)) &&
+        (s.state.normalizedName === stateSlug || s.state.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === stateSlug)
       ) || null;
     }
 
@@ -96,13 +98,13 @@ export default async function SuburbPage({ params }: { params: { stateSlug: stri
             </li>
             <li><span className="mx-2 text-slate-300">/</span></li>
             <li>
-              <Link href={`/states/${params.stateSlug}`} className="hover:text-indigo-600 transition-colors">{suburb?.state.name}</Link>
+              <Link href={`/states/${stateSlug}`} className="hover:text-indigo-600 transition-colors">{suburb?.state.name}</Link>
             </li>
             {suburb?.city && (
               <>
                 <li><span className="mx-2 text-slate-300">/</span></li>
                 <li>
-                  <Link href={`/states/${params.stateSlug}/${params.citySlug}`} className="hover:text-indigo-600 transition-colors">{suburb.city.name}</Link>
+                  <Link href={`/states/${stateSlug}/${citySlug}`} className="hover:text-indigo-600 transition-colors">{suburb.city.name}</Link>
                 </li>
               </>
             )}
@@ -143,7 +145,7 @@ export default async function SuburbPage({ params }: { params: { stateSlug: stri
             <EmptyState
               title={`No properties found in ${suburb!.name}`}
               description="We're currently expanding our network. Check back soon for new properties."
-              action={suburb!.city ? { label: `View All Suburbs in ${suburb!.city.name}`, href: `/states/${params.stateSlug}/${params.citySlug}` } : { label: "View All States", href: "/states" }}
+              action={suburb!.city ? { label: `View All Suburbs in ${suburb!.city.name}`, href: `/states/${stateSlug}/${citySlug}` } : { label: "View All States", href: "/states" }}
             />
           </div>
         ) : (

@@ -7,9 +7,10 @@ import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: { stateSlug: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ stateSlug: string }> }) {
+  const { stateSlug } = await params;
   const state = await prisma.state.findFirst({
-    where: { normalizedName: params.stateSlug }
+    where: { normalizedName: stateSlug }
   });
 
   if (!state) return { title: "State Not Found" };
@@ -20,14 +21,15 @@ export async function generateMetadata({ params }: { params: { stateSlug: string
   };
 }
 
-export default async function StatePage({ params }: { params: { stateSlug: string } }) {
+export default async function StatePage({ params }: { params: Promise<{ stateSlug: string }> }) {
+  const { stateSlug } = await params;
   let state = null;
   let error = false;
 
   try {
     state = await prisma.state.findFirst({
       where: {
-        normalizedName: params.stateSlug
+        normalizedName: stateSlug
       },
       include: {
         cities: {
@@ -53,7 +55,7 @@ export default async function StatePage({ params }: { params: { stateSlug: strin
           }
         }
       });
-      state = allStates.find(s => s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === params.stateSlug) || null;
+      state = allStates.find(s => s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === stateSlug) || null;
     }
 
   } catch (e) {
@@ -127,7 +129,7 @@ export default async function StatePage({ params }: { params: { stateSlug: strin
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {state!.cities.map((city) => (
-              <Link key={city.id} href={`/states/${params.stateSlug}/${city.normalizedName || city.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="group bg-white border border-slate-200 rounded-[24px] p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between h-full">
+              <Link key={city.id} href={`/states/${stateSlug}/${city.normalizedName || city.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`} className="group bg-white border border-slate-200 rounded-[24px] p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-indigo-100 transition-all duration-300 flex flex-col justify-between h-full">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">{city.name}</h2>
                   <p className="text-slate-500 font-medium">
