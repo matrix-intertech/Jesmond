@@ -50,7 +50,7 @@ export function GlobalNav() {
 
   const navLinks = [
     { label: "Universities", href: "/universities" },
-    { label: "Cities", href: "/cities" },
+    { label: "States", href: "/states" },
     { label: "Providers", href: "/providers" },
     { label: "Support", href: "/support" },
   ];
