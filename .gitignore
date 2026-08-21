@@ -39,3 +39,4 @@ yarn-error.log*
 *.log
 !.env.example
 .pnpm-store/
+.env.production
