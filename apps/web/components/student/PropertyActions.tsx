@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
@@ -20,11 +20,11 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
   const [applicationResult, setApplicationResult] = useState<any>(null);
 
   const router = useRouter();
-// Auth error handling will use clearAuth directly in fetch calls
-const isLoggedIn = () => {
-    if (typeof window === 'undefined') return false;
-    return !!getAccessToken();
-  };
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    setIsAuth(!!getAccessToken());
+  }, []);
 
   const handleEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,7 +91,7 @@ const isLoggedIn = () => {
   return (
     <>
       <div className="flex gap-4 mb-6">
-        {isLoggedIn() ? (
+        {isAuth ? (
           <button onClick={() => setShowEnquiry(true)} className="flex-1 bg-white border-2 border-indigo-600 text-indigo-600 font-bold py-3 px-6 rounded-xl hover:bg-indigo-50 transition">
             Contact Provider
           </button>
@@ -117,7 +117,7 @@ const isLoggedIn = () => {
                 </p>
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-indigo-600">${(room.pricePerWeek / 100).toFixed(0)}/wk</span>
-                  {isLoggedIn() ? (
+                  {isAuth ? (
                     <button 
                       onClick={() => { setShowApply(room.id); setError(""); setSuccess(""); setApplicationResult(null); }}
                       disabled={room.inventory <= 0}
