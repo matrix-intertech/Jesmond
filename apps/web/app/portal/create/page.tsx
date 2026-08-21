@@ -31,7 +31,7 @@ export default function CreatePropertyPage() {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs`)
       .then(res => res.json())
       .then(data => setSuburbs(data))
-      .catch(console.error);
+      .catch(err => setError('Failed to load suburbs. Ensure API is running.'));
   }, [router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

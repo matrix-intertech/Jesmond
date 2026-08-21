@@ -26,5 +26,14 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "pnpm": {
+    "overrides": {
+      "@scure/base": "1.1.3",
+      "@noble/hashes": "1.3.3"
+    }
+  },
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
 }

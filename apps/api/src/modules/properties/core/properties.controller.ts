@@ -210,6 +210,7 @@ export class PropertiesController {
     @Query('bounds') bounds?: string, // sw_lat,sw_lng,ne_lat,ne_lng
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
   ) {
     // 1. Pagination Validation
     const parsedPage = page ? parseInt(page, 10) : 1;
@@ -269,6 +270,7 @@ export class PropertiesController {
       bounds,
       page: parsedPage,
       limit: parsedLimit,
+      sort,
     });
   }
 

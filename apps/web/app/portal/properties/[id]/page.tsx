@@ -34,9 +34,9 @@ export default function AccommodationManagementPage() {
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/amenities`)
-      .then(r => r.json())
+      .then(res => res.json())
       .then(data => setAllAmenities(data))
-      .catch(console.error);
+      .catch(err => console.log('Failed to load amenities. Ensure API is running.', err.message));
   }, []);
 
   const fetchProperty = async () => {

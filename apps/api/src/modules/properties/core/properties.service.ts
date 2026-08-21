@@ -13,6 +13,7 @@ interface SearchParams {
   bounds?: string;
   page: number;
   limit: number;
+  sort?: string;
 }
 
 @Injectable()
@@ -333,7 +334,8 @@ export class PropertiesService {
       throw new BadRequestException('Property must have at least one image before submission.');
     }
 
-    if (property.roomTypes.length === 0) {
+    const roomTypeCount = await this.prisma.roomType.count({ where: { propertyId: id } });
+    if (roomTypeCount === 0) {
       throw new BadRequestException('Property must have at least one room type before submission.');
     }
 
@@ -358,7 +360,7 @@ export class PropertiesService {
 
   async search(params: SearchParams) {
     try {
-      const { city, university, minPrice, maxPrice, roomType, amenities, bounds, page, limit } = params;
+      const { city, university, minPrice, maxPrice, roomType, amenities, bounds, page, limit, sort } = params;
 
       const whereClause: any = {
         status: 'PUBLISHED'
@@ -409,6 +411,22 @@ export class PropertiesService {
 
       const skip = (page - 1) * limit;
 
+      // 6. Handle Sort/Filter tabs (Available Now, Top Rated)
+      if (sort === 'available_now') {
+        if (!whereClause.roomTypes) whereClause.roomTypes = {};
+        if (!whereClause.roomTypes.some) whereClause.roomTypes.some = {};
+        whereClause.roomTypes.some.inventory = { gt: 0 };
+      }
+
+      let orderBy: any = { createdAt: 'desc' };
+      if (sort === 'top_rated') {
+        orderBy = { savedBy: { _count: 'desc' } };
+      } else if (sort === 'closest_to_campus') {
+        // Distance calculation requires geospatial data which is deferred. 
+        // Fallback to createdAt or default sorting.
+        orderBy = { createdAt: 'desc' };
+      }
+
       const [data, total] = await Promise.all([
         this.prisma.property.findMany({
           where: whereClause,
@@ -433,7 +451,7 @@ export class PropertiesService {
           },
           skip,
           take: limit,
-          orderBy: { createdAt: 'desc' }
+          orderBy
         }),
         this.prisma.property.count({ where: whereClause })
       ]);

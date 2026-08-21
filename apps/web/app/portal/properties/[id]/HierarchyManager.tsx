@@ -176,7 +176,11 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
               </span>
               {!isPending && (
                 <div className="flex gap-2 items-center">
-                  <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); setAddingFloorTo(b.id); }} className="text-xs text-indigo-600 hover:underline disabled:opacity-50">Add Floor</button>
+                  <button disabled={!!submittingAction} onClick={(e) => {
+                    e.stopPropagation();
+                    setAddingFloorTo(b.id);
+                    setExpandedBuildings(prev => prev.includes(b.id) ? prev : [...prev, b.id]);
+                  }} className="text-xs text-indigo-600 hover:underline disabled:opacity-50">Add Floor</button>
                   <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); handleDeleteBuilding(b.id); }} className="text-xs text-red-600 hover:underline disabled:opacity-50">
                     {submittingAction === `delete-building-${b.id}` ? 'Deleting...' : 'Delete'}
                   </button>
@@ -204,7 +208,11 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                       </span>
                       {!isPending && (
                         <div className="flex gap-2 items-center">
-                          <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); setAddingRoomTypeTo(f.id); }} className="text-xs text-indigo-600 hover:underline disabled:opacity-50">Add Room Type</button>
+                          <button disabled={!!submittingAction} onClick={(e) => {
+                            e.stopPropagation();
+                            setAddingRoomTypeTo(f.id);
+                            setExpandedFloors(prev => prev.includes(f.id) ? prev : [...prev, f.id]);
+                          }} className="text-xs text-indigo-600 hover:underline disabled:opacity-50">Add Room Type</button>
                           <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); handleDeleteFloor(b.id, f.id); }} className="text-xs text-red-600 hover:underline disabled:opacity-50">
                             {submittingAction === `delete-floor-${f.id}` ? 'Deleting...' : 'Delete'}
                           </button>
@@ -241,7 +249,11 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                               </div>
                               {!isPending && (
                                 <div className="flex gap-2 items-center">
-                                  <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); setAddingRoomTo(rt.id); }} className="text-[11px] text-indigo-600 hover:underline disabled:opacity-50">Add Room</button>
+                                  <button disabled={!!submittingAction} onClick={(e) => {
+                                    e.stopPropagation();
+                                    setAddingRoomTo(rt.id);
+                                    setExpandedRoomTypes(prev => prev.includes(rt.id) ? prev : [...prev, rt.id]);
+                                  }} className="text-[11px] text-indigo-600 hover:underline disabled:opacity-50">Add Room</button>
                                   <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); handleDeleteRoomType(rt.id); }} className="text-[11px] text-red-600 hover:underline disabled:opacity-50">
                                     {submittingAction === `delete-room-type-${rt.id}` ? 'Deleting...' : 'Delete'}
                                   </button>
