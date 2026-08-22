@@ -16,6 +16,8 @@ export default function AdminPropertyReviewPage() {
   const [success, setSuccess] = useState('');
   const [rejectPrompt, setRejectPrompt] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [verificationPrompt, setVerificationPrompt] = useState(false);
+  const [newVerificationStatus, setNewVerificationStatus] = useState('VERIFIED');
 
   const fetchProperty = async () => {
     const token = getAccessToken();
@@ -89,6 +91,71 @@ export default function AdminPropertyReviewPage() {
     }
   };
 
+  const handleUnpublish = async () => {
+    if (!confirm('Are you sure you want to deactivate/unpublish this property?')) return;
+    const token = getAccessToken();
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/unpublish`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        setSuccess('Property unpublished successfully.');
+        fetchProperty(); // Refresh status
+      } else {
+        setError('Failed to unpublish property');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleRepublish = async () => {
+    if (!confirm('Are you sure you want to reactivate/republish this property?')) return;
+    const token = getAccessToken();
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/republish`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        setSuccess('Property republished successfully.');
+        fetchProperty(); // Refresh status
+      } else {
+        setError('Failed to republish property');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleVerificationStatusUpdate = async (statusValue: string) => {
+    if (!confirm(`This will update the verification status for this property to ${statusValue}. Proceed?`)) return;
+    const token = getAccessToken();
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/verification`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: statusValue })
+      });
+      const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+      if (status === 'ok') {
+        setSuccess(`Verification status updated to ${statusValue}`);
+        setVerificationPrompt(false);
+        fetchProperty(); // Refresh status
+      } else {
+        setError('Failed to update verification status');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   if (loading) return <div className="p-12 text-center">Loading...</div>;
   if (error) return <div className="p-12 text-center text-red-600">{error}</div>;
   if (!property) return null;
@@ -103,6 +170,17 @@ export default function AdminPropertyReviewPage() {
           <div>
             <h1 className="text-3xl font-medium text-slate-900 font-outfit mb-2">{property.name}</h1>
             <p className="text-gray-600 mb-1">Provider: <strong>{property.organization.name}</strong></p>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-slate-700">Verification Status:</span>
+              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                property.verificationStatus === 'VERIFIED' ? 'bg-blue-100 text-blue-700' :
+                property.verificationStatus === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                property.verificationStatus === 'SUSPENDED' ? 'bg-orange-100 text-orange-700' :
+                'bg-gray-100 text-gray-700'
+              }`}>
+                {property.verificationStatus}
+              </span>
+            </div>
             <p className="text-gray-600">{property.address}, {property.suburb.name}</p>
           </div>
           <div className="flex flex-col items-end gap-4">
@@ -130,6 +208,40 @@ export default function AdminPropertyReviewPage() {
                       <button onClick={() => setRejectPrompt(false)} className="text-xs px-3 py-1 text-gray-600">Cancel</button>
                       <button onClick={handleReject} className="text-xs px-3 py-1 bg-red-600 text-white rounded">Confirm Reject</button>
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+            {property.status === 'PUBLISHED' && (
+              <button onClick={handleUnpublish} className="bg-amber-100 text-amber-700 px-4 py-2 rounded-md hover:bg-amber-200 text-sm font-medium transition">
+                Deactivate / Unpublish
+              </button>
+            )}
+            {property.status === 'UNLISTED' && (
+              <button onClick={handleRepublish} className="bg-green-100 text-green-700 px-4 py-2 rounded-md hover:bg-green-200 text-sm font-medium transition">
+                Reactivate / Publish
+              </button>
+            )}
+            {!isPending && (
+              <div className="relative">
+                <button
+                  onClick={() => setVerificationPrompt(!verificationPrompt)}
+                  className="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-md hover:bg-blue-100 text-sm font-medium transition"
+                >
+                  Change Verification
+                </button>
+                {verificationPrompt && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border shadow-lg rounded-xl p-2 z-10">
+                    <div className="text-xs font-semibold text-slate-500 uppercase px-2 py-1 mb-1">Status</div>
+                    {['PENDING', 'VERIFIED', 'REJECTED', 'SUSPENDED'].map(st => (
+                      <button
+                        key={st}
+                        onClick={() => handleVerificationStatusUpdate(st)}
+                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-gray-50'}`}
+                      >
+                        {st}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>

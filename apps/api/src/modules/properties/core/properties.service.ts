@@ -341,7 +341,7 @@ export class PropertiesService {
 
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status: 'PENDING_APPROVAL' }
+      data: { status: 'PENDING_APPROVAL', verificationStatus: 'PENDING' }
     });
 
     // Create property version audit log

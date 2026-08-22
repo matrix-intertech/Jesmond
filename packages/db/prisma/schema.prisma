@@ -172,6 +172,7 @@ model Property {
   lng            Float
   description    String
   status         PropertyStatus  @default(DRAFT)
+  verificationStatus PropertyVerificationStatus @default(PENDING)
 
   roomTypes      RoomType[]
   maintenance    MaintenanceRequest[]
@@ -198,6 +199,13 @@ enum PropertyStatus {
   PUBLISHED
   UNLISTED
   ARCHIVED
+}
+
+enum PropertyVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
 }
 
 model Building {

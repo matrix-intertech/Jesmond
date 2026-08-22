@@ -16,6 +16,11 @@ export class AdminController {
     return this.adminService.getPendingProperties();
   }
 
+  @Get('properties/active')
+  async getActiveProperties() {
+    return this.adminService.getActiveProperties();
+  }
+
   @Get('properties/:id')
   async getPropertyDetails(@Param('id') id: string) {
     return this.adminService.getPropertyDetails(id);
@@ -29,5 +34,24 @@ export class AdminController {
   @Post('properties/:id/reject')
   async rejectProperty(@Param('id') id: string, @Body() body: { reason?: string }, @Request() req: any) {
     return this.adminService.rejectProperty(id, req.user.id, body.reason);
+  }
+
+  @Post('properties/:id/unpublish')
+  async unpublishProperty(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.unpublishProperty(id, req.user.id);
+  }
+
+  @Post('properties/:id/republish')
+  async republishProperty(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.republishProperty(id, req.user.id);
+  }
+
+  @Post('properties/:id/verification')
+  async updatePropertyVerificationStatus(
+    @Param('id') id: string,
+    @Body() body: { status: any },
+    @Request() req: any
+  ) {
+    return this.adminService.updatePropertyVerificationStatus(id, body.status, req.user.id);
   }
 }
