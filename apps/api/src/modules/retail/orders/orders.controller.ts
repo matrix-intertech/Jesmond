@@ -1,0 +1,18 @@
+﻿import { Controller, Post, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { OrdersService } from './orders.service';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+
+@Controller('v1/retail/orders')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class OrdersController {
+  constructor(private readonly ordersService: OrdersService) {}
+
+  @Post()
+  async createOrder(@Request() req: any, @Body() data: any) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required to create a sales order');
+    }
+    return this.ordersService.createSaleOrder(req.user.organizationId, data.branchId, data.terminalId, data.items, data.customerId);
+  }
+}
