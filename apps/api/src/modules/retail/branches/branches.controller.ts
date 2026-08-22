@@ -1,9 +1,9 @@
-﻿import { Controller, Get, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 
-@Controller('v1/retail/branches')
+@Controller('retail/branches')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}

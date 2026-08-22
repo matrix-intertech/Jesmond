@@ -1,10 +1,10 @@
-﻿import { Controller, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Body, Param, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RetailPaymentStatus } from '@prisma/client';
 
-@Controller('v1/retail/payments')
+@Controller('retail/payments')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}

@@ -1,9 +1,9 @@
-﻿import { Controller, Post, Body, Param, UseGuards, Request, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Param, UseGuards, Request, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 
-@Controller('v1/retail/inventory')
+@Controller('retail/inventory')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
