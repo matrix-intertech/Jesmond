@@ -103,12 +103,14 @@ function MapFocusHandler({ selectedPropertyId, properties, zoom, center }: { sel
   return null;
 }
 
+const DEFAULT_CENTER: [number, number] = [-25.2744, 133.7751];
+
 export default function PropertyMapInner({
   properties,
   selectedPropertyId,
   onMarkerClick,
   onBoundsChange,
-  center = [-25.2744, 133.7751],
+  center = DEFAULT_CENTER,
   zoom = 4,
   interactive = true
 }: PropertyMapInnerProps) {

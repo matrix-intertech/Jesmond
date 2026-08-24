@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { SafeImage } from "../ui/SafeImage";
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import PropertyMap from "../ui/PropertyMap";
 import { type PropertyMarkerData } from "../ui/PropertyMapInner";
 
@@ -74,7 +74,7 @@ export function PropertyDiscovery() {
     }
   };
 
-  const mapData: PropertyMarkerData[] = properties.map((p: any) => ({
+  const mapData = useMemo(() => properties.map((p: any) => ({
     id: p.id,
     name: p.name,
     lat: p.lat,
@@ -82,7 +82,7 @@ export function PropertyDiscovery() {
     lowestPricePerWeek: p.lowestPricePerWeek,
     suburb: p.suburb,
     thumbnailUrl: p.media?.[0]?.url
-  }));
+  })), [properties]);
 
   return (
     <section className="w-full h-[calc(100vh-80px)] mt-20 flex flex-col bg-slate-50 relative">
