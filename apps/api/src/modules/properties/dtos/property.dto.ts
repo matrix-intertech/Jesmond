@@ -1,6 +1,11 @@
-import { IsString, IsNotEmpty, MaxLength, IsNumber, Min, Max, IsUUID, IsOptional, IsInt } from 'class-validator';
+import { IsString, IsNotEmpty, MaxLength, IsNumber, Min, Max, IsUUID, IsOptional, IsInt, IsEnum } from 'class-validator';
+import { PropertyListingMode } from '@prisma/client';
 
 export class CreatePropertyDto {
+  @IsEnum(PropertyListingMode)
+  @IsOptional()
+  listingMode?: PropertyListingMode;
+
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)

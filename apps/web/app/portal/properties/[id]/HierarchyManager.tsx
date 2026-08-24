@@ -144,6 +144,15 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
     finally { setSubmittingAction(null); }
   };
 
+  if (property.listingMode === 'INDIVIDUAL') {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h2 className="text-xl font-medium mb-2">Individual Property</h2>
+        <p className="text-gray-500 text-sm">Hierarchy management is not required for this property.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <div className="flex justify-between items-center mb-6">

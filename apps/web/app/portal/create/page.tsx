@@ -15,6 +15,7 @@ export default function CreatePropertyPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isManualLocation, setIsManualLocation] = useState(false);
+  const [isIndividualProperty, setIsIndividualProperty] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -86,6 +87,7 @@ export default function CreatePropertyPage() {
           ...formData,
           lat: parseFloat(formData.lat),
           lng: parseFloat(formData.lng),
+          listingMode: isIndividualProperty ? 'INDIVIDUAL' : 'MULTI_UNIT',
         })
       });
       const status = await handleApiError(res, onAuthError);
@@ -120,6 +122,27 @@ export default function CreatePropertyPage() {
       <div className="max-w-[800px] mx-auto py-12">
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6">
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-md text-sm">{error}</div>}
+
+          <div className="flex items-start space-x-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center h-5">
+              <input
+                id="isIndividualProperty"
+                name="isIndividualProperty"
+                type="checkbox"
+                checked={isIndividualProperty}
+                onChange={(e) => setIsIndividualProperty(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="isIndividualProperty" className="text-sm font-medium text-gray-900">
+                Add Individual Property
+              </label>
+              <p className="text-sm text-gray-500">
+                Use this for a single house, apartment, unit, or independently managed property.
+              </p>
+            </div>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Property Name</label>

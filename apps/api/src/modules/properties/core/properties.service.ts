@@ -41,6 +41,7 @@ export class PropertiesService {
         status: 'DRAFT',
         suburbId: dto.suburbId,
         organizationId,
+        listingMode: dto.listingMode || 'MULTI_UNIT',
       },
     });
 

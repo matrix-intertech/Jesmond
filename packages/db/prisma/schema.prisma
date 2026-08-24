@@ -181,6 +181,7 @@ model Property {
   description        String
   status             PropertyStatus             @default(DRAFT)
   verificationStatus PropertyVerificationStatus @default(PENDING)
+  listingMode        PropertyListingMode        @default(MULTI_UNIT)
 
   roomTypes      RoomType[]
   maintenance    MaintenanceRequest[]
@@ -199,6 +200,11 @@ model Property {
   @@index([organizationId])
   @@index([suburbId])
   @@index([lat, lng])
+}
+
+enum PropertyListingMode {
+  MULTI_UNIT
+  INDIVIDUAL
 }
 
 enum PropertyStatus {
