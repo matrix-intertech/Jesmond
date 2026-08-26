@@ -69,16 +69,16 @@ export default function PrivacySettings() {
     <div className="space-y-6">
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Privacy & Data</h3>
+          <h3 className="text-lg leading-6 font-medium text-brand-navy">Privacy & Data</h3>
           <p className="mt-1 text-sm text-gray-500">Manage your personal data and account lifecycle.</p>
         </div>
         <div className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-900">Download My Data</p>
+              <p className="text-sm font-medium text-brand-navy">Download My Data</p>
               <p className="text-sm text-gray-500">Request an export of your personal information.</p>
             </div>
-            <button onClick={handleDownload} className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <button onClick={handleDownload} className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-surface-muted">
               <Download className="w-4 h-4 mr-2" />
               Request Export
             </button>
@@ -97,7 +97,7 @@ export default function PrivacySettings() {
 
           <form onSubmit={handleDeletion} className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">Request Account Deletion</p>
+              <p className="text-sm font-medium text-brand-navy mb-2">Request Account Deletion</p>
               <p className="text-sm text-gray-500 mb-4">Once your request is approved, all of your data will be permanently removed. Please provide a reason (optional).</p>
               <textarea
                 value={reason}

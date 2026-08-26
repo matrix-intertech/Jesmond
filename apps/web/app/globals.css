@@ -3,12 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc; /* light gray for whole page backgrounds */
+  --foreground: #07163D; /* dark slate/navy text */
   --input-bg: #ffffff;
   --input-fg: #0f172a;
   --input-placeholder: #94a3b8;
   --input-border: #e2e8f0;
+
+  /* Jesmond Brand Colors */
+  --brand-navy: 7 22 61; /* #07163D */
+  --brand-orange: 245 124 0; /* #F57C00 */
+  
+  /* Semantic surfaces */
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  
+  /* Text */
+  --text-primary: #07163D;
+  --text-secondary: #64748b;
+  
+  /* Borders */
+  --border-subtle: #f1f5f9;
+  --border-strong: #e2e8f0;
+
+  /* Status Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
 }
 
 @media (prefers-color-scheme: dark) {

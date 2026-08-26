@@ -76,7 +76,7 @@ export default function ProfileSettings() {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">Personal Profile</h3>
+        <h3 className="text-lg leading-6 font-medium text-brand-navy">Personal Profile</h3>
         <p className="mt-1 text-sm text-gray-500">Manage your basic account information.</p>
       </div>
 
@@ -88,26 +88,26 @@ export default function ProfileSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">First Name</label>
-              <input type="text" value={data.firstName || ''} onChange={e => setData({...data, firstName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.firstName || ''} onChange={e => setData({...data, firstName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Last Name</label>
-              <input type="text" value={data.lastName || ''} onChange={e => setData({...data, lastName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.lastName || ''} onChange={e => setData({...data, lastName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Email Address <span className="text-xs text-gray-400 font-normal ml-2">(Contact support to change)</span></label>
-              <input type="email" value={data.email || ''} disabled className="mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-500 shadow-sm sm:text-sm cursor-not-allowed" />
+              <input type="email" value={data.email || ''} disabled className="mt-1 block w-full rounded-md border-gray-300 bg-surface-muted text-gray-500 shadow-sm sm:text-sm cursor-not-allowed" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Role & Status</label>
               <div className="mt-1 flex items-center space-x-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-semantic-info">
                   {data.role}
                 </span>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${data.accountStatus === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${data.accountStatus === 'ACTIVE' ? 'bg-emerald-50 text-semantic-success' : 'bg-amber-50 text-semantic-warning'}`}>
                   {data.accountStatus}
                 </span>
               </div>
@@ -118,7 +118,7 @@ export default function ProfileSettings() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Changes'}
             </button>

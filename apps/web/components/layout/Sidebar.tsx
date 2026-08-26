@@ -210,7 +210,7 @@ export default function Sidebar({ role }: { role: string }) {
         className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:sticky lg:top-0 lg:h-screen inset-y-0 left-0 z-30`}
       >
         <div className="flex items-center justify-between px-6 py-6">
-          <span className="text-2xl font-bold text-slate-900 font-outfit tracking-tight">Jesmond</span>
+          <span className="text-2xl font-bold text-brand-navy font-outfit tracking-tight">Jesmond</span>
           <button className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition" onClick={() => setOpen(false)} aria-label="Close navigation">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -225,9 +225,9 @@ export default function Sidebar({ role }: { role: string }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-sm' : 'text-gray-800 hover:bg-gray-50 hover:text-gray-900'}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-brand-orange/10 text-brand-orange font-semibold shadow-sm' : 'text-brand-navy/90 hover:bg-surface-muted hover:text-brand-navy'}`}
                 >
-                  <div className={`${isActive ? 'text-indigo-600' : 'text-gray-600'}`}>
+                  <div className={`${isActive ? 'text-brand-orange' : 'text-gray-600'}`}>
                     {item.icon}
                   </div>
                   <span>{item.label}</span>
@@ -236,13 +236,13 @@ export default function Sidebar({ role }: { role: string }) {
             );
           })}
         </ul>
-        <div className="p-4 mx-4 mb-4 mt-auto bg-slate-50 rounded-2xl border border-slate-100">
+        <div className="p-4 mx-4 mb-4 mt-auto bg-surface-muted rounded-2xl border border-slate-100">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-sm font-bold text-white shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-orange to-orange-500 flex items-center justify-center text-sm font-bold text-white shadow-sm">
               {user?.firstName?.[0] ?? 'U'}
             </div>
             <div className="flex-1 text-sm overflow-hidden">
-              <div className="font-semibold text-slate-900 truncate">{user?.firstName} {user?.lastName}</div>
+              <div className="font-semibold text-brand-navy truncate">{user?.firstName} {user?.lastName}</div>
               <div className="text-gray-500 text-xs truncate">{user?.email}</div>
             </div>
           </div>

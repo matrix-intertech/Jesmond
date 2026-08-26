@@ -74,7 +74,7 @@ export default function BusinessSettings() {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">Business Profile</h3>
+        <h3 className="text-lg leading-6 font-medium text-brand-navy">Business Profile</h3>
         <p className="mt-1 text-sm text-gray-500">Manage your organization details.</p>
       </div>
 
@@ -86,17 +86,17 @@ export default function BusinessSettings() {
           <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">Organization Name</label>
-              <input type="text" value={data.name || ''} onChange={e => setData({...data, name: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.name || ''} onChange={e => setData({...data, name: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">ABN / Business ID</label>
-              <input type="text" value={data.abn || ''} onChange={e => setData({...data, abn: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+              <input type="text" value={data.abn || ''} onChange={e => setData({...data, abn: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Timezone</label>
-              <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export default function BusinessSettings() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Profile'}
             </button>

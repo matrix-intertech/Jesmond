@@ -23,7 +23,7 @@ export default function DashboardShell({ role, children }: DashboardShellProps) 
   const effectiveRole = user?.role ?? role;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-surface-muted">
       {/* Sidebar */}
       <Sidebar role={effectiveRole as any} />
       {/* Main area */}

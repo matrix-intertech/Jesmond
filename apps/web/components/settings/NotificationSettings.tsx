@@ -74,7 +74,7 @@ export default function NotificationSettings() {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">Notification Preferences</h3>
+        <h3 className="text-lg leading-6 font-medium text-brand-navy">Notification Preferences</h3>
         <p className="mt-1 text-sm text-gray-500">Decide how you want to be contacted by the platform.</p>
       </div>
 
@@ -89,7 +89,7 @@ export default function NotificationSettings() {
               type="checkbox"
               checked={data.emailNotifications || false}
               onChange={e => setData({...data, emailNotifications: e.target.checked})}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
             />
             <label htmlFor="emailNotifications" className="ml-3 block text-sm font-medium text-gray-700">Email Notifications</label>
           </div>
@@ -100,7 +100,7 @@ export default function NotificationSettings() {
               type="checkbox"
               checked={data.smsNotifications || false}
               onChange={e => setData({...data, smsNotifications: e.target.checked})}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
             />
             <label htmlFor="smsNotifications" className="ml-3 block text-sm font-medium text-gray-700">SMS Notifications</label>
           </div>
@@ -111,7 +111,7 @@ export default function NotificationSettings() {
               type="checkbox"
               checked={data.pushNotifications || false}
               onChange={e => setData({...data, pushNotifications: e.target.checked})}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
             />
             <label htmlFor="pushNotifications" className="ml-3 block text-sm font-medium text-gray-700">Push Notifications</label>
           </div>
@@ -120,7 +120,7 @@ export default function NotificationSettings() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Preferences'}
             </button>

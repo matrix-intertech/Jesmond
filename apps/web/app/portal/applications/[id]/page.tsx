@@ -103,7 +103,7 @@ export default function ApplicationDetailPage() {
         <div className="bg-white rounded-2xl shadow-sm border p-8">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">Application Details</h1>
+              <h1 className="text-3xl font-bold text-brand-navy mb-2">Application Details</h1>
               <p className="text-slate-500">Submitted on {new Date(app.createdAt).toLocaleDateString()}</p>
             </div>
             <span className={`px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider ${
@@ -119,12 +119,12 @@ export default function ApplicationDetailPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
-              <h3 className="font-bold text-lg mb-4 text-slate-900 border-b pb-2">Student Information</h3>
+              <h3 className="font-bold text-lg mb-4 text-brand-navy border-b pb-2">Student Information</h3>
               <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Name:</span> {app.student.firstName} {app.student.lastName}</p>
               <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Email:</span> {app.student.email}</p>
             </div>
             <div>
-              <h3 className="font-bold text-lg mb-4 text-slate-900 border-b pb-2">Property Details</h3>
+              <h3 className="font-bold text-lg mb-4 text-brand-navy border-b pb-2">Property Details</h3>
               <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Property:</span> {app.roomType.property.name}</p>
               <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Room:</span> {app.roomType.name}</p>
               <p className="text-slate-600 mb-2">
@@ -136,8 +136,8 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
 
-          <div className="bg-slate-50 p-6 rounded-xl border mb-8">
-            <h3 className="font-bold text-lg mb-4 text-slate-900">Lease Terms</h3>
+          <div className="bg-surface-muted p-6 rounded-xl border mb-8">
+            <h3 className="font-bold text-lg mb-4 text-brand-navy">Lease Terms</h3>
             <div className="flex justify-between flex-wrap gap-4">
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase">Move In</p>
@@ -149,7 +149,7 @@ export default function ApplicationDetailPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-500 uppercase">Locked Price</p>
-                <p className="font-bold text-lg text-indigo-600">${(app.lockedPrice / 100).toFixed(2)} / week</p>
+                <p className="font-bold text-lg text-brand-orange">${(app.lockedPrice / 100).toFixed(2)} / week</p>
               </div>
             </div>
           </div>

@@ -45,34 +45,34 @@ export default function AdminApplicationsPage() {
       <PageHeader title="Admin Applications" description="Read‑only view of all student applications" />
       <div className="overflow-x-auto mt-6">
         <table className="min-w-full table-auto">
-          <thead className="bg-slate-50">
+          <thead className="bg-surface-muted">
             <tr>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Student</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Property</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Room Type</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Provider</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Move‑In</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Duration (mo)</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Locked Price</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Status</th>
-              <th className="px-4 py-2 text-left font-medium text-slate-900">Created At</th>
-              <th className="px-4 py-2 text-right font-medium text-slate-900">Detail</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Student</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Property</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Room Type</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Provider</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Move‑In</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Duration (mo)</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Locked Price</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Status</th>
+              <th className="px-4 py-2 text-left font-medium text-brand-navy">Created At</th>
+              <th className="px-4 py-2 text-right font-medium text-brand-navy">Detail</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {applications.map((app) => (
-              <tr key={app.id} className="hover:bg-slate-50">
-                <td className="px-4 py-2 text-slate-900">{app.student?.firstName} {app.student?.lastName}</td>
-                <td className="px-4 py-2 text-slate-900">{app.roomType?.property?.name}</td>
-                <td className="px-4 py-2 text-slate-900">{app.roomType?.name}</td>
-                <td className="px-4 py-2 text-slate-900">{app.roomType?.property?.organization?.name}</td>
-                <td className="px-4 py-2 text-slate-900">{new Date(app.moveInDate).toLocaleDateString()}</td>
-                <td className="px-4 py-2 text-slate-900">{app.durationMonths}</td>
-                <td className="px-4 py-2 text-slate-900">${(app.lockedPrice / 100).toFixed(2)}</td>
-                <td className="px-4 py-2 text-slate-900">{app.status}</td>
-                <td className="px-4 py-2 text-slate-900">{new Date(app.createdAt).toLocaleDateString()}</td>
+              <tr key={app.id} className="hover:bg-surface-muted">
+                <td className="px-4 py-2 text-brand-navy">{app.student?.firstName} {app.student?.lastName}</td>
+                <td className="px-4 py-2 text-brand-navy">{app.roomType?.property?.name}</td>
+                <td className="px-4 py-2 text-brand-navy">{app.roomType?.name}</td>
+                <td className="px-4 py-2 text-brand-navy">{app.roomType?.property?.organization?.name}</td>
+                <td className="px-4 py-2 text-brand-navy">{new Date(app.moveInDate).toLocaleDateString()}</td>
+                <td className="px-4 py-2 text-brand-navy">{app.durationMonths}</td>
+                <td className="px-4 py-2 text-brand-navy">${(app.lockedPrice / 100).toFixed(2)}</td>
+                <td className="px-4 py-2 text-brand-navy">{app.status}</td>
+                <td className="px-4 py-2 text-brand-navy">{new Date(app.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-2 text-right">
-                  <Link href={`/admin/applications/${app.id}`} className="text-indigo-600 hover:underline">View</Link>
+                  <Link href={`/admin/applications/${app.id}`} className="text-brand-orange hover:underline">View</Link>
                 </td>
               </tr>
             ))}

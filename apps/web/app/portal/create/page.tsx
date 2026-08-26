@@ -107,7 +107,7 @@ export default function CreatePropertyPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
         <div className="bg-white p-8 rounded-xl shadow text-center">
           <h2 className="text-2xl font-bold text-green-600 mb-2">Accommodation Created Successfully</h2>
           <p className="text-gray-500">Redirecting to your dashboard...</p>
@@ -123,7 +123,7 @@ export default function CreatePropertyPage() {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6">
           {error && <div className="bg-red-50 text-red-600 p-4 rounded-md text-sm">{error}</div>}
 
-          <div className="flex items-start space-x-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <div className="flex items-start space-x-3 bg-surface-muted p-4 rounded-lg border border-gray-200">
             <div className="flex items-center h-5">
               <input
                 id="isIndividualProperty"
@@ -131,11 +131,11 @@ export default function CreatePropertyPage() {
                 type="checkbox"
                 checked={isIndividualProperty}
                 onChange={(e) => setIsIndividualProperty(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                className="h-4 w-4 rounded border-gray-300 text-brand-orange focus:ring-indigo-600"
               />
             </div>
             <div className="flex flex-col">
-              <label htmlFor="isIndividualProperty" className="text-sm font-medium text-gray-900">
+              <label htmlFor="isIndividualProperty" className="text-sm font-medium text-brand-navy">
                 Add Individual Property
               </label>
               <p className="text-sm text-gray-500">
@@ -187,7 +187,7 @@ export default function CreatePropertyPage() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+              className="bg-brand-orange text-white px-6 py-2 rounded-md hover:bg-orange-600 transition disabled:opacity-50"
             >
               {loading ? 'Saving...' : 'Save Draft'}
             </button>

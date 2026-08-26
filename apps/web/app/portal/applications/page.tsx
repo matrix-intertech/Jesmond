@@ -79,7 +79,7 @@ export default function ProviderApplicationsPage() {
           <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b text-sm text-slate-500 uppercase tracking-wider">
+                <tr className="bg-surface-muted border-b text-sm text-slate-500 uppercase tracking-wider">
                   <th className="p-4 font-semibold">Student</th>
                   <th className="p-4 font-semibold">Property</th>
                   <th className="p-4 font-semibold">Room</th>
@@ -91,10 +91,10 @@ export default function ProviderApplicationsPage() {
               </thead>
               <tbody className="divide-y text-sm">
                 {applications.map(app => (
-                  <tr key={app.id} className="hover:bg-slate-50 transition">
+                  <tr key={app.id} className="hover:bg-surface-muted transition">
                     <td className="p-4">
-                      <Link href={`/portal/applications/${app.id}`} className="block hover:text-indigo-600 transition">
-                        <div className="font-bold text-slate-900">{app.student.firstName} {app.student.lastName}</div>
+                      <Link href={`/portal/applications/${app.id}`} className="block hover:text-brand-orange transition">
+                        <div className="font-bold text-brand-navy">{app.student.firstName} {app.student.lastName}</div>
                         <div className="text-xs text-slate-500">{app.student.email}</div>
                       </Link>
                     </td>
@@ -102,7 +102,7 @@ export default function ProviderApplicationsPage() {
                     <td className="p-4">{app.roomType.name}</td>
                     <td className="p-4">{new Date(app.moveInDate).toLocaleDateString()}</td>
                     <td className="p-4">{app.durationMonths} months</td>
-                    <td className="p-4 font-medium text-indigo-600">${(app.lockedPrice / 100).toFixed(2)}/wk</td>
+                    <td className="p-4 font-medium text-brand-orange">${(app.lockedPrice / 100).toFixed(2)}/wk</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${
                         app.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :

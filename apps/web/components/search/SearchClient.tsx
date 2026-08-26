@@ -109,22 +109,22 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
     <div className="flex flex-1 h-[calc(100vh-80px)] overflow-hidden relative">
       
       {/* LEFT: Scrollable Results */}
-      <div className="w-full lg:w-[60%] xl:w-[50%] h-full overflow-y-auto bg-slate-50 flex flex-col custom-scrollbar relative">
+      <div className="w-full lg:w-[60%] xl:w-[50%] h-full overflow-y-auto bg-surface-muted flex flex-col custom-scrollbar relative">
         
         {/* Results Header */}
-        <div className="px-6 sm:px-10 pt-8 pb-4 sticky top-0 bg-slate-50/90 backdrop-blur-md z-10">
+        <div className="px-6 sm:px-10 pt-8 pb-4 sticky top-0 bg-surface-muted/90 backdrop-blur-md z-10">
           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">
             {!isLoading && `${meta.total} verified student homes`}
             {isLoading && `Searching properties...`}
           </p>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-brand-navy tracking-tight">
             {initialParams.city ? `Student Accommodation in ${initialParams.city}` : 'Discover Student Living'}
           </h1>
           
           {/* Quick Filters - interacting with URL State */}
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
-            <button onClick={() => updateSearchState({ maxPrice: '450' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '450' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $450/wk</button>
-            <button onClick={() => updateSearchState({ roomType: 'Studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.roomType === 'Studio' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Studio</button>
+            <button onClick={() => updateSearchState({ maxPrice: '450' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '450' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $450/wk</button>
+            <button onClick={() => updateSearchState({ roomType: 'Studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.roomType === 'Studio' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Studio</button>
             <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
           </div>
         </div>
@@ -165,9 +165,9 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">No properties found</h3>
+            <h3 className="text-xl font-bold text-brand-navy mb-2">No properties found</h3>
             <p className="text-slate-500 mb-6 max-w-md">We couldn't find any student homes matching your current filters. Try adjusting your search criteria.</p>
-            <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-6 py-2 bg-slate-900 text-white rounded-full font-semibold hover:bg-slate-800 transition-colors">Clear all filters</button>
+            <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-6 py-2 bg-brand-navy text-white rounded-full font-semibold hover:bg-brand-navy/90 transition-colors">Clear all filters</button>
           </div>
         )}
 
@@ -185,7 +185,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   onClick={() => router.push(`/property/${prop.id}`)}
                   onMouseEnter={() => setHoveredPropertyId(prop.id)}
                   onMouseLeave={() => setHoveredPropertyId(null)}
-                  className="flex flex-col sm:flex-row gap-6 bg-white rounded-[24px] overflow-hidden border border-slate-200 hover:border-indigo-600 transition group relative cursor-pointer"
+                  className="flex flex-col sm:flex-row gap-6 bg-white rounded-[24px] overflow-hidden border border-slate-200 hover:border-brand-orange transition group relative cursor-pointer"
                 >
                   <div className="absolute top-4 right-4 z-20">
                     <SaveButton propertyId={prop.id} />
@@ -200,11 +200,11 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   </div>
                   <div className="p-6 flex flex-col justify-between flex-grow">
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-1">{prop.name}</h3>
+                      <h3 className="text-xl font-bold text-brand-navy mb-1">{prop.name}</h3>
                       <p className="text-sm font-medium text-slate-500 mb-4">{location}</p>
                     </div>
                     <div className="mt-4 flex justify-between items-end">
-                      <p className="text-2xl font-bold text-slate-900 tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-slate-500">/wk</span></p>
+                      <p className="text-2xl font-bold text-brand-navy tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-slate-500">/wk</span></p>
                     </div>
                   </div>
                 </div>
@@ -219,7 +219,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             <button 
               disabled={meta.page <= 1}
               onClick={() => updateSearchState({ page: String(meta.page - 1) })}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
@@ -229,7 +229,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             <button 
               disabled={meta.page >= meta.totalPages}
               onClick={() => updateSearchState({ page: String(meta.page + 1) })}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>

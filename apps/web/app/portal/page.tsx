@@ -96,15 +96,15 @@ export default function ProviderPortalPage() {
 
       {drafts.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Draft Properties</h2>
+          <h2 className="text-2xl font-bold text-brand-navy mb-4">Draft Properties</h2>
           <ul className="divide-y divide-gray-200">
             {drafts.map(prop => (
               <li key={prop.id} className="p-4 flex justify-between items-center">
-                <Link href={`/portal/properties/${prop.id}`} className="font-medium text-indigo-600 hover:underline">
+                <Link href={`/portal/properties/${prop.id}`} className="font-medium text-brand-orange hover:underline">
                   {prop.name}
                 </Link>
                 <StatusBadge status={prop.status} />
-                <Link href={`/portal/properties/${prop.id}`} className="text-sm text-indigo-600 hover:underline">Edit</Link>
+                <Link href={`/portal/properties/${prop.id}`} className="text-sm text-brand-orange hover:underline">Edit</Link>
               </li>
             ))}
           </ul>
@@ -113,7 +113,7 @@ export default function ProviderPortalPage() {
 
       {pending.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Pending Approval</h2>
+          <h2 className="text-2xl font-bold text-brand-navy mb-4">Pending Approval</h2>
           <p className="text-sm text-gray-600 mb-4">Awaiting admin approval – editing disabled.</p>
           <ul className="divide-y divide-gray-200">
             {pending.map(prop => (
@@ -129,15 +129,15 @@ export default function ProviderPortalPage() {
 
       {published.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">Published Properties</h2>
+          <h2 className="text-2xl font-bold text-brand-navy mb-4">Published Properties</h2>
           <ul className="divide-y divide-gray-200">
             {published.map(prop => (
               <li key={prop.id} className="p-4 flex justify-between items-center">
-                <Link href={`/property/${prop.id}`} target="_blank" className="font-medium text-indigo-600 hover:underline">
+                <Link href={`/property/${prop.id}`} target="_blank" className="font-medium text-brand-orange hover:underline">
                   {prop.name}
                 </Link>
                 <StatusBadge status={prop.status} />
-                <Link href={`/portal/properties/${prop.id}`} className="text-sm text-indigo-600 hover:underline">Manage</Link>
+                <Link href={`/portal/properties/${prop.id}`} className="text-sm text-brand-orange hover:underline">Manage</Link>
               </li>
             ))}
           </ul>
@@ -145,12 +145,12 @@ export default function ProviderPortalPage() {
       )}
 
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-slate-900 mb-4">Applications</h2>
+        <h2 className="text-2xl font-bold text-brand-navy mb-4">Applications</h2>
         {applications.length === 0 ? (
           <EmptyState title="No applications yet." />
         ) : (
           <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50 border-b">
+            <thead className="bg-surface-muted border-b">
               <tr className="text-sm text-slate-500 uppercase tracking-wider">
                 <th className="p-4 font-semibold">Student</th>
                 <th className="p-4 font-semibold">Property</th>
@@ -161,7 +161,7 @@ export default function ProviderPortalPage() {
             </thead>
             <tbody className="divide-y text-sm">
               {applications.map(app => (
-                <tr key={app.id} className="hover:bg-slate-50 transition">
+                <tr key={app.id} className="hover:bg-surface-muted transition">
                   <td className="p-4">{app.student.firstName} {app.student.lastName}</td>
                   <td className="p-4">{app.roomType.property.name}</td>
                   <td className="p-4"><StatusBadge status={app.status} /></td>

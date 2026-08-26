@@ -77,14 +77,14 @@ export default function StudentDashboardPage() {
     <div className="flex-1 max-w-7xl w-full mx-auto py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold font-outfit text-slate-900">Student Dashboard</h1>
+            <h1 className="text-3xl font-bold font-outfit text-brand-navy">Student Dashboard</h1>
             <p className="text-slate-500 mt-1">Your accommodation journey at a glance</p>
           </div>
           <div className="flex gap-3 items-center">
-            <Link href="/student/saved" className="text-indigo-600 hover:underline font-medium text-sm">
+            <Link href="/student/saved" className="text-brand-orange hover:underline font-medium text-sm">
               Saved Properties
             </Link>
-            <Link href="/search" className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
+            <Link href="/search" className="bg-brand-orange text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-orange-600 transition">
               Find Accommodation
             </Link>
           </div>
@@ -98,7 +98,7 @@ export default function StudentDashboardPage() {
           {rejectedCount > 0 && <StatCard label="Rejected" value={rejectedCount} />}
         </div>
 
-        <h2 className="text-xl font-bold text-slate-900 mb-6 font-outfit">My Applications</h2>
+        <h2 className="text-xl font-bold text-brand-navy mb-6 font-outfit">My Applications</h2>
 
         {applications.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border p-8">
@@ -112,7 +112,7 @@ export default function StudentDashboardPage() {
           <div className="bg-white rounded-xl shadow-sm border overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
-                <tr className="bg-slate-50 border-b text-sm text-slate-500 uppercase tracking-wider">
+                <tr className="bg-surface-muted border-b text-sm text-slate-500 uppercase tracking-wider">
                   <th className="p-4 font-semibold">Property</th>
                   <th className="p-4 font-semibold">Room Type</th>
                   <th className="p-4 font-semibold">Move In</th>
@@ -124,9 +124,9 @@ export default function StudentDashboardPage() {
               </thead>
               <tbody className="divide-y text-sm">
                 {applications.map(app => (
-                  <tr key={app.id} className="hover:bg-slate-50 transition">
+                  <tr key={app.id} className="hover:bg-surface-muted transition">
                     <td className="p-4 font-medium">
-                      <Link href={`/property/${app.roomType.property.id}`} className="text-indigo-600 hover:underline">
+                      <Link href={`/property/${app.roomType.property.id}`} className="text-brand-orange hover:underline">
                         {app.roomType.property.name}
                       </Link>
                     </td>
@@ -140,7 +140,7 @@ export default function StudentDashboardPage() {
                         <div className="flex flex-col gap-2 items-start">
                           <StatusBadge status={app.status as any} />
                           {paymentsEnabled ? (
-                            <button className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">
+                            <button className="text-xs font-bold bg-brand-navy text-white px-3 py-1.5 rounded-lg hover:bg-brand-navy/90 transition">
                               Proceed to Payment
                             </button>
                           ) : (

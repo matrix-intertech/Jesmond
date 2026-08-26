@@ -78,9 +78,9 @@ export default function PageHeader({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           {onBack && (
-            <button onClick={onBack} className="text-sm font-semibold text-indigo-600 hover:underline mb-2 block">&larr; Back</button>
+            <button onClick={onBack} className="text-sm font-semibold text-brand-orange hover:underline mb-2 block">&larr; Back</button>
           )}
-          <h1 className="text-3xl font-outfit font-semibold text-slate-900">
+          <h1 className="text-3xl font-outfit font-semibold text-brand-navy">
             {title}
           </h1>
           {description && (
@@ -97,7 +97,7 @@ export default function PageHeader({
               <Link
                 href={secondaryAction.href}
                 onClick={secondaryAction.onClick as any}
-                className="px-4 py-2 rounded-md text-sm font-medium bg-white text-slate-900 border border-slate-300 hover:bg-slate-50 transition"
+                className="px-4 py-2 rounded-md text-sm font-medium bg-white text-brand-navy border border-slate-300 hover:bg-surface-muted transition"
               >
                 {secondaryAction.label}
               </Link>
@@ -106,7 +106,7 @@ export default function PageHeader({
               <Link
                 href={primaryAction.href}
                 onClick={primaryAction.onClick as any}
-                className="px-4 py-2 rounded-md text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 transition"
+                className="px-4 py-2 rounded-md text-sm font-medium bg-brand-navy text-white hover:bg-brand-navy/90 transition"
               >
                 {primaryAction.label}
               </Link>

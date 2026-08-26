@@ -50,7 +50,7 @@ export function MapPreviewSection() {
     >
       <div className="flex flex-col items-center text-center mb-16">
         <h2 
-          className="text-[2.5rem] lg:text-[4rem] font-medium text-slate-900 tracking-[-0.04em] leading-[1.1] mb-6"
+          className="text-[2.5rem] lg:text-[4rem] font-medium text-brand-navy tracking-[-0.04em] leading-[1.1] mb-6"
           style={{ fontFamily: 'var(--font-outfit)' }}
         >
           Where are you planning <br className="hidden sm:block" /> to study?
@@ -74,16 +74,16 @@ export function MapPreviewSection() {
                 onClick={() => setActiveHub(hub)}
                 className={`flex flex-col text-left p-6 rounded-[24px] transition-all duration-500 ${
                   isActive 
-                    ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10 scale-100" 
+                    ? "bg-brand-navy text-white shadow-xl shadow-brand-navy/10 scale-100" 
                     : "bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:shadow-md scale-[0.98]"
                 }`}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className={`text-2xl font-semibold tracking-tight ${isActive ? "text-white" : "text-slate-900"}`}>
+                  <h3 className={`text-2xl font-semibold tracking-tight ${isActive ? "text-white" : "text-brand-navy"}`}>
                     {hub.name}
                   </h3>
                   {isActive && (
-                    <motion.div layoutId="active-indicator" className="w-2 h-2 rounded-full bg-indigo-500" />
+                    <motion.div layoutId="active-indicator" className="w-2 h-2 rounded-full bg-brand-orange/100" />
                   )}
                 </div>
                 <p className={`text-sm ${isActive ? "text-slate-400" : "text-slate-500"}`}>
@@ -107,7 +107,7 @@ export function MapPreviewSection() {
               className="absolute inset-0 z-0"
             >
               {/* The map is now a subdued background element supporting the data */}
-              <div className="absolute inset-0 bg-slate-900/5 z-10 pointer-events-none" />
+              <div className="absolute inset-0 bg-brand-navy/5 z-10 pointer-events-none" />
               <Image
                 src="/assets/map_bg.png"
                 alt="Map Background"
@@ -133,17 +133,17 @@ export function MapPreviewSection() {
                 {/* Stat Cards */}
                 <div className="bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm">
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Verified Rooms</p>
-                  <p className="text-3xl font-semibold text-slate-900 tracking-tight">{activeHub.props}</p>
+                  <p className="text-3xl font-semibold text-brand-navy tracking-tight">{activeHub.props}</p>
                 </div>
                 
                 <div className="bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm">
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Avg Rent</p>
-                  <p className="text-3xl font-semibold text-slate-900 tracking-tight">{activeHub.avgRent} <span className="text-lg text-slate-500 font-normal">/wk</span></p>
+                  <p className="text-3xl font-semibold text-brand-navy tracking-tight">{activeHub.avgRent} <span className="text-lg text-slate-500 font-normal">/wk</span></p>
                 </div>
 
                 <div className="bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm hidden md:block">
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Student Pop.</p>
-                  <p className="text-3xl font-semibold text-slate-900 tracking-tight">{activeHub.students}</p>
+                  <p className="text-3xl font-semibold text-brand-navy tracking-tight">{activeHub.students}</p>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -159,17 +159,17 @@ export function MapPreviewSection() {
               >
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">Major Universities</h4>
+                    <h4 className="text-sm font-bold text-brand-navy uppercase tracking-widest mb-4">Major Universities</h4>
                     <div className="flex flex-wrap gap-2">
                       {activeHub.unis.map((uni) => (
-                        <span key={uni} className="px-4 py-2 bg-slate-900/5 text-slate-700 rounded-lg text-sm font-medium border border-slate-900/10 backdrop-blur-sm">
+                        <span key={uni} className="px-4 py-2 bg-brand-navy/5 text-slate-700 rounded-lg text-sm font-medium border border-brand-navy/10 backdrop-blur-sm">
                           {uni}
                         </span>
                       ))}
                     </div>
                   </div>
                   
-                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0">
+                  <button className="bg-brand-orange hover:bg-orange-600 text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0">
                     Explore {activeHub.name}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />

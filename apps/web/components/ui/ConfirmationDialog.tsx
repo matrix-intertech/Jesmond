@@ -18,13 +18,13 @@ export default function ConfirmationDialog({ open, title, message, onConfirm, on
         <div className="flex justify-end gap-4">
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition"
+            className="px-4 py-2 bg-gray-200 text-brand-navy/90 rounded hover:bg-gray-300 transition"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+            className="px-4 py-2 bg-brand-orange text-white rounded hover:bg-orange-600 transition"
           >
             Confirm
           </button>

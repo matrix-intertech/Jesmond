@@ -49,13 +49,13 @@ export default function AdminPropertiesPage() {
       <div className="mb-6 flex gap-2 border-b border-gray-200">
         <button
           onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'pending' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'pending' ? 'border-b-2 border-brand-orange text-brand-orange' : 'text-gray-500 hover:text-brand-navy/90'}`}
         >
           For Review
         </button>
         <button
           onClick={() => setActiveTab('active')}
-          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'active' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 hover:text-gray-800'}`}
+          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'active' ? 'border-b-2 border-brand-orange text-brand-orange' : 'text-gray-500 hover:text-brand-navy/90'}`}
         >
           Active Listings
         </button>
@@ -68,15 +68,15 @@ export default function AdminPropertiesPage() {
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-surface-muted border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-sm font-medium text-slate-900">Property</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-900">Provider</th>
-                <th className="px-6 py-4 text-sm font-medium text-slate-900">Location</th>
+                <th className="px-6 py-4 text-sm font-medium text-brand-navy">Property</th>
+                <th className="px-6 py-4 text-sm font-medium text-brand-navy">Provider</th>
+                <th className="px-6 py-4 text-sm font-medium text-brand-navy">Location</th>
                 {activeTab === 'active' && (
-                  <th className="px-6 py-4 text-sm font-medium text-slate-900">Status</th>
+                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Status</th>
                 )}
-                <th className="px-6 py-4 text-sm font-medium text-slate-900 text-right">Action</th>
+                <th className="px-6 py-4 text-sm font-medium text-brand-navy text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -89,18 +89,18 @@ export default function AdminPropertiesPage() {
               ) : (
                 properties.map(p => (
                   <tr key={p.id}>
-                    <td className="px-6 py-4 font-medium text-slate-900">{p.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-900">{p.organization.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-900">{p.suburb.name}</td>
+                    <td className="px-6 py-4 font-medium text-brand-navy">{p.name}</td>
+                    <td className="px-6 py-4 text-sm text-brand-navy">{p.organization.name}</td>
+                    <td className="px-6 py-4 text-sm text-brand-navy">{p.suburb.name}</td>
                     {activeTab === 'active' && (
                       <td className="px-6 py-4 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-gray-100 text-brand-navy/90'}`}>
                           {p.status}
                         </span>
                       </td>
                     )}
                     <td className="px-6 py-4 text-right">
-                      <a href={`/admin/properties/${p.id}`} className="text-indigo-600 font-medium text-sm hover:underline">
+                      <a href={`/admin/properties/${p.id}`} className="text-brand-orange font-medium text-sm hover:underline">
                         Review →
                       </a>
                     </td>

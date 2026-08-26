@@ -46,7 +46,7 @@ export default function StatCard({
             <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">
               {label}
             </p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">
+            <p className="mt-1 text-2xl font-semibold text-brand-navy">
               {value}
             </p>
             {description && (

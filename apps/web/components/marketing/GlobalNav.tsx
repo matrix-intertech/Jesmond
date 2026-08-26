@@ -63,48 +63,47 @@ export function GlobalNav() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
           isScrolled
-            ? "bg-white/80 backdrop-blur-md border-b border-slate-200/60 py-4 shadow-sm"
-            : "bg-transparent py-6"
+            ? "bg-white/95 backdrop-blur-md border-b border-slate-200/60 py-4 shadow-sm"
+            : "bg-white py-6"
         }`}
       >
         <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 flex items-center justify-between">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group relative z-50">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xl tracking-tighter">
-              J
+            <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-xl tracking-tighter">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              Jesmond<span className="text-indigo-600">.</span>
+            <span className="text-xl font-bold tracking-tight text-brand-navy uppercase">
+              Jesmond<span className="text-orange-500 text-[10px] lowercase tracking-normal relative -top-2">.com.au</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-8">
+          <div className="hidden xl:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors relative group"
+                className="text-[13px] font-bold text-brand-navy hover:text-orange-600 transition-colors relative group"
               >
                 {link.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-slate-900 transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </div>
 
           {/* Actions (Saved, Login, Sign Up) */}
-          <div className="hidden lg:flex items-center gap-4">
-            <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="hidden lg:flex items-center gap-6">
+            <Link href="/student/saved" className="text-orange-500 hover:text-orange-600 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-            </button>
+            </Link>
             <div className="w-px h-5 bg-slate-200" />
             {authStatus.isAuth ? (
               <Link
                 href={getDashboardRoute(authStatus.role)}
-                className="text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
+                className="text-sm font-semibold text-white bg-brand-orange hover:bg-orange-600 transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
               >
                 Dashboard
               </Link>
@@ -112,13 +111,13 @@ export function GlobalNav() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-semibold text-slate-900 hover:text-indigo-600 transition-colors px-2"
+                  className="text-sm font-semibold text-brand-navy hover:text-orange-600 transition-colors px-2"
                 >
                   Log in
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
+                  className="text-sm font-semibold text-white bg-brand-orange hover:bg-orange-600 transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
                 >
                   Sign up
                 </Link>
@@ -128,7 +127,7 @@ export function GlobalNav() {
 
           {/* Mobile Menu Trigger */}
           <button
-            className="lg:hidden relative z-50 p-2 text-slate-900"
+            className="xl:hidden relative z-50 p-2 text-brand-navy"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             <motion.div animate={isMobileMenuOpen ? "open" : "closed"} className="flex flex-col gap-1.5 w-6">
@@ -158,7 +157,7 @@ export function GlobalNav() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 bg-white pt-24 px-6 lg:hidden overflow-y-auto"
+            className="fixed inset-0 z-40 bg-white pt-24 px-6 xl:hidden overflow-y-auto"
           >
             <div className="flex flex-col gap-6">
               {navLinks.map((link, i) => (
@@ -171,19 +170,27 @@ export function GlobalNav() {
                   <Link
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-3xl font-bold tracking-tight text-slate-900 block border-b border-slate-100 pb-4"
+                    className="text-2xl font-bold tracking-tight text-brand-navy block border-b border-slate-100 pb-4"
                   >
                     {link.label}
                   </Link>
                 </motion.div>
               ))}
 
-              <div className="mt-8 flex flex-col gap-4">
+              <div className="mt-8 flex flex-col gap-4 pb-12">
+                <Link
+                  href="/student/saved"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full text-center py-4 rounded-[8px] border-2 border-orange-100 text-lg font-semibold text-orange-600 flex justify-center items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                  Saved Properties
+                </Link>
                 {authStatus.isAuth ? (
                   <Link
                     href={getDashboardRoute(authStatus.role)}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-4 rounded-xl bg-slate-900 text-lg font-semibold text-white shadow-lg"
+                    className="w-full text-center py-4 rounded-xl bg-brand-orange text-lg font-semibold text-white shadow-lg"
                   >
                     Dashboard
                   </Link>
@@ -192,14 +199,14 @@ export function GlobalNav() {
                     <Link
                       href="/login"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full text-center py-4 rounded-xl border border-slate-200 text-lg font-semibold text-slate-900"
+                      className="w-full text-center py-4 rounded-xl border border-slate-200 text-lg font-semibold text-brand-navy"
                     >
                       Log in
                     </Link>
                     <Link
                       href="/register"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full text-center py-4 rounded-xl bg-slate-900 text-lg font-semibold text-white shadow-lg"
+                      className="w-full text-center py-4 rounded-xl bg-brand-orange text-lg font-semibold text-white shadow-lg"
                     >
                       Sign up
                     </Link>

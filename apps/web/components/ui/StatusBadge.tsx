@@ -28,15 +28,15 @@ export interface StatusBadgeProps {
 }
 
 const statusStyles: Record<StatusBadgeProps["status"], { bg: string; text: string }> = {
-  DRAFT: { bg: "bg-gray-100", text: "text-gray-800" },
-  PENDING_APPROVAL: { bg: "bg-yellow-100", text: "text-yellow-800" },
-  PUBLISHED: { bg: "bg-green-100", text: "text-green-800" },
-  PENDING_REVIEW: { bg: "bg-indigo-100", text: "text-indigo-800" },
-  APPROVED: { bg: "bg-green-100", text: "text-green-800" },
-  REJECTED: { bg: "bg-red-100", text: "text-red-800" },
-  SOLD_OUT: { bg: "bg-gray-200", text: "text-gray-800" },
-  ENABLED: { bg: "bg-blue-100", text: "text-blue-800" },
-  DISABLED: { bg: "bg-gray-200", text: "text-gray-800" },
+  DRAFT: { bg: "bg-gray-100", text: "text-gray-700 font-bold" },
+  PENDING_APPROVAL: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
+  PUBLISHED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
+  PENDING_REVIEW: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
+  APPROVED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
+  REJECTED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
+  SOLD_OUT: { bg: "bg-gray-200", text: "text-gray-700 font-bold" },
+  ENABLED: { bg: "bg-blue-100", text: "text-blue-800 font-bold" },
+  DISABLED: { bg: "bg-gray-200", text: "text-gray-700 font-bold" },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

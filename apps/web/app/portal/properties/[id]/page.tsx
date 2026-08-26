@@ -266,7 +266,7 @@ export default function AccommodationManagementPage() {
       <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-medium text-slate-900 font-outfit">{property.name}</h1>
+            <h1 className="text-3xl font-medium text-brand-navy font-outfit">{property.name}</h1>
             <p className="text-gray-500">{property.address}, {property.suburb.name}</p>
           </div>
           <div className="flex items-center gap-4">
@@ -274,13 +274,13 @@ export default function AccommodationManagementPage() {
               {property.status}
             </span>
             {property.status === 'DRAFT' && !isEditingProp && (
-              <button onClick={() => setIsEditingProp(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 text-sm">
+              <button onClick={() => setIsEditingProp(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-surface-muted text-sm">
                 Edit Details
               </button>
             )}
             {property.status === 'DRAFT' && (
               <div className="relative">
-                <button disabled={isSubmitting} onClick={() => setSubmitConfirm(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm disabled:opacity-50">
+                <button disabled={isSubmitting} onClick={() => setSubmitConfirm(true)} className="bg-brand-orange text-white px-4 py-2 rounded-md hover:bg-orange-600 text-sm disabled:opacity-50">
                   Submit for Review
                 </button>
                 {submitConfirm && (
@@ -289,7 +289,7 @@ export default function AccommodationManagementPage() {
                     <p className="text-xs text-gray-600 mb-4">You will not be able to edit it while pending.</p>
                     <div className="flex gap-2 justify-end">
                       <button disabled={isSubmitting} onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-gray-500 disabled:opacity-50">Cancel</button>
-                      <button disabled={isSubmitting} onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-indigo-600 text-white rounded disabled:opacity-50">
+                      <button disabled={isSubmitting} onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-brand-orange text-white rounded disabled:opacity-50">
                         {isSubmitting ? 'Submitting...' : 'Submit'}
                       </button>
                     </div>
@@ -298,7 +298,7 @@ export default function AccommodationManagementPage() {
               </div>
             )}
             {isPublished && (
-              <a href={`/property/${property.id}`} target="_blank" className="text-indigo-600 text-sm hover:underline">
+              <a href={`/property/${property.id}`} target="_blank" className="text-brand-orange text-sm hover:underline">
                 View Public Listing
               </a>
             )}
@@ -330,8 +330,8 @@ export default function AccommodationManagementPage() {
             </div>
             <div><label className="block text-sm text-gray-700 mb-1">Description</label><textarea required rows={4} value={editPropForm.description} onChange={e => setEditPropForm({...editPropForm, description: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
             <div className="flex gap-4 justify-end">
-              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50">Cancel</button>
-              <button disabled={isSubmitting} type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50">
+              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-brand-navy disabled:opacity-50">Cancel</button>
+              <button disabled={isSubmitting} type="submit" className="bg-brand-orange text-white px-4 py-2 rounded-md hover:bg-orange-600 disabled:opacity-50">
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>
@@ -351,7 +351,7 @@ export default function AccommodationManagementPage() {
             </div>
             {!isPending && (
               <div>
-                <label className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
+                <label className="bg-brand-orange/10 text-brand-orange px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
                   <span>+ Upload Image</span>
                   <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isPending} />
                 </label>
@@ -365,7 +365,7 @@ export default function AccommodationManagementPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-medium">Amenities</h2>
               {!isPending && !isEditingAmenities && (
-                <button onClick={() => setIsEditingAmenities(true)} className="text-sm text-indigo-600 hover:underline">Edit Amenities</button>
+                <button onClick={() => setIsEditingAmenities(true)} className="text-sm text-brand-orange hover:underline">Edit Amenities</button>
               )}
             </div>
 
@@ -373,7 +373,7 @@ export default function AccommodationManagementPage() {
               <div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                   {allAmenities.map(am => (
-                    <label key={am.id} className="flex items-center gap-2 text-sm border p-2 rounded cursor-pointer hover:bg-gray-50">
+                    <label key={am.id} className="flex items-center gap-2 text-sm border p-2 rounded cursor-pointer hover:bg-surface-muted">
                       <input
                         type="checkbox"
                         checked={selectedAmenities.includes(am.id)}
@@ -391,7 +391,7 @@ export default function AccommodationManagementPage() {
                     setSelectedAmenities(property.amenities?.map((a: any) => a.amenityId) || []);
                     setIsEditingAmenities(false);
                   }} className="text-sm text-gray-600 disabled:opacity-50">Cancel</button>
-                  <button disabled={isSubmitting} onClick={handleUpdateAmenities} className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded hover:bg-indigo-700 disabled:opacity-50">
+                  <button disabled={isSubmitting} onClick={handleUpdateAmenities} className="text-sm bg-brand-orange text-white px-4 py-1.5 rounded hover:bg-orange-600 disabled:opacity-50">
                     {isSubmitting ? 'Saving...' : 'Save'}
                   </button>
                 </div>
@@ -400,7 +400,7 @@ export default function AccommodationManagementPage() {
               <div className="flex flex-wrap gap-2">
                 {property.amenities?.length > 0 ? (
                   property.amenities.map((pa: any) => (
-                    <span key={pa.amenityId} className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm">
+                    <span key={pa.amenityId} className="bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full text-sm">
                       {pa.amenity.name}
                     </span>
                   ))

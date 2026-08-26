@@ -29,7 +29,7 @@ expressApp.set('trust proxy', 1);
 
   const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
   app.enableCors({
-    origin: corsOrigin,
+    origin: [corsOrigin, 'http://127.0.0.1:3000', 'http://localhost:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -69,7 +69,7 @@ expressApp.set('trust proxy', 1);
 
   // 9. Start Server
   const port = process.env.PORT || 3001;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 Application is running on: http://localhost:${port}/api/v1`);
   console.log(
     `📚 Swagger documentation available at: http://localhost:${port}/docs`,

@@ -92,43 +92,43 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
     <>
       <div className="flex gap-4 mb-6">
         {isAuth ? (
-          <button onClick={() => setShowEnquiry(true)} className="flex-1 bg-white border-2 border-indigo-600 text-indigo-600 font-bold py-3 px-6 rounded-xl hover:bg-indigo-50 transition">
+          <button onClick={() => setShowEnquiry(true)} className="flex-1 bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
             Contact Provider
           </button>
         ) : (
-          <Link href="/login" className="flex-1 text-center bg-white border-2 border-indigo-600 text-indigo-600 font-bold py-3 px-6 rounded-xl hover:bg-indigo-50 transition">
+          <Link href="/login" className="flex-1 text-center bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
             Login to Contact
           </Link>
         )}
       </div>
 
-      <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-8 h-fit">
-        <h3 className="text-xl font-bold text-slate-900 mb-6">Room Types</h3>
+      <div className="bg-surface-muted border border-slate-200 rounded-[24px] p-8 h-fit">
+        <h3 className="text-xl font-bold text-brand-navy mb-6">Room Types</h3>
         {roomTypes.length === 0 ? (
           <p className="text-slate-500">No rooms available.</p>
         ) : (
           <div className="flex flex-col gap-4">
             {roomTypes.map(room => (
               <div key={room.id} className="bg-white p-4 rounded-xl border border-slate-200">
-                <h4 className="font-bold text-slate-900">{room.name}</h4>
+                <h4 className="font-bold text-brand-navy">{room.name}</h4>
                 <p className="text-sm text-slate-500 mb-1">{room.description}</p>
                 <p className="text-xs text-slate-400 mb-3">
                   {room.inventory > 0 ? `${room.inventory} available` : 'Currently unavailable'}
                 </p>
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-indigo-600">${(room.pricePerWeek / 100).toFixed(0)}/wk</span>
+                  <span className="font-bold text-brand-orange">${(room.pricePerWeek / 100).toFixed(0)}/wk</span>
                   {isAuth ? (
                     <button 
                       onClick={() => { setShowApply(room.id); setError(""); setSuccess(""); setApplicationResult(null); }}
                       disabled={room.inventory <= 0}
-                      className={`text-sm font-semibold px-4 py-2 rounded-lg transition ${room.inventory > 0 ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                      className={`text-sm font-semibold px-4 py-2 rounded-lg transition ${room.inventory > 0 ? 'bg-brand-navy text-white hover:bg-brand-navy/90' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
                     >
                       {room.inventory > 0 ? 'Reserve Room' : 'Sold Out'}
                     </button>
                   ) : (
                     <Link 
                       href="/register"
-                      className="text-sm font-semibold px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                      className="text-sm font-semibold px-4 py-2 rounded-lg bg-brand-orange text-white hover:bg-orange-600 transition"
                     >
                       Sign up to reserve
                     </Link>
@@ -159,7 +159,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
                   placeholder="I am interested in this property..."
                 />
               </div>
-              <button disabled={loading} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition">
+              <button disabled={loading} className="w-full bg-brand-orange text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition">
                 {loading ? 'Sending...' : 'Send Enquiry'}
               </button>
             </form>
@@ -182,7 +182,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
                 <h2 className="text-2xl font-bold mb-2">Application Submitted</h2>
                 <p className="text-slate-500 mb-6">Your room reservation request has been sent to the provider for review.</p>
                 
-                <div className="bg-slate-50 rounded-xl p-4 text-left mb-6">
+                <div className="bg-surface-muted rounded-xl p-4 text-left mb-6">
                   <div className="flex justify-between py-2 border-b border-slate-200">
                     <span className="text-sm text-slate-500">Room</span>
                     <span className="text-sm font-semibold">{applicationResult.roomName}</span>
@@ -207,7 +207,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
                 
                 <Link 
                   href="/student" 
-                  className="inline-block bg-slate-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-slate-800 transition"
+                  className="inline-block bg-brand-navy text-white font-bold py-3 px-8 rounded-xl hover:bg-brand-navy/90 transition"
                 >
                   View My Applications
                 </Link>
@@ -216,9 +216,9 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
               <>
                 <h2 className="text-2xl font-bold mb-4">Reserve Room</h2>
                 <p className="text-slate-500 text-sm mb-4">
-                  Room: <span className="font-semibold text-slate-900">{roomTypes.find(r => r.id === showApply)?.name}</span>
+                  Room: <span className="font-semibold text-brand-navy">{roomTypes.find(r => r.id === showApply)?.name}</span>
                   {' · '}
-                  <span className="font-semibold text-indigo-600">${((roomTypes.find(r => r.id === showApply)?.pricePerWeek || 0) / 100).toFixed(0)}/wk</span>
+                  <span className="font-semibold text-brand-orange">${((roomTypes.find(r => r.id === showApply)?.pricePerWeek || 0) / 100).toFixed(0)}/wk</span>
                 </p>
                 {error && <div className="bg-rose-100 text-rose-700 p-3 rounded mb-4">{error}</div>}
                 <form onSubmit={handleApply}>
@@ -245,7 +245,7 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
                       <option value={12}>12 Months</option>
                     </select>
                   </div>
-                  <button disabled={loading} className="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-slate-800 transition">
+                  <button disabled={loading} className="w-full bg-brand-navy text-white font-bold py-3 rounded-lg hover:bg-brand-navy/90 transition">
                     {loading ? 'Submitting...' : 'Submit Application'}
                   </button>
                 </form>

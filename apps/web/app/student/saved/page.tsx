@@ -108,7 +108,7 @@ export default function StudentSavedPage() {
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{prop.organization.name}</div>
                   <h3 className="font-bold text-lg leading-tight mb-1">{prop.name}</h3>
                   <p className="text-slate-500 text-sm mb-3">{formatLocation({ suburb: prop.suburb, state: prop.suburb.state, city: prop.suburb.city })}</p>
-                  <div className="font-bold text-indigo-600">
+                  <div className="font-bold text-brand-orange">
                     {prop.roomTypes[0] ? `From $${(prop.roomTypes[0].pricePerWeek / 100).toFixed(2)} /wk` : 'Price TBC'}
                   </div>
                 </div>

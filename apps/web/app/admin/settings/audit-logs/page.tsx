@@ -40,7 +40,7 @@ export default function AuditLogsPage() {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">Audit Logs</h3>
+        <h3 className="text-lg leading-6 font-medium text-brand-navy">Audit Logs</h3>
         <p className="mt-1 text-sm text-gray-500">System activity and setting modifications.</p>
       </div>
 
@@ -48,7 +48,7 @@ export default function AuditLogsPage() {
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-surface-muted">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actor</th>
@@ -63,10 +63,10 @@ export default function AuditLogsPage() {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(log.createdAt).toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-navy font-medium">
                   {log.actorId} <span className="text-xs text-gray-500 ml-1">({log.actorType})</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-navy">
                   {log.action}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

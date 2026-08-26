@@ -168,7 +168,7 @@ export default function SecuritySettings() {
       {/* Password Security */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Change Password</h3>
+          <h3 className="text-lg leading-6 font-medium text-brand-navy">Change Password</h3>
           <p className="mt-1 text-sm text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
         </div>
         <div className="p-6">
@@ -223,12 +223,12 @@ export default function SecuritySettings() {
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Two-Factor Authentication</h3>
+          <h3 className="text-lg leading-6 font-medium text-brand-navy">Two-Factor Authentication</h3>
           <p className="mt-1 text-sm text-gray-500">Add an extra layer of security to your account.</p>
         </div>
         <div className="p-6">
           {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+          <div className="flex items-center justify-between p-4 bg-surface-muted rounded-lg border">
             <div>
               <h3 className="font-medium">Authenticator App</h3>
               <p className="text-sm text-gray-500">
@@ -264,7 +264,7 @@ export default function SecuritySettings() {
                 <button onClick={handleVerifySetup} className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800">
                   Verify & Enable
                 </button>
-                <button onClick={() => setSetupMode(false)} className="px-4 py-2 text-sm border rounded hover:bg-gray-50">
+                <button onClick={() => setSetupMode(false)} className="px-4 py-2 text-sm border rounded hover:bg-surface-muted">
                   Cancel
                 </button>
               </div>
@@ -275,14 +275,14 @@ export default function SecuritySettings() {
 
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">Active Sessions</h3>
+          <h3 className="text-lg leading-6 font-medium text-brand-navy">Active Sessions</h3>
           <p className="mt-1 text-sm text-gray-500">Devices that are currently logged in to your account.</p>
         </div>
         <ul className="divide-y divide-gray-200">
           {sessions.map((session: any) => (
             <li key={session.id} className="p-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">{session.deviceInfo || 'Unknown Device'}</p>
+                <p className="text-sm font-medium text-brand-navy">{session.deviceInfo || 'Unknown Device'}</p>
                 <p className="text-xs text-gray-500 mt-1">IP: {session.ipAddress || 'Unknown'} • Started: {new Date(session.createdAt).toLocaleDateString()}</p>
               </div>
               <button onClick={() => revokeSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2 rounded-full hover:bg-rose-50" title="Log out session">

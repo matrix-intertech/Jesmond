@@ -168,7 +168,7 @@ export default function AdminPropertyReviewPage() {
       <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-medium text-slate-900 font-outfit mb-2">{property.name}</h1>
+            <h1 className="text-3xl font-medium text-brand-navy font-outfit mb-2">{property.name}</h1>
             <p className="text-gray-600 mb-1">Provider: <strong>{property.organization.name}</strong></p>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium text-slate-700">Verification Status:</span>
@@ -237,7 +237,7 @@ export default function AdminPropertyReviewPage() {
                       <button
                         key={st}
                         onClick={() => handleVerificationStatusUpdate(st)}
-                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-gray-50'}`}
+                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-surface-muted'}`}
                       >
                         {st}
                       </button>

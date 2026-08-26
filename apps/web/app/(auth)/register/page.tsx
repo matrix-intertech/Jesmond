@@ -163,12 +163,12 @@ function RegisterForm() {
 
   if (showOtp) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100 text-center">
           <div>
-            <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 font-outfit">Verify your email</h2>
+            <h2 className="mt-2 text-center text-3xl font-extrabold text-brand-navy font-outfit">Verify your email</h2>
             <p className="mt-2 text-sm text-gray-500">
-              We've sent a 6-digit code to <span className="font-semibold text-gray-900">{email}</span>
+              We've sent a 6-digit code to <span className="font-semibold text-brand-navy">{email}</span>
             </p>
           </div>
           <form className="space-y-6" onSubmit={handleVerifyOtp}>
@@ -185,7 +185,7 @@ function RegisterForm() {
                 type="text"
                 maxLength={6}
                 required
-                className="appearance-none rounded relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-lg text-center tracking-widest font-mono"
+                className="appearance-none rounded relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-brand-navy focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-lg text-center tracking-widest font-mono"
                 placeholder="000000"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
@@ -195,7 +195,7 @@ function RegisterForm() {
               <button
                 type="submit"
                 disabled={loading || otp.length !== 6}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Verifying...' : 'Verify Email'}
               </button>
@@ -205,7 +205,7 @@ function RegisterForm() {
                 type="button"
                 onClick={handleResendOtp}
                 disabled={resendCooldown > 0}
-                className="text-indigo-600 hover:text-indigo-500 disabled:text-gray-400 font-medium"
+                className="text-brand-orange hover:text-indigo-500 disabled:text-gray-400 font-medium"
               >
                 {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend verification code'}
               </button>
@@ -217,15 +217,15 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 font-outfit">
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-brand-navy font-outfit">
             Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-500">
             Already have an account?{' '}
-            <Link href="/login" className="text-indigo-600 hover:text-indigo-500 font-medium">
+            <Link href="/login" className="text-brand-orange hover:text-indigo-500 font-medium">
               Sign in
             </Link>
           </p>
@@ -238,8 +238,8 @@ function RegisterForm() {
             onClick={() => setAccountType('student')}
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'student'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-brand-orange text-white'
+                : 'bg-white text-gray-600 hover:bg-surface-muted'
             }`}
           >
             I&apos;m a Student
@@ -249,8 +249,8 @@ function RegisterForm() {
             onClick={() => setAccountType('provider')}
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'provider'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-brand-orange text-white'
+                : 'bg-white text-gray-600 hover:bg-surface-muted'
             }`}
           >
             I&apos;m a Provider
@@ -274,7 +274,7 @@ function RegisterForm() {
                 name="firstName"
                 type="text"
                 required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
                 placeholder="First name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -289,7 +289,7 @@ function RegisterForm() {
                 name="lastName"
                 type="text"
                 required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
                 placeholder="Last name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -306,7 +306,7 @@ function RegisterForm() {
               name="email"
               type="email"
               required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -323,7 +323,7 @@ function RegisterForm() {
               type="password"
               required
               minLength={8}
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
               placeholder="Minimum 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -341,7 +341,7 @@ function RegisterForm() {
                   name="organizationName"
                   type="text"
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
                   placeholder="Organisation name"
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
@@ -355,7 +355,7 @@ function RegisterForm() {
                 <select
                   id="org-type"
                   name="organizationType"
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
                   value={organizationType}
                   onChange={(e) => setOrganizationType(e.target.value)}
                 >
@@ -379,7 +379,7 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={loading || !turnstileToken}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>

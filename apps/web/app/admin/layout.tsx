@@ -68,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   if (!isAuthorized) {
-    return <div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading dashboard...</div>;
+    return <div className="min-h-screen bg-surface-muted flex items-center justify-center">Loading dashboard...</div>;
   }
 
   return (

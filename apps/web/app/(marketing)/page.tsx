@@ -14,7 +14,7 @@ export const metadata = {
 
 export default function Homepage() {
   return (
-    <main className="min-h-screen bg-slate-50 selection:bg-indigo-500 selection:text-white">
+    <main className="min-h-screen bg-surface-muted selection:bg-orange-500 selection:text-white">
       <GlobalNav />
       
       {/* 1. First Impression & Aspiration */}

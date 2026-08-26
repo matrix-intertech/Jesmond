@@ -32,11 +32,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     <div className="min-h-screen bg-white">
       <GlobalNav />
       <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 pt-32 pb-12 min-h-[70vh]">
-        <Link href="/search" className="text-sm font-semibold text-indigo-600 hover:underline mb-8 inline-block">&larr; Back to Search</Link>
+        <Link href="/search" className="text-sm font-semibold text-brand-orange hover:underline mb-8 inline-block">&larr; Back to Search</Link>
         <div className="flex justify-between items-start mb-8">
           <div>
             <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-4xl md:text-5xl font-medium text-slate-900" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <h1 className="text-4xl md:text-5xl font-medium text-brand-navy" style={{ fontFamily: 'var(--font-outfit)' }}>
                 {property.name}
               </h1>
               <SaveButton propertyId={property.id} />
@@ -58,11 +58,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">About this property</h2>
+            <h2 className="text-2xl font-bold text-brand-navy mb-4">About this property</h2>
             <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{property.description}</p>
 
             <div className="mt-16">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Location</h2>
+              <h2 className="text-2xl font-bold text-brand-navy mb-4">Location</h2>
               <p className="text-slate-600 mb-6">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
 
               <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-slate-200">

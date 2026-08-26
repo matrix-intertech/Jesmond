@@ -67,7 +67,7 @@ export function StudyDestinations() {
       {/* Premium Typography Header */}
       <div className="mb-16 max-w-3xl">
         <h2 
-          className="text-[2.5rem] lg:text-[4rem] font-medium text-slate-900 tracking-[-0.04em] leading-[1.05] mb-6"
+          className="text-[2.5rem] lg:text-[4rem] font-medium text-brand-navy tracking-[-0.04em] leading-[1.05] mb-6"
           style={{ fontFamily: 'var(--font-outfit)' }}
         >
           Where do you actually <br className="hidden md:block" /> want to study?
@@ -94,20 +94,20 @@ export function StudyDestinations() {
                 onClick={() => setActiveDest(dest)}
                 className={`relative w-full text-left p-6 rounded-xl transition-all duration-300 group ${
                   isActive 
-                    ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10" 
-                    : "bg-transparent text-slate-500 hover:bg-slate-50"
+                    ? "bg-brand-navy text-white shadow-xl shadow-brand-navy/10" 
+                    : "bg-transparent text-slate-500 hover:bg-surface-muted"
                 }`}
               >
                 <div className="flex justify-between items-center relative z-10">
                   <div>
-                    <h3 className={`text-3xl font-semibold tracking-tight transition-colors duration-300 ${isActive ? "text-white" : "text-slate-900 group-hover:text-indigo-600"}`}>
+                    <h3 className={`text-3xl font-semibold tracking-tight transition-colors duration-300 ${isActive ? "text-white" : "text-brand-navy group-hover:text-brand-orange"}`}>
                       {dest.city}
                     </h3>
                     <p className={`text-sm mt-1 uppercase tracking-widest font-bold ${isActive ? "text-slate-400" : "text-slate-400"}`}>
                       {dest.state}
                     </p>
                   </div>
-                  <div className={`transition-transform duration-300 ${isActive ? "translate-x-2 text-white" : "opacity-0 -translate-x-4 text-indigo-600 group-hover:opacity-100 group-hover:translate-x-0"}`}>
+                  <div className={`transition-transform duration-300 ${isActive ? "translate-x-2 text-white" : "opacity-0 -translate-x-4 text-brand-orange group-hover:opacity-100 group-hover:translate-x-0"}`}>
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export function StudyDestinations() {
         </div>
 
         {/* Right Column: Immersive Destination Data (The Reveal) */}
-        <div className="w-full lg:w-2/3 relative rounded-[24px] overflow-hidden bg-slate-900 shadow-2xl flex flex-col justify-end">
+        <div className="w-full lg:w-2/3 relative rounded-[24px] overflow-hidden bg-brand-navy shadow-2xl flex flex-col justify-end">
           
           <AnimatePresence mode="wait">
             <motion.div
@@ -161,19 +161,19 @@ export function StudyDestinations() {
                 </div>
                 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
+                  <div className="bg-brand-navy/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Student Pop.</p>
                     <p className="text-2xl font-bold text-white tracking-tight">{activeDest.studentPop}</p>
                   </div>
-                  <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
+                  <div className="bg-brand-navy/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Universities</p>
                     <p className="text-2xl font-bold text-white tracking-tight">{activeDest.uniCount}</p>
                   </div>
-                  <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
+                  <div className="bg-brand-navy/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Rent</p>
                     <p className="text-2xl font-bold text-white tracking-tight">{activeDest.avgRent}</p>
                   </div>
-                  <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
+                  <div className="bg-brand-navy/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Avg Walk</p>
                     <p className="text-2xl font-bold text-white tracking-tight">{activeDest.avgWalk}</p>
                   </div>
@@ -183,8 +183,8 @@ export function StudyDestinations() {
               {/* Top Universities Section */}
               <div className="bg-white/95 backdrop-blur-2xl rounded-xl p-6 lg:p-8 shadow-2xl">
                 <div className="flex justify-between items-center mb-6">
-                  <h4 className="text-lg font-bold text-slate-900 tracking-tight">Top Universities in {activeDest.city}</h4>
-                  <Link href={`/cities/${activeDest.slug}`} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                  <h4 className="text-lg font-bold text-brand-navy tracking-tight">Top Universities in {activeDest.city}</h4>
+                  <Link href={`/cities/${activeDest.slug}`} className="text-sm font-semibold text-brand-orange hover:text-brand-orange flex items-center gap-1">
                     Explore City <span aria-hidden="true">&rarr;</span>
                   </Link>
                 </div>
@@ -194,10 +194,10 @@ export function StudyDestinations() {
                     <Link 
                       key={uni.slug} 
                       href={`/universities/${uni.slug}`}
-                      className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors"
+                      className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-brand-orange/10/50 transition-colors"
                     >
                       <div className="mb-2 sm:mb-0">
-                        <p className="font-semibold text-slate-900 group-hover:text-indigo-900 transition-colors">{uni.name}</p>
+                        <p className="font-semibold text-brand-navy group-hover:text-indigo-900 transition-colors">{uni.name}</p>
                         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{uni.props} verified properties</p>
                       </div>
                       
@@ -210,7 +210,7 @@ export function StudyDestinations() {
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Walk</p>
                           <p className="text-sm font-semibold text-slate-700">{uni.walk}</p>
                         </div>
-                        <div className="text-indigo-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-transform">
+                        <div className="text-indigo-400 group-hover:text-brand-orange group-hover:translate-x-1 transition-transform">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                         </div>
                       </div>

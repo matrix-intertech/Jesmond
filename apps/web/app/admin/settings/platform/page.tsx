@@ -77,7 +77,7 @@ export default function PlatformSettingsPage() {
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden">
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">Platform Settings</h3>
+        <h3 className="text-lg leading-6 font-medium text-brand-navy">Platform Settings</h3>
         <p className="mt-1 text-sm text-gray-500">Manage global configuration for the Jesmond platform.</p>
       </div>
 
@@ -89,27 +89,27 @@ export default function PlatformSettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700">Site Name</label>
-              <input type="text" value={data.siteName || ''} onChange={e => setData({...data, siteName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.siteName || ''} onChange={e => setData({...data, siteName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Support Email</label>
-              <input type="email" value={data.supportEmail || ''} onChange={e => setData({...data, supportEmail: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="email" value={data.supportEmail || ''} onChange={e => setData({...data, supportEmail: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Support Phone</label>
-              <input type="text" value={data.supportPhone || ''} onChange={e => setData({...data, supportPhone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+              <input type="text" value={data.supportPhone || ''} onChange={e => setData({...data, supportPhone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Default Timezone</label>
-              <input type="text" value={data.defaultTimezone || ''} onChange={e => setData({...data, defaultTimezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.defaultTimezone || ''} onChange={e => setData({...data, defaultTimezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700">Default Currency</label>
-              <input type="text" value={data.defaultCurrency || ''} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" required />
+              <input type="text" value={data.defaultCurrency || ''} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
             </div>
           </div>
 
@@ -119,9 +119,9 @@ export default function PlatformSettingsPage() {
               type="checkbox"
               checked={data.maintenanceMode || false}
               onChange={e => setData({...data, maintenanceMode: e.target.checked})}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
             />
-            <label htmlFor="maintenanceMode" className="ml-2 block text-sm text-gray-900 font-medium">
+            <label htmlFor="maintenanceMode" className="ml-2 block text-sm text-brand-navy font-medium">
               Maintenance Mode
             </label>
           </div>
@@ -131,7 +131,7 @@ export default function PlatformSettingsPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Changes'}
             </button>

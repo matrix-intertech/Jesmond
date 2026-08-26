@@ -14,12 +14,12 @@ export default async function SearchPage({
   const resolvedParams = await searchParams;
   // Pass the raw searchParams down to the client layout where URL syncing occurs
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col h-screen overflow-hidden">
+    <main className="min-h-screen bg-surface-muted flex flex-col h-screen overflow-hidden">
       {/* Top Header / Filter Bar */}
       <header className="h-20 bg-white border-b border-slate-200 flex items-center px-6 shrink-0 z-20 shadow-sm">
         <div className="flex items-center gap-4 w-full max-w-[1440px] mx-auto justify-between">
           <Link href="/" className="font-bold text-xl tracking-tighter flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-slate-900 text-white flex items-center justify-center rounded-lg">J</div>
+            <div className="w-8 h-8 bg-brand-navy text-white flex items-center justify-center rounded-lg">J</div>
             <span className="hidden sm:block">Jesmond.</span>
           </Link>
           
