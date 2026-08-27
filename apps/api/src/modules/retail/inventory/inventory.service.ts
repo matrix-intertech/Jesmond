@@ -54,6 +54,17 @@ export class InventoryService {
         },
       });
 
+      await tx.auditLog.create({
+        data: {
+          actorId: userId,
+          actorType: 'USER',
+          action: 'inventory.adjust',
+          resourceType: 'Inventory',
+          resourceId: updated.id,
+          changes: { old: current as any, new: updated as any }
+        }
+      });
+
       return updated;
     });
   }

@@ -13,6 +13,6 @@ export class CatalogController {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to manage retail catalog');
     }
-    return this.catalogService.createProduct(req.user.organizationId, data);
+    return this.catalogService.createProduct(req.user.organizationId, req.user.id || 'SYSTEM', data);
   }
 }

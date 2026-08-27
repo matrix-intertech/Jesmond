@@ -1,4 +1,4 @@
-﻿import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RetailPaymentStatus } from '@prisma/client';
 
@@ -17,9 +17,22 @@ export class PaymentsService {
       throw new BadRequestException('Cannot transition from REFUNDED to PAID');
     }
 
-    return this.prisma.retailPayment.update({
+    const updated = await this.prisma.retailPayment.update({
       where: { id: paymentId },
       data: { status: newStatus },
     });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actorId: 'SYSTEM',
+        actorType: 'SYSTEM',
+        action: 'payment.status.update',
+        resourceType: 'RetailPayment',
+        resourceId: paymentId,
+        changes: { old: payment as any, new: updated as any }
+      }
+    });
+
+    return updated;
   }
 }

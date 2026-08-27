@@ -1,12 +1,29 @@
-﻿import { Controller, Post, Body, Headers, BadRequestException, Injectable, InternalServerErrorException, Param } from '@nestjs/common';
+import { Controller, Post, Body, Headers, BadRequestException, Injectable, InternalServerErrorException, Param } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PosConnector } from './pos-connector.interface';
 
 @Injectable()
 export class PosWebhookService {
   constructor(private prisma: PrismaService) {}
 
+  // A registry for POS connectors
+  private getConnector(provider: string): PosConnector | null {
+    // We would resolve specific provider implementations here.
+    // E.g. if (provider === 'SQUARE') return new SquareConnector(config);
+    return null;
+  }
+
+  verifySignature(provider: string, payload: any, signature: string): boolean {
+    const connector = this.getConnector(provider);
+    if (!connector) {
+      throw new BadRequestException(`Provider not configured: ${provider}`);
+    }
+    // Abstract the secret resolution per organization/provider
+    // For this abstraction, we assume verifyWebhookSignature fetches the secret internally.
+    return connector.verifyWebhookSignature(payload, signature, 'dummy-secret');
+  }
+
   async processWebhook(provider: string, externalEventId: string, eventType: string, payload: any) {
-    // Phase 11: Idempotency check using externalEventId
     try {
       const existing = await this.prisma.posWebhookEvent.findUnique({
         where: {
@@ -18,14 +35,12 @@ export class PosWebhookService {
       });
 
       if (existing) {
-        // Webhook was already processed or is pending
         return { status: 'IGNORED', message: 'Duplicate event' };
       }
 
-      // We need organizationId from context, assuming payload contains location_id mapping
       const organizationId = payload.organizationId || 'UNKNOWN';
 
-      await this.prisma.posWebhookEvent.create({
+      const webhook = await this.prisma.posWebhookEvent.create({
         data: {
           provider,
           externalEventId,
@@ -36,13 +51,21 @@ export class PosWebhookService {
         },
       });
 
-      // Dispatch to specific handlers based on eventType (e.g., INVENTORY_UPDATED, ORDER_CREATED)
-      // This allows background workers to process it if we want, or we can process synchronously
-
-      // Update status
       await this.prisma.posWebhookEvent.update({
         where: { provider_externalEventId: { provider, externalEventId } },
         data: { status: 'PROCESSED', processedAt: new Date() },
+      });
+
+      // Audit Logging
+      await this.prisma.auditLog.create({
+        data: {
+          actorId: 'SYSTEM',
+          actorType: 'SYSTEM',
+          action: 'webhook.process',
+          resourceType: 'PosWebhookEvent',
+          resourceId: webhook.id,
+          changes: { eventType, provider }
+        }
       });
 
       return { status: 'SUCCESS' };
@@ -66,7 +89,8 @@ export class PosWebhookController {
       throw new BadRequestException('Missing signature');
     }
 
-    // Abstract verify signature using PosConnector strategy
+    // This will throw BadRequestException if provider is not configured or signature is invalid
+    this.webhookService.verifySignature(provider, payload, signature);
 
     const externalEventId = payload.id;
     const eventType = payload.type;

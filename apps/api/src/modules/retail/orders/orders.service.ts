@@ -72,6 +72,17 @@ export class OrdersService {
         );
       }
 
+      await tx.auditLog.create({
+        data: {
+          actorId: customerId || 'SYSTEM',
+          actorType: 'USER',
+          action: 'order.create',
+          resourceType: 'SalesOrder',
+          resourceId: order.id,
+          changes: { new: order as any }
+        }
+      });
+
       return order;
     });
   }
