@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
@@ -112,5 +112,33 @@ export class InventoryService {
     });
 
     return updated;
+  }
+
+  /**
+   * Fetch inventory for a specific branch, including product details.
+   */
+  async getInventoryByBranch(organizationId: string, branchId: string) {
+    // Verify branch belongs to organization
+    const branch = await this.prisma.retailBranch.findFirst({
+      where: {
+        id: branchId,
+        organizationId: organizationId
+      }
+    });
+
+    if (!branch) {
+      throw new ForbiddenException('You do not have access to this branch or it does not exist');
+    }
+
+    return this.prisma.inventory.findMany({
+      where: { branchId },
+      include: {
+        product: {
+          include: {
+            category: true,
+          }
+        },
+      },
+    });
   }
 }

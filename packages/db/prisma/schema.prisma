@@ -925,11 +925,15 @@ model PosTerminal {
   id         String         @id @default(uuid())
   branchId   String
   branch     RetailBranch   @relation(fields: [branchId], references: [id])
-  name       String
-  externalId String?
-  status     TerminalStatus @default(OFFLINE)
-  lastSyncAt DateTime?
-  metadata   Json?
+  name               String
+  externalId         String?
+  provider           String?
+  providerTerminalId String?
+  displayName        String?
+  status             TerminalStatus @default(OFFLINE)
+  lastSeenAt         DateTime?
+  lastSyncAt         DateTime?
+  metadata           Json?
   orders     SalesOrder[]
   syncJobs   PosSyncJob[]
 
@@ -942,6 +946,14 @@ model PosTerminal {
 enum TerminalStatus {
   ONLINE
   OFFLINE
+  BUSY
+  UPDATING
+  DISABLED
+  UNKNOWN
+  DISCOVERED
+  PAIRED
+  ACTIVE
+  RETIRED
   MAINTENANCE
 }
 
@@ -1120,12 +1132,15 @@ model RetailPayment {
   orderId       String
   order         SalesOrder          @relation(fields: [orderId], references: [id])
   method        PaymentMethod
-  provider      String? // e.g. "SQUARE", "STRIPE"
-  transactionId String? // External reference
-  amount        Int // cents
-  currency      String              @default("AUD")
-  status        RetailPaymentStatus @default(PENDING)
-  metadata      Json?
+  provider                String? // e.g. "SQUARE", "STRIPE"
+  transactionId           String? // External reference
+  providerRequestId       String? // For idempotency
+  internalPaymentIntentId String? // Internal correlation
+  amount                  Int // cents
+  currency                String              @default("AUD")
+  status                  RetailPaymentStatus @default(PENDING)
+  reconciliationStatus    ReconciliationStatus @default(PENDING)
+  metadata                Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1148,6 +1163,14 @@ enum RetailPaymentStatus {
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
+  CANCELLED
+}
+
+enum ReconciliationStatus {
+  MATCHED
+  MISMATCHED
+  PENDING
+  MANUAL_REVIEW
 }
 
 model PosSyncJob {
