@@ -40,3 +40,14 @@ yarn-error.log*
 !.env.example
 .pnpm-store/
 .env.production
+
+# Backups and broken configs
+*.backup
+*.bak
+*.broken
+*.yaml-error-backup
+
+# QA and Testing Reports
+qa-screenshots/
+test-results/
+playwright-report/
