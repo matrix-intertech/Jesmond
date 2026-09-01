@@ -33,6 +33,14 @@ export class OrdersController {
     return this.ordersService.cancelSaleOrder(req.user.organizationId, id);
   }
 
+  @Get()
+  async listOrders(@Request() req: any) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required to access sales orders');
+    }
+    return this.ordersService.listOrders(req.user.organizationId);
+  }
+
   @Get(':id')
   async getOrder(@Request() req: any, @Param('id') id: string) {
     if (!req.user || !req.user.organizationId) {

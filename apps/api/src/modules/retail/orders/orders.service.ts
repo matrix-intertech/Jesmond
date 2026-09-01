@@ -328,4 +328,12 @@ export class OrdersService {
     }
     return order;
   }
+
+  async listOrders(organizationId: string) {
+    return this.prisma.salesOrder.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: 'desc' },
+      include: { items: true, payments: true }
+    });
+  }
 }
