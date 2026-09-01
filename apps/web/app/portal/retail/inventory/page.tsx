@@ -35,7 +35,8 @@ export default function InventoryWorkspace() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
 
   // App context
-  const [branchId, setBranchId] = useState("default-branch-id");
+  const [branchId, setBranchId] = useState("");
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [error, setError] = useState("");
 
   // Filters & Search
@@ -85,8 +86,33 @@ export default function InventoryWorkspace() {
     }
   };
 
+  const fetchBranches = async () => {
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBranches(data);
+        if (data.length > 0) {
+          setBranchId(data[0].id);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load branches', e);
+    }
+  };
+
   useEffect(() => {
-    fetchInventory(branchId);
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
+    if (branchId) {
+      fetchInventory(branchId);
+    }
   }, [branchId]);
 
   // Derived KPI and filtered data
@@ -186,9 +212,13 @@ export default function InventoryWorkspace() {
               onChange={(e) => setBranchId(e.target.value)}
               className="text-sm font-semibold text-brand-navy border-none bg-transparent focus:ring-0 p-0 cursor-pointer"
             >
-              <option value="default-branch-id">Jesmond Central</option>
-              <option value="branch-east">Jesmond East</option>
-              <option value="branch-west">Jesmond West</option>
+              {branches.length === 0 ? (
+                <option value="">No branches found...</option>
+              ) : (
+                branches.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))
+              )}
             </select>
           </div>
           <button onClick={() => fetchInventory(branchId)} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm text-slate-600 transition" title="Refresh">

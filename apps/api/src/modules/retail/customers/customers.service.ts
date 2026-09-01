@@ -35,6 +35,7 @@ export class CustomersService {
   async listCustomers(organizationId: string) {
     return this.prisma.retailCustomer.findMany({
       where: { organizationId },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

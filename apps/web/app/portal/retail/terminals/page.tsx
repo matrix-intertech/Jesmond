@@ -24,6 +24,7 @@ interface Terminal {
 export default function TerminalsPage() {
   const router = useRouter();
   const [terminals, setTerminals] = useState<Terminal[]>([]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
@@ -55,13 +56,30 @@ export default function TerminalsPage() {
     }
   };
 
+  const fetchBranches = async () => {
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setBranches(json);
+      }
+    } catch (e) {
+      console.error('Failed to load branches', e);
+    }
+  };
+
   useEffect(() => {
+    fetchBranches();
     fetchTerminals();
   }, []);
 
   const openCreateModal = () => {
     setEditingTerminal(null);
-    setFormData({ name: '', branchId: '', externalId: '', status: 'ACTIVE' });
+    setFormData({ name: '', branchId: branches.length > 0 ? branches[0].id : '', externalId: '', status: 'ACTIVE' });
     setFormError("");
     setIsModalOpen(true);
   };
@@ -193,9 +211,13 @@ export default function TerminalsPage() {
 
               {!editingTerminal && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch ID</label>
-                  <input required type="text" value={formData.branchId} onChange={e => setFormData({...formData, branchId: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm font-mono" placeholder="Enter branch ID" />
-                  <p className="mt-1 text-xs text-slate-500">Since branch listing is blocked, please provide the exact Branch ID.</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                  <select required value={formData.branchId} onChange={e => setFormData({...formData, branchId: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm">
+                    {branches.length === 0 && <option value="">No branches available</option>}
+                    {branches.map(b => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
                 </div>
               )}
 

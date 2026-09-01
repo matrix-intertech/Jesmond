@@ -1,11 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import { handleApiError } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import StatusBadge from "@/components/ui/StatusBadge";
+
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  barcode: string | null;
+  sellingPrice: number;
+  active: boolean;
+  category?: { name: string };
+  availableStock?: number;
+}
 
 export default function CatalogPage() {
   const router = useRouter();
@@ -18,6 +30,80 @@ export default function CatalogPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [branchId, setBranchId] = useState("");
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchBranches = async () => {
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBranches(data);
+        if (data.length > 0) {
+          setBranchId(data[0].id);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load branches', e);
+    }
+  };
+
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError("");
+    const token = getAccessToken();
+    if (!token) {
+      router.replace('/login');
+      return;
+    }
+    try {
+      let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog`;
+      const params = new URLSearchParams();
+      if (branchId) params.append('branchId', branchId);
+      if (search) params.append('search', search);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setError(errJson.message || 'Failed to fetch catalog');
+        if (res.status === 401) {
+          clearAuth();
+          router.replace('/login');
+        }
+      }
+    } catch (e: any) {
+      setError(e.message || "Network error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [branchId, search]);
 
   const openCreateModal = () => {
     setFormData({ sku: '', name: '', sellingPrice: '' });
@@ -52,7 +138,8 @@ export default function CatalogPage() {
       });
       
       if (res.ok) {
-        setFormSuccess("Product created successfully! Since product listing is not supported by the backend, it will not appear below.");
+        setFormSuccess("Product created successfully!");
+        fetchProducts(); // Refresh the list
         setTimeout(() => setIsModalOpen(false), 3000);
       } else {
         const errJson = await res.json().catch(() => ({}));
@@ -78,23 +165,109 @@ export default function CatalogPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="border-b border-slate-200 px-6 py-3 flex gap-4">
-          <button className="text-brand-orange font-medium border-b-2 border-brand-orange pb-1">Products</button>
-          <button className="text-slate-500 hover:text-slate-700 pb-1 cursor-not-allowed opacity-50" title="Categories API not available">Categories</button>
+      {error ? (
+        <div className="bg-rose-50 text-rose-700 p-4 rounded-xl border border-rose-100 flex items-center gap-3">
+          <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>{error}</span>
         </div>
-        <div className="p-12">
-          <EmptyState 
-            title="Product Listing API Not Available" 
-            description="The backend contract currently only supports creating products, not fetching them. Any created products will be saved in the database but cannot be displayed here." 
-          />
-          <div className="mt-4 flex justify-center">
-            <button onClick={openCreateModal} className="px-4 py-2 rounded-md bg-brand-navy text-white hover:bg-brand-navy/90 transition">
-              Create Product Anyway
-            </button>
+      ) : (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/50">
+            <div className="relative w-full md:w-96">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search product..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm text-slate-800 bg-white"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500 font-medium">Branch:</span>
+              <select
+                value={branchId}
+                onChange={(e) => setBranchId(e.target.value)}
+                className="rounded-lg border-slate-300 text-sm focus:ring-brand-orange focus:border-brand-orange text-brand-navy font-semibold"
+              >
+                <option value="">All Branches</option>
+                {branches.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto min-h-[400px]">
+            {loading ? (
+              <div className="p-8 space-y-4">
+                {[1,2,3,4,5].map(i => (
+                  <div key={i} className="animate-pulse flex space-x-4">
+                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                  </div>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="p-12">
+                <EmptyState 
+                  title={search ? "No products found" : "Your catalog is empty"} 
+                  description={search ? "Try adjusting your search query." : "Get started by adding your first product."}
+                />
+                {!search && (
+                  <div className="mt-4 flex justify-center">
+                    <button onClick={openCreateModal} className="px-4 py-2 rounded-md bg-brand-navy text-white hover:bg-brand-navy/90 transition">
+                      Add Product
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+                  <tr>
+                    <th className="px-6 py-4 font-medium">Product</th>
+                    <th className="px-6 py-4 font-medium">Category</th>
+                    <th className="px-6 py-4 font-medium">Price</th>
+                    <th className="px-6 py-4 font-medium">Status</th>
+                    {branchId && <th className="px-6 py-4 font-medium">Stock</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {products.map(p => (
+                    <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-brand-navy">{p.name}</span>
+                          <span className="text-xs font-mono text-slate-500">{p.sku} {p.barcode && `• ${p.barcode}`}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600">{p.category?.name || 'Uncategorized'}</td>
+                      <td className="px-6 py-4 font-medium">${(p.sellingPrice / 100).toFixed(2)}</td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={p.active ? 'ENABLED' : 'DISABLED'} />
+                      </td>
+                      {branchId && (
+                        <td className="px-6 py-4 font-bold text-brand-navy">
+                          {p.availableStock ?? '-'}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
