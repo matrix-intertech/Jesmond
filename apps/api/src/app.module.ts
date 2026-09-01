@@ -14,6 +14,8 @@ import { ApplicationsModule } from './modules/applications/applications.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { RetailModule } from './modules/retail/retail.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -58,7 +60,7 @@ import { RetailModule } from './modules/retail/retail.module';
     SettingsModule,
     RetailModule,
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

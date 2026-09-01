@@ -1,6 +1,8 @@
 import { BasePosConnector } from './base.connector';
 import { PosConnectorCapabilities, PaymentIntent, PaymentResult } from '../pos-connector.interface';
 
+import * as crypto from 'crypto';
+
 export class SquareConnector extends BasePosConnector {
   getCapabilities(): PosConnectorCapabilities {
     return {
@@ -15,8 +17,20 @@ export class SquareConnector extends BasePosConnector {
   }
 
   verifyWebhookSignature(request: { headers: any; body: any; rawBody?: Buffer }, secret: string): boolean {
-    // Square webhook signature verification using secret
-    return true;
+    const sig = request.headers['x-square-hmacsha256-signature'];
+    if (!sig) return false;
+    if (!request.rawBody) return false;
+
+    const host = request.headers['host'] || 'localhost:3001';
+    const proto = request.headers['x-forwarded-proto'] || 'http';
+    const webhookUrl = `${proto}://${host}/api/v1/retail/pos/webhooks/square`;
+
+    const rawBodyString = request.rawBody.toString('utf8');
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(webhookUrl + rawBodyString);
+    const expectedSig = hmac.digest('base64');
+
+    return expectedSig === sig;
   }
 
   parseWebhookEvent(payload: any): { eventId: string; type: string; data: any } {

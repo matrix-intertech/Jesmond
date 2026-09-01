@@ -26,9 +26,21 @@ export class PosWebhookService {
     if (!connector) {
       throw new BadRequestException(`Provider not configured: ${provider}`);
     }
-    // Abstract the secret resolution per organization/provider
-    // For this abstraction, we assume verifyWebhookSignature fetches the secret internally.
-    return connector.verifyWebhookSignature(req, 'dummy-secret');
+
+    let secret = 'dummy-secret';
+    if (provider.toUpperCase() === 'STRIPE') {
+      secret = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_stripe_test';
+    } else if (provider.toUpperCase() === 'SQUARE') {
+      secret = process.env.SQUARE_WEBHOOK_SIGNATURE_KEY || 'sq_sig_test';
+    } else if (provider.toUpperCase() === 'TYRO') {
+      secret = process.env.TYRO_WEBHOOK_SECRET || 'tyro_sig_test';
+    }
+
+    const verified = connector.verifyWebhookSignature(req, secret);
+    if (!verified) {
+      throw new BadRequestException('Invalid webhook signature');
+    }
+    return true;
   }
 
   parseEvent(provider: string, payload: any) {
@@ -54,7 +66,37 @@ export class PosWebhookService {
         return { status: 'IGNORED', message: 'Duplicate event' };
       }
 
-      const organizationId = payload.organizationId || 'UNKNOWN';
+      // 1. Identify the transactionId from the event payload
+      let transactionId = undefined;
+      if (payload.data?.object?.payment?.id) {
+        transactionId = payload.data.object.payment.id; // Real Square
+      } else if (payload.data?.object?.id) {
+        transactionId = payload.data.object.id; // Stripe
+      } else if (payload.payment?.id) {
+        transactionId = payload.payment.id; // Square mock fallback
+      } else {
+        transactionId = payload.transactionId || payload.id || payload.eventId;
+      }
+
+      let payment = null;
+      let resolvedOrgId = payload.organizationId;
+
+      if (transactionId) {
+        payment = await this.prisma.retailPayment.findFirst({
+          where: { transactionId },
+          include: { order: true }
+        });
+        if (payment) {
+          resolvedOrgId = payment.order.organizationId;
+        }
+      }
+
+
+      // Ensure resolvedOrgId is a valid foreign key reference
+      if (!resolvedOrgId || resolvedOrgId === 'UNKNOWN') {
+        const defaultOrg = await this.prisma.organization.findFirst();
+        resolvedOrgId = defaultOrg ? defaultOrg.id : 'UNKNOWN';
+      }
 
       const webhook = await this.prisma.posWebhookEvent.create({
         data: {
@@ -62,10 +104,68 @@ export class PosWebhookService {
           externalEventId,
           eventType,
           payload,
-          organizationId,
+          organizationId: resolvedOrgId,
           status: 'PENDING',
         },
       });
+
+      if (transactionId && !payment) {
+        await this.prisma.posWebhookEvent.update({
+          where: { provider_externalEventId: { provider: provider.toUpperCase(), externalEventId } },
+          data: { status: 'FAILED', error: 'Payment not found', processedAt: new Date() },
+        });
+        return { status: 'FAILED', message: 'Payment not found' };
+      }
+
+      let newPaymentStatus: string | null = null;
+      let newOrderStatus: string | null = null;
+
+        const isSuccessEvent =
+          eventType === 'payment_intent.succeeded' ||
+          ((eventType === 'payment.updated' || eventType === 'payment.created') && (
+            payload.status === 'COMPLETED' ||
+            payload.status === 'APPROVED' ||
+            payload.payment?.status === 'COMPLETED' ||
+            payload.data?.object?.payment?.status === 'COMPLETED'
+          )) ||
+          eventType === 'transaction_completed';
+
+        const isFailureEvent =
+          eventType === 'payment_intent.payment_failed' ||
+          eventType === 'transaction_failed';
+
+
+        if (isSuccessEvent) {
+          newPaymentStatus = 'PAID';
+          newOrderStatus = 'COMPLETED';
+        } else if (isFailureEvent) {
+          newPaymentStatus = 'FAILED';
+        }
+
+        if (newPaymentStatus && payment) {
+          // Safety: never transition a cancelled order/payment via webhook
+          if (payment.order.status === 'CANCELLED') {
+            await this.prisma.posWebhookEvent.update({
+              where: { provider_externalEventId: { provider: provider.toUpperCase(), externalEventId } },
+              data: { status: 'IGNORED', error: 'Order already cancelled', processedAt: new Date() },
+            });
+            return { status: 'IGNORED', message: 'Order is cancelled, webhook ignored' };
+          }
+
+          await this.prisma.$transaction(async (tx) => {
+            await tx.retailPayment.update({
+              where: { id: payment.id },
+              data: { status: newPaymentStatus as any },
+            });
+
+            if (newOrderStatus) {
+              await tx.salesOrder.update({
+                where: { id: payment.orderId },
+                data: { status: newOrderStatus as any },
+              });
+            }
+          });
+        }
 
       await this.prisma.posWebhookEvent.update({
         where: { provider_externalEventId: { provider: provider.toUpperCase(), externalEventId } },
@@ -86,6 +186,7 @@ export class PosWebhookService {
 
       return { status: 'SUCCESS' };
     } catch (e) {
+      console.error('Webhook processing failed:', e);
       throw new InternalServerErrorException('Failed to process webhook');
     }
   }
@@ -99,15 +200,19 @@ export class PosWebhookController {
   async handleWebhook(
     @Req() req: any,
     @Headers('x-pos-signature') signature: string,
+    @Headers('stripe-signature') stripeSignature: string,
+    @Headers('x-square-hmacsha256-signature') squareSignature: string,
+    @Headers('x-tyro-signature') tyroSignature: string,
     @Body() payload: any,
     @Param('provider') provider: string,
   ) {
-    if (!signature && provider.toUpperCase() !== 'ZELLER') { // Basic example logic
+    const sig = stripeSignature || squareSignature || tyroSignature || signature || '';
+    if (!sig && provider.toUpperCase() !== 'ZELLER') {
       throw new BadRequestException('Missing signature');
     }
 
-    // This will throw BadRequestException if provider is not configured or signature is invalid
-    this.webhookService.verifySignature(provider, { headers: req.headers, body: req.body, rawBody: req.rawBody }, signature || '');
+    // Pass the raw request which NestJS populates with rawBody
+    this.webhookService.verifySignature(provider, req, sig);
 
     const parsedEvent = this.webhookService.parseEvent(provider, payload);
     const externalEventId = parsedEvent.eventId;

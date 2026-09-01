@@ -1,6 +1,8 @@
 import { BasePosConnector } from './base.connector';
 import { PosConnectorCapabilities, PaymentIntent, PaymentResult } from '../pos-connector.interface';
 
+import Stripe from 'stripe';
+
 export class StripeConnector extends BasePosConnector {
   getCapabilities(): PosConnectorCapabilities {
     return {
@@ -15,8 +17,20 @@ export class StripeConnector extends BasePosConnector {
   }
 
   verifyWebhookSignature(request: { headers: any; body: any; rawBody?: Buffer }, secret: string): boolean {
-    // Stripe webhook signature verification
-    return true;
+    const sig = request.headers['stripe-signature'];
+    if (!sig) return false;
+    if (!request.rawBody) return false;
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'mock-stripe-key', {
+      apiVersion: '2022-11-15' as any,
+    });
+
+    try {
+      stripe.webhooks.constructEvent(request.rawBody, sig, secret);
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   parseWebhookEvent(payload: any): { eventId: string; type: string; data: any } {

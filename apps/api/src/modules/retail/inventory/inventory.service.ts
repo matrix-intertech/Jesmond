@@ -83,19 +83,23 @@ export class InventoryService {
       throw new BadRequestException('Deduction quantity must be positive');
     }
 
-    const current = await tx.inventory.findUnique({
-      where: { branchId_productId: { branchId, productId } },
-    });
-
-    if (!current || current.quantity < quantity) {
-      throw new BadRequestException(`Insufficient inventory for product ${productId}`);
-    }
-
-    const updated = await tx.inventory.update({
-      where: { branchId_productId: { branchId, productId } },
+    const affected = await tx.inventory.updateMany({
+      where: {
+        branchId,
+        productId,
+        quantity: { gte: quantity },
+      },
       data: {
         quantity: { decrement: quantity },
       },
+    });
+
+    if (affected.count === 0) {
+      throw new BadRequestException(`Insufficient inventory for product ${productId}`);
+    }
+
+    const updated = await tx.inventory.findUnique({
+      where: { branchId_productId: { branchId, productId } },
     });
 
     await tx.inventoryMovement.create({
@@ -111,7 +115,7 @@ export class InventoryService {
       },
     });
 
-    return updated;
+    return updated!;
   }
 
   /**
