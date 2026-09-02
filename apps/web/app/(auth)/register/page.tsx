@@ -21,10 +21,13 @@ function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // OTP Verification State
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+
+  const handleTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
+  const handleTurnstileError = useCallback(() => { setTurnstileToken(''); setError('Security verification failed.'); }, []);
+  const handleTurnstileExpire = useCallback(() => setTurnstileToken(''), []);
 
   useEffect(() => {
     if (searchParams.get('verify') === 'true' && searchParams.get('email')) {
@@ -370,9 +373,9 @@ function RegisterForm() {
 
 
           <Turnstile
-            onVerify={useCallback((token: string) => setTurnstileToken(token), [])}
-            onError={useCallback(() => { setTurnstileToken(''); setError('Security verification failed.'); }, [])}
-            onExpire={useCallback(() => setTurnstileToken(''), [])}
+            onVerify={handleTurnstileVerify}
+            onError={handleTurnstileError}
+            onExpire={handleTurnstileExpire}
           />
 
           <div>

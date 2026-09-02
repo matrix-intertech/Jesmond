@@ -62,10 +62,13 @@ export class AuthService {
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
+      include: { orgStaffRoles: true },
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already in use.');
+      if (existingUser.emailVerified) {
+        throw new ConflictException('Email already in use.');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -73,42 +76,91 @@ export class AuthService {
     const otpHash = await bcrypt.hash(otp, 10);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    const result = await this.prisma.$transaction(async (tx) => {
-      const org = await tx.organization.create({
-        data: {
-          name: dto.organizationName,
-          type: dto.organizationType,
-          status: 'PENDING',
-        },
-      });
+    let result;
 
-      const user = await tx.user.create({
-        data: {
-          email: dto.email.toLowerCase(),
-          password: hashedPassword,
-          firstName: dto.firstName,
-          lastName: dto.lastName,
-          role: UserRole.ORG_STAFF,
-          accountStatus: AccountStatus.PENDING_VERIFICATION,
-          emailVerified: false,
-          emailVerificationToken: otpHash,
-          emailVerificationExpiresAt: otpExpiresAt,
-          emailOtpLastSentAt: new Date(),
-          emailOtpAttempts: 0,
-        },
-      });
+    if (existingUser) {
+      result = await this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.update({
+          where: { id: existingUser.id },
+          data: {
+            password: hashedPassword,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: UserRole.ORG_STAFF,
+            emailVerificationToken: otpHash,
+            emailVerificationExpiresAt: otpExpiresAt,
+            emailOtpLastSentAt: new Date(),
+            emailOtpAttempts: 0,
+          },
+        });
 
-      await tx.orgStaff.create({
-        data: {
-          userId: user.id,
-          organizationId: org.id,
-          role: UserRole.ORG_STAFF,
-          permissions: ['*'],
-        },
+        if (existingUser.orgStaffRoles.length > 0) {
+          const orgId = existingUser.orgStaffRoles[0].organizationId;
+          const org = await tx.organization.update({
+            where: { id: orgId },
+            data: {
+              name: dto.organizationName,
+              type: dto.organizationType,
+            },
+          });
+          return { user, org };
+        } else {
+          const org = await tx.organization.create({
+            data: {
+              name: dto.organizationName,
+              type: dto.organizationType,
+              status: 'PENDING',
+            },
+          });
+          await tx.orgStaff.create({
+            data: {
+              userId: user.id,
+              organizationId: org.id,
+              role: UserRole.ORG_STAFF,
+              permissions: ['*'],
+            },
+          });
+          return { user, org };
+        }
       });
+    } else {
+      result = await this.prisma.$transaction(async (tx) => {
+        const org = await tx.organization.create({
+          data: {
+            name: dto.organizationName,
+            type: dto.organizationType,
+            status: 'PENDING',
+          },
+        });
 
-      return { user, org };
-    });
+        const user = await tx.user.create({
+          data: {
+            email: dto.email.toLowerCase(),
+            password: hashedPassword,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            role: UserRole.ORG_STAFF,
+            accountStatus: AccountStatus.PENDING_VERIFICATION,
+            emailVerified: false,
+            emailVerificationToken: otpHash,
+            emailVerificationExpiresAt: otpExpiresAt,
+            emailOtpLastSentAt: new Date(),
+            emailOtpAttempts: 0,
+          },
+        });
+
+        await tx.orgStaff.create({
+          data: {
+            userId: user.id,
+            organizationId: org.id,
+            role: UserRole.ORG_STAFF,
+            permissions: ['*'],
+          },
+        });
+
+        return { user, org };
+      });
+    }
 
     await this.emailService.sendVerificationOtp(result.user.email, otp);
 
@@ -127,7 +179,9 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already in use.');
+      if (existingUser.emailVerified) {
+        throw new ConflictException('Email already in use.');
+      }
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -135,21 +189,39 @@ export class AuthService {
     const otpHash = await bcrypt.hash(otp, 10);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email.toLowerCase(),
-        password: hashedPassword,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
-        role: UserRole.STUDENT,
-        accountStatus: AccountStatus.PENDING_VERIFICATION,
-        emailVerified: false,
-        emailVerificationToken: otpHash,
-        emailVerificationExpiresAt: otpExpiresAt,
-        emailOtpLastSentAt: new Date(),
-        emailOtpAttempts: 0,
-      },
-    });
+    let user;
+
+    if (existingUser) {
+      user = await this.prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          password: hashedPassword,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          role: UserRole.STUDENT,
+          emailVerificationToken: otpHash,
+          emailVerificationExpiresAt: otpExpiresAt,
+          emailOtpLastSentAt: new Date(),
+          emailOtpAttempts: 0,
+        },
+      });
+    } else {
+      user = await this.prisma.user.create({
+        data: {
+          email: dto.email.toLowerCase(),
+          password: hashedPassword,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          role: UserRole.STUDENT,
+          accountStatus: AccountStatus.PENDING_VERIFICATION,
+          emailVerified: false,
+          emailVerificationToken: otpHash,
+          emailVerificationExpiresAt: otpExpiresAt,
+          emailOtpLastSentAt: new Date(),
+          emailOtpAttempts: 0,
+        },
+      });
+    }
 
     await this.emailService.sendVerificationOtp(user.email, otp);
 
