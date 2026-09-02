@@ -58,7 +58,9 @@ export class AuthService {
   }
 
   async registerProvider(dto: RegisterProviderDto) {
-    await this.verifyTurnstileToken(dto.turnstileToken);
+    if (dto.turnstileToken) {
+      await this.verifyTurnstileToken(dto.turnstileToken);
+    }
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -172,7 +174,9 @@ export class AuthService {
   }
 
   async registerStudent(dto: RegisterStudentDto) {
-    await this.verifyTurnstileToken(dto.turnstileToken);
+    if (dto.turnstileToken) {
+      await this.verifyTurnstileToken(dto.turnstileToken);
+    }
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },

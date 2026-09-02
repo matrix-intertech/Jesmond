@@ -1,10 +1,10 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { OrgType } from '@prisma/client';
 
 export class RegisterProviderDto {
   @IsString()
-  @IsNotEmpty()
-  turnstileToken!: string;
+  @IsOptional()
+  turnstileToken?: string;
 
   @IsEmail()
   @IsNotEmpty()
@@ -36,8 +36,8 @@ export class RegisterProviderDto {
 
 export class RegisterStudentDto {
   @IsString()
-  @IsNotEmpty()
-  turnstileToken!: string;
+  @IsOptional()
+  turnstileToken?: string;
 
   @IsEmail()
   @IsNotEmpty()

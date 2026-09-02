@@ -32,7 +32,8 @@ test.describe('Signup & Email OTP UI Verification', () => {
         // @ts-ignore
         render: function(container, options) {
           // @ts-ignore
-          setTimeout(() => { if (options.callback) options.callback('dummy-test-token') }, 100);
+          // setTimeout(() => { if (options.callback) options.callback('dummy-test-token') }, 100);
+          // Deliberately NOT calling callback to simulate Turnstile being absent/optional
           return 'widget-id';
         },
         remove: function() {},
@@ -53,6 +54,7 @@ test.describe('Signup & Email OTP UI Verification', () => {
     await page.locator('#password').fill('Jesmond@Demo2026!');
     
     // Submit
+    await expect(page.getByRole('button', { name: 'Create account' })).toBeEnabled();
     await page.getByRole('button', { name: 'Create account' }).click();
 
     // Verify UI transitions to OTP screen without error
