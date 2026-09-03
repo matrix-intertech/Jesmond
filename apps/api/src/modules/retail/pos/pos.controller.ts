@@ -1,4 +1,7 @@
 import { Controller, Post, Body, Headers, BadRequestException, Injectable, InternalServerErrorException, Param, Req } from '@nestjs/common';
+import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
+import { OrgTypes } from '../../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PosConnector } from './pos-connector.interface';
 import { TyroConnector } from './providers/tyro.connector';

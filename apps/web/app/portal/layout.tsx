@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
 import { getAccessToken, getCurrentUser, clearAuth, setCurrentUser, User } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  // pathname retained for potential future use; not used in auth effect dependencies
+  const pathname = usePathname();
 
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -30,6 +30,20 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         else router.replace('/');
         return;
       }
+      
+      const userOrgType = usr.orgType || 'PROVIDER';
+      const isRetailRoute = pathname.startsWith('/portal/retail');
+      const isAccommodationRoute = pathname.startsWith('/portal/properties') || pathname.startsWith('/portal/applications');
+      
+      if (userOrgType === 'RETAIL' && isAccommodationRoute) {
+        router.replace('/portal/retail');
+        return;
+      }
+      if (userOrgType === 'PROVIDER' && isRetailRoute) {
+        router.replace('/portal');
+        return;
+      }
+
       setUser(usr);
       setIsAuthorized(true);
     };

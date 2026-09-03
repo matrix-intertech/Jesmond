@@ -2,10 +2,14 @@ import { Controller, Patch, Post, Body, Param, UseGuards, Request, ForbiddenExce
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
+import { OrgTypes } from '../../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 import { RetailPaymentStatus, PaymentMethod } from '@prisma/client';
 
 @Controller('retail/payments')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.RETAIL)
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 

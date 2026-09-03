@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty, IsOptional, IsIn } from 'class-validator';
 import { OrgType } from '@prisma/client';
 
 export class RegisterProviderDto {
@@ -30,7 +30,7 @@ export class RegisterProviderDto {
   @MaxLength(100)
   organizationName!: string;
 
-  @IsEnum(OrgType)
+  @IsIn(['PROVIDER'], { message: 'Public registration is restricted to Accommodation Providers.' })
   organizationType!: OrgType;
 }
 

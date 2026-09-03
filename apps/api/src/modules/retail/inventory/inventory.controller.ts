@@ -2,9 +2,13 @@ import { Controller, Post, Get, Body, Param, UseGuards, Request, UnauthorizedExc
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
+import { OrgTypes } from '../../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 
 @Controller('retail/inventory')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.RETAIL)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 

@@ -3,6 +3,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PropertiesService } from './properties.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
+import { OrgTypes } from '../../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdatePropertyDto, UpdateRoomTypeDto, UpdateAmenitiesDto, CreateBuildingDto, CreateFloorDto, CreateRoomDto } from '../dtos/property.dto';
@@ -11,7 +14,8 @@ import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdateProp
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post()
   async createProperty(@Body() dto: CreatePropertyDto, @Request() req: any) {
@@ -21,7 +25,8 @@ export class PropertiesController {
     return this.propertiesService.createProperty(dto, req.user.organizationId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Get('my')
   async getMyProperties(@Request() req: any) {
@@ -31,7 +36,8 @@ export class PropertiesController {
     return this.propertiesService.getMyProperties(req.user.organizationId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id')
   async updateProperty(@Param('id') id: string, @Body() dto: UpdatePropertyDto, @Request() req: any) {
@@ -41,7 +47,8 @@ export class PropertiesController {
     return this.propertiesService.updateProperty(id, req.user.organizationId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Get('my/:id')
   async getMyProperty(@Param('id') id: string, @Request() req: any) {
@@ -52,7 +59,8 @@ export class PropertiesController {
   }
 
   // --- Media Endpoints ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/media')
   @UseInterceptors(FileInterceptor('file'))
@@ -68,7 +76,8 @@ export class PropertiesController {
     return this.propertiesService.addMedia(id, req.user.organizationId, file);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/media/:mediaId')
   async deleteMedia(@Param('id') id: string, @Param('mediaId') mediaId: string, @Request() req: any) {
@@ -77,7 +86,8 @@ export class PropertiesController {
   }
 
   // --- Room Endpoints ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/rooms')
   async createRoomType(@Param('id') id: string, @Body() dto: CreateRoomTypeDto, @Request() req: any) {
@@ -85,7 +95,8 @@ export class PropertiesController {
     return this.propertiesService.createRoomType(id, req.user.organizationId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/rooms/:roomId')
   async updateRoomType(@Param('id') id: string, @Param('roomId') roomId: string, @Body() dto: UpdateRoomTypeDto, @Request() req: any) {
@@ -93,7 +104,8 @@ export class PropertiesController {
     return this.propertiesService.updateRoomType(id, req.user.organizationId, roomId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/rooms/:roomId')
   async deleteRoomType(@Param('id') id: string, @Param('roomId') roomId: string, @Request() req: any) {
@@ -102,7 +114,8 @@ export class PropertiesController {
   }
 
   // --- Buildings ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/buildings')
   async createBuilding(@Param('id') id: string, @Body() dto: CreateBuildingDto, @Request() req: any) {
@@ -110,7 +123,8 @@ export class PropertiesController {
     return this.propertiesService.addBuilding(id, req.user.organizationId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/buildings/:buildingId')
   async updateBuilding(@Param('id') id: string, @Param('buildingId') buildingId: string, @Body() dto: CreateBuildingDto, @Request() req: any) {
@@ -118,7 +132,8 @@ export class PropertiesController {
     return this.propertiesService.updateBuilding(id, req.user.organizationId, buildingId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/buildings/:buildingId')
   async deleteBuilding(@Param('id') id: string, @Param('buildingId') buildingId: string, @Request() req: any) {
@@ -127,7 +142,8 @@ export class PropertiesController {
   }
 
   // --- Floors ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/buildings/:buildingId/floors')
   async createFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Body() dto: CreateFloorDto, @Request() req: any) {
@@ -135,7 +151,8 @@ export class PropertiesController {
     return this.propertiesService.addFloor(id, req.user.organizationId, buildingId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/buildings/:buildingId/floors/:floorId')
   async updateFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Param('floorId') floorId: string, @Body() dto: CreateFloorDto, @Request() req: any) {
@@ -143,7 +160,8 @@ export class PropertiesController {
     return this.propertiesService.updateFloor(id, req.user.organizationId, buildingId, floorId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/buildings/:buildingId/floors/:floorId')
   async deleteFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Param('floorId') floorId: string, @Request() req: any) {
@@ -152,7 +170,8 @@ export class PropertiesController {
   }
 
   // --- Actual Rooms ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/room-types/:roomTypeId/rooms')
   async createRoom(@Param('id') id: string, @Param('roomTypeId') roomTypeId: string, @Body() dto: CreateRoomDto, @Request() req: any) {
@@ -160,7 +179,8 @@ export class PropertiesController {
     return this.propertiesService.addRoom(id, req.user.organizationId, roomTypeId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/room-types/:roomTypeId/rooms/:roomId')
   async deleteRoom(@Param('id') id: string, @Param('roomTypeId') roomTypeId: string, @Param('roomId') roomId: string, @Request() req: any) {
@@ -169,7 +189,8 @@ export class PropertiesController {
   }
 
   // --- Amenities ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/amenities')
   async updateAmenities(@Param('id') id: string, @Body() dto: UpdateAmenitiesDto, @Request() req: any) {
@@ -178,7 +199,8 @@ export class PropertiesController {
   }
 
   // --- Availability Endpoints ---
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/rooms/:roomId/availability')
   async updateAvailability(
@@ -191,7 +213,8 @@ export class PropertiesController {
     return this.propertiesService.updateAvailability(id, req.user.organizationId, roomId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/submit')
   async submitProperty(@Param('id') id: string, @Request() req: any) {

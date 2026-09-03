@@ -2,9 +2,13 @@ import { Controller, Get, Param, UseGuards, Request, ForbiddenException } from '
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
+import { OrgTypes } from '../../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 
 @Controller('retail/branches')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.RETAIL)
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 

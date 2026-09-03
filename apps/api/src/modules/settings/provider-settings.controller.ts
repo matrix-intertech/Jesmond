@@ -2,11 +2,15 @@ import { Controller, Get, Patch, Body, UseGuards, Request, ForbiddenException } 
 import { ProviderSettingsService } from './provider-settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { OrgTypesGuard } from '../auth/guards/org-types.guard';
+import { OrgTypes } from '../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 
 @Controller('settings/provider')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.PROVIDER)
 @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
 export class ProviderSettingsController {
   constructor(private readonly providerSettingsService: ProviderSettingsService) {}

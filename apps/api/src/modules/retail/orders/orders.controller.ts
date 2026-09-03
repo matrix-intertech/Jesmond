@@ -2,9 +2,13 @@ import { Controller, Post, Get, Body, Param, UseGuards, Request, ForbiddenExcept
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
+import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
+import { OrgTypes } from '../../auth/decorators/org-types.decorator';
+import { OrgType } from '@prisma/client';
 
 @Controller('retail/orders')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@OrgTypes(OrgType.RETAIL)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 

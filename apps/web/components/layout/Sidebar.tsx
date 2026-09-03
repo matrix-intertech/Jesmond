@@ -18,6 +18,7 @@ interface NavItem {
   // Inline SVG markup for the icon (lightweight, no external library).
   icon: ReactNode;
   roles: ('SUPER_ADMIN' | 'ADMIN' | 'ORG_STAFF' | 'STUDENT')[];
+  orgTypes?: string[];
 }
 
 const navConfig: NavItem[] = [
@@ -89,6 +90,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['PROVIDER'],
   },
   {
     href: '/portal/applications',
@@ -100,6 +102,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['PROVIDER'],
   },
   {
     href: '/portal/settings',
@@ -111,6 +114,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['PROVIDER'],
   },
   {
     href: '/portal/retail',
@@ -123,6 +127,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   {
     href: '/portal/retail/business',
@@ -134,6 +139,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   {
     href: '/portal/retail/terminals',
@@ -153,6 +159,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   {
     href: '/portal/retail/customers',
@@ -166,6 +173,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   {
     href: '/portal/retail/catalog',
@@ -177,6 +185,20 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
+  },
+  {
+    href: '/portal/retail/inventory',
+    label: 'Inventory',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
+      </svg>
+    ),
+    roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   {
     href: '/portal/retail/orders',
@@ -191,6 +213,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   {
     href: '/portal/retail/pos',
@@ -203,6 +226,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ['ORG_STAFF'],
+    orgTypes: ['RETAIL'],
   },
   // Student navigation
   {
@@ -274,7 +298,15 @@ export default function Sidebar({ role }: { role: string }) {
     setUser(getCurrentUser());
   }, []);
 
-  const visibleItems = navConfig.filter((i) => i.roles.includes(role as any));
+  const visibleItems = navConfig.filter((i) => {
+    if (!i.roles.includes(role as any)) return false;
+    if (i.orgTypes) {
+      // Legacy users might not have orgType in local storage yet. Default to PROVIDER.
+      const userOrgType = user?.orgType || 'PROVIDER';
+      if (!i.orgTypes.includes(userOrgType)) return false;
+    }
+    return true;
+  });
 
   const handleLogout = () => {
     clearAuth();

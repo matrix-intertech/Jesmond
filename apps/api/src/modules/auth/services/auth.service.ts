@@ -282,10 +282,11 @@ export class AuthService {
       },
     });
 
-    const payload = { sub: user.id, email: user.email, role: user.role, sessionId: session.id };
-    const access_token = this.jwtService.sign(payload);
-
     const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
+    const orgType = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organization.type : undefined;
+
+    const payload = { sub: user.id, email: user.email, role: user.role, orgType, sessionId: session.id };
+    const access_token = this.jwtService.sign(payload);
 
     return {
       access_token,
@@ -296,6 +297,7 @@ export class AuthService {
         lastName: user.lastName,
         role: user.role,
         organizationId,
+        orgType,
       },
     };
   }
@@ -409,9 +411,12 @@ export class AuthService {
       },
     });
 
-    const payload = { sub: updatedUser.id, email: updatedUser.email, role: updatedUser.role, sessionId: session.id };
-    const access_token = this.jwtService.sign(payload);
+    // Wait, the include in line 363 does not include organization! Let's do it cleanly:
     const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
+    const orgTypeResult = organizationId ? (await this.prisma.organization.findUnique({where: {id: organizationId}}))?.type : undefined;
+
+    const payload = { sub: updatedUser.id, email: updatedUser.email, role: updatedUser.role, orgType: orgTypeResult, sessionId: session.id };
+    const access_token = this.jwtService.sign(payload);
 
     return {
       message: 'Email verified successfully',
@@ -423,6 +428,7 @@ export class AuthService {
         lastName: updatedUser.lastName,
         role: updatedUser.role,
         organizationId,
+        orgType: orgTypeResult,
       },
     };
   }
