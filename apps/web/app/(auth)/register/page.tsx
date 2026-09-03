@@ -363,6 +363,7 @@ function RegisterForm() {
                   onChange={(e) => setOrganizationType(e.target.value)}
                 >
                   <option value="PROVIDER">Accommodation Provider</option>
+                  <option value="RETAIL">Retail Provider</option>
                   <option value="UNIVERSITY">University</option>
                   <option value="AGENCY">Agency</option>
                 </select>

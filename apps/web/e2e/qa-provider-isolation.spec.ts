@@ -172,24 +172,35 @@ test.describe('Provider Type Isolation', () => {
     expect(apiCheck).toBe(403);
   });
 
-  test('Public endpoint rejects RETAIL organization registration', async ({ page }) => {
+  test('Retail Provider self-registration succeeds and creates OrgType.RETAIL', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     const apiCheck = await page.evaluate(async () => {
       const res = await fetch('http://localhost:3001/api/v1/auth/register', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName: 'Bad',
-          lastName: 'Actor',
-          email: 'hacker@retail.com',
+          firstName: 'Good',
+          lastName: 'Retailer',
+          email: 'new_retailer@jesmond.com',
           password: 'Password123!',
-          organizationName: 'Hacker Retail',
+          organizationName: 'New Retail Org',
           organizationType: 'RETAIL',
         })
       });
       return res.status;
     });
-    // Should fail class-validator validation
-    expect(apiCheck).toBe(400);
+    // Should succeed and return 201 Created
+    expect(apiCheck).toBe(201);
+  });
+
+  test('Signup form shows both Accommodation Provider and Retail Provider options', async ({ page }) => {
+    await page.goto('http://localhost:3000/register');
+    await page.click('text=I\'m a Provider');
+    
+    // Check that the dropdown exists and has both options
+    const orgTypeSelect = page.locator('select[name="organizationType"]');
+    await expect(orgTypeSelect).toBeVisible();
+    await expect(orgTypeSelect.locator('option[value="PROVIDER"]')).toHaveText('Accommodation Provider');
+    await expect(orgTypeSelect.locator('option[value="RETAIL"]')).toHaveText('Retail Provider');
   });
 });

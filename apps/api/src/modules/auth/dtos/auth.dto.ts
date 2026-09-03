@@ -30,7 +30,7 @@ export class RegisterProviderDto {
   @MaxLength(100)
   organizationName!: string;
 
-  @IsIn(['PROVIDER'], { message: 'Public registration is restricted to Accommodation Providers.' })
+  @IsEnum(OrgType)
   organizationType!: OrgType;
 }
 
