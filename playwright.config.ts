@@ -14,6 +14,7 @@ export default defineConfig({
     video: 'retain-on-failure',
     ignoreHTTPSErrors: true,
   },
+  workers: 1,
   projects: [
     {
       name: 'Desktop Chrome',

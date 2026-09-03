@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterProviderDto, RegisterStudentDto, LoginDto, VerifyEmailDto, ResendOtpDto } from '../dtos/auth.dto';
+import { RegisterProviderDto, RegisterStudentDto, LoginDto, VerifyEmailDto, ResendOtpDto, ForgotPasswordDto, VerifyResetOtpDto, ResetPasswordDto } from '../dtos/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserRole, AccountStatus, OrgType } from '@prisma/client';
@@ -465,5 +465,134 @@ export class AuthService {
     await this.emailService.sendVerificationOtp(user.email, otp);
 
     return { message: 'If an account exists, a verification code was sent.' };
+  }
+
+  async forgotPassword(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (!user) {
+      // Do not leak account existence
+      return { message: 'If an account exists with this email, an OTP has been sent.' };
+    }
+
+    if (user.passwordResetLastSentAt) {
+      const diffSeconds = (Date.now() - user.passwordResetLastSentAt.getTime()) / 1000;
+      if (diffSeconds < 60) {
+        // Return success immediately to not leak account existence while preventing spam
+        return { message: 'If an account exists with this email, an OTP has been sent.' };
+      }
+    }
+
+    const otp = this.generateOtp();
+    const otpHash = await bcrypt.hash(otp, 10);
+    const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: otpHash,
+        passwordResetExpiresAt: otpExpiresAt,
+        passwordResetLastSentAt: new Date(),
+        passwordResetOtpAttempts: 0,
+      },
+    });
+
+    await this.emailService.sendPasswordResetOtp(user.email, otp);
+
+    return { message: 'If an account exists with this email, an OTP has been sent.' };
+  }
+
+  async verifyResetOtp(dto: VerifyResetOtpDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (!user) throw new UnauthorizedException('Invalid or expired OTP.');
+    
+    if (user.passwordResetOtpAttempts >= 5) {
+      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+    }
+    
+    if (!user.passwordResetToken || !user.passwordResetExpiresAt) {
+      throw new UnauthorizedException('Invalid or expired OTP.');
+    }
+    
+    if (user.passwordResetExpiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired OTP.');
+    }
+
+    const updatedUserAtomic = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetOtpAttempts: { increment: 1 } },
+    });
+
+    if (updatedUserAtomic.passwordResetOtpAttempts > 5) {
+      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+    }
+
+    const isValid = await bcrypt.compare(dto.otp, user.passwordResetToken);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid or expired OTP.');
+    }
+
+    return { message: 'OTP verified successfully.' };
+  }
+
+  async resetPassword(dto: ResetPasswordDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email.toLowerCase() },
+    });
+
+    if (!user) throw new UnauthorizedException('Invalid or expired OTP.');
+    
+    if (user.passwordResetOtpAttempts >= 5) {
+      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+    }
+    
+    if (!user.passwordResetToken || !user.passwordResetExpiresAt) {
+      throw new UnauthorizedException('Invalid or expired OTP.');
+    }
+    
+    if (user.passwordResetExpiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired OTP.');
+    }
+
+    const updatedUserAtomic = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { passwordResetOtpAttempts: { increment: 1 } },
+    });
+
+    if (updatedUserAtomic.passwordResetOtpAttempts > 5) {
+      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+    }
+
+    const isValid = await bcrypt.compare(dto.otp, user.passwordResetToken);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid or expired OTP.');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
+          passwordResetOtpAttempts: 0,
+        },
+      });
+
+      await tx.session.deleteMany({
+        where: { userId: user.id },
+      });
+    });
+
+    return { message: 'Password reset successfully.' };
   }
 }

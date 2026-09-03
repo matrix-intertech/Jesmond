@@ -62,4 +62,44 @@ export class EmailService {
       return false;
     }
   }
+
+  async sendPasswordResetOtp(email: string, otp: string): Promise<boolean> {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
+        <h2 style="color: #111827;">Reset your password</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Your Jesmond password reset OTP is:
+        </p>
+        <div style="background-color: #f3f4f6; border-radius: 8px; padding: 16px; text-align: center; margin: 32px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${otp}</span>
+        </div>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          This OTP is valid for 15 minutes.
+        </p>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
+          If you did not request a password reset, you can safely ignore this email.
+        </p>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      this.logger.log(`[DEV MODE] Mock Password Reset Email sent to ${email}. OTP is generated but hidden from logs in production.`);
+      this.logger.debug(`[DEV MODE] Password Reset OTP: ${otp}`);
+      return true;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Jesmond" <${this.fromEmail}>`,
+        to: email,
+        subject: 'Reset your password - Jesmond',
+        html,
+      });
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send password reset email to ${email}`, error);
+      return false;
+    }
+  }
 }

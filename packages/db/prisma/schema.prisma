@@ -25,6 +25,12 @@ model User {
   emailVerificationExpiresAt DateTime?
   emailOtpAttempts           Int       @default(0)
   emailOtpLastSentAt         DateTime?
+  
+  passwordResetToken         String?   @unique
+  passwordResetExpiresAt     DateTime?
+  passwordResetOtpAttempts   Int       @default(0)
+  passwordResetLastSentAt    DateTime?
+  
   failedLoginAttempts        Int       @default(0)
   lockedUntil                DateTime?
 

@@ -99,3 +99,38 @@ export class Login2faDto {
   code!: string;
 }
 
+export class ForgotPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+}
+
+export class VerifyResetOtpDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(6)
+  otp!: string;
+}
+
+export class ResetPasswordDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(6)
+  otp!: string;
+
+  @IsString()
+  @MinLength(8)
+  @MaxLength(100)
+  newPassword!: string;
+}
+
