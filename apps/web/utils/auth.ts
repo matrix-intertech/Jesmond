@@ -5,6 +5,7 @@ export interface User {
   firstName: string;
   lastName: string;
   organizationId?: string;
+  orgType?: string;
   accountStatus: string;
 }
 
