@@ -5,9 +5,21 @@ import { LocationsService } from './locations.service';
 export class LocationsController {
   constructor(private readonly locationsService: LocationsService) {}
 
+  @Get('cities')
+  async getCities(
+    @Query('stateId') stateId?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.locationsService.getCities(stateId, search);
+  }
+
   @Get('suburbs')
-  async getSuburbs() {
-    return this.locationsService.getSuburbs();
+  async getSuburbs(
+    @Query('cityId') cityId?: string,
+    @Query('stateId') stateId?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.locationsService.getSuburbs(cityId, stateId, search);
   }
 
   @Get('amenities')

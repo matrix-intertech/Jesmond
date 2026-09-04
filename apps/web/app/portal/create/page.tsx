@@ -5,12 +5,19 @@ import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import LocationPicker from '@/components/ui/LocationPicker';
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { handleApiError, getApiUrl } from '@/utils/api';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
   const onAuthError = () => { clearAuth(); router.replace('/login'); };
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
   const [suburbs, setSuburbs] = useState<any[]>([]);
+  const [selectedStateId, setSelectedStateId] = useState('');
+  const [selectedCityId, setSelectedCityId] = useState('');
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [suburbsLoading, setSuburbsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -28,30 +35,96 @@ export default function CreatePropertyPage() {
   });
 
   useEffect(() => {
+    let isMounted = true;
+    setStatesLoading(true);
+    const apiUrl = getApiUrl();
+    fetch(`${apiUrl}/api/v1/locations/states`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (isMounted) setStates(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (isMounted) setError('Failed to load states. Ensure API is running.');
+      })
+      .finally(() => {
+        if (isMounted) setStatesLoading(false);
+      });
+    return () => { isMounted = false; };
+  }, []);
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs`)
-      .then(res => res.json())
-      .then(data => setSuburbs(data))
-      .catch(err => setError('Failed to load suburbs. Ensure API is running.'));
-  }, [router]);
+  const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const stateId = e.target.value;
+    setSelectedStateId(stateId);
+    setSelectedCityId('');
+    setCities([]);
+    setSuburbs([]);
+    setFormData(prev => ({ ...prev, suburbId: '', postcode: '' }));
+
+    if (!stateId) return;
+
+    setCitiesLoading(true);
+    try {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/locations/cities?stateId=${encodeURIComponent(stateId)}`);
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const data = await res.json();
+      setCities(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Failed to load cities:', err);
+      setError('Failed to load cities for the selected state.');
+    } finally {
+      setCitiesLoading(false);
+    }
+  };
+
+  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    setSelectedCityId(cityId);
+    setSuburbs([]);
+    setFormData(prev => ({ ...prev, suburbId: '', postcode: '' }));
+
+    if (!cityId) return;
+
+    setSuburbsLoading(true);
+    try {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/locations/suburbs?cityId=${encodeURIComponent(cityId)}`);
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      const data = await res.json();
+      setSuburbs(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      console.error('Failed to load suburbs:', err);
+      setError('Failed to load suburbs for the selected city.');
+    } finally {
+      setSuburbsLoading(false);
+    }
+  };
+
+  const handleSuburbChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const suburbId = e.target.value;
+    const selectedSuburb = suburbs.find(s => s.id === suburbId);
+
+    setFormData(prev => {
+      const next = { ...prev, suburbId };
+      if (selectedSuburb) {
+        if (selectedSuburb.postcode) {
+          next.postcode = selectedSuburb.postcode;
+        }
+        if (selectedSuburb.lat && selectedSuburb.lng && !isManualLocation) {
+          next.lat = String(selectedSuburb.lat);
+          next.lng = String(selectedSuburb.lng);
+        }
+      }
+      return next;
+    });
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => {
-      const next = { ...prev, [name]: value };
-
-      if (name === 'suburbId') {
-        const selectedSuburb = suburbs.find(s => s.id === value);
-        if (selectedSuburb && selectedSuburb.lat && selectedSuburb.lng) {
-          if (!isManualLocation) {
-            next.lat = String(selectedSuburb.lat);
-            next.lng = String(selectedSuburb.lng);
-          }
-        }
-      }
-
-      return next;
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleLocationChange = (lat: number, lng: number) => {
@@ -77,7 +150,8 @@ export default function CreatePropertyPage() {
     const token = getAccessToken();
     if (!token) { onAuthError(); return; }
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties`, {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/properties`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -154,20 +228,85 @@ export default function CreatePropertyPage() {
             <input required type="text" name="address" value={formData.address} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="123 Example Street" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">City / Suburb</label>
-              <select required name="suburbId" value={formData.suburbId} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2">
-                <option value="">Select Suburb</option>
-                {suburbs.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}, {s.city ? s.city.name : s.state?.name}</option>
+              <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+              <select
+                required
+                name="stateId"
+                value={selectedStateId}
+                onChange={handleStateChange}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white"
+              >
+                <option value="">{statesLoading ? 'Loading states...' : 'Select State'}</option>
+                {states.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} ({s.code})</option>
                 ))}
               </select>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
-              <input required type="text" name="postcode" value={formData.postcode} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+              <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+              <select
+                required
+                name="cityId"
+                value={selectedCityId}
+                onChange={handleCityChange}
+                disabled={!selectedStateId || citiesLoading}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed bg-white"
+              >
+                <option value="">
+                  {citiesLoading
+                    ? 'Loading cities...'
+                    : !selectedStateId
+                    ? 'Select a State first'
+                    : cities.length === 0
+                    ? 'No cities found'
+                    : 'Select City'}
+                </option>
+                {cities.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
+              <select
+                required
+                name="suburbId"
+                value={formData.suburbId}
+                onChange={handleSuburbChange}
+                disabled={!selectedCityId || suburbsLoading}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed bg-white"
+              >
+                <option value="">
+                  {suburbsLoading
+                    ? 'Loading suburbs...'
+                    : !selectedCityId
+                    ? 'Select a City first'
+                    : suburbs.length === 0
+                    ? 'No suburbs found'
+                    : 'Select Suburb'}
+                </option>
+                {suburbs.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
+            <input
+              required
+              type="text"
+              name="postcode"
+              value={formData.postcode}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="e.g. 3000"
+            />
           </div>
 
           <LocationPicker

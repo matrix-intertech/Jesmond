@@ -5,17 +5,67 @@ import { PrismaService } from '../prisma/prisma.service';
 export class LocationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSuburbs() {
+  async getCities(stateId?: string, search?: string) {
+    const where: any = {};
+    if (stateId) {
+      where.stateId = stateId;
+    }
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' as const };
+    }
+
+    return this.prisma.city.findMany({
+      where,
+      include: {
+        _count: {
+          select: { suburbs: true },
+        },
+        state: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
+
+  async getSuburbs(cityId?: string, stateId?: string, search?: string) {
+    const where: any = {};
+    if (cityId) {
+      where.cityId = cityId;
+    }
+    if (stateId) {
+      where.stateId = stateId;
+    }
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' as const } },
+        { postcode: { contains: search, mode: 'insensitive' as const } },
+      ];
+    }
+
     return this.prisma.suburb.findMany({
+      where,
       select: {
         id: true,
         name: true,
         postcode: true,
+        lat: true,
+        lng: true,
+        cityId: true,
+        stateId: true,
         city: {
           select: {
+            id: true,
             name: true,
             state: {
               select: {
+                id: true,
                 name: true,
                 code: true,
               },
@@ -24,9 +74,10 @@ export class LocationsService {
         },
         state: {
           select: {
+            id: true,
             name: true,
             code: true,
-          }
+          },
         },
       },
       orderBy: {
