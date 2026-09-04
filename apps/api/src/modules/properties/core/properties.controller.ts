@@ -226,9 +226,14 @@ export class PropertiesController {
   async searchProperties(
     @Query('city') city?: string,
     @Query('university') university?: string,
+    @Query('uni') uni?: string,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
     @Query('roomType') roomType?: string,
+    @Query('type') type?: string,
+    @Query('moveIn') moveIn?: string,
+    @Query('availability') availability?: string,
+    @Query('semester') semester?: string,
     @Query('amenities') amenities?: string, // comma separated
     @Query('bounds') bounds?: string, // sw_lat,sw_lng,ne_lat,ne_lng
     @Query('page') page?: string,
@@ -283,12 +288,17 @@ export class PropertiesController {
       }
     }
 
+    const effectiveUniversity = university || uni;
+    const effectiveRoomType = roomType || type;
+    const effectiveMoveIn = moveIn || availability || semester;
+
     return this.propertiesService.search({
       city,
-      university,
+      university: effectiveUniversity,
       minPrice: parsedMinPrice,
       maxPrice: parsedMaxPrice,
-      roomType,
+      roomType: effectiveRoomType,
+      moveIn: effectiveMoveIn,
       amenities: amenities ? amenities.split(',').map(a => a.trim()).filter(Boolean) : undefined,
       bounds,
       page: parsedPage,

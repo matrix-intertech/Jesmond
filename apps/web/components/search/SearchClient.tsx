@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { SaveButton } from "../student/SaveButton";
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { handleApiError, getApiUrl } from '@/utils/api';
 
 // Dynamically import Leaflet map to avoid window is not defined SSR error
 const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), { 
@@ -73,7 +73,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
           }
         });
         
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = getApiUrl();
         const token = getAccessToken();
         const onAuthError = () => { clearAuth(); router.replace('/login'); };
         const res = await fetch(`${apiUrl}/api/v1/properties/search?${searchParams.toString()}`, {
@@ -118,14 +118,20 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             {isLoading && `Searching properties...`}
           </p>
           <h1 className="text-3xl font-bold text-brand-navy tracking-tight">
-            {initialParams.city ? `Student Accommodation in ${initialParams.city}` : 'Discover Student Living'}
+            {initialParams.university || initialParams.uni
+              ? `Accommodation near ${initialParams.university || initialParams.uni}`
+              : initialParams.city
+              ? `Student Accommodation in ${initialParams.city}`
+              : initialParams.roomType || initialParams.type
+              ? `${(initialParams.roomType || initialParams.type).charAt(0).toUpperCase() + (initialParams.roomType || initialParams.type).slice(1)} Student Housing`
+              : 'Discover Student Living'}
           </h1>
           
           {/* Quick Filters - interacting with URL State */}
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
-            <button onClick={() => updateSearchState({ maxPrice: '450' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '450' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $450/wk</button>
-            <button onClick={() => updateSearchState({ roomType: 'Studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.roomType === 'Studio' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Studio</button>
-            <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
+            <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '450' ? null : '450' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '450' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $450/wk</button>
+            <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Studio</button>
+            <button onClick={() => updateSearchState({ maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
           </div>
         </div>
 

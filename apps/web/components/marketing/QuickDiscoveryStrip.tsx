@@ -7,19 +7,19 @@ const CATEGORIES = [
   {
     title: "Popular Universities",
     items: [
-      { label: "Monash University", href: "/search?uni=monash" },
-      { label: "University of Melbourne", href: "/search?uni=unimelb" },
-      { label: "UNSW Sydney", href: "/search?uni=unsw" },
-      { label: "RMIT", href: "/search?uni=rmit" },
+      { label: "Monash University", href: "/search?university=monash" },
+      { label: "University of Melbourne", href: "/search?university=unimelb" },
+      { label: "UNSW Sydney", href: "/search?university=unsw" },
+      { label: "RMIT", href: "/search?university=rmit" },
     ]
   },
   {
     title: "Room Types",
     items: [
-      { label: "Private Studio", href: "/search?type=studio" },
-      { label: "En-suite Room", href: "/search?type=ensuite" },
-      { label: "Shared Room", href: "/search?type=shared" },
-      { label: "Entire Apartment", href: "/search?type=apartment" },
+      { label: "Private Studio", href: "/search?roomType=studio" },
+      { label: "En-suite Room", href: "/search?roomType=ensuite" },
+      { label: "Shared Room", href: "/search?roomType=shared" },
+      { label: "Entire Apartment", href: "/search?roomType=apartment" },
     ]
   },
   {

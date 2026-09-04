@@ -1,3 +1,10 @@
+export function getApiUrl(): string {
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+}
+
 export async function handleApiError(response: Response, onAuthError?: () => void): Promise<'ok' | 'unauthorized' | 'forbidden' | 'error' | 'notfound'> {
   if (response.ok) return 'ok';
   if (response.status === 401) {
@@ -16,7 +23,7 @@ export async function handleApiError(response: Response, onAuthError?: () => voi
 }
 
 export async function fetchFeatureFlag(flagKey: string, token: string, onAuthError?: () => void): Promise<{ enabled: boolean } | null> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features/${flagKey}`, {
+  const res = await fetch(`${getApiUrl()}/api/v1/admin/features/${flagKey}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const status = await handleApiError(res, onAuthError);

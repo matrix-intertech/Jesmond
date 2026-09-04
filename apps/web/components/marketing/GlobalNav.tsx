@@ -127,6 +127,7 @@ export function GlobalNav() {
 
           {/* Mobile Menu Trigger */}
           <button
+            aria-label="Toggle Navigation Menu"
             className="xl:hidden relative z-50 p-2 text-brand-navy"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >

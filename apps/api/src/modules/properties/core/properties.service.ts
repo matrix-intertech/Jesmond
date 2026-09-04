@@ -9,6 +9,7 @@ interface SearchParams {
   minPrice?: number;
   maxPrice?: number;
   roomType?: string;
+  moveIn?: string;
   amenities?: string[];
   bounds?: string;
   page: number;
@@ -361,7 +362,7 @@ export class PropertiesService {
 
   async search(params: SearchParams) {
     try {
-      const { city, university, minPrice, maxPrice, roomType, amenities, bounds, page, limit, sort } = params;
+      const { city, university, minPrice, maxPrice, roomType, moveIn, amenities, bounds, page, limit, sort } = params;
 
       const whereClause: any = {
         status: 'PUBLISHED'
@@ -375,11 +376,32 @@ export class PropertiesService {
       }
 
       // 2. University Filter
-      // Note: The current Prisma schema lacks a direct Property -> University/Campus relation.
-      // Computing straight-line distance dynamically requires PostGIS or Haversine formula via raw SQL,
-      // and matching purely by Suburb ID misses adjacent suburbs.
-      // As instructed ("if it cannot be implemented correctly... leave the parameter safely unsupported"),
-      // this filter is explicitly deferred until a proper geospatial mapping exists.
+      if (university) {
+        const uniRecord = await this.prisma.university.findFirst({
+          where: {
+            OR: [
+              { slug: { equals: university, mode: 'insensitive' } },
+              { name: { contains: university, mode: 'insensitive' } }
+            ]
+          },
+          include: {
+            campuses: {
+              select: { suburbId: true }
+            }
+          }
+        });
+
+        if (uniRecord && uniRecord.campuses.length > 0) {
+          const suburbIds = uniRecord.campuses.map(c => c.suburbId).filter(Boolean);
+          whereClause.suburbId = { in: suburbIds };
+        } else {
+          whereClause.OR = [
+            { name: { contains: university, mode: 'insensitive' } },
+            { description: { contains: university, mode: 'insensitive' } },
+            { suburb: { name: { contains: university, mode: 'insensitive' } } }
+          ];
+        }
+      }
 
       // 3. Bounds Filter
       if (bounds) {
@@ -388,14 +410,42 @@ export class PropertiesService {
         whereClause.lng = { gte: swLng, lte: neLng };
       }
 
-      // 4. Room Type & Price Filter (MUST satisfy the SAME room type)
+      // 4. Room Type & Price Filter
       if (minPrice !== undefined || maxPrice !== undefined || roomType) {
-        whereClause.roomTypes = {
-          some: {
-            ...(roomType && { name: { contains: roomType, mode: 'insensitive' } }),
-            ...(minPrice !== undefined && { pricePerWeek: { gte: minPrice * 100 } }),
-            ...(maxPrice !== undefined && { pricePerWeek: { lte: maxPrice * 100 } }),
+        const roomTypeSome: any = {
+          ...(minPrice !== undefined && { pricePerWeek: { gte: minPrice * 100 } }),
+          ...(maxPrice !== undefined && { pricePerWeek: { lte: maxPrice * 100 } }),
+        };
+
+        if (roomType) {
+          const lower = roomType.toLowerCase();
+          let keyword = roomType;
+          let altKeyword = '';
+
+          if (lower.includes('studio')) {
+            keyword = 'studio';
+          } else if (lower.includes('ensuite') || lower.includes('en-suite')) {
+            keyword = 'ensuite';
+            altKeyword = 'en-suite';
+          } else if (lower.includes('shared')) {
+            keyword = 'shared';
+          } else if (lower.includes('apartment') || lower.includes('entire')) {
+            keyword = 'apartment';
+            altKeyword = 'entire';
           }
+
+          if (altKeyword) {
+            roomTypeSome.OR = [
+              { name: { contains: keyword, mode: 'insensitive' } },
+              { name: { contains: altKeyword, mode: 'insensitive' } },
+            ];
+          } else {
+            roomTypeSome.name = { contains: keyword, mode: 'insensitive' };
+          }
+        }
+
+        whereClause.roomTypes = {
+          some: roomTypeSome
         };
       }
 
@@ -412,8 +462,8 @@ export class PropertiesService {
 
       const skip = (page - 1) * limit;
 
-      // 6. Handle Sort/Filter tabs (Available Now, Top Rated)
-      if (sort === 'available_now') {
+      // 6. Handle Move-In / Availability & Sort
+      if (sort === 'available_now' || moveIn === 'immediate' || moveIn === 'now' || moveIn === 'available_now') {
         if (!whereClause.roomTypes) whereClause.roomTypes = {};
         if (!whereClause.roomTypes.some) whereClause.roomTypes.some = {};
         whereClause.roomTypes.some.inventory = { gt: 0 };

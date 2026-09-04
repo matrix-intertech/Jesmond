@@ -1,6 +1,5 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
-import { prisma } from "@jesmond/db";
 import Link from "next/link";
 import EmptyState from "../../components/ui/EmptyState";
 
@@ -11,19 +10,29 @@ export const metadata = {
   description: "Find premium student housing across Australian states and territories.",
 };
 
-export default async function StatesPage() {
+export default async function StatesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const searchQuery = resolvedParams.search || '';
+
   let states: any[] = [];
   let error = false;
 
   try {
-    states = await prisma.state.findMany({
-      include: {
-        _count: {
-          select: { cities: true }
-        }
-      },
-      orderBy: { name: 'asc' }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const queryStr = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
+    const res = await fetch(`${apiUrl}/api/v1/locations/states${queryStr}`, {
+      cache: 'no-store',
     });
+
+    if (!res.ok) {
+      error = true;
+    } else {
+      states = await res.json();
+    }
   } catch (e) {
     console.error("Failed to fetch states:", e);
     error = true;

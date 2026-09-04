@@ -7,6 +7,8 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import PropertyMap from "../ui/PropertyMap";
 import { type PropertyMarkerData } from "../ui/PropertyMapInner";
 
+import { getApiUrl } from "@/utils/api";
+
 export function PropertyDiscovery() {
   const [activeTab, setActiveTab] = useState("top_rated");
   const [properties, setProperties] = useState([]);
@@ -24,21 +26,34 @@ export function PropertyDiscovery() {
 
     const fetchProps = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-        let url = `${apiUrl}/api/v1/properties/search?sort=${activeTab}&limit=12`;
-        if (appliedBounds) {
-           url += `&bounds=${appliedBounds.swLat},${appliedBounds.swLng},${appliedBounds.neLat},${appliedBounds.neLng}`;
+        const apiUrl = getApiUrl();
+        let url = `${apiUrl}/api/v1/properties/search?sort=${encodeURIComponent(activeTab)}&limit=12`;
+        if (
+          appliedBounds &&
+          typeof appliedBounds.swLat === "number" && !isNaN(appliedBounds.swLat) &&
+          typeof appliedBounds.swLng === "number" && !isNaN(appliedBounds.swLng) &&
+          typeof appliedBounds.neLat === "number" && !isNaN(appliedBounds.neLat) &&
+          typeof appliedBounds.neLng === "number" && !isNaN(appliedBounds.neLng)
+        ) {
+          url += `&bounds=${appliedBounds.swLat},${appliedBounds.swLng},${appliedBounds.neLat},${appliedBounds.neLng}`;
         }
         const res = await fetch(url);
-        if (!res.ok) throw new Error("Failed to fetch");
+        if (!res.ok) {
+          const errData = await res.json().catch((): null => null);
+          console.error(`Error fetching properties (${res.status}):`, errData?.message || res.statusText);
+          if (isMounted) {
+            setProperties([]);
+          }
+          return;
+        }
         const data = await res.json();
 
         if (isMounted) {
           setProperties(data.data || []);
           setMapDirty(false); // Reset map dirty state after fetching new bounds
         }
-      } catch (err) {
-        console.error("Error fetching properties", err);
+      } catch (err: any) {
+        console.error("Error fetching properties:", err?.message || err);
       } finally {
         if (isMounted) setLoading(false);
       }

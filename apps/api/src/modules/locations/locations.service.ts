@@ -42,4 +42,56 @@ export class LocationsService {
       },
     });
   }
+
+  async getStates(search?: string) {
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { code: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    return this.prisma.state.findMany({
+      where,
+      include: {
+        _count: {
+          select: { cities: true },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
+
+  async getUniversities(search?: string) {
+    const where = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { slug: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    return this.prisma.university.findMany({
+      where,
+      include: {
+        campuses: {
+          include: {
+            suburb: {
+              include: {
+                city: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
 }

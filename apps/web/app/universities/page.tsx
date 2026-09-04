@@ -1,6 +1,5 @@
-﻿import { GlobalNav } from "../../components/marketing/GlobalNav";
+import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
-import { prisma } from "@jesmond/db";
 import Link from "next/link";
 import EmptyState from "../../components/ui/EmptyState";
 
@@ -19,18 +18,29 @@ interface UniversityWithCampuses {
   campuses: CampusWithLocation[];
 }
 
-export default async function UniversitiesPage() {
+export default async function UniversitiesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ search?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const searchQuery = resolvedParams.search || '';
+
   let universities: UniversityWithCampuses[] = [];
   let error = false;
 
   try {
-    universities = await prisma.university.findMany({
-      include: {
-        campuses: {
-          include: { suburb: { include: { city: true } } }
-        }
-      }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const queryStr = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
+    const res = await fetch(`${apiUrl}/api/v1/locations/universities${queryStr}`, {
+      cache: 'no-store',
     });
+
+    if (!res.ok) {
+      error = true;
+    } else {
+      universities = await res.json();
+    }
   } catch (e) {
     console.error("Failed to fetch universities:", e);
     error = true;
