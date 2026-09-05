@@ -172,4 +172,83 @@ export class EmailService {
       return false;
     }
   }
+
+  async sendApplicationRemovalEmail(options: {
+    studentEmail: string;
+    studentName: string;
+    propertyName: string;
+    reason?: string;
+  }): Promise<boolean> {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
+        <h2 style="color: #111827;">Application Update - ${options.propertyName}</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Hi ${options.studentName},
+        </p>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Your application for <strong>${options.propertyName}</strong> has been cancelled/removed by the accommodation provider${options.reason ? ` (${options.reason})` : ''}.
+        </p>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
+          If you have any questions, please contact us at <a href="mailto:support@jesmond.local" style="color: #4f46e5;">support@jesmond.local</a>.
+        </p>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      this.logger.log(`[DEV MODE] Mock Application Removal Email sent to ${options.studentEmail} for property "${options.propertyName}".`);
+      return true;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Jesmond" <${this.fromEmail}>`,
+        to: options.studentEmail,
+        subject: `Application update for ${options.propertyName}`,
+        html,
+      });
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send application removal email to ${options.studentEmail}`, error);
+      return false;
+    }
+  }
+
+  async sendApplicationWithdrawalEmail(options: {
+    providerEmail: string;
+    providerName: string;
+    studentName: string;
+    propertyName: string;
+  }): Promise<boolean> {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
+        <h2 style="color: #111827;">Application Withdrawn</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Hi ${options.providerName},
+        </p>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Applicant <strong>${options.studentName}</strong> has withdrawn their application for <strong>${options.propertyName}</strong>.
+        </p>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      this.logger.log(`[DEV MODE] Mock Application Withdrawal Email sent to ${options.providerEmail} for property "${options.propertyName}".`);
+      return true;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Jesmond" <${this.fromEmail}>`,
+        to: options.providerEmail,
+        subject: `Application withdrawn by student - ${options.propertyName}`,
+        html,
+      });
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send application withdrawal email to ${options.providerEmail}`, error);
+      return false;
+    }
+  }
 }

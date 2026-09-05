@@ -338,6 +338,8 @@ enum ApplicationStatus {
   LEASE_PENDING
   BOOKED
   EXPIRED
+  WITHDRAWN
+  CANCELLED
 }
 
 model Lease {

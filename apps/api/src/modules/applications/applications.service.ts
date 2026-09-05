@@ -92,6 +92,7 @@ export class ApplicationsService {
     const app = await this.prisma.application.findUnique({
       where: { id: applicationId },
       include: {
+        lease: true,
         roomType: {
           include: {
             property: {
@@ -245,6 +246,161 @@ export class ApplicationsService {
     });
 
     return updatedApp;
+  }
+
+  async withdrawApplication(studentId: string, applicationId: string) {
+    const app = await this.prisma.application.findUnique({
+      where: { id: applicationId },
+      include: {
+        lease: true,
+        roomType: {
+          include: {
+            property: {
+              include: {
+                organization: {
+                  include: {
+                    staff: {
+                      where: { deletedAt: null },
+                      include: { user: { select: { email: true, firstName: true, lastName: true } } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        student: { select: { firstName: true, lastName: true, email: true } }
+      }
+    });
+
+    if (!app || app.studentId !== studentId) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (app.status === 'WITHDRAWN' || app.status === 'CANCELLED' || app.status === 'REJECTED') {
+      throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+    }
+
+    const updatedApp = await this.prisma.$transaction(async (tx) => {
+      if (app.status === 'APPROVED') {
+        await tx.roomType.update({
+          where: { id: app.roomTypeId },
+          data: { inventory: { increment: 1 } }
+        });
+
+        if (app.lease) {
+          await tx.lease.update({
+            where: { id: app.lease.id },
+            data: { status: 'TERMINATED' }
+          });
+        }
+      }
+
+      return tx.application.update({
+        where: { id: app.id },
+        data: { status: 'WITHDRAWN' }
+      });
+    });
+
+    const staffList = app.roomType.property.organization.staff ?? [];
+    const contactStaff = staffList.find((s) => s.role === 'ADMIN')?.user ?? staffList[0]?.user;
+    if (contactStaff?.email) {
+      this.emailService
+        .sendApplicationWithdrawalEmail({
+          providerEmail: contactStaff.email,
+          providerName: app.roomType.property.organization.name,
+          studentName: `${app.student.firstName} ${app.student.lastName}`,
+          propertyName: app.roomType.property.name,
+        })
+        .catch((err) => this.logger.error(`Failed to send withdrawal email for app ${app.id}`, err));
+    }
+
+    return updatedApp;
+  }
+
+  async removeStudent(organizationId: string, applicationId: string) {
+    const app = await this.getProviderApplication(organizationId, applicationId);
+
+    if (app.status === 'WITHDRAWN' || app.status === 'CANCELLED' || app.status === 'REJECTED') {
+      throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+    }
+
+    const updatedApp = await this.prisma.$transaction(async (tx) => {
+      if (app.status === 'APPROVED') {
+        await tx.roomType.update({
+          where: { id: app.roomTypeId },
+          data: { inventory: { increment: 1 } }
+        });
+
+        if (app.lease) {
+          await tx.lease.update({
+            where: { id: app.lease.id },
+            data: { status: 'TERMINATED' }
+          });
+        }
+      }
+
+      return tx.application.update({
+        where: { id: app.id },
+        data: { status: 'CANCELLED' }
+      });
+    });
+
+    this.emailService
+      .sendApplicationRemovalEmail({
+        studentEmail: app.student.email,
+        studentName: `${app.student.firstName} ${app.student.lastName}`,
+        propertyName: app.roomType.property.name,
+      })
+      .catch((err) => this.logger.error(`Failed to send removal email for app ${app.id}`, err));
+
+    return updatedApp;
+  }
+
+  async cancelPropertyApplications(propertyId: string) {
+    const apps = await this.prisma.application.findMany({
+      where: {
+        roomType: { propertyId },
+        status: { in: ['PENDING_REVIEW', 'APPROVED'] }
+      },
+      include: {
+        lease: true,
+        student: { select: { firstName: true, lastName: true, email: true } },
+        roomType: { include: { property: { select: { name: true } } } }
+      }
+    });
+
+    for (const app of apps) {
+      await this.prisma.$transaction(async (tx) => {
+        if (app.status === 'APPROVED') {
+          await tx.roomType.update({
+            where: { id: app.roomTypeId },
+            data: { inventory: { increment: 1 } }
+          });
+
+          if (app.lease) {
+            await tx.lease.update({
+              where: { id: app.lease.id },
+              data: { status: 'TERMINATED' }
+            });
+          }
+        }
+
+        await tx.application.update({
+          where: { id: app.id },
+          data: { status: 'CANCELLED' }
+        });
+      });
+
+      this.emailService
+        .sendApplicationRemovalEmail({
+          studentEmail: app.student.email,
+          studentName: `${app.student.firstName} ${app.student.lastName}`,
+          propertyName: app.roomType.property.name,
+          reason: 'Property is no longer available',
+        })
+        .catch((err) => this.logger.error(`Failed to send property unpublish email for app ${app.id}`, err));
+    }
   }
 
   // Admin: list all applications with necessary relations

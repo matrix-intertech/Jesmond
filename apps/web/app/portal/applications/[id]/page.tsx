@@ -67,7 +67,11 @@ export default function ApplicationDetailPage() {
     }
   };
 
-  const handleAction = async (action: 'approve' | 'reject') => {
+  const handleAction = async (action: 'approve' | 'reject' | 'remove') => {
+    if (action === 'remove' && !confirm('Are you sure you want to remove this student from the application? This action cannot be undone.')) {
+      return;
+    }
+
     setActionLoading(true);
     setError('');
     try {
@@ -109,6 +113,8 @@ export default function ApplicationDetailPage() {
             <span className={`px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider ${
               app.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
               app.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
+              app.status === 'WITHDRAWN' ? 'bg-slate-100 text-slate-700' :
+              app.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
               'bg-amber-100 text-amber-700'
             }`}>
               {app.status.replace('_', ' ')}
@@ -154,25 +160,36 @@ export default function ApplicationDetailPage() {
             </div>
           </div>
 
-          {app.status === 'PENDING_REVIEW' && (
+          {(app.status === 'PENDING_REVIEW' || app.status === 'APPROVED') && (
             <div className="flex gap-4 border-t pt-8">
+              {app.status === 'PENDING_REVIEW' && (
+                <>
+                  <button 
+                    onClick={() => handleAction('approve')}
+                    disabled={actionLoading || app.roomType.inventory <= 0}
+                    className={`flex-1 font-bold py-3 px-6 rounded-xl transition ${
+                      app.roomType.inventory > 0 
+                        ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {actionLoading ? 'Processing...' : (app.roomType.inventory > 0 ? 'Approve Application' : 'Out of Stock')}
+                  </button>
+                  <button 
+                    onClick={() => handleAction('reject')}
+                    disabled={actionLoading}
+                    className="flex-1 bg-white border-2 border-rose-600 text-rose-600 font-bold py-3 px-6 rounded-xl hover:bg-rose-50 transition"
+                  >
+                    {actionLoading ? 'Processing...' : 'Reject Application'}
+                  </button>
+                </>
+              )}
               <button 
-                onClick={() => handleAction('approve')}
-                disabled={actionLoading || app.roomType.inventory <= 0}
-                className={`flex-1 font-bold py-3 px-6 rounded-xl transition ${
-                  app.roomType.inventory > 0 
-                    ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
-                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                }`}
-              >
-                {actionLoading ? 'Processing...' : (app.roomType.inventory > 0 ? 'Approve Application' : 'Out of Stock')}
-              </button>
-              <button 
-                onClick={() => handleAction('reject')}
+                onClick={() => handleAction('remove')}
                 disabled={actionLoading}
-                className="flex-1 bg-white border-2 border-rose-600 text-rose-600 font-bold py-3 px-6 rounded-xl hover:bg-rose-50 transition"
+                className="flex-1 bg-rose-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-700 transition"
               >
-                {actionLoading ? 'Processing...' : 'Reject Application'}
+                {actionLoading ? 'Processing...' : 'Remove Student'}
               </button>
             </div>
           )}

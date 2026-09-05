@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { ApplicationsService } from '../applications/applications.service';
 import { OrgStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly applicationsService: ApplicationsService,
+  ) {}
 
   async getPendingProperties() {
     return this.prisma.property.findMany({
@@ -111,6 +115,8 @@ export class AdminService {
       where: { id },
       data: { status: 'UNLISTED' }
     });
+
+    await this.applicationsService.cancelPropertyApplications(id);
 
     await this.prisma.propertyVersion.create({
       data: {

@@ -24,7 +24,9 @@ export interface StatusBadgeProps {
     | "REJECTED"
     | "SOLD_OUT"
     | "ENABLED"
-    | "DISABLED";
+    | "DISABLED"
+    | "WITHDRAWN"
+    | "CANCELLED";
 }
 
 const statusStyles: Record<StatusBadgeProps["status"], { bg: string; text: string }> = {
@@ -37,6 +39,8 @@ const statusStyles: Record<StatusBadgeProps["status"], { bg: string; text: strin
   SOLD_OUT: { bg: "bg-gray-200", text: "text-gray-700 font-bold" },
   ENABLED: { bg: "bg-blue-100", text: "text-blue-800 font-bold" },
   DISABLED: { bg: "bg-gray-200", text: "text-gray-700 font-bold" },
+  WITHDRAWN: { bg: "bg-slate-100", text: "text-slate-700 font-bold" },
+  CANCELLED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

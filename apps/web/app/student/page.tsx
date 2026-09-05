@@ -66,6 +66,37 @@ export default function StudentDashboardPage() {
     fetchData();
   }, []);
 
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const handleWithdraw = async (applicationId: string) => {
+    if (!confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) return;
+
+    setActionLoadingId(applicationId);
+    setError('');
+    try {
+      const token = getAccessToken();
+      if (!token) { onAuthError(); return; }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${applicationId}/withdraw`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        const updated = await res.json();
+        setApplications(prev => prev.map(a => a.id === applicationId ? { ...a, status: updated.status } : a));
+      } else {
+        const err = await res.json();
+        setError(err.message || 'Failed to withdraw application');
+      }
+    } catch (e: any) {
+      setError(e.message || 'An unexpected error occurred');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   const pendingCount = applications.filter(a => a.status === 'PENDING_REVIEW').length;
   const approvedCount = applications.filter(a => a.status === 'APPROVED').length;
   const rejectedCount = applications.filter(a => a.status === 'REJECTED').length;
@@ -120,6 +151,7 @@ export default function StudentDashboardPage() {
                   <th className="p-4 font-semibold">Price Locked</th>
                   <th className="p-4 font-semibold">Applied</th>
                   <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y text-sm">
@@ -149,6 +181,17 @@ export default function StudentDashboardPage() {
                         </div>
                       ) : (
                         <StatusBadge status={app.status as any} />
+                      )}
+                    </td>
+                    <td className="p-4">
+                      {(app.status === 'PENDING_REVIEW' || app.status === 'APPROVED') && (
+                        <button
+                          onClick={() => handleWithdraw(app.id)}
+                          disabled={actionLoadingId === app.id}
+                          className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+                        >
+                          {actionLoadingId === app.id ? 'Withdrawing...' : 'Withdraw'}
+                        </button>
                       )}
                     </td>
                   </tr>

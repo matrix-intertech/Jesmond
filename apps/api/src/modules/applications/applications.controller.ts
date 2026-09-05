@@ -61,10 +61,26 @@ export class ApplicationsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF)
   @Post(':id/reject')
   async rejectApplication(@Param('id') id: string, @Request() req: any) {
     return this.applicationsService.rejectApplication(req.user.organizationId, id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.STUDENT)
+  @Post(':id/withdraw')
+  async withdrawApplication(@Param('id') id: string, @Request() req: any) {
+    return this.applicationsService.withdrawApplication(req.user.id, id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF)
+  @Post(':id/remove')
+  async removeStudent(@Param('id') id: string, @Request() req: any) {
+    return this.applicationsService.removeStudent(req.user.organizationId, id);
   }
 }

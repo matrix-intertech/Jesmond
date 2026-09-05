@@ -63,6 +63,32 @@ export default function ProviderApplicationsPage() {
     }
   };
 
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const handleRemove = async (applicationId: string) => {
+    if (!confirm('Are you sure you want to remove this student from the application? This action cannot be undone.')) return;
+
+    setActionLoadingId(applicationId);
+    try {
+      const token = getAccessToken();
+      if (!token) { onAuthError(); return; }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${applicationId}/remove`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        fetchApplications();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   if (loading) return <div className="p-10 text-center">Loading applications...</div>;
 
   return (
@@ -87,6 +113,7 @@ export default function ProviderApplicationsPage() {
                   <th className="p-4 font-semibold">Duration</th>
                   <th className="p-4 font-semibold">Price</th>
                   <th className="p-4 font-semibold">Status</th>
+                  <th className="p-4 font-semibold">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y text-sm">
@@ -107,10 +134,23 @@ export default function ProviderApplicationsPage() {
                       <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${
                         app.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
                         app.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
+                        app.status === 'WITHDRAWN' ? 'bg-slate-100 text-slate-700' :
+                        app.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
                         'bg-amber-100 text-amber-700'
                       }`}>
                         {app.status.replace('_', ' ')}
                       </span>
+                    </td>
+                    <td className="p-4">
+                      {(app.status === 'PENDING_REVIEW' || app.status === 'APPROVED') && (
+                        <button
+                          onClick={() => handleRemove(app.id)}
+                          disabled={actionLoadingId === app.id}
+                          className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+                        >
+                          {actionLoadingId === app.id ? 'Removing...' : 'Remove Student'}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
