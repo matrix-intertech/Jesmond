@@ -2,6 +2,8 @@ import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
 import EmptyState from "../../components/ui/EmptyState";
+import ComingSoon from "../../components/ui/ComingSoon";
+import { prisma } from "@jesmond/db";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,11 @@ export default async function StatesPage({
 }) {
   const resolvedParams = searchParams ? await searchParams : {};
   const searchQuery = resolvedParams.search || '';
+
+  const statesFeature = await prisma.featureFlag.findUnique({ where: { key: 'STATES' } });
+  if (statesFeature && !statesFeature.enabled) {
+    return <ComingSoon featureName="States" />;
+  }
 
   let states: any[] = [];
   let error = false;

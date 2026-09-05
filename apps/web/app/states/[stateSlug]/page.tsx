@@ -3,6 +3,7 @@ import { EditorialFooter } from "../../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
 import Link from "next/link";
 import EmptyState from "../../../components/ui/EmptyState";
+import ComingSoon from "../../../components/ui/ComingSoon";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,12 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
 
 export default async function StatePage({ params }: { params: Promise<{ stateSlug: string }> }) {
   const { stateSlug } = await params;
+
+  const statesFeature = await prisma.featureFlag.findUnique({ where: { key: 'STATES' } });
+  if (statesFeature && !statesFeature.enabled) {
+    return <ComingSoon featureName="States" />;
+  }
+
   let state = null;
   let error = false;
 

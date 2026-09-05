@@ -2,6 +2,8 @@ import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
 import EmptyState from "../../components/ui/EmptyState";
+import ComingSoon from "../../components/ui/ComingSoon";
+import { prisma } from "@jesmond/db";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +27,11 @@ export default async function UniversitiesPage({
 }) {
   const resolvedParams = searchParams ? await searchParams : {};
   const searchQuery = resolvedParams.search || '';
+
+  const universitiesFeature = await prisma.featureFlag.findUnique({ where: { key: 'UNIVERSITIES' } });
+  if (universitiesFeature && !universitiesFeature.enabled) {
+    return <ComingSoon featureName="Universities" />;
+  }
 
   let universities: UniversityWithCampuses[] = [];
   let error = false;

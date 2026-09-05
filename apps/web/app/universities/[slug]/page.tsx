@@ -3,6 +3,7 @@ import { EditorialFooter } from "../../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import ComingSoon from "../../../components/ui/ComingSoon";
 
 import { formatLocation } from "../../../utils/location";
 
@@ -18,6 +19,12 @@ interface CampusWithLocation {
 
 export default async function UniversityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
+
+  const universitiesFeature = await prisma.featureFlag.findUnique({ where: { key: 'UNIVERSITIES' } });
+  if (universitiesFeature && !universitiesFeature.enabled) {
+    return <ComingSoon featureName="Universities" />;
+  }
+
   const uni = await prisma.university.findUnique({
     where: { slug: resolvedParams.slug },
     include: { campuses: { include: { suburb: { include: { city: true, state: true } } } } }
