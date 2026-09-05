@@ -46,6 +46,18 @@ export class PropertiesService {
       },
     });
 
+    if (property.listingMode === 'INDIVIDUAL') {
+      await this.prisma.roomType.create({
+        data: {
+          propertyId: property.id,
+          name: 'Entire Property',
+          description: property.description,
+          pricePerWeek: 0,
+          inventory: 1,
+        },
+      });
+    }
+
     return property;
   }
 
