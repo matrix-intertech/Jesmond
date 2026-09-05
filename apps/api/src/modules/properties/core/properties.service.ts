@@ -336,9 +336,11 @@ export class PropertiesService {
       throw new BadRequestException('Property must have at least one image before submission.');
     }
 
-    const roomTypeCount = await this.prisma.roomType.count({ where: { propertyId: id } });
-    if (roomTypeCount === 0) {
-      throw new BadRequestException('Property must have at least one room type before submission.');
+    if (property.listingMode === 'MULTI_UNIT') {
+      const roomTypeCount = await this.prisma.roomType.count({ where: { propertyId: id } });
+      if (roomTypeCount === 0) {
+        throw new BadRequestException('Property must have at least one room type before submission.');
+      }
     }
 
     const updated = await this.prisma.property.update({
