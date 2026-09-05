@@ -63,6 +63,76 @@ export class EmailService {
     }
   }
 
+  async sendApplicationApprovalEmail(options: {
+    studentEmail: string;
+    studentName: string;
+    propertyName: string;
+    propertyAddress: string;
+    providerName: string;
+    contactPersonName?: string;
+    contactPhone?: string;
+    contactEmail?: string;
+  }): Promise<boolean> {
+    const contactLines: string[] = [];
+    if (options.contactPersonName) {
+      contactLines.push(`<p style="margin: 4px 0; color: #374151;"><strong>Contact Person:</strong> ${options.contactPersonName}</p>`);
+    }
+    if (options.contactPhone) {
+      contactLines.push(`<p style="margin: 4px 0; color: #374151;"><strong>Phone:</strong> ${options.contactPhone}</p>`);
+    }
+    if (options.contactEmail) {
+      contactLines.push(`<p style="margin: 4px 0; color: #374151;"><strong>Email:</strong> ${options.contactEmail}</p>`);
+    }
+
+    const contactBlock = contactLines.length > 0
+      ? `<div style="margin-top: 16px;">${contactLines.join('')}</div>`
+      : '';
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
+        <h2 style="color: #111827;">Your accommodation application has been approved! 🎉</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Hi ${options.studentName},
+        </p>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Great news! Your accommodation application has been approved.
+          Here are the details of your approved accommodation:
+        </p>
+        <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 24px 0;">
+          <p style="margin: 4px 0; color: #374151;"><strong>Property:</strong> ${options.propertyName}</p>
+          <p style="margin: 4px 0; color: #374151;"><strong>Address:</strong> ${options.propertyAddress}</p>
+          <p style="margin: 8px 0 4px 0; color: #374151;"><strong>Provider:</strong> ${options.providerName}</p>
+          ${contactBlock}
+        </div>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Please reach out to your accommodation provider using the contact details above to coordinate your move-in and next steps.
+        </p>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
+          If you have any questions, please contact us at <a href="mailto:support@jesmond.local" style="color: #4f46e5;">support@jesmond.local</a>.
+        </p>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      this.logger.log(`[DEV MODE] Mock Approval Email sent to ${options.studentEmail} for property "${options.propertyName}".`);
+      return true;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Jesmond" <${this.fromEmail}>`,
+        to: options.studentEmail,
+        subject: `Your accommodation application has been approved - ${options.propertyName}`,
+        html,
+      });
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send approval email to ${options.studentEmail}`, error);
+      return false;
+    }
+  }
+
   async sendPasswordResetOtp(email: string, otp: string): Promise<boolean> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">

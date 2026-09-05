@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../auth/services/email.service';
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(ApplicationsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async createApplication(studentId: string, propertyId: string, roomTypeId: string, moveInDate: string, durationMonths: number) {
     // Verify Property is PUBLISHED
@@ -88,11 +94,41 @@ export class ApplicationsService {
       include: {
         roomType: {
           include: {
-            property: true
-          }
+            property: {
+              include: {
+                organization: {
+                  select: {
+                    id: true,
+                    name: true,
+                    // Prefer admin-role staff as the primary contact; fall back to any active staff
+                    staff: {
+                      where: { deletedAt: null },
+                      orderBy: { createdAt: 'asc' },
+                      select: {
+                        role: true,
+                        user: {
+                          select: {
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+                suburb: {
+                  select: {
+                    name: true,
+                    city: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
         },
-        student: { select: { id: true, firstName: true, lastName: true, email: true } }
-      }
+        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
     });
 
     if (!app) throw new NotFoundException('Application not found');
@@ -154,6 +190,44 @@ export class ApplicationsService {
 
       return { application: updatedApp, lease };
     });
+
+    // Send confirmation email AFTER the transaction has committed successfully.
+    // The email is fire-and-forget: a failure is logged but does NOT roll back the approval.
+    const property = app.roomType.property;
+    const org = property.organization;
+    const suburb = property.suburb;
+
+    // Prefer the org ADMIN-role staff as the contact; fall back to the earliest active staff member.
+    const staffList = org.staff ?? [];
+    const contactStaff =
+      staffList.find((s) => s.role === 'ADMIN')?.user ??
+      staffList[0]?.user;
+
+    // Build a clean address string, omitting blank segments
+    const addressParts = [
+      property.address,
+      suburb?.name,
+      suburb?.city?.name,
+      property.postcode,
+    ].filter((p): p is string => Boolean(p));
+    const propertyAddress = addressParts.join(', ');
+
+    this.emailService
+      .sendApplicationApprovalEmail({
+        studentEmail: app.student.email,
+        studentName: `${app.student.firstName} ${app.student.lastName}`,
+        propertyName: property.name,
+        propertyAddress,
+        providerName: org.name,
+        contactPersonName: contactStaff
+          ? `${contactStaff.firstName} ${contactStaff.lastName}`
+          : undefined,
+        contactEmail: contactStaff?.email ?? undefined,
+        // contactPhone: not populated — no phone field exists on Organization, OrgStaff, or User
+      })
+      .catch((err) =>
+        this.logger.error(`Failed to send approval email for application ${app.id}`, err),
+      );
 
     return result;
   }
