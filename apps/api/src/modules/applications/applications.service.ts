@@ -1,6 +1,28 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { ApplicationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../auth/services/email.service';
+
+const ALLOCATED_STATUSES: readonly ApplicationStatus[] = [
+  ApplicationStatus.APPROVED,
+  ApplicationStatus.LEASE_PENDING,
+  ApplicationStatus.BOOKED,
+];
+
+const CLOSED_STATUSES: readonly ApplicationStatus[] = [
+  ApplicationStatus.WITHDRAWN,
+  ApplicationStatus.CANCELLED,
+  ApplicationStatus.REJECTED,
+  ApplicationStatus.EXPIRED,
+];
+
+const isAllocatedStatus = (status: ApplicationStatus): boolean => {
+  return ALLOCATED_STATUSES.includes(status);
+};
+
+const isClosedStatus = (status: ApplicationStatus): boolean => {
+  return CLOSED_STATUSES.includes(status);
+};
 
 @Injectable()
 export class ApplicationsService {
@@ -283,7 +305,7 @@ export class ApplicationsService {
       throw new NotFoundException('Application not found');
     }
 
-    if (app.status === 'WITHDRAWN' || app.status === 'CANCELLED' || app.status === 'REJECTED') {
+    if (isClosedStatus(app.status)) {
       throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
     }
 
@@ -294,17 +316,17 @@ export class ApplicationsService {
       });
 
       if (!txApp) throw new NotFoundException('Application not found');
-      if (txApp.status === 'WITHDRAWN' || txApp.status === 'CANCELLED' || txApp.status === 'REJECTED') {
+      if (isClosedStatus(txApp.status)) {
         throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
       }
 
-      if (txApp.status === 'APPROVED') {
+      if (isAllocatedStatus(txApp.status)) {
         await tx.roomType.update({
           where: { id: txApp.roomTypeId },
           data: { inventory: { increment: 1 } }
         });
 
-        if (txApp.lease) {
+        if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
           await tx.lease.update({
             where: { id: txApp.lease.id },
             data: { status: 'TERMINATED' }
@@ -337,7 +359,7 @@ export class ApplicationsService {
   async removeStudent(organizationId: string, applicationId: string) {
     const app = await this.getProviderApplication(organizationId, applicationId);
 
-    if (app.status === 'WITHDRAWN' || app.status === 'CANCELLED' || app.status === 'REJECTED') {
+    if (isClosedStatus(app.status)) {
       throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
     }
 
@@ -348,17 +370,17 @@ export class ApplicationsService {
       });
 
       if (!txApp) throw new NotFoundException('Application not found');
-      if (txApp.status === 'WITHDRAWN' || txApp.status === 'CANCELLED' || txApp.status === 'REJECTED') {
+      if (isClosedStatus(txApp.status)) {
         throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
       }
 
-      if (txApp.status === 'APPROVED') {
+      if (isAllocatedStatus(txApp.status)) {
         await tx.roomType.update({
           where: { id: txApp.roomTypeId },
           data: { inventory: { increment: 1 } }
         });
 
-        if (txApp.lease) {
+        if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
           await tx.lease.update({
             where: { id: txApp.lease.id },
             data: { status: 'TERMINATED' }
@@ -387,7 +409,7 @@ export class ApplicationsService {
     const apps = await this.prisma.application.findMany({
       where: {
         roomType: { propertyId },
-        status: { in: ['PENDING_REVIEW', 'APPROVED'] }
+        status: { in: ['PENDING_REVIEW', 'APPROVED', 'LEASE_PENDING', 'BOOKED'] }
       },
       include: {
         lease: true,
@@ -404,17 +426,17 @@ export class ApplicationsService {
         });
 
         if (!txApp) return;
-        if (txApp.status === 'WITHDRAWN' || txApp.status === 'CANCELLED' || txApp.status === 'REJECTED') {
+        if (isClosedStatus(txApp.status)) {
           return; // Already closed
         }
 
-        if (txApp.status === 'APPROVED') {
+        if (isAllocatedStatus(txApp.status)) {
           await tx.roomType.update({
             where: { id: txApp.roomTypeId },
             data: { inventory: { increment: 1 } }
           });
 
-          if (txApp.lease) {
+          if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
             await tx.lease.update({
               where: { id: txApp.lease.id },
               data: { status: 'TERMINATED' }
