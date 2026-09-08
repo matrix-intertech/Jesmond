@@ -106,7 +106,7 @@ test.describe('Retail POS Checkout and Payment Flow Hardening', () => {
     await expect(page.locator('text=Cart is empty')).toBeVisible();
   });
 
-  test('POS Card checkout flow, webhook polling, and simulated success', async ({ page }) => {
+  test('POS Card checkout flow gracefully handles 501 Not Implemented security block', async ({ page }) => {
     // Add Hoodie to cart
     await page.click('text=Jesmond Hoodie');
 
@@ -117,122 +117,29 @@ test.describe('Retail POS Checkout and Payment Flow Hardening', () => {
     await page.click('button:has-text("CARD / EFTPOS")');
     await expect(page.locator('select')).toBeVisible();
 
-    // Mock order creation POST (PENDING status)
+    // Mock order creation POST to return 501 as implemented in the backend security fix
     await page.route('**/api/v1/retail/orders', async (route) => {
       await route.fulfill({
-        status: 200,
+        status: 501,
         contentType: 'application/json',
         body: JSON.stringify({
-          id: 'ord-5678',
-          orderNumber: 'ORD-MOCK-5678',
-          total: 4500,
-          status: 'PENDING',
-          createdAt: new Date().toISOString(),
-          payments: [{ id: 'pay-5678', status: 'PENDING', provider: 'STRIPE', transactionId: 'pi_mock_123' }]
+          statusCode: 501,
+          message: 'Payment provider not configured/implemented in this environment.',
+          error: 'Not Implemented'
         })
       });
     });
 
     // Start payment
     await page.click('button:has-text("Confirm Payment")');
-    await expect(page.locator('text=Waiting for card payment...')).toBeVisible();
 
-    // Mock order status polling GET -> returns completed after webhook simulation
-    await page.route('**/api/v1/retail/orders/ord-5678', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'ord-5678',
-          orderNumber: 'ORD-MOCK-5678',
-          total: 4500,
-          status: 'COMPLETED',
-          createdAt: new Date().toISOString(),
-          payments: [{ id: 'pay-5678', status: 'PAID', provider: 'STRIPE', transactionId: 'pi_mock_123' }]
-        })
-      });
-    });
+    // Assert that the UI gracefully handles the error
+    await expect(page.locator('text=Payment provider not configured/implemented in this environment.')).toBeVisible();
 
-    // Mock webhook simulation endpoint
-    await page.route('**/api/v1/retail/pos/webhooks/stripe', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"status":"SUCCESS"}' });
-    });
+    // Ensure we did NOT progress to the waiting screen
+    await expect(page.locator('text=Waiting for card payment...')).not.toBeVisible();
 
-    // Click trigger success webhook simulation
-    await page.click('button:has-text("Trigger Success Event")');
-
-    // Polling resolves -> shows success screen
-    await expect(page.locator('text=Payment Successful!').first()).toBeVisible();
-    await page.click('button:has-text("New Sale")');
-  });
-
-  test('POS Card checkout flow with simulated failure, retry, and cancellation', async ({ page }) => {
-    // Add Hoodie to cart
-    await page.click('text=Jesmond Hoodie');
-
-    // Open checkout
-    await page.click('button:has-text("Review & Pay")');
-
-    // Select CARD
-    await page.click('button:has-text("CARD / EFTPOS")');
-
-    // Mock order creation POST (PENDING status)
-    await page.route('**/api/v1/retail/orders', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'ord-5678',
-          orderNumber: 'ORD-MOCK-5678',
-          total: 4500,
-          status: 'PENDING',
-          createdAt: new Date().toISOString(),
-          payments: [{ id: 'pay-5678', status: 'PENDING', provider: 'STRIPE', transactionId: 'pi_mock_123' }]
-        })
-      });
-    });
-
-    await page.click('button:has-text("Confirm Payment")');
-    await expect(page.locator('text=Waiting for card payment...')).toBeVisible();
-
-    // Mock order status polling GET -> returns failed payment
-    await page.route('**/api/v1/retail/orders/ord-5678', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: 'ord-5678',
-          orderNumber: 'ORD-MOCK-5678',
-          total: 4500,
-          status: 'PENDING',
-          createdAt: new Date().toISOString(),
-          payments: [{ id: 'pay-5678', status: 'FAILED', provider: 'STRIPE', transactionId: 'pi_mock_123' }]
-        })
-      });
-    });
-
-    // Mock webhook simulation endpoint for failure
-    await page.route('**/api/v1/retail/pos/webhooks/stripe', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"status":"SUCCESS"}' });
-    });
-
-    // Trigger failure simulation
-    await page.click('button:has-text("Trigger Failure Event")');
-
-    // Polling resolves to failure, checks UI shows retry buttons
-    await expect(page.locator('text=Terminal reported card transaction failure.')).toBeVisible();
-    await expect(page.locator('button:has-text("Retry Payment")')).toBeVisible();
-
-    // Mock cancel order POST
-    await page.route('**/api/v1/retail/orders/ord-5678/cancel', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '{"status":"CANCELLED"}' });
-    });
-
-    // Click cancel checkout
+    // Close checkout
     await page.click('button:has-text("Close / Cancel")');
-    
-    // Checkout modal should close and cart items must remain intact
-    await expect(page.locator('text=Amount Due')).not.toBeVisible();
-    await expect(page.getByText('$45.00')).toBeVisible();
   });
 });

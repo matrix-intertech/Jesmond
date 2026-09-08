@@ -129,12 +129,12 @@ export default function StudentDashboardPage() {
           {rejectedCount > 0 && <StatCard label="Rejected" value={rejectedCount} />}
         </div>
 
-        <h2 className="text-xl font-bold text-brand-navy mb-6 font-outfit">My Applications</h2>
+        <h2 id="applications" className="text-xl font-bold text-brand-navy mb-6 font-outfit scroll-mt-24">My Applications</h2>
 
         {applications.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border p-8">
-            <EmptyState 
-              title="No applications yet" 
+            <EmptyState
+              title="No applications yet"
               description="When you apply for a room, it will appear here."
               action={{ label: "Find Accommodation", href: "/search" }}
             />

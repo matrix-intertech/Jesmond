@@ -152,25 +152,31 @@ export class ApplicationsService {
       throw new BadRequestException('Cannot approve application for unpublished property.');
     }
 
-    // 2. Atomic Inventory Decrement
-    // Uses updateMany to ensure atomic concurrency-safety where inventory > 0
-    const updateResult = await this.prisma.roomType.updateMany({
-      where: {
-        id: app.roomType.id,
-        inventory: { gt: 0 }
-      },
-      data: {
-        inventory: { decrement: 1 }
-      }
-    });
-
-    if (updateResult.count === 0) {
-      throw new BadRequestException('This room is currently out of stock. Cannot approve application.');
-    }
-
-    // 3. Create Lease and Update Status
-    // We use a transaction for the remaining updates since inventory is safely secured
+    // Atomic Inventory Decrement and Lease Creation
     const result = await this.prisma.$transaction(async (tx) => {
+      // Re-fetch inside transaction to ensure we have the absolute latest status
+      const txApp = await tx.application.findUnique({
+        where: { id: app.id },
+      });
+
+      if (!txApp || txApp.status !== 'PENDING_REVIEW') {
+        throw new BadRequestException('Application is no longer in PENDING_REVIEW state.');
+      }
+
+      const updateResult = await tx.roomType.updateMany({
+        where: {
+          id: app.roomType.id,
+          inventory: { gt: 0 }
+        },
+        data: {
+          inventory: { decrement: 1 }
+        }
+      });
+
+      if (updateResult.count === 0) {
+        throw new BadRequestException('This room is currently out of stock. Cannot approve application.');
+      }
+
       const endDate = new Date(app.moveInDate);
       endDate.setMonth(endDate.getMonth() + app.durationMonths);
 
@@ -282,22 +288,32 @@ export class ApplicationsService {
     }
 
     const updatedApp = await this.prisma.$transaction(async (tx) => {
-      if (app.status === 'APPROVED') {
+      const txApp = await tx.application.findUnique({
+        where: { id: app.id },
+        include: { lease: true }
+      });
+
+      if (!txApp) throw new NotFoundException('Application not found');
+      if (txApp.status === 'WITHDRAWN' || txApp.status === 'CANCELLED' || txApp.status === 'REJECTED') {
+        throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+      }
+
+      if (txApp.status === 'APPROVED') {
         await tx.roomType.update({
-          where: { id: app.roomTypeId },
+          where: { id: txApp.roomTypeId },
           data: { inventory: { increment: 1 } }
         });
 
-        if (app.lease) {
+        if (txApp.lease) {
           await tx.lease.update({
-            where: { id: app.lease.id },
+            where: { id: txApp.lease.id },
             data: { status: 'TERMINATED' }
           });
         }
       }
 
       return tx.application.update({
-        where: { id: app.id },
+        where: { id: txApp.id },
         data: { status: 'WITHDRAWN' }
       });
     });
@@ -326,22 +342,32 @@ export class ApplicationsService {
     }
 
     const updatedApp = await this.prisma.$transaction(async (tx) => {
-      if (app.status === 'APPROVED') {
+      const txApp = await tx.application.findUnique({
+        where: { id: app.id },
+        include: { lease: true }
+      });
+
+      if (!txApp) throw new NotFoundException('Application not found');
+      if (txApp.status === 'WITHDRAWN' || txApp.status === 'CANCELLED' || txApp.status === 'REJECTED') {
+        throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+      }
+
+      if (txApp.status === 'APPROVED') {
         await tx.roomType.update({
-          where: { id: app.roomTypeId },
+          where: { id: txApp.roomTypeId },
           data: { inventory: { increment: 1 } }
         });
 
-        if (app.lease) {
+        if (txApp.lease) {
           await tx.lease.update({
-            where: { id: app.lease.id },
+            where: { id: txApp.lease.id },
             data: { status: 'TERMINATED' }
           });
         }
       }
 
       return tx.application.update({
-        where: { id: app.id },
+        where: { id: txApp.id },
         data: { status: 'CANCELLED' }
       });
     });
@@ -372,22 +398,32 @@ export class ApplicationsService {
 
     for (const app of apps) {
       await this.prisma.$transaction(async (tx) => {
-        if (app.status === 'APPROVED') {
+        const txApp = await tx.application.findUnique({
+          where: { id: app.id },
+          include: { lease: true }
+        });
+
+        if (!txApp) return;
+        if (txApp.status === 'WITHDRAWN' || txApp.status === 'CANCELLED' || txApp.status === 'REJECTED') {
+          return; // Already closed
+        }
+
+        if (txApp.status === 'APPROVED') {
           await tx.roomType.update({
-            where: { id: app.roomTypeId },
+            where: { id: txApp.roomTypeId },
             data: { inventory: { increment: 1 } }
           });
 
-          if (app.lease) {
+          if (txApp.lease) {
             await tx.lease.update({
-              where: { id: app.lease.id },
+              where: { id: txApp.lease.id },
               data: { status: 'TERMINATED' }
             });
           }
         }
 
         await tx.application.update({
-          where: { id: app.id },
+          where: { id: txApp.id },
           data: { status: 'CANCELLED' }
         });
       });

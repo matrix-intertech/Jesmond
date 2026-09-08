@@ -1,5 +1,6 @@
 import { BasePosConnector } from './base.connector';
 import { PosConnectorCapabilities, PaymentIntent, PaymentResult } from '../pos-connector.interface';
+import { NotImplementedException } from '@nestjs/common';
 
 export class TyroConnector extends BasePosConnector {
   getCapabilities(): PosConnectorCapabilities {
@@ -15,12 +16,7 @@ export class TyroConnector extends BasePosConnector {
   }
 
   verifyWebhookSignature(request: { headers: any; body: any; rawBody?: Buffer }, secret: string): boolean {
-    // LIMITATION: Tyro integration contract is a structural design stub without direct SDK binding in this codebase.
-    // Standard Tyro API uses a shared secret HMAC verification, but since no Tyro client library is configured
-    // and full Tyro credentials schemas are absent from the model layer, we default to returning true
-    // to allow sandbox terminal simulations to function under local test contexts.
-    // In production, this must be integrated with the Tyro REST API signature schema.
-    return true;
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 
   parseWebhookEvent(payload: any): { eventId: string; type: string; data: any } {
@@ -32,25 +28,14 @@ export class TyroConnector extends BasePosConnector {
   }
 
   async pairTerminal(organizationId: string, providerTerminalId: string): Promise<boolean> {
-    // Official Tyro pairing flow requires initiating a pairing request from POS and confirming on terminal
-    console.log(`[Tyro] Initiating pairing for terminal ${providerTerminalId}`);
-    return true;
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 
   async initiatePayment(organizationId: string, intent: PaymentIntent): Promise<PaymentResult> {
-    // Call Tyro Connect API to initiate payment
-    console.log(`[Tyro] Initiating payment ${intent.internalPaymentIntentId} for ${intent.amount}`);
-    return {
-      status: 'PENDING',
-      providerTransactionId: `tyro_txn_${Date.now()}`
-    };
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 
   async refundPayment(organizationId: string, providerTransactionId: string, amount: number): Promise<PaymentResult> {
-    console.log(`[Tyro] Refunding ${amount} for txn ${providerTransactionId}`);
-    return {
-      status: 'PENDING',
-      providerTransactionId: `tyro_ref_${Date.now()}`
-    };
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 }

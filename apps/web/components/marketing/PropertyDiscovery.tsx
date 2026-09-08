@@ -141,7 +141,7 @@ export function PropertyDiscovery() {
               </div>
 
               {/* Quick Discovery Tabs */}
-              <div className="flex gap-1.5 p-1 bg-slate-200/50 rounded-full border border-slate-200 w-fit shrink-0">
+              <div className="flex gap-1.5 p-1 bg-slate-200/50 rounded-full border border-slate-200 w-full overflow-x-auto hide-scrollbar sm:w-fit shrink-0">
                 <button
                   onClick={() => { setActiveTab('top_rated'); setAppliedBounds(null); }}
                   className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'top_rated' ? 'bg-white text-brand-navy font-semibold' : 'text-slate-500 hover:text-brand-navy font-medium'}`}

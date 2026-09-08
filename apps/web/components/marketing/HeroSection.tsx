@@ -7,7 +7,7 @@ import { HeroSearchBar } from "./HeroSearchBar";
 export function HeroSection() {
   return (
     <section className="relative w-full min-h-[600px] lg:h-[720px] flex flex-col justify-center pb-24 lg:pb-0 pt-24 mt-16">
-      
+
       {/* 1. FULL-BLEED BACKGROUND IMAGE */}
       <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
         <Image
@@ -26,7 +26,7 @@ export function HeroSection() {
       {/* 3. CONTENT OVERLAY */}
       <div className="relative z-20 w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 pt-8 pb-16">
         <div className="grid grid-cols-12 gap-8 items-end">
-          
+
           {/* Left Side: Typography & Metrics */}
           <div className="col-span-12 lg:col-span-8 flex flex-col items-start text-left">
             <motion.div
@@ -39,17 +39,17 @@ export function HeroSection() {
               </h2>
             </motion.div>
 
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="text-[3rem] sm:text-[4rem] lg:text-[5rem] font-bold text-white tracking-tight leading-[1.05] mb-6 max-w-3xl drop-shadow-lg"
+              className="text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold text-white tracking-tight leading-[1.05] mb-6 max-w-3xl drop-shadow-lg"
               style={{ fontFamily: 'var(--font-outfit)' }}
             >
               Find your perfect student home.
             </motion.h1>
 
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -59,7 +59,7 @@ export function HeroSection() {
             </motion.p>
 
             {/* Trust Metrics */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.4 }}
@@ -82,7 +82,7 @@ export function HeroSection() {
 
           {/* Right Side: Badges */}
           <div className="col-span-12 lg:col-span-4 flex flex-col items-start lg:items-end justify-end gap-3 pb-2 pt-8 lg:pt-0">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}

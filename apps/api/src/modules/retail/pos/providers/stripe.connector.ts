@@ -1,5 +1,6 @@
 import { BasePosConnector } from './base.connector';
 import { PosConnectorCapabilities, PaymentIntent, PaymentResult } from '../pos-connector.interface';
+import { NotImplementedException } from '@nestjs/common';
 
 import Stripe from 'stripe';
 
@@ -17,20 +18,7 @@ export class StripeConnector extends BasePosConnector {
   }
 
   verifyWebhookSignature(request: { headers: any; body: any; rawBody?: Buffer }, secret: string): boolean {
-    const sig = request.headers['stripe-signature'];
-    if (!sig) return false;
-    if (!request.rawBody) return false;
-
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'mock-stripe-key', {
-      apiVersion: '2022-11-15' as any,
-    });
-
-    try {
-      stripe.webhooks.constructEvent(request.rawBody, sig, secret);
-      return true;
-    } catch (err) {
-      return false;
-    }
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 
   parseWebhookEvent(payload: any): { eventId: string; type: string; data: any } {
@@ -42,25 +30,14 @@ export class StripeConnector extends BasePosConnector {
   }
 
   async pairTerminal(organizationId: string, providerTerminalId: string): Promise<boolean> {
-    // Generate Stripe Terminal pairing code
-    console.log(`[Stripe] Requesting connection token for terminal ${providerTerminalId}`);
-    return true;
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 
   async initiatePayment(organizationId: string, intent: PaymentIntent): Promise<PaymentResult> {
-    // Call Stripe PaymentIntent API with terminal reader
-    console.log(`[Stripe] Creating PaymentIntent ${intent.internalPaymentIntentId} for ${intent.amount}`);
-    return {
-      status: 'PENDING',
-      providerTransactionId: `pi_${Date.now()}`
-    };
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 
   async refundPayment(organizationId: string, providerTransactionId: string, amount: number): Promise<PaymentResult> {
-    console.log(`[Stripe] Refunding ${amount} for pi ${providerTransactionId}`);
-    return {
-      status: 'PENDING',
-      providerTransactionId: `re_${Date.now()}`
-    };
+    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
   }
 }

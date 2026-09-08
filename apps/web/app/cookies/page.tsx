@@ -1,20 +1,44 @@
-import { GlobalNav } from "../../components/marketing/GlobalNav";
-import { EditorialFooter } from "../../components/marketing/EditorialFooter";
+import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
+
+export const metadata = {
+  title: "Cookies Policy | Jesmond",
+  description: "How Jesmond uses cookies and tracking technologies.",
+};
 
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <GlobalNav />
-      <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-32 min-h-[70vh] flex flex-col justify-center items-center text-center">
-        <h1 className="text-4xl md:text-5xl font-medium text-brand-navy mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
-          Cookies
-        </h1>
-        <p className="text-lg text-slate-500 max-w-2xl mb-8">
-          This section is currently being updated. Please check back later for full details.
-        </p>
-        <div className="w-16 h-1 bg-brand-orange/100 mx-auto rounded-full"></div>
-      </main>
-      <EditorialFooter />
-    </div>
+    <StaticPageLayout
+      title="Cookies Policy"
+      subtitle="Last updated: October 1, 2024"
+    >
+      <h2>1. What Are Cookies?</h2>
+      <p>
+        Cookies are small text files that are placed on your computer or mobile device when you visit a website. They are widely used to make websites work, or work more efficiently, as well as to provide reporting information.
+      </p>
+
+      <h2>2. How We Use Cookies</h2>
+      <p>
+        Jesmond uses cookies for several reasons:
+      </p>
+      <ul>
+        <li><strong>Essential Cookies:</strong> These are strictly necessary to provide you with the core functionality of our platform, such as logging into secure areas or processing applications.</li>
+        <li><strong>Performance and Analytics Cookies:</strong> These help us understand how visitors interact with our platform by collecting and reporting information anonymously (e.g., Google Analytics).</li>
+        <li><strong>Functionality Cookies:</strong> These allow the platform to remember choices you make (such as your user name, language, or the region you are in) and provide enhanced, more personal features.</li>
+      </ul>
+
+      <h2>3. Third-Party Cookies</h2>
+      <p>
+        In some special cases, we also use cookies provided by trusted third parties. For example, we use third-party payment gateways (like Stripe) that may set cookies to process your payments securely.
+      </p>
+
+      <h2>4. Managing Cookies</h2>
+      <p>
+        You have the right to decide whether to accept or reject cookies. You can set or amend your web browser controls to accept or refuse cookies. If you choose to reject cookies, you may still use our platform though your access to some functionality and areas may be restricted.
+      </p>
+
+      <p>
+        For more detailed information on how to control cookies, please visit the help or settings menu of your specific browser.
+      </p>
+    </StaticPageLayout>
   );
 }

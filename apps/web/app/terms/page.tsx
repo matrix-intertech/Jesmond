@@ -1,20 +1,45 @@
-import { GlobalNav } from "../../components/marketing/GlobalNav";
-import { EditorialFooter } from "../../components/marketing/EditorialFooter";
+import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
-export default function Page() {
+export const metadata = {
+  title: "Terms of Service | Jesmond",
+  description: "Terms and conditions for using the Jesmond platform.",
+};
+
+export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <GlobalNav />
-      <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-32 min-h-[70vh] flex flex-col justify-center items-center text-center">
-        <h1 className="text-4xl md:text-5xl font-medium text-brand-navy mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
-          Terms of Service
-        </h1>
-        <p className="text-lg text-slate-500 max-w-2xl mb-8">
-          Discover comprehensive resources and essential information tailored for the Jesmond community. Explore our latest updates and detailed policies.
-        </p>
-        <div className="w-16 h-1 bg-brand-orange/100 mx-auto rounded-full"></div>
-      </main>
-      <EditorialFooter />
-    </div>
+    <StaticPageLayout
+      title="Terms of Service"
+      subtitle="Last updated: October 1, 2024"
+    >
+      <h2>1. Acceptance of Terms</h2>
+      <p>
+        By accessing and using the Jesmond platform ("Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Platform.
+      </p>
+
+      <h2>2. Description of Service</h2>
+      <p>
+        Jesmond provides a marketplace platform connecting verified student accommodation providers ("Providers") with students looking for housing ("Students"). Jesmond is not a real estate agent or a property manager. We simply facilitate the connection and application process.
+      </p>
+
+      <h2>3. User Accounts</h2>
+      <p>
+        To access certain features of the Platform, you must register for an account. You agree to provide accurate, current, and complete information during the registration process and to update such information to keep it accurate, current, and complete. You are responsible for safeguarding your password.
+      </p>
+
+      <h2>4. Booking and Applications</h2>
+      <p>
+        Submitting an application through the Platform does not guarantee a room. Providers retain the right to review and accept or reject applications based on their own criteria. Jesmond does not dictate the lease terms, which are agreed upon directly between the Student and the Provider.
+      </p>
+
+      <h2>5. Provider Responsibilities</h2>
+      <p>
+        Providers agree to ensure all listings are accurate, up-to-date, and comply with all applicable Australian state and federal laws, including consumer protection and residential tenancy laws.
+      </p>
+
+      <h2>6. Limitation of Liability</h2>
+      <p>
+        To the maximum extent permitted by law, Jesmond shall not be liable for any indirect, incidental, special, consequential or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, good-will, or other intangible losses, resulting from your access to or use of or inability to access or use the Platform.
+      </p>
+    </StaticPageLayout>
   );
 }

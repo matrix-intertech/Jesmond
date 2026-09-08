@@ -1,20 +1,48 @@
-import { GlobalNav } from "../../components/marketing/GlobalNav";
-import { EditorialFooter } from "../../components/marketing/EditorialFooter";
+import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
-export default function Page() {
+export const metadata = {
+  title: "Contact Us | Jesmond",
+  description: "Get in touch with the Jesmond team.",
+};
+
+export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <GlobalNav />
-      <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-32 min-h-[70vh] flex flex-col justify-center items-center text-center">
-        <h1 className="text-4xl md:text-5xl font-medium text-brand-navy mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
-          Contact Us
-        </h1>
-        <p className="text-lg text-slate-500 max-w-2xl mb-8">
-          Discover comprehensive resources and essential information tailored for the Jesmond community. Explore our latest updates and detailed policies.
-        </p>
-        <div className="w-16 h-1 bg-brand-orange/100 mx-auto rounded-full"></div>
-      </main>
-      <EditorialFooter />
-    </div>
+    <StaticPageLayout
+      title="Get in Touch"
+      subtitle="We're here to help you with any questions or support you need."
+    >
+      <h2>Student Support</h2>
+      <p>
+        If you are a student looking for help with an application, finding a room, or managing your account:
+      </p>
+      <ul>
+        <li>Email: students@jesmond.com.au</li>
+        <li>Phone: +61 2 8000 0000</li>
+        <li>Hours: Monday – Friday, 9:00 AM – 5:00 PM (AEST)</li>
+      </ul>
+
+      <h2>Provider Support</h2>
+      <p>
+        If you are an accommodation provider, property manager, or real estate agent looking to list properties or manage your portal:
+      </p>
+      <ul>
+        <li>Email: partners@jesmond.com.au</li>
+        <li>Phone: +61 2 8000 0001</li>
+        <li>Hours: Monday – Friday, 8:30 AM – 6:00 PM (AEST)</li>
+      </ul>
+
+      <h2>Head Office</h2>
+      <p>
+        <strong>Jesmond Australia Pty Ltd</strong><br />
+        Level 10, 100 Harris Street<br />
+        Pyrmont NSW 2009<br />
+        Australia
+      </p>
+
+      <h2>Press & Media</h2>
+      <p>
+        For all media inquiries, please contact our PR team at media@jesmond.com.au.
+      </p>
+    </StaticPageLayout>
   );
 }

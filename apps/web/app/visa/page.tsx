@@ -1,20 +1,43 @@
-import { GlobalNav } from "../../components/marketing/GlobalNav";
-import { EditorialFooter } from "../../components/marketing/EditorialFooter";
+import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
-export default function Page() {
+export const metadata = {
+  title: "Student Visa Resources | Jesmond",
+  description: "Information about the Subclass 500 Student Visa for Australia.",
+};
+
+export default function VisaPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <GlobalNav />
-      <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-32 min-h-[70vh] flex flex-col justify-center items-center text-center">
-        <h1 className="text-4xl md:text-5xl font-medium text-brand-navy mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
-          Visa Information
-        </h1>
-        <p className="text-lg text-slate-500 max-w-2xl mb-8">
-          Discover comprehensive resources and essential information tailored for the Jesmond community. Explore our latest updates and detailed policies.
-        </p>
-        <div className="w-16 h-1 bg-brand-orange/100 mx-auto rounded-full"></div>
-      </main>
-      <EditorialFooter />
-    </div>
+    <StaticPageLayout
+      title="Student Visa Resources"
+      subtitle="Understand the basics of the Australian Student Visa (Subclass 500)."
+    >
+      <h2>The Subclass 500 Visa</h2>
+      <p>
+        To study in Australia, you will need to apply for a Student Visa (Subclass 500). This visa allows you to live, work, and study in Australia for up to 5 years in line with your enrollment.
+      </p>
+
+      <h2>Key Requirements</h2>
+      <ul>
+        <li><strong>Confirmation of Enrollment (CoE):</strong> You must have a CoE from an Australian education provider before applying.</li>
+        <li><strong>Genuine Student (GS) Requirement:</strong> You must prove you are coming to Australia temporarily to gain a quality education.</li>
+        <li><strong>English Language Proficiency:</strong> You may need to provide evidence of your English language skills (e.g., IELTS, TOEFL).</li>
+        <li><strong>Financial Capacity:</strong> You must show you have enough money to cover your travel, tuition, and living expenses.</li>
+        <li><strong>Health and Character:</strong> You must meet the health and character requirements, which includes holding Overseas Student Health Cover (OSHC).</li>
+      </ul>
+
+      <h2>Work Rights</h2>
+      <p>
+        Once your course has commenced, the Student Visa generally allows you to work up to <strong>48 hours per fortnight</strong> while your course is in session, and unlimited hours during recognized course breaks.
+      </p>
+
+      <h2>Official Resources</h2>
+      <p>
+        Always rely on the official Australian Government Department of Home Affairs website for the most accurate and up-to-date visa information.
+      </p>
+      <ul>
+        <li><a href="https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500" target="_blank" rel="noopener noreferrer">Department of Home Affairs - Subclass 500</a></li>
+        <li><a href="https://www.studyaustralia.gov.au/" target="_blank" rel="noopener noreferrer">Study Australia</a></li>
+      </ul>
+    </StaticPageLayout>
   );
 }

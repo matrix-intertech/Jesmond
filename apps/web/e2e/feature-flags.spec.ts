@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { prisma } from '@jesmond/db';
-
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { prisma } = require('@jesmond/db');
 test.describe('Feature Flags functionality', () => {
   // Ensure the flags are reset to enabled after tests
   test.afterAll(async () => {

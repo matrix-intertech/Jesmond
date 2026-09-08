@@ -30,7 +30,7 @@ export function TrustExperience() {
   return (
     <section className="relative w-full py-24 lg:py-32 bg-white">
       <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16">
-        
+
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-20">
           <motion.div
@@ -42,11 +42,11 @@ export function TrustExperience() {
             <h2 className="text-brand-orange font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
               Built for students
             </h2>
-            <h3 className="text-[2.5rem] lg:text-[3.5rem] font-bold text-brand-navy tracking-tight leading-[1.1] mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <h3 className="text-3xl sm:text-[2.5rem] lg:text-[3.5rem] font-bold text-brand-navy tracking-tight leading-[1.1] mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
               Backed by certainty.
             </h3>
             <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
-              Moving to a new city is stressful enough. Booking your accommodation shouldn't be. 
+              Moving to a new city is stressful enough. Booking your accommodation shouldn't be.
               We've built Australia's most trusted student housing platform.
             </p>
           </motion.div>
@@ -55,7 +55,7 @@ export function TrustExperience() {
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {TRUST_PILLARS.map((feature, idx) => (
-            <motion.div 
+            <motion.div
               key={idx}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -84,7 +84,7 @@ export function TrustExperience() {
         >
           {/* Subtle background decoration */}
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-          
+
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center md:text-left divide-x divide-white/10">
             <div className="px-4">
               <p className="text-4xl lg:text-5xl font-bold text-white mb-2">18k+</p>

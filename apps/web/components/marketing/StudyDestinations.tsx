@@ -63,24 +63,24 @@ export function StudyDestinations() {
 
   return (
     <section className="w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-32 bg-white">
-      
+
       {/* Premium Typography Header */}
       <div className="mb-16 max-w-3xl">
-        <h2 
-          className="text-[2.5rem] lg:text-[4rem] font-medium text-brand-navy tracking-[-0.04em] leading-[1.05] mb-6"
+        <h2
+          className="text-3xl sm:text-[2.5rem] lg:text-[4rem] font-medium text-brand-navy tracking-[-0.04em] leading-[1.05] mb-6"
           style={{ fontFamily: 'var(--font-outfit)' }}
         >
           Where do you actually <br className="hidden md:block" /> want to study?
         </h2>
         <p className="text-xl text-slate-500 font-light leading-relaxed">
-          Explore Australia's premier student cities. 
+          Explore Australia's premier student cities.
           Discover the perfect balance of world-class education, affordability, and lifestyle.
         </p>
       </div>
 
       {/* Split Panel Progressive Disclosure */}
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 min-h-[700px]">
-        
+
         {/* Left Column: Vertical City Index */}
         <div className="w-full lg:w-1/3 flex flex-col gap-2 relative z-10">
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 px-4">
@@ -93,8 +93,8 @@ export function StudyDestinations() {
                 key={dest.slug}
                 onClick={() => setActiveDest(dest)}
                 className={`relative w-full text-left p-6 rounded-xl transition-all duration-300 group ${
-                  isActive 
-                    ? "bg-brand-navy text-white shadow-xl shadow-brand-navy/10" 
+                  isActive
+                    ? "bg-brand-navy text-white shadow-xl shadow-brand-navy/10"
                     : "bg-transparent text-slate-500 hover:bg-surface-muted"
                 }`}
               >
@@ -118,7 +118,7 @@ export function StudyDestinations() {
 
         {/* Right Column: Immersive Destination Data (The Reveal) */}
         <div className="w-full lg:w-2/3 relative rounded-[24px] overflow-hidden bg-brand-navy shadow-2xl flex flex-col justify-end">
-          
+
           <AnimatePresence mode="wait">
             <motion.div
               key={activeDest.slug}
@@ -128,7 +128,7 @@ export function StudyDestinations() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="absolute inset-0 z-0"
             >
-              <Image 
+              <Image
                 src={activeDest.image}
                 alt={`${activeDest.city} Cityscape`}
                 fill
@@ -159,7 +159,7 @@ export function StudyDestinations() {
                     </span>
                   ))}
                 </div>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-brand-navy/60 backdrop-blur-xl border border-white/10 p-4 rounded-xl">
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Student Pop.</p>
@@ -188,11 +188,11 @@ export function StudyDestinations() {
                     Explore City <span aria-hidden="true">&rarr;</span>
                   </Link>
                 </div>
-                
+
                 <div className="flex flex-col gap-3">
                   {activeDest.universities.map((uni) => (
-                    <Link 
-                      key={uni.slug} 
+                    <Link
+                      key={uni.slug}
                       href={`/universities/${uni.slug}`}
                       className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-indigo-200 hover:bg-brand-orange/10/50 transition-colors"
                     >
@@ -200,7 +200,7 @@ export function StudyDestinations() {
                         <p className="font-semibold text-brand-navy group-hover:text-indigo-900 transition-colors">{uni.name}</p>
                         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{uni.props} verified properties</p>
                       </div>
-                      
+
                       <div className="flex items-center gap-6">
                         <div className="text-right">
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avg Rent</p>
@@ -224,7 +224,7 @@ export function StudyDestinations() {
 
         </div>
       </div>
-      
+
     </section>
   );
 }
