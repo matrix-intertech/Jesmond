@@ -9,10 +9,27 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ stateSlug: string, citySlug: string }> }) {
   const { stateSlug, citySlug } = await params;
-  const city = await prisma.city.findFirst({
-    where: { normalizedName: citySlug, state: { normalizedName: stateSlug } },
-    include: { state: true }
+  const state = await prisma.state.findFirst({
+    where: {
+      OR: [
+        { normalizedName: stateSlug },
+        { normalizedName: stateSlug.replace(/-/g, ' ') },
+        { name: { equals: stateSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+      ]
+    }
   });
+
+  const city = state ? await prisma.city.findFirst({
+    where: {
+      stateId: state.id,
+      OR: [
+        { normalizedName: citySlug },
+        { normalizedName: citySlug.replace(/-/g, ' ') },
+        { name: { equals: citySlug.replace(/-/g, ' '), mode: 'insensitive' } }
+      ]
+    },
+    include: { state: true }
+  }) : null;
 
   if (!city) return { title: "City Not Found" };
 
@@ -28,24 +45,39 @@ export default async function CityPage({ params }: { params: Promise<{ stateSlug
   let error = false;
 
   try {
-    // Attempt exact lookup first
-    city = await prisma.city.findFirst({
+    const state = await prisma.state.findFirst({
       where: {
-        normalizedName: citySlug,
-        state: { normalizedName: stateSlug }
-      },
-      include: {
-        state: true,
-        suburbs: {
-          include: {
-            _count: {
-              select: { properties: true }
-            }
-          },
-          orderBy: { name: 'asc' }
-        }
+        OR: [
+          { normalizedName: stateSlug },
+          { normalizedName: stateSlug.replace(/-/g, ' ') },
+          { name: { equals: stateSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+        ]
       }
     });
+
+    if (state) {
+      city = await prisma.city.findFirst({
+        where: {
+          stateId: state.id,
+          OR: [
+            { normalizedName: citySlug },
+            { normalizedName: citySlug.replace(/-/g, ' ') },
+            { name: { equals: citySlug.replace(/-/g, ' '), mode: 'insensitive' } }
+          ]
+        },
+        include: {
+          state: true,
+          suburbs: {
+            include: {
+              _count: {
+                select: { properties: true }
+              }
+            },
+            orderBy: { name: 'asc' }
+          }
+        }
+      });
+    }
 
     // Fallback logic
     if (!city) {

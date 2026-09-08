@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 const HUBS = [
   {
@@ -169,12 +170,15 @@ export function MapPreviewSection() {
                     </div>
                   </div>
 
-                  <button className="bg-brand-orange hover:bg-orange-600 text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0">
+                  <Link
+                    href={`/cities/${activeHub.id}`}
+                    className="bg-brand-orange hover:bg-orange-600 text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0"
+                  >
                     Explore {activeHub.name}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
-                  </button>
+                  </Link>
                 </div>
               </motion.div>
             </AnimatePresence>

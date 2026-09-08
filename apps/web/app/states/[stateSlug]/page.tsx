@@ -11,7 +11,13 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ stateSlug: string }> }) {
   const { stateSlug } = await params;
   const state = await prisma.state.findFirst({
-    where: { normalizedName: stateSlug }
+    where: {
+      OR: [
+        { normalizedName: stateSlug },
+        { normalizedName: stateSlug.replace(/-/g, ' ') },
+        { name: { equals: stateSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+      ]
+    }
   });
 
   if (!state) return { title: "State Not Found" };
@@ -36,7 +42,11 @@ export default async function StatePage({ params }: { params: Promise<{ stateSlu
   try {
     state = await prisma.state.findFirst({
       where: {
-        normalizedName: stateSlug
+        OR: [
+          { normalizedName: stateSlug },
+          { normalizedName: stateSlug.replace(/-/g, ' ') },
+          { name: { equals: stateSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+        ]
       },
       include: {
         cities: {

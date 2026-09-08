@@ -11,14 +11,38 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ stateSlug: string, citySlug: string, suburbSlug: string }> }) {
   const { stateSlug, citySlug, suburbSlug } = await params;
-  const suburb = await prisma.suburb.findFirst({
+  const state = await prisma.state.findFirst({
     where: {
-      normalizedName: suburbSlug,
-      city: { normalizedName: citySlug },
-      state: { normalizedName: stateSlug }
+      OR: [
+        { normalizedName: stateSlug },
+        { normalizedName: stateSlug.replace(/-/g, ' ') },
+        { name: { equals: stateSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+      ]
+    }
+  });
+
+  const city = state ? await prisma.city.findFirst({
+    where: {
+      stateId: state.id,
+      OR: [
+        { normalizedName: citySlug },
+        { normalizedName: citySlug.replace(/-/g, ' ') },
+        { name: { equals: citySlug.replace(/-/g, ' '), mode: 'insensitive' } }
+      ]
+    }
+  }) : null;
+
+  const suburb = city ? await prisma.suburb.findFirst({
+    where: {
+      cityId: city.id,
+      OR: [
+        { normalizedName: suburbSlug },
+        { normalizedName: suburbSlug.replace(/-/g, ' ') },
+        { name: { equals: suburbSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+      ]
     },
     include: { city: true, state: true }
-  });
+  }) : null;
 
   if (!suburb) return { title: "Suburb Not Found" };
 
@@ -35,15 +59,40 @@ export default async function SuburbPage({ params }: { params: Promise<{ stateSl
   let error = false;
 
   try {
-    // Attempt exact lookup first
-    suburb = await prisma.suburb.findFirst({
+    const state = await prisma.state.findFirst({
       where: {
-        normalizedName: suburbSlug,
-        city: { normalizedName: citySlug },
-        state: { normalizedName: stateSlug }
-      },
-      include: { city: true, state: true }
+        OR: [
+          { normalizedName: stateSlug },
+          { normalizedName: stateSlug.replace(/-/g, ' ') },
+          { name: { equals: stateSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+        ]
+      }
     });
+
+    const city = state ? await prisma.city.findFirst({
+      where: {
+        stateId: state.id,
+        OR: [
+          { normalizedName: citySlug },
+          { normalizedName: citySlug.replace(/-/g, ' ') },
+          { name: { equals: citySlug.replace(/-/g, ' '), mode: 'insensitive' } }
+        ]
+      }
+    }) : null;
+
+    if (city) {
+      suburb = await prisma.suburb.findFirst({
+        where: {
+          cityId: city.id,
+          OR: [
+            { normalizedName: suburbSlug },
+            { normalizedName: suburbSlug.replace(/-/g, ' ') },
+            { name: { equals: suburbSlug.replace(/-/g, ' '), mode: 'insensitive' } }
+          ]
+        },
+        include: { city: true, state: true }
+      });
+    }
 
     // Fallback logic
     if (!suburb) {
