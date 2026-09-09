@@ -8,8 +8,9 @@ import { CustomersModule } from './customers/customers.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PosModule } from './pos/pos.module';
+import { EmployeesModule } from './employees/employees.module';
 
 @Module({
-  imports: [BusinessesModule, BranchesModule, TerminalsModule, CatalogModule, InventoryModule, CustomersModule, OrdersModule, PaymentsModule, PosModule]
+  imports: [BusinessesModule, BranchesModule, TerminalsModule, CatalogModule, InventoryModule, CustomersModule, OrdersModule, PaymentsModule, PosModule, EmployeesModule]
 })
 export class RetailModule {}

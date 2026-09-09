@@ -165,12 +165,16 @@ model OrgStaff {
   role        UserRole @default(ORG_STAFF)
   permissions String[] // Granular permissions e.g., ["property:read"]
 
+  retailBranchId String?
+  retailBranch   RetailBranch? @relation(fields: [retailBranchId], references: [id])
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@unique([userId, organizationId])
   @@index([organizationId])
+  @@index([retailBranchId])
 }
 
 model Property {
@@ -923,6 +927,7 @@ model RetailBranch {
   movements      InventoryMovement[]
   orders         SalesOrder[]
   syncJobs       PosSyncJob[]
+  staff          OrgStaff[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

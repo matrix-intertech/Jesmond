@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -26,5 +26,37 @@ export class BranchesController {
       throw new ForbiddenException('Organization context is required to access retail branches');
     }
     return this.branchesService.getBranch(req.user.organizationId, id);
+  }
+
+  @Post()
+  async createBranch(@Request() req: any, @Body() body: any) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required');
+    }
+    return this.branchesService.createBranch(req.user.organizationId, body);
+  }
+
+  @Patch(':id')
+  async updateBranch(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required');
+    }
+    return this.branchesService.updateBranch(req.user.organizationId, id, body);
+  }
+
+  @Delete(':id')
+  async deleteBranch(@Request() req: any, @Param('id') id: string) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required');
+    }
+    return this.branchesService.deleteBranch(req.user.organizationId, id);
+  }
+
+  @Get(':id/employees')
+  async getBranchEmployees(@Request() req: any, @Param('id') id: string) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required');
+    }
+    return this.branchesService.getBranchEmployees(req.user.organizationId, id);
   }
 }
