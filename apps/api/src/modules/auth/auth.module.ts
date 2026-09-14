@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod, NestModule } from '@nestjs/common';
 import rateLimit from 'express-rate-limit';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -29,7 +29,7 @@ import { EmailService } from './services/email.service';
   providers: [AuthService, JwtStrategy, EmailService],
   exports: [AuthService, EmailService],
 })
-export class AuthModule {
+export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     const authRateLimiter = rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes

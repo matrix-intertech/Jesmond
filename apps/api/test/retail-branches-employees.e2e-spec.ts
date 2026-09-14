@@ -238,7 +238,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
       data: { name: 'Prod A', sku: 'SKU_A', sellingPrice: 10, organizationId: orgA.id }
     });
     
-    // Org A user adjusts their own inventory -> Success
+    // Setup Product for Org B
+    const productB = await prisma.product.create({
+      data: { name: 'Prod B', sku: 'SKU_B', sellingPrice: 15, organizationId: orgB.id }
+    });
+    
+    // Org A user adjusts their own inventory (Branch A, Product A) -> Success
     const adjustRes = await request(app.getHttpServer())
       .post(`/api/v1/retail/inventory/${branchA.id}/${productA.id}/adjust`)
       .set('Authorization', `Bearer ${tokenA}`)
@@ -247,7 +252,7 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     expect(adjustRes.status).toBe(201);
     expect(adjustRes.body.quantity).toBe(10);
     
-    // 2. Org B user attempts to adjust Org A's inventory using Org A's branchId and productId
+    // 2. Org B user attempts to adjust Org A's inventory using Org A's branchId and productA
     const hackRes = await request(app.getHttpServer())
       .post(`/api/v1/retail/inventory/${branchA.id}/${productA.id}/adjust`)
       .set('Authorization', `Bearer ${tokenB}`)
@@ -256,9 +261,23 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     // Must be rejected
     expect(hackRes.status).toBe(403);
     
+    // 3. Org A user attempts to adjust Org B's product in Org A's branch
+    // branchId belongs to Org A, but productId belongs to Org B
+    const productHackRes = await request(app.getHttpServer())
+      .post(`/api/v1/retail/inventory/${branchA.id}/${productB.id}/adjust`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ quantity: 100, reason: 'Steal inventory' });
+      
+    // Must be rejected
+    expect(productHackRes.status).toBe(403);
+    
     // Verify Org A inventory is unchanged
     const dbInv = await prisma.inventory.findUnique({ where: { branchId_productId: { branchId: branchA.id, productId: productA.id } } });
     expect(dbInv?.quantity).toBe(10);
+    
+    // Verify no inventory record created for Product B in Branch A
+    const dbInvB = await prisma.inventory.findUnique({ where: { branchId_productId: { branchId: branchA.id, productId: productB.id } } });
+    expect(dbInvB).toBeNull();
   });
 
 });

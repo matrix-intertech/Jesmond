@@ -28,6 +28,15 @@ export class InventoryService {
         throw new ForbiddenException('You do not have access to this branch or it does not exist');
       }
 
+      // Verify product belongs to the authenticated organization
+      const product = await tx.product.findFirst({
+        where: { id: productId, organizationId },
+      });
+
+      if (!product) {
+        throw new ForbiddenException('You do not have access to this product or it does not exist');
+      }
+
       // Find current inventory
       const current = await tx.inventory.findUnique({
         where: { branchId_productId: { branchId, productId } },
