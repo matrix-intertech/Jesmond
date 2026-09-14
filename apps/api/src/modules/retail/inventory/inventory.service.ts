@@ -11,6 +11,7 @@ export class InventoryService {
    * This handles creating the movement log atomically.
    */
   async adjustInventory(
+    organizationId: string,
     branchId: string,
     productId: string,
     quantity: number,
@@ -18,6 +19,15 @@ export class InventoryService {
     reason: string
   ) {
     return this.prisma.$transaction(async (tx) => {
+      // Verify branch belongs to the authenticated organization
+      const branch = await tx.retailBranch.findFirst({
+        where: { id: branchId, organizationId },
+      });
+
+      if (!branch) {
+        throw new ForbiddenException('You do not have access to this branch or it does not exist');
+      }
+
       // Find current inventory
       const current = await tx.inventory.findUnique({
         where: { branchId_productId: { branchId, productId } },

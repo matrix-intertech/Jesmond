@@ -231,4 +231,34 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     expect(dbStaffDel?.user.accountStatus).toBe('DEACTIVATED');
   });
 
+  it('9. SECURITY: should prevent cross-organization retail inventory IDOR/BOLA', async () => {
+    // 1. Setup Branch & Product for Org A
+    const branchA = await prisma.retailBranch.create({ data: { name: 'Inv Branch A', organizationId: orgA.id } });
+    const productA = await prisma.product.create({
+      data: { name: 'Prod A', sku: 'SKU_A', sellingPrice: 10, organizationId: orgA.id }
+    });
+    
+    // Org A user adjusts their own inventory -> Success
+    const adjustRes = await request(app.getHttpServer())
+      .post(`/api/v1/retail/inventory/${branchA.id}/${productA.id}/adjust`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ quantity: 10, reason: 'Initial stock' });
+      
+    expect(adjustRes.status).toBe(201);
+    expect(adjustRes.body.quantity).toBe(10);
+    
+    // 2. Org B user attempts to adjust Org A's inventory using Org A's branchId and productId
+    const hackRes = await request(app.getHttpServer())
+      .post(`/api/v1/retail/inventory/${branchA.id}/${productA.id}/adjust`)
+      .set('Authorization', `Bearer ${tokenB}`)
+      .send({ quantity: -10, reason: 'Malicious deduction' });
+      
+    // Must be rejected
+    expect(hackRes.status).toBe(403);
+    
+    // Verify Org A inventory is unchanged
+    const dbInv = await prisma.inventory.findUnique({ where: { branchId_productId: { branchId: branchA.id, productId: productA.id } } });
+    expect(dbInv?.quantity).toBe(10);
+  });
+
 });

@@ -318,4 +318,45 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
       await prisma.organization.deleteMany({ where: { name: 'Updated Provider Org' } });
     });
   });
+
+  describe('OTP Rate Limiting', () => {
+    const testEmail = 'otpratelimit@example.com';
+    const password = 'Password123!';
+
+    beforeAll(async () => {
+      await prisma.session.deleteMany({ where: { user: { email: testEmail } } });
+      await prisma.user.deleteMany({ where: { email: testEmail } });
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/register/student')
+        .send({
+          email: testEmail,
+          password,
+          firstName: 'OTP',
+          lastName: 'RateLimit',
+          turnstileToken: 'dummy-token',
+        });
+    });
+
+    afterAll(async () => {
+      await prisma.session.deleteMany({ where: { user: { email: testEmail } } });
+      await prisma.user.deleteMany({ where: { email: testEmail } });
+    });
+
+    it('should rate limit forgot password requests', async () => {
+      // 5 allowed requests
+      for (let i = 0; i < 5; i++) {
+        const res = await request(app.getHttpServer())
+          .post('/api/v1/auth/forgot-password')
+          .send({ email: testEmail });
+        
+        expect([200, 201]).toContain(res.status); // Cooldown logic handles it gracefully as 200
+      }
+
+      // 6th should be 429 Too Many Requests
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/forgot-password')
+        .send({ email: testEmail })
+        .expect(429);
+    });
+  });
 });

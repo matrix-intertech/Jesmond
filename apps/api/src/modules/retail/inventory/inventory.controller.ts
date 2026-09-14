@@ -30,7 +30,7 @@ export class InventoryController {
     // In a real app we would check if branch belongs to org here or in the service.
     // The service handles atomic adjustment.
 
-    return this.inventoryService.adjustInventory(branchId, productId, quantity, req.user.id, reason);
+    return this.inventoryService.adjustInventory(req.user.organizationId, branchId, productId, quantity, req.user.id, reason);
   }
 
   @Get(':branchId')

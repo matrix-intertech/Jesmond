@@ -58,14 +58,16 @@ expressApp.set('trust proxy', 1);
   app.setGlobalPrefix('api/v1');
 
   // 8. Swagger Configuration
-  const config = new DocumentBuilder()
-    .setTitle('Jesmond 2.0 API')
-    .setDescription('The Jesmond Student Accommodation Platform API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Jesmond 2.0 API')
+      .setDescription('The Jesmond Student Accommodation Platform API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
+  }
 
   // 9. Start Server
   const port = process.env.PORT || 3001;

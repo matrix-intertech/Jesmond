@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
+import rateLimit from 'express-rate-limit';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './controllers/auth.controller';
@@ -28,4 +29,22 @@ import { EmailService } from './services/email.service';
   providers: [AuthService, JwtStrategy, EmailService],
   exports: [AuthService, EmailService],
 })
-export class AuthModule {}
+export class AuthModule {
+  configure(consumer: MiddlewareConsumer) {
+    const authRateLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 5, // 5 requests per 15 minutes per IP
+      standardHeaders: true,
+      legacyHeaders: true,
+      message: 'Too many password reset requests from this IP, please try again after 15 minutes.',
+    });
+
+    consumer
+      .apply(authRateLimiter)
+      .forRoutes(
+        { path: 'auth/forgot-password', method: RequestMethod.POST },
+        { path: 'auth/verify-reset-otp', method: RequestMethod.POST },
+        { path: 'auth/reset-password', method: RequestMethod.POST }
+      );
+  }
+}
