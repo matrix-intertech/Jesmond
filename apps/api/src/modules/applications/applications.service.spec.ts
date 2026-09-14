@@ -15,6 +15,7 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         update: jest.fn(),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
         create: jest.fn(),
       },
       roomType: {
@@ -133,11 +134,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         student: { firstName: 'John', lastName: 'Doe', email: 'john@student.com' },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
       const result = await service.withdrawApplication('student-1', 'app-1');
 
-      expect(result.status).toBe('WITHDRAWN');
+      expect(result!.status).toBe('WITHDRAWN');
       expect(prisma.roomType.update).not.toHaveBeenCalled();
       expect(prisma.lease.update).not.toHaveBeenCalled();
     });
@@ -158,11 +160,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         student: { firstName: 'John', lastName: 'Doe', email: 'john@student.com' },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
       const result = await service.withdrawApplication('student-1', 'app-2');
 
-      expect(result.status).toBe('WITHDRAWN');
+      expect(result!.status).toBe('WITHDRAWN');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         data: { inventory: { increment: 1 } },
@@ -189,11 +192,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         student: { firstName: 'Alice', lastName: 'Smith', email: 'alice@student.com' },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
       const result = await service.withdrawApplication('student-1', 'app-lease-pending');
 
-      expect(result.status).toBe('WITHDRAWN');
+      expect(result!.status).toBe('WITHDRAWN');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         data: { inventory: { increment: 1 } },
@@ -220,11 +224,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         student: { firstName: 'Bob', lastName: 'Taylor', email: 'bob@student.com' },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
       const result = await service.withdrawApplication('student-1', 'app-booked');
 
-      expect(result.status).toBe('WITHDRAWN');
+      expect(result!.status).toBe('WITHDRAWN');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         data: { inventory: { increment: 1 } },
@@ -275,8 +280,9 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       };
       // Initial findUnique returns APPROVED
       prisma.application.findUnique.mockResolvedValueOnce(mockInitialApp);
-      // In-transaction findUnique returns WITHDRAWN (simulating another request completed first)
-      prisma.application.findUnique.mockResolvedValueOnce({ ...mockInitialApp, status: 'WITHDRAWN' });
+      // In-transaction findUnique returns APPROVED, but updateMany simulates a failure (count 0)
+      prisma.application.findUnique.mockResolvedValueOnce(mockInitialApp);
+      prisma.application.updateMany.mockResolvedValueOnce({ count: 0 });
 
       await expect(service.withdrawApplication('student-1', 'app-conc')).rejects.toThrow(BadRequestException);
       expect(prisma.roomType.update).not.toHaveBeenCalled();
@@ -299,11 +305,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       };
       jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-5');
 
-      expect(result.status).toBe('CANCELLED');
+      expect(result!.status).toBe('CANCELLED');
       expect(prisma.roomType.update).not.toHaveBeenCalled();
       expect(prisma.lease.update).not.toHaveBeenCalled();
     });
@@ -324,11 +331,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       };
       jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-6');
 
-      expect(result.status).toBe('CANCELLED');
+      expect(result!.status).toBe('CANCELLED');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         data: { inventory: { increment: 1 } },
@@ -355,11 +363,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       };
       jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-rem-lp');
 
-      expect(result.status).toBe('CANCELLED');
+      expect(result!.status).toBe('CANCELLED');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         data: { inventory: { increment: 1 } },
@@ -386,11 +395,12 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       };
       jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-rem-bk');
 
-      expect(result.status).toBe('CANCELLED');
+      expect(result!.status).toBe('CANCELLED');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         data: { inventory: { increment: 1 } },
@@ -495,7 +505,7 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       });
 
       // All 4 applications updated to CANCELLED
-      expect(prisma.application.update).toHaveBeenCalledTimes(4);
+      expect(prisma.application.updateMany).toHaveBeenCalledTimes(4);
     });
 
     it('should skip already closed applications within cancelPropertyApplications', async () => {

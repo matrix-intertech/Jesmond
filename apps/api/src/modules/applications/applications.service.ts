@@ -320,6 +320,14 @@ export class ApplicationsService {
         throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
       }
 
+      const updateResult = await tx.application.updateMany({
+        where: { id: txApp.id, status: txApp.status },
+        data: { status: 'WITHDRAWN' }
+      });
+      if (updateResult.count === 0) {
+        throw new BadRequestException('Application status modified concurrently.');
+      }
+
       if (isAllocatedStatus(txApp.status)) {
         await tx.roomType.update({
           where: { id: txApp.roomTypeId },
@@ -334,10 +342,7 @@ export class ApplicationsService {
         }
       }
 
-      return tx.application.update({
-        where: { id: txApp.id },
-        data: { status: 'WITHDRAWN' }
-      });
+      return tx.application.findUnique({ where: { id: txApp.id } });
     });
 
     const staffList = app.roomType.property.organization.staff ?? [];
@@ -374,6 +379,14 @@ export class ApplicationsService {
         throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
       }
 
+      const updateResult = await tx.application.updateMany({
+        where: { id: txApp.id, status: txApp.status },
+        data: { status: 'CANCELLED' }
+      });
+      if (updateResult.count === 0) {
+        throw new BadRequestException('Application status modified concurrently.');
+      }
+
       if (isAllocatedStatus(txApp.status)) {
         await tx.roomType.update({
           where: { id: txApp.roomTypeId },
@@ -388,10 +401,7 @@ export class ApplicationsService {
         }
       }
 
-      return tx.application.update({
-        where: { id: txApp.id },
-        data: { status: 'CANCELLED' }
-      });
+      return tx.application.findUnique({ where: { id: txApp.id } });
     });
 
     this.emailService
@@ -430,6 +440,14 @@ export class ApplicationsService {
           return; // Already closed
         }
 
+        const updateResult = await tx.application.updateMany({
+          where: { id: txApp.id, status: txApp.status },
+          data: { status: 'CANCELLED' }
+        });
+        if (updateResult.count === 0) {
+          return; // Concurrently modified, safely abort
+        }
+
         if (isAllocatedStatus(txApp.status)) {
           await tx.roomType.update({
             where: { id: txApp.roomTypeId },
@@ -443,11 +461,6 @@ export class ApplicationsService {
             });
           }
         }
-
-        await tx.application.update({
-          where: { id: txApp.id },
-          data: { status: 'CANCELLED' }
-        });
       });
 
       this.emailService
