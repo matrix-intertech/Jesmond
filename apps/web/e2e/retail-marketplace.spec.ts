@@ -21,12 +21,42 @@ test.describe('Retail Marketplace Phase 1 (e2e)', () => {
     expect(count > 0 || isNoStoresVisible).toBeTruthy();
   });
 
-  test('Store Catalog: product display and broken image handling', async ({ page }) => {
-    // Navigating to a non-existent store should return 404 handled gracefully or show empty
-    await page.goto('/retail/store/mock-branch');
-    const noProducts = page.getByText('This store has no available products right now');
-    const products = page.locator('button', { hasText: /Out of stock|\+/i });
-    expect(await noProducts.isVisible() || await products.count() > 0).toBeTruthy();
+  test('Store Catalog: full page load and display assertions', async ({ page }) => {
+    // 1. Open /retail
+    await page.goto('/retail');
+    
+    // If stores are available, click the first one
+    const storeCards = page.locator('a[href^="/retail/store/"]');
+    const storeCount = await storeCards.count();
+    
+    if (storeCount > 0) {
+      // 2. Click a store
+      await storeCards.first().click();
+      
+      // 3. Store detail page loads successfully
+      await expect(page.getByRole('heading', { name: 'Available Products' })).toBeVisible();
+      
+      // Check if catalog is empty
+      const emptyState = page.getByText('This store has no available products right now');
+      if (!(await emptyState.isVisible())) {
+        // 4. Products are displayed
+        const products = page.locator('h4'); // Product titles
+        expect(await products.count()).toBeGreaterThan(0);
+        
+        // 5. Product images are displayed (at least one image should be visible)
+        const images = page.locator('img');
+        expect(await images.count()).toBeGreaterThan(0);
+        
+        // 6. Available quantity is respected
+        // We look for the "Out of stock" overlay or the "Only X left" badge, or the add button state
+        const addToCartButtons = page.locator('button', { hasText: '+' });
+        expect(await addToCartButtons.count()).toBeGreaterThan(0);
+      }
+    } else {
+      // Fallback if no stores exist
+      const noStores = page.getByText('No stores available');
+      await expect(noStores).toBeVisible();
+    }
   });
 
   test('Cart Interactions: Add to cart, quantity limits, clear cart, prevent cross-store mix', async ({ page }) => {

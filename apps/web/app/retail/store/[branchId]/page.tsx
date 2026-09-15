@@ -27,7 +27,7 @@ export default async function StoreDetailPage({ params }: { params: { branchId: 
     notFound();
   }
 
-  const { branch, inventory } = data;
+  const { branch, catalog } = data;
 
   return (
     <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-8">
@@ -69,16 +69,22 @@ export default async function StoreDetailPage({ params }: { params: { branchId: 
         <p className="text-slate-500 mt-1">Browse and add items to your cart</p>
       </div>
 
-      {inventory.length === 0 ? (
+      {catalog.length === 0 ? (
         <div className="bg-slate-50 rounded-3xl p-12 text-center border border-slate-200/60">
           <h3 className="text-xl font-bold text-brand-navy">Catalog empty</h3>
           <p className="text-slate-500 mt-2">This store has no available products right now.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {inventory.map((inv: any) => (
-            <ProductCard key={inv.productId} inventory={inv} branchId={branch.id} />
-          ))}
+          {catalog.map((item: any) => {
+            const inv = {
+              productId: item.id,
+              quantity: item.availableQuantity,
+              reservedQuantity: 0,
+              product: item
+            };
+            return <ProductCard key={item.id} inventory={inv} branchId={branch.id} />;
+          })}
         </div>
       )}
     </div>
