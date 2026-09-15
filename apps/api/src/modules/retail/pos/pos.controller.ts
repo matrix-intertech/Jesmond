@@ -156,17 +156,17 @@ export class PosWebhookService {
           }
 
           await this.prisma.$transaction(async (tx) => {
-            await tx.retailPayment.update({
-              where: { id: payment.id },
-              data: { status: newPaymentStatus as any },
-            });
-
             if (newOrderStatus) {
               await tx.salesOrder.update({
                 where: { id: payment.orderId },
                 data: { status: newOrderStatus as any },
               });
             }
+
+            await tx.retailPayment.update({
+              where: { id: payment.id },
+              data: { status: newPaymentStatus as any },
+            });
           });
         }
 

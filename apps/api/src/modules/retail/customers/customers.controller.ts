@@ -5,14 +5,18 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
 import { OrgType } from '@prisma/client';
+import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
+import { RetailPermission } from '../auth/retail-permissions.enum';
 
 @Controller('retail/customers')
-@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
 @OrgTypes(OrgType.RETAIL)
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Post()
+  @RequirePermissions(RetailPermission.CUSTOMERS_MANAGE)
   async createCustomer(@Request() req: any, @Body() data: { firstName: string; lastName?: string; email?: string; phone?: string; address?: string; externalId?: string }) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
@@ -24,6 +28,7 @@ export class CustomersController {
   }
 
   @Get()
+  @RequirePermissions(RetailPermission.CUSTOMERS_VIEW)
   async listCustomers(@Request() req: any) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
@@ -32,6 +37,7 @@ export class CustomersController {
   }
 
   @Get(':id')
+  @RequirePermissions(RetailPermission.CUSTOMERS_VIEW)
   async getCustomer(@Request() req: any, @Param('id') id: string) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
@@ -40,6 +46,7 @@ export class CustomersController {
   }
 
   @Patch(':id')
+  @RequirePermissions(RetailPermission.CUSTOMERS_MANAGE)
   async updateCustomer(
     @Request() req: any,
     @Param('id') id: string,

@@ -282,8 +282,12 @@ export class AuthService {
       },
     });
 
-    const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
-    const orgType = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organization.type : undefined;
+    const activeRole = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
+    const organizationId = activeRole?.organizationId;
+    const orgType = activeRole?.organization?.type;
+    const orgRole = activeRole?.role;
+    const permissions = activeRole?.permissions || [];
+    const retailBranchId = activeRole?.retailBranchId;
 
     const payload = { sub: user.id, email: user.email, role: user.role, orgType, sessionId: session.id };
     const access_token = this.jwtService.sign(payload);
@@ -298,6 +302,9 @@ export class AuthService {
         role: user.role,
         organizationId,
         orgType,
+        orgRole,
+        permissions,
+        retailBranchId,
       },
     };
   }

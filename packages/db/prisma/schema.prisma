@@ -922,6 +922,8 @@ model RetailBranch {
   address        String?
   phone          String?
   isActive       Boolean             @default(true)
+  deliveryEnabled Boolean            @default(false)
+  takeawayEnabled Boolean            @default(true)
   terminals      PosTerminal[]
   inventory      Inventory[]
   movements      InventoryMovement[]
@@ -1004,6 +1006,7 @@ model Product {
   costPrice      Int? // cents
   taxRate        Float               @default(0) // e.g. 0.10 for 10%
   unit           String              @default("piece")
+  imageUrl       String?
   isActive       Boolean             @default(true)
   metadata       Json?
   inventory      Inventory[]
@@ -1058,6 +1061,12 @@ enum MovementType {
   ADJUSTMENT
 }
 
+enum FulfillmentType {
+  DELIVERY
+  TAKEAWAY
+  IN_STORE
+}
+
 model RetailCustomer {
   id             String       @id @default(uuid())
   organizationId String
@@ -1093,6 +1102,8 @@ model SalesOrder {
   subtotal    Int // cents
   tax         Int // cents
   discount    Int         @default(0) // cents
+  deliveryFee Int         @default(0) // cents
+  fulfillmentType FulfillmentType @default(IN_STORE)
   total       Int // cents
   currency    String      @default("AUD")
   source      OrderSource @default(IN_STORE)

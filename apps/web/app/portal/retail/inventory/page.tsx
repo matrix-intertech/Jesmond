@@ -29,7 +29,9 @@ interface InventoryItem {
   updatedAt: string;
 }
 
-export default function InventoryWorkspace() {
+import RetailGuard from "@/components/retail/RetailGuard";
+
+function InventoryWorkspaceContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -618,5 +620,13 @@ export default function InventoryWorkspace() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function InventoryWorkspace() {
+  return (
+    <RetailGuard requirePermissions={['INVENTORY_VIEW']}>
+      <InventoryWorkspaceContent />
+    </RetailGuard>
   );
 }

@@ -56,12 +56,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     futureDate.setDate(futureDate.getDate() + 7);
 
     const sessionA = await prisma.session.create({ data: { userId: userA.id, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummyTokenA', expiresAt: futureDate } });
-    tokenA = jwtService.sign({ sub: userA.id, email: userA.email, role: userA.role, organizationId: orgA.id, sessionId: sessionA.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    tokenA = jwtService.sign({ sub: userA.id, email: userA.email, role: userA.role, orgId: orgA.id, orgRoles: ['ADMIN'], sessionId: sessionA.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
 
     userB = await prisma.user.create({ data: { email: 'userb@test.com', emailVerified: true, firstName: 'B', lastName: 'B', role: 'ORG_STAFF', accountStatus: 'ACTIVE', password: hash } });
     await prisma.orgStaff.create({ data: { userId: userB.id, organizationId: orgB.id, role: 'ADMIN' } });
     const sessionB = await prisma.session.create({ data: { userId: userB.id, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummyTokenB', expiresAt: futureDate } });
-    tokenB = jwtService.sign({ sub: userB.id, email: userB.email, role: userB.role, organizationId: orgB.id, sessionId: sessionB.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    tokenB = jwtService.sign({ sub: userB.id, email: userB.email, role: userB.role, orgId: orgB.id, orgRoles: ['ADMIN'], sessionId: sessionB.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
   });
 
   let branchAId: string;
@@ -235,12 +235,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     // 1. Setup Branch & Product for Org A
     const branchA = await prisma.retailBranch.create({ data: { name: 'Inv Branch A', organizationId: orgA.id } });
     const productA = await prisma.product.create({
-      data: { name: 'Prod A', sku: 'SKU_A', sellingPrice: 10, organizationId: orgA.id }
+      data: { name: 'Prod A', sku: 'SKU_A', sellingPrice: 10, organizationId: orgA.id, imageUrl: "http://example.com/image.png" }
     });
     
     // Setup Product for Org B
     const productB = await prisma.product.create({
-      data: { name: 'Prod B', sku: 'SKU_B', sellingPrice: 15, organizationId: orgB.id }
+      data: { name: 'Prod B', sku: 'SKU_B', sellingPrice: 15, organizationId: orgB.id, imageUrl: "http://example.com/image.png" }
     });
     
     // Org A user adjusts their own inventory (Branch A, Product A) -> Success

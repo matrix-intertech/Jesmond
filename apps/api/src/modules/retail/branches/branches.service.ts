@@ -36,6 +36,8 @@ export class BranchesService {
         address: data.address,
         phone: data.phone,
         isActive: data.isActive !== undefined ? data.isActive : true,
+        deliveryEnabled: data.deliveryEnabled !== undefined ? data.deliveryEnabled : false,
+        takeawayEnabled: data.takeawayEnabled !== undefined ? data.takeawayEnabled : true,
       },
     });
   }
@@ -50,6 +52,8 @@ export class BranchesService {
         address: data.address,
         phone: data.phone,
         isActive: data.isActive,
+        deliveryEnabled: data.deliveryEnabled,
+        takeawayEnabled: data.takeawayEnabled,
       },
     });
   }

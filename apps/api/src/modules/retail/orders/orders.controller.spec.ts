@@ -1,13 +1,18 @@
-import { PrismaService } from '../../prisma/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
+import { OrdersService } from './orders.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 describe('OrdersController', () => {
   let controller: OrdersController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrdersController], providers: [{ provide: PrismaService, useValue: { $transaction: jest.fn(), inventory: { findUnique: jest.fn(), update: jest.fn(), upsert: jest.fn() }, inventoryMovement: { create: jest.fn() }, salesOrder: { create: jest.fn() }, posWebhookEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() } } }],
+      controllers: [OrdersController],
+      providers: [
+        { provide: OrdersService, useValue: {} },
+        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+      ],
     }).compile();
 
     controller = module.get<OrdersController>(OrdersController);

@@ -30,7 +30,9 @@ interface Employee {
   retailBranchId?: string;
 }
 
-export default function EmployeesPage() {
+import RetailGuard from "@/components/retail/RetailGuard";
+
+function EmployeesPageContent() {
   const router = useRouter();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -310,5 +312,13 @@ export default function EmployeesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function EmployeesPage() {
+  return (
+    <RetailGuard requirePermissions={['EMPLOYEES_VIEW']}>
+      <EmployeesPageContent />
+    </RetailGuard>
   );
 }

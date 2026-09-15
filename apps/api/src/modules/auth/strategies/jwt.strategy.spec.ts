@@ -60,6 +60,8 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
         organizationId: 'org-a',
         orgType: OrgType.PROVIDER,
         orgRole: UserRole.ORG_STAFF,
+        permissions: [],
+        retailBranchId: undefined,
       });
     });
   });
@@ -219,9 +221,11 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
         id: 'student-1',
         email: 'student@example.com',
         role: UserRole.STUDENT,
-        organizationId: undefined,
         orgType: undefined,
         orgRole: undefined,
+        organizationId: undefined,
+        permissions: [],
+        retailBranchId: undefined,
       });
     });
   });

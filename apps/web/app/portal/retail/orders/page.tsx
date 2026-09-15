@@ -38,7 +38,9 @@ interface Order {
   payments: Payment[];
 }
 
-export default function SalesHistoryPage() {
+import RetailGuard from "@/components/retail/RetailGuard";
+
+function SalesHistoryContent() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -282,5 +284,13 @@ export default function SalesHistoryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SalesHistoryPage() {
+  return (
+    <RetailGuard requirePermissions={['ORDERS_VIEW']}>
+      <SalesHistoryContent />
+    </RetailGuard>
   );
 }

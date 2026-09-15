@@ -1,4 +1,4 @@
-﻿import { Test, TestingModule } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { BranchesController } from './branches/branches.controller';
 import { BranchesService } from './branches/branches.service';
 import { CatalogController } from './catalog/catalog.controller';
@@ -8,6 +8,7 @@ import { InventoryService } from './inventory/inventory.service';
 import { OrdersController } from './orders/orders.controller';
 import { OrdersService } from './orders/orders.service';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('Retail Backend Auth & Isolation QA', () => {
   let branchesController: BranchesController;
@@ -28,6 +29,7 @@ describe('Retail Backend Auth & Isolation QA', () => {
         { provide: CatalogService, useValue: mockCatalogService },
         { provide: InventoryService, useValue: mockInventoryService },
         { provide: OrdersService, useValue: mockOrdersService },
+        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
       ],
     }).compile();
 

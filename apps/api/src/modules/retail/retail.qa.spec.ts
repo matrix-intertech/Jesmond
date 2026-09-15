@@ -35,11 +35,12 @@ describe('Retail Backend QA Validation', () => {
             retailBranch: { create: jest.fn(), findUnique: jest.fn() },
             productCategory: { create: jest.fn() },
             product: { create: jest.fn(), findUnique: jest.fn() },
-            inventory: { findUnique: jest.fn(), upsert: jest.fn(), update: jest.fn() },
+            inventory: { findUnique: jest.fn(), upsert: jest.fn(), update: jest.fn(), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
             inventoryMovement: { create: jest.fn() },
-            salesOrder: { create: jest.fn() },
+            salesOrder: { create: jest.fn(), findUnique: jest.fn() },
             posWebhookEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-            retailPayment: { findUnique: jest.fn(), update: jest.fn() },
+            retailPayment: { findUnique: jest.fn(), update: jest.fn(), create: jest.fn() },
+            auditLog: { create: jest.fn() },
           },
         },
       ],
@@ -67,13 +68,15 @@ describe('Retail Backend QA Validation', () => {
   describe('2. Product / Category', () => {
     it('should enforce SKU uniqueness and return 409 Conflict', async () => {
       jest.spyOn(prisma.product, 'create').mockRejectedValue({ code: 'P2002' });
-      await expect(catalogService.createProduct('org-1', 'user1', { sku: 'DUPLICATE', name: 'Test', sellingPrice: 10 })).rejects.toThrow(ConflictException);
+      await expect(catalogService.createProduct('org-1', 'user1', { sku: 'DUPLICATE', name: 'Test', sellingPrice: 10, imageUrl: 'http://test.com/img.jpg' })).rejects.toThrow(ConflictException);
     });
   });
 
   describe('4. Inventory & 5. Sales Order Atomic Transaction', () => {
     it('should prevent overselling and rollback transaction', async () => {
       jest.spyOn(prisma.inventory, 'findUnique').mockResolvedValue({ quantity: 5 } as any);
+      jest.spyOn(prisma.retailBranch, 'findUnique').mockResolvedValue({ id: 'branch-1', organizationId: 'org-1' } as any);
+      jest.spyOn(prisma.product, 'findUnique').mockResolvedValue({ id: 'prod-1', isActive: true, sellingPrice: 100, organizationId: 'org-1' } as any);
       jest.spyOn(prisma.salesOrder, 'create').mockResolvedValue({ id: 'order-1' } as any);
       
       await expect(
@@ -83,7 +86,9 @@ describe('Retail Backend QA Validation', () => {
 
     it('should atomically create order and deduct inventory', async () => {
       jest.spyOn(prisma.inventory, 'findUnique').mockResolvedValue({ quantity: 15 } as any);
-      const updateSpy = jest.spyOn(prisma.inventory, 'update').mockResolvedValue({} as any);
+      jest.spyOn(prisma.retailBranch, 'findUnique').mockResolvedValue({ id: 'branch-1', organizationId: 'org-1' } as any);
+      jest.spyOn(prisma.product, 'findUnique').mockResolvedValue({ id: 'prod-1', isActive: true, sellingPrice: 100, organizationId: 'org-1' } as any);
+      const updateSpy = jest.spyOn(prisma.inventory, 'updateMany').mockResolvedValue({ count: 1 } as any);
       const movementSpy = jest.spyOn(prisma.inventoryMovement, 'create').mockResolvedValue({} as any);
       const orderSpy = jest.spyOn(prisma.salesOrder, 'create').mockResolvedValue({ id: 'order-1' } as any);
 
@@ -113,9 +118,9 @@ describe('Retail Backend QA Validation', () => {
       const { PaymentsService } = require('./payments/payments.service');
       const paymentsService = new PaymentsService(prisma);
 
-      jest.spyOn(prisma.retailPayment, 'findUnique').mockResolvedValue({ status: 'REFUNDED' } as any);
+      jest.spyOn(prisma.retailPayment, 'findUnique').mockResolvedValue({ status: 'REFUNDED', order: { organizationId: 'org-1' } } as any);
       
-      await expect(paymentsService.updatePaymentStatus('pay-1', 'PAID')).rejects.toThrow(BadRequestException);
+      await expect(paymentsService.updatePaymentStatus('org-1', 'pay-1', 'PAID')).rejects.toThrow(BadRequestException);
     });
   });
 });

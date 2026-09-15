@@ -12,7 +12,7 @@ export class EmployeesService {
     private authService: AuthService,
   ) {}
 
-  async createEmployee(organizationId: string, data: any) {
+  async createEmployee(organizationId: string, requesterUserId: string, data: any) {
     const { email, firstName, lastName, role, branchId } = data;
 
     // Check if email is already in use
@@ -50,13 +50,32 @@ export class EmployeesService {
         },
       });
 
+      // Enforce permission granting rules
+      let finalRole: UserRole = UserRole.ORG_STAFF;
+      let finalPermissions: string[] = [];
+
+      if (role || (data.permissions && data.permissions.length > 0)) {
+        const requesterStaff = await tx.orgStaff.findUnique({
+          where: { userId_organizationId: { userId: requesterUserId, organizationId } }
+        });
+
+        if (!requesterStaff) throw new ForbiddenException('Requester not found');
+
+        if (requesterStaff.role !== UserRole.ADMIN) {
+          throw new ForbiddenException('Only ADMIN can create employees with specific roles or permissions');
+        }
+
+        finalRole = role === 'ADMIN' ? UserRole.ADMIN : UserRole.ORG_STAFF;
+        finalPermissions = data.permissions || [];
+      }
+
       const orgStaff = await tx.orgStaff.create({
         data: {
           userId: user.id,
           organizationId,
           retailBranchId: branchId || null,
-          role: role === 'ADMIN' ? UserRole.ADMIN : UserRole.ORG_STAFF, // Optional granular role
-          permissions: [], 
+          role: finalRole,
+          permissions: finalPermissions,
         },
       });
 
@@ -132,10 +151,10 @@ export class EmployeesService {
     return employee;
   }
 
-  async updateEmployee(organizationId: string, employeeId: string, data: any) {
+  async updateEmployee(organizationId: string, requesterUserId: string, employeeId: string, data: any) {
     const employee = await this.getEmployee(organizationId, employeeId);
-    
-    const { branchId, role, accountStatus } = data;
+
+    const { branchId, role, accountStatus, permissions } = data;
 
     if (branchId) {
       const branch = await this.prisma.retailBranch.findUnique({
@@ -147,12 +166,33 @@ export class EmployeesService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      let finalRole = employee.role;
+      let finalPermissions = employee.permissions;
+
+      if (role !== undefined || permissions !== undefined) {
+        if (employee.userId === requesterUserId) {
+          throw new ForbiddenException('Cannot modify your own role or permissions');
+        }
+
+        const requesterStaff = await tx.orgStaff.findUnique({
+          where: { userId_organizationId: { userId: requesterUserId, organizationId } }
+        });
+
+        if (!requesterStaff || requesterStaff.role !== UserRole.ADMIN) {
+           throw new ForbiddenException('Only ADMIN can modify employee roles or permissions');
+        }
+
+        if (role !== undefined) finalRole = role;
+        if (permissions !== undefined) finalPermissions = permissions;
+      }
+
       // Update OrgStaff
       const updatedStaff = await tx.orgStaff.update({
         where: { id: employeeId },
         data: {
           retailBranchId: branchId !== undefined ? branchId : employee.retailBranchId,
-          role: role !== undefined ? role : employee.role,
+          role: finalRole,
+          permissions: finalPermissions,
         },
       });
 
@@ -170,7 +210,7 @@ export class EmployeesService {
 
   async deactivateEmployee(organizationId: string, employeeId: string) {
     const employee = await this.getEmployee(organizationId, employeeId);
-    
+
     // Deactivate User
     await this.prisma.user.update({
       where: { id: employee.userId },

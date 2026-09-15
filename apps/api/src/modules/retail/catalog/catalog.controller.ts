@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Request, ForbiddenException, Param } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -13,11 +13,23 @@ export class CatalogController {
   constructor(private readonly catalogService: CatalogService) {}
 
   @Post('products')
-  async createProduct(@Request() req: any, @Body() data: { sku: string; name: string; sellingPrice: number }) {
+  async createProduct(@Request() req: any, @Body() data: { sku: string; name: string; sellingPrice: number; imageUrl?: string }) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to manage retail catalog');
     }
     return this.catalogService.createProduct(req.user.organizationId, req.user.id || 'SYSTEM', data);
+  }
+
+  @Post('products/:id')
+  async updateProduct(
+    @Request() req: any,
+    @Body() data: { sku?: string; name?: string; sellingPrice?: number; imageUrl?: string },
+    @Param('id') id: string
+  ) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required to manage retail catalog');
+    }
+    return this.catalogService.updateProduct(req.user.organizationId, req.user.id || 'SYSTEM', id, data);
   }
 
   @Get()

@@ -6,14 +6,18 @@ import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
 import { OrgType } from '@prisma/client';
 import { TerminalStatus } from '@prisma/client';
+import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
+import { RetailPermission } from '../auth/retail-permissions.enum';
 
 @Controller('retail/terminals')
-@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
 @OrgTypes(OrgType.RETAIL)
 export class TerminalsController {
   constructor(private readonly terminalsService: TerminalsService) {}
 
   @Post()
+  @RequirePermissions(RetailPermission.TERMINALS_MANAGE)
   async createTerminal(@Request() req: any, @Body() data: { branchId: string; name: string; externalId?: string; metadata?: any }) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to create a terminal');
@@ -25,6 +29,7 @@ export class TerminalsController {
   }
 
   @Get()
+  @RequirePermissions(RetailPermission.TERMINALS_VIEW)
   async listTerminals(@Request() req: any) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
@@ -33,6 +38,7 @@ export class TerminalsController {
   }
 
   @Get(':id')
+  @RequirePermissions(RetailPermission.TERMINALS_VIEW)
   async getTerminal(@Request() req: any, @Param('id') id: string) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
@@ -41,6 +47,7 @@ export class TerminalsController {
   }
 
   @Patch(':id')
+  @RequirePermissions(RetailPermission.TERMINALS_MANAGE)
   async updateTerminal(
     @Request() req: any,
     @Param('id') id: string,

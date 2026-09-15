@@ -5,14 +5,17 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
 import { OrgType } from '@prisma/client';
-
+import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
+import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
+import { RetailPermission } from '../auth/retail-permissions.enum';
 @Controller('retail/inventory')
-@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
 @OrgTypes(OrgType.RETAIL)
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post(':branchId/:productId/adjust')
+  @RequirePermissions(RetailPermission.INVENTORY_ADJUST)
   async adjustInventory(
     @Request() req: any,
     @Param('branchId') branchId: string,
@@ -34,6 +37,7 @@ export class InventoryController {
   }
 
   @Get(':branchId')
+  @RequirePermissions(RetailPermission.INVENTORY_VIEW)
   async getInventory(
     @Request() req: any,
     @Param('branchId') branchId: string,

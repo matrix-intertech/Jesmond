@@ -10,7 +10,7 @@ import { useState, useEffect } from 'react';
 /**
  * Sidebar navigation for the dashboard.
  * Uses the existing inline SVG icons from the project to avoid adding new dependencies.
- * Role‑based navigation items are defined in a simple config object.
+ * RoleÃ¢â‚¬â€˜based navigation items are defined in a simple config object.
  */
 interface NavItem {
   href: string;
@@ -19,6 +19,7 @@ interface NavItem {
   icon: ReactNode;
   roles: ('SUPER_ADMIN' | 'ADMIN' | 'ORG_STAFF' | 'STUDENT')[];
   orgTypes?: string[];
+  requiredPermissions?: string[];
 }
 
 const navConfig: NavItem[] = [
@@ -330,6 +331,16 @@ export default function Sidebar({ role }: { role: string }) {
       // Legacy users might not have orgType in local storage yet. Default to PROVIDER.
       const userOrgType = user?.orgType || 'PROVIDER';
       if (!i.orgTypes.includes(userOrgType)) return false;
+
+      // If it's a RETAIL org, check permissions
+      if (userOrgType === 'RETAIL' && i.requiredPermissions) {
+        // Owner override
+        if (user?.orgRole === 'ADMIN') return true;
+
+        const userPerms = user?.permissions || [];
+        const hasPerm = i.requiredPermissions.some(p => userPerms.includes(p));
+        if (!hasPerm) return false;
+      }
     }
     return true;
   });
@@ -355,7 +366,7 @@ export default function Sidebar({ role }: { role: string }) {
         </svg>
       </button>
 
-      {/* Sidebar – hidden on mobile unless open */}
+      {/* Sidebar Ã¢â‚¬â€œ hidden on mobile unless open */}
       <nav
         className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:sticky lg:top-0 lg:h-screen inset-y-0 left-0 z-30`}
       >

@@ -7,6 +7,8 @@ import { handleApiError } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 
+import RetailGuard from "@/components/retail/RetailGuard";
+
 interface Order {
   id: string;
   orderNumber: string;
@@ -15,7 +17,7 @@ interface Order {
   createdAt: string;
 }
 
-export default function RetailOverviewPage() {
+function RetailOverviewContent() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState({
@@ -234,5 +236,13 @@ export default function RetailOverviewPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RetailOverviewPage() {
+  return (
+    <RetailGuard requirePermissions={['RETAIL_DASHBOARD_VIEW']}>
+      <RetailOverviewContent />
+    </RetailGuard>
   );
 }

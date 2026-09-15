@@ -39,7 +39,9 @@ interface PosTerminal {
   branchId: string;
 }
 
-export default function POSPage() {
+import RetailGuard from "@/components/retail/RetailGuard";
+
+function POSPageContent() {
   const router = useRouter();
   
   // State
@@ -937,5 +939,13 @@ export default function POSPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function POSPage() {
+  return (
+    <RetailGuard requirePermissions={['POS_VIEW']}>
+      <POSPageContent />
+    </RetailGuard>
   );
 }
