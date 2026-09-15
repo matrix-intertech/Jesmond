@@ -49,11 +49,16 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     };
 
     if (cachedUser) {
-      authorize(cachedUser);
-      return;
+      const isStaleRetail = cachedUser.orgType === 'RETAIL' && cachedUser.permissions === undefined;
+      
+      if (!isStaleRetail) {
+        authorize(cachedUser);
+        return;
+      }
+      // If stale, do NOT authorize yet. Fall through to fetchUser to get fresh permissions.
     }
 
-    // No cached user – recover via /auth/me endpoint
+    // No cached user or user is stale – recover via /auth/me endpoint
     const fetchUser = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/auth/me`, {
@@ -65,8 +70,9 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
         });
         if (status === 'ok') {
           const data = await res.json();
-          setCurrentUser(data.user);
-          authorize(data.user);
+          const fetchedUser = data.user || data;
+          setCurrentUser(fetchedUser);
+          authorize(fetchedUser);
         } else if (status === 'unauthorized') {
           // already handled
         } else {
