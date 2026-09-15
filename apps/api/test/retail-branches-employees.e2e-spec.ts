@@ -280,4 +280,81 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     expect(dbInvB).toBeNull();
   });
 
+  it('10. SECURITY: Admin with ZERO explicit permissions can still access everything via ADMIN bypass', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/v1/retail/branches')
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ name: 'Admin Bypass Branch', phone: '123', address: '123', isActive: true });
+    
+    expect(res.status).toBe(201);
+  });
+
+  it('11. SECURITY: Admin can assign/revoke permissions for an employee', async () => {
+    // Admin creates an employee
+    const newEmp = await request(app.getHttpServer())
+      .post('/api/v1/retail/employees')
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ email: 'perm@test.com', firstName: 'Perm', role: 'ORG_STAFF', permissions: ['EMPLOYEES_VIEW'] });
+    
+    expect(newEmp.status).toBe(201);
+    const empId = newEmp.body.orgStaff.id;
+
+    // Admin updates permissions
+    const updateRes = await request(app.getHttpServer())
+      .patch(`/api/v1/retail/employees/${empId}`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ permissions: ['EMPLOYEES_VIEW', 'BRANCH_VIEW'] });
+    
+    expect(updateRes.status).toBe(200);
+    expect(updateRes.body.permissions).toContain('BRANCH_VIEW');
+  });
+
+  it('12. SECURITY: Employee with zero permissions is denied from protected routes', async () => {
+    // Admin creates employee with NO permissions
+    const newEmp = await request(app.getHttpServer())
+      .post('/api/v1/retail/employees')
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ email: 'noperm@test.com', firstName: 'NoPerm', role: 'ORG_STAFF', permissions: [] });
+    
+    const userId = newEmp.body.id;
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const session = await prisma.session.create({ data: { userId, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummy', expiresAt: futureDate } });
+    const empToken = jwtService.sign({ sub: userId, email: 'noperm@test.com', role: 'ORG_STAFF', orgId: orgA.id, orgRoles: [], sessionId: session.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+
+    // Attempt to access a protected route
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/retail/branches')
+      .set('Authorization', `Bearer ${empToken}`);
+    
+    expect(res.status).toBe(403);
+  });
+
+  it('13. SECURITY: Employee with specific permission can access ONLY that permission', async () => {
+    const newEmp = await request(app.getHttpServer())
+      .post('/api/v1/retail/employees')
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ email: 'oneperm@test.com', firstName: 'OnePerm', role: 'ORG_STAFF', permissions: ['BRANCH_VIEW'] });
+    
+    const userId = newEmp.body.id;
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 7);
+    const session = await prisma.session.create({ data: { userId, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummy', expiresAt: futureDate } });
+    const empToken = jwtService.sign({ sub: userId, email: 'oneperm@test.com', role: 'ORG_STAFF', orgId: orgA.id, orgRoles: [], sessionId: session.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+
+    // Can access Branches
+    const resAllow = await request(app.getHttpServer())
+      .get('/api/v1/retail/branches')
+      .set('Authorization', `Bearer ${empToken}`);
+    
+    expect(resAllow.status).toBe(200);
+
+    // Cannot access Employees
+    const resDeny = await request(app.getHttpServer())
+      .get('/api/v1/retail/employees')
+      .set('Authorization', `Bearer ${empToken}`);
+    
+    expect(resDeny.status).toBe(403);
+  });
+
 });

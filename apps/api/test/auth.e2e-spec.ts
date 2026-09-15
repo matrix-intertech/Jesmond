@@ -266,6 +266,7 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
       console.log('ALL ORG STAFF FOR USER:', JSON.stringify(allOrgStaff, null, 2));
       expect(user.emailVerified).toBe(false);
       expect(user.orgStaffRoles.length).toBe(1);
+      expect(user.orgStaffRoles[0].role).toBe('ADMIN');
       
       const orgId = user.orgStaffRoles[0].organizationId;
 

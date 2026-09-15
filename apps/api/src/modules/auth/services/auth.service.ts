@@ -118,7 +118,7 @@ export class AuthService {
             data: {
               userId: user.id,
               organizationId: org.id,
-              role: UserRole.ORG_STAFF,
+              role: UserRole.ADMIN,
               permissions: ['*'],
             },
           });
@@ -155,7 +155,7 @@ export class AuthService {
           data: {
             userId: user.id,
             organizationId: org.id,
-            role: UserRole.ORG_STAFF,
+            role: UserRole.ADMIN,
             permissions: ['*'],
           },
         });
