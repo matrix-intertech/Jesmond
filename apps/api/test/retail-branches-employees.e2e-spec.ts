@@ -357,4 +357,24 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     expect(resDeny.status).toBe(403);
   });
 
+  it('14. SECURITY: Admin of Org A cannot access branches of Org B', async () => {
+    // Create Branch B
+    const branchB = await prisma.retailBranch.create({ data: { name: 'Branch B', organizationId: orgB.id } });
+
+    // Admin A tries to GET Branch B (which they don't own)
+    const res = await request(app.getHttpServer())
+      .get(`/api/v1/retail/branches/${branchB.id}`)
+      .set('Authorization', `Bearer ${tokenA}`);
+    
+    expect(res.status).toBe(403);
+    
+    // Admin A tries to PATCH Branch B
+    const patchRes = await request(app.getHttpServer())
+      .patch(`/api/v1/retail/branches/${branchB.id}`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ name: 'Hacked by Admin A' });
+      
+    expect(patchRes.status).toBe(403);
+  });
+
 });

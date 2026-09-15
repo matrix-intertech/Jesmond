@@ -41,6 +41,8 @@ export function hasPermission(required: RetailPermission[], requireAll: boolean 
   if (user.orgRole === 'ADMIN') return true;
 
   const userPerms = user.permissions || [];
+  if (userPerms.includes('*')) return true;
+
   if (required.length === 0) return true;
 
   if (requireAll) {

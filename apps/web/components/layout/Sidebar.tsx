@@ -154,7 +154,6 @@ const navConfig: NavItem[] = [
     ),
     roles: ['ORG_STAFF'],
     orgTypes: ['RETAIL'],
-    requiredPermissions: ['RETAIL_SETTINGS_VIEW'],
   },
   {
     href: '/portal/retail/branches',
@@ -354,6 +353,8 @@ export default function Sidebar({ role }: { role: string }) {
         if (user?.orgRole === 'ADMIN') return true;
 
         const userPerms = user?.permissions || [];
+        if (userPerms.includes('*')) return true;
+
         const hasPerm = i.requiredPermissions.some(p => userPerms.includes(p));
         if (!hasPerm) return false;
       }
