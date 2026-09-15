@@ -1,7 +1,12 @@
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export default function OrderSuccessPage({ params }: { params: { orderId: string } }) {
+export default async function OrderSuccessPage({
+  params,
+}: {
+  params: Promise<{ orderId: string }>;
+}) {
+  const { orderId } = await params;
   // Normally we would fetch order details from the backend securely here.
   // For the scope of this frontend phase, we render the success state.
 
@@ -21,7 +26,7 @@ export default function OrderSuccessPage({ params }: { params: { orderId: string
 
         <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mb-8 flex flex-col gap-1">
           <span className="text-sm font-medium text-slate-400 uppercase tracking-wider">Order Reference</span>
-          <span className="text-xl font-bold text-brand-navy font-mono tracking-widest">{params.orderId}</span>
+          <span className="text-xl font-bold text-brand-navy font-mono tracking-widest">{orderId}</span>
         </div>
 
         <div className="flex flex-col gap-3">

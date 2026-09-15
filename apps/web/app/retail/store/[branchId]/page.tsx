@@ -20,8 +20,13 @@ async function getStoreCatalog(branchId: string) {
   }
 }
 
-export default async function StoreDetailPage({ params }: { params: { branchId: string } }) {
-  const data = await getStoreCatalog(params.branchId);
+export default async function StoreDetailPage({
+  params,
+}: {
+  params: Promise<{ branchId: string }>;
+}) {
+  const { branchId } = await params;
+  const data = await getStoreCatalog(branchId);
 
   if (!data || !data.branch) {
     notFound();
