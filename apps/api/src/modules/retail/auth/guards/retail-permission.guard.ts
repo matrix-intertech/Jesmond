@@ -51,7 +51,9 @@ export class RetailPermissionGuard implements CanActivate {
 
     // Check specific permissions
     const userPermissions: string[] = orgStaff.permissions || [];
-    const hasAllRequired = requiredPermissions.every((perm) => userPermissions.includes(perm));
+    const hasAllRequired = requiredPermissions.every((perm) =>
+      userPermissions.includes('*') || userPermissions.includes(perm)
+    );
 
     if (!hasAllRequired) {
       throw new ForbiddenException('Insufficient permissions');

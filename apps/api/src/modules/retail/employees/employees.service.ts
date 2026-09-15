@@ -61,7 +61,9 @@ export class EmployeesService {
 
         if (!requesterStaff) throw new ForbiddenException('Requester not found');
 
-        if (requesterStaff.role !== UserRole.ADMIN) {
+        const hasAdminPower = requesterStaff.role === UserRole.ADMIN || Boolean(requesterStaff.permissions?.includes('*'));
+
+        if (!hasAdminPower) {
           throw new ForbiddenException('Only ADMIN can create employees with specific roles or permissions');
         }
 
@@ -178,7 +180,11 @@ export class EmployeesService {
           where: { userId_organizationId: { userId: requesterUserId, organizationId } }
         });
 
-        if (!requesterStaff || requesterStaff.role !== UserRole.ADMIN) {
+        const hasAdminPower = Boolean(
+          requesterStaff && (requesterStaff.role === UserRole.ADMIN || requesterStaff.permissions?.includes('*'))
+        );
+
+        if (!hasAdminPower) {
            throw new ForbiddenException('Only ADMIN can modify employee roles or permissions');
         }
 
