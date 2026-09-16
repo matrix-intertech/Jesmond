@@ -256,6 +256,7 @@ const navConfig: NavItem[] = [
     ),
     roles: ['ORG_STAFF'],
     orgTypes: ['RETAIL'],
+    requiredPermissions: ['ORDERS_VIEW'],
   },
   {
     href: '/portal/retail/pos',

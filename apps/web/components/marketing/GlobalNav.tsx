@@ -102,12 +102,20 @@ export function GlobalNav() {
             </Link>
             <div className="w-px h-5 bg-slate-200" />
             {authStatus.isAuth ? (
-              <Link
-                href={getDashboardRoute(authStatus.role)}
-                className="text-sm font-semibold text-white bg-brand-orange hover:bg-orange-600 transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  href="/my-orders"
+                  className="text-sm font-semibold text-brand-navy hover:text-orange-600 transition-colors px-2"
+                >
+                  My Orders
+                </Link>
+                <Link
+                  href={getDashboardRoute(authStatus.role)}
+                  className="text-sm font-semibold text-white bg-brand-orange hover:bg-orange-600 transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
+                >
+                  Dashboard
+                </Link>
+              </>
             ) : (
               <>
                 <Link
@@ -189,13 +197,22 @@ export function GlobalNav() {
                   Saved Properties
                 </Link>
                 {authStatus.isAuth ? (
-                  <Link
-                    href={getDashboardRoute(authStatus.role)}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-center py-4 rounded-xl bg-brand-orange text-lg font-semibold text-white shadow-lg"
-                  >
-                    Dashboard
-                  </Link>
+                  <>
+                    <Link
+                      href="/my-orders"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full text-center py-4 rounded-xl border border-slate-200 text-lg font-semibold text-brand-navy"
+                    >
+                      My Orders
+                    </Link>
+                    <Link
+                      href={getDashboardRoute(authStatus.role)}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full text-center py-4 rounded-xl bg-brand-orange text-lg font-semibold text-white shadow-lg"
+                    >
+                      Dashboard
+                    </Link>
+                  </>
                 ) : (
                   <>
                     <Link

@@ -48,7 +48,7 @@ export class OrdersController {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to access sales orders');
     }
-    return this.ordersService.listOrders(req.user.organizationId);
+    return this.ordersService.listOrders(req.user.organizationId, req.user.retailBranchId);
   }
 
   @Get(':id')
@@ -57,6 +57,6 @@ export class OrdersController {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to get a sales order');
     }
-    return this.ordersService.getOrder(req.user.organizationId, id);
+    return this.ordersService.getOrder(req.user.organizationId, id, req.user.retailBranchId);
   }
 }

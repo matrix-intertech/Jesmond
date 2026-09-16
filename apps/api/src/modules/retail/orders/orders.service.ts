@@ -318,22 +318,54 @@ export class OrdersService {
     });
   }
 
-  async getOrder(organizationId: string, orderId: string) {
-    const order = await this.prisma.salesOrder.findUnique({
-      where: { id: orderId },
-      include: { items: true, payments: true }
+  async getOrder(organizationId: string, orderId: string, branchId?: string) {
+    const where: any = { id: orderId, organizationId };
+    if (branchId) {
+      where.branchId = branchId;
+    }
+    const order = await this.prisma.salesOrder.findFirst({
+      where,
+      include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
     });
-    if (!order || order.organizationId !== organizationId) {
+    if (!order) {
       throw new NotFoundException('Order not found');
     }
     return order;
   }
 
-  async listOrders(organizationId: string) {
+  async listOrders(organizationId: string, branchId?: string) {
+    const where: any = { organizationId };
+    if (branchId) {
+      where.branchId = branchId;
+    }
     return this.prisma.salesOrder.findMany({
-      where: { organizationId },
+      where,
       orderBy: { createdAt: 'desc' },
-      include: { items: true, payments: true }
+      include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
     });
+  }
+
+  async getCustomerOrders(email: string) {
+    return this.prisma.salesOrder.findMany({
+      where: {
+        customer: { email }
+      },
+      orderBy: { createdAt: 'desc' },
+      include: { items: { include: { product: true } }, branch: true }
+    });
+  }
+
+  async getCustomerOrder(email: string, orderId: string) {
+    const order = await this.prisma.salesOrder.findFirst({
+      where: {
+        id: orderId,
+        customer: { email }
+      },
+      include: { items: { include: { product: true } }, branch: true }
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found or you do not have permission to view it');
+    }
+    return order;
   }
 }
