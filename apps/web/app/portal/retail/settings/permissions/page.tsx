@@ -55,7 +55,7 @@ export default function EmployeePermissionsPage() {
   }, []);
 
   const togglePermission = async (employee: Employee, permission: string) => {
-    if (employee.role === 'ADMIN') return; // Admins bypass permissions anyway
+    if (employee.role === 'ADMIN' || employee.permissions?.includes('*')) return; // Admins bypass permissions anyway
     
     setSaving(employee.id);
     const token = getAccessToken();
@@ -76,7 +76,8 @@ export default function EmployeePermissionsPage() {
       if (res.ok) {
         setEmployees(employees.map(e => e.id === employee.id ? { ...e, permissions: newPermissions } : e));
       } else {
-        alert('Failed to update permissions. Only ADMIN can modify permissions.');
+        const errorData = await res.json().catch(() => ({}));
+        alert(`Failed to update permissions. ${errorData.message || 'Please check your access.'}`);
       }
     } catch (e) {
       console.error(e);
@@ -110,7 +111,7 @@ export default function EmployeePermissionsPage() {
                 </div>
               </div>
               
-              {employee.role === 'ADMIN' ? (
+              {employee.role === 'ADMIN' || employee.permissions?.includes('*') ? (
                 <div className="p-4 bg-indigo-50/50 rounded-lg text-sm text-indigo-800">
                   This user is an Admin and has full access to all features automatically. Specific permissions do not apply.
                 </div>

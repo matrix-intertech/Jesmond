@@ -64,7 +64,16 @@ export class EmployeesService {
         const hasAdminPower = requesterStaff.role === UserRole.ADMIN || Boolean(requesterStaff.permissions?.includes('*'));
 
         if (!hasAdminPower) {
-          throw new ForbiddenException('Only ADMIN can create employees with specific roles or permissions');
+          if (role && role === 'ADMIN') {
+            throw new ForbiddenException('Only ADMIN can create ADMIN employees');
+          }
+          if (data.permissions && data.permissions.length > 0) {
+            const requesterPerms = requesterStaff.permissions || [];
+            const unauthorizedChanges = data.permissions.some((p: string) => !requesterPerms.includes(p));
+            if (unauthorizedChanges) {
+              throw new ForbiddenException('You can only grant permissions that you possess');
+            }
+          }
         }
 
         finalRole = role === 'ADMIN' ? UserRole.ADMIN : UserRole.ORG_STAFF;
