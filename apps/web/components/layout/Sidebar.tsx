@@ -142,6 +142,7 @@ const navConfig: NavItem[] = [
     ),
     roles: ['ORG_STAFF'],
     orgTypes: ['RETAIL'],
+    requiredPermissions: ['RETAIL_DASHBOARD_VIEW'],
   },
   {
     href: '/portal/retail/business',

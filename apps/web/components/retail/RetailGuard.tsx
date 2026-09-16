@@ -55,6 +55,7 @@ export function hasPermission(required: RetailPermission[], requireAll: boolean 
 export default function RetailGuard({ children, requirePermissions = [], requireAll = false }: RetailGuardProps) {
   const router = useRouter();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [forbidden, setForbidden] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -70,7 +71,7 @@ export default function RetailGuard({ children, requirePermissions = [], require
 
     if (requirePermissions.length > 0) {
       if (!hasPermission(requirePermissions, requireAll)) {
-        router.push('/portal/retail?error=unauthorized');
+        setForbidden(true);
         return;
       }
     }
@@ -78,10 +79,28 @@ export default function RetailGuard({ children, requirePermissions = [], require
     setAuthorized(true);
   }, [router, requirePermissions, requireAll]);
 
-  if (authorized === null) {
+  if (authorized === null && !forbidden) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
         <Loader2 className="animate-spin text-brand-orange" size={48} />
+      </div>
+    );
+  }
+
+  if (forbidden) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] p-8 text-center">
+        <div className="w-16 h-16 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+          <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800">Access Denied</h2>
+        <p className="text-slate-500 mt-2 max-w-md mx-auto">
+          You do not have permission to access this module. Please contact your Retail Business Admin if you believe this is a mistake.
+        </p>
       </div>
     );
   }
