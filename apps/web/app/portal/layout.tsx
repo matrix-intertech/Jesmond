@@ -49,13 +49,13 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
     };
 
     if (cachedUser) {
-      const isStaleRetail = cachedUser.orgType === 'RETAIL' && cachedUser.permissions === undefined;
-      
-      if (!isStaleRetail) {
+      if (cachedUser.orgType !== 'RETAIL') {
         authorize(cachedUser);
         return;
       }
-      // If stale, do NOT authorize yet. Fall through to fetchUser to get fresh permissions.
+      // For RETAIL users, we must always resolve fresh permissions via /auth/me
+      // before authorizing. This prevents a stale local cache from causing
+      // RetailGuard or Sidebar to incorrectly deny access.
     }
 
     // No cached user or user is stale – recover via /auth/me endpoint
