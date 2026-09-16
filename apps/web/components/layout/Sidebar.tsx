@@ -254,7 +254,7 @@ const navConfig: NavItem[] = [
         <polyline points="10 9 9 9 8 9" />
       </svg>
     ),
-    roles: ['ORG_STAFF'],
+    roles: ['ORG_STAFF', 'ADMIN'],
     orgTypes: ['RETAIL'],
     requiredPermissions: ['ORDERS_VIEW'],
   },

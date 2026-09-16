@@ -185,7 +185,18 @@ export class EmployeesService {
         );
 
         if (!hasAdminPower) {
-           throw new ForbiddenException('Only ADMIN can modify employee roles or permissions');
+          if (role !== undefined && role !== employee.role) {
+            throw new ForbiddenException('Only ADMIN can modify employee roles');
+          }
+          if (permissions !== undefined) {
+            const requesterPerms = requesterStaff?.permissions || [];
+            const addedPerms = permissions.filter((p: string) => !employee.permissions.includes(p));
+            const removedPerms = employee.permissions.filter((p: string) => !permissions.includes(p));
+            const unauthorizedChanges = [...addedPerms, ...removedPerms].some((p: string) => !requesterPerms.includes(p));
+            if (unauthorizedChanges) {
+              throw new ForbiddenException('You can only manage permissions that you possess');
+            }
+          }
         }
 
         if (role !== undefined) finalRole = role;

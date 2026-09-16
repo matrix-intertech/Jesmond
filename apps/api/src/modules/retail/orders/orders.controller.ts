@@ -4,13 +4,15 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
-import { OrgType } from '@prisma/client';
+import { OrgType, UserRole } from '@prisma/client';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 import { RetailPermission } from '../auth/retail-permissions.enum';
 
 @Controller('retail/orders')
 @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
+@Roles(UserRole.ORG_STAFF, UserRole.ADMIN)
 @OrgTypes(OrgType.RETAIL)
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}

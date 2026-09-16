@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getAccessToken, getCurrentUser, setCurrentUser, clearAuth } from '@/utils/auth';
 import { GlobalNav } from '@/components/marketing/GlobalNav';
 import Link from 'next/link';
 
@@ -20,13 +21,35 @@ export default function MyOrderDetailPage({ params }: { params: { id: string } }
     if (!id) return;
     const fetchOrder = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = getAccessToken();
         if (!token) {
           router.push(`/login?returnUrl=/my-orders/${id}`);
           return;
         }
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+        let user = getCurrentUser();
+        if (!user) {
+          try {
+            const meRes = await fetch(`${apiUrl}/api/v1/auth/me`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (meRes.ok) {
+              user = await meRes.json();
+              setCurrentUser(user as any);
+            } else {
+              clearAuth();
+              router.push(`/login?returnUrl=/my-orders/${id}`);
+              return;
+            }
+          } catch (e) {
+            clearAuth();
+            router.push(`/login?returnUrl=/my-orders/${id}`);
+            return;
+          }
+        }
+
         const res = await fetch(`${apiUrl}/api/v1/customer/orders/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
