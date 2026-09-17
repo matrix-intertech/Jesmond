@@ -36,4 +36,14 @@ export class LocationsController {
   async getUniversities(@Query('search') search?: string) {
     return this.locationsService.getUniversities(search);
   }
+
+  @Get('nearest')
+  async getNearestSuburb(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('stateId') stateId: string,
+  ) {
+    if (!lat || !lng || !stateId) return null;
+    return this.locationsService.getNearestSuburb(parseFloat(lat), parseFloat(lng), stateId);
+  }
 }

@@ -8,6 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { SaveButton } from "../student/SaveButton";
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { handleApiError, getApiUrl } from '@/utils/api';
+import { BedDouble, Bath, CarFront } from "lucide-react";
 
 // Dynamically import Leaflet map to avoid window is not defined SSR error
 const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), { 
@@ -18,7 +19,7 @@ const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExp
 export function SearchClient({ initialParams }: { initialParams: any }) {
   const router = useRouter();
   const pathname = usePathname();
-  const onAuthError = () => { clearAuth(); router.replace('/login'); };
+  const onAuthError = () => { clearAuth(); };
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
   
   // API State
@@ -75,7 +76,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
         
         const apiUrl = getApiUrl();
         const token = getAccessToken();
-        const onAuthError = () => { clearAuth(); router.replace('/login'); };
+        const onAuthError = () => { clearAuth(); };
         const res = await fetch(`${apiUrl}/api/v1/properties/search?${searchParams.toString()}`, {
           headers: token ? { 'Authorization': `Bearer ${token}` } : {},
           signal: controller.signal
@@ -207,7 +208,40 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   <div className="p-6 flex flex-col justify-between flex-grow">
                     <div>
                       <h3 className="text-xl font-bold text-brand-navy mb-1">{prop.name}</h3>
-                      <p className="text-sm font-medium text-slate-500 mb-4">{location}</p>
+                      <p className="text-sm font-medium text-slate-500 mb-3">{location}</p>
+                      {(() => {
+                        const c = prop.configuration || {};
+                        const hasBed = !!c.bedrooms;
+                        const hasBath = !!c.bathrooms;
+                        const hasCar = !!c.parkingSpaces;
+                        
+                        if (!hasBed && !hasBath && !hasCar) return null;
+
+                        return (
+                          <div className="flex items-center gap-4 text-sm text-slate-600 font-medium">
+                            {hasBed && (
+                              <span className="flex items-center gap-1.5" title="Bedrooms">
+                                <BedDouble className="h-4 w-4" />
+                                <span>{c.bedrooms}</span>
+                              </span>
+                            )}
+                            
+                            {hasBath && (
+                              <span className="flex items-center gap-1.5" title="Bathrooms">
+                                <Bath className="h-4 w-4" />
+                                <span>{c.bathrooms}</span>
+                              </span>
+                            )}
+                            
+                            {hasCar && (
+                              <span className="flex items-center gap-1.5" title="Parking Spaces">
+                                <CarFront className="h-4 w-4" />
+                                <span>{c.parkingSpaces}</span>
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     <div className="mt-4 flex justify-between items-end">
                       <p className="text-2xl font-bold text-brand-navy tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-slate-500">/wk</span></p>

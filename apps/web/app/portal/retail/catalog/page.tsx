@@ -31,6 +31,7 @@ function CatalogPageContent() {
     imageUrl: ''
   });
   const [formLoading, setFormLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
 
@@ -112,6 +113,7 @@ function CatalogPageContent() {
     setFormData({ sku: '', name: '', sellingPrice: '', imageUrl: '' });
     setFormError("");
     setFormSuccess("");
+    setImageUploading(false);
     setIsModalOpen(true);
   };
 
@@ -301,14 +303,61 @@ function CatalogPageContent() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                <input required type="url" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm" placeholder="https://example.com/image.jpg" />
-                <p className="text-xs text-slate-500 mt-1">A valid image URL is required to list this product.</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                <div className="mt-1 flex items-center gap-4">
+                  {formData.imageUrl && (
+                    <div className="relative w-16 h-16 rounded-md overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                      <img src={formData.imageUrl} alt="Preview" className="object-cover w-full h-full" />
+                    </div>
+                  )}
+                  <div className="flex-grow">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      disabled={imageUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setImageUploading(true);
+                          setFormError("");
+                          try {
+                            const formDataToUpload = new FormData();
+                            formDataToUpload.append('file', file);
+                            
+                            const token = getAccessToken();
+                            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog/products/media`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}` },
+                              body: formDataToUpload
+                            });
+                            
+                            if (res.ok) {
+                              const data = await res.json();
+                              setFormData({ ...formData, imageUrl: data.url });
+                            } else {
+                              const errJson = await res.json().catch(() => ({}));
+                              setFormError(errJson.message || 'Failed to upload image');
+                            }
+                          } catch (err: any) {
+                            setFormError(err.message || 'Network error during upload');
+                          } finally {
+                            setImageUploading(false);
+                          }
+                        }
+                      }} 
+                      className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-orange/10 file:text-brand-orange hover:file:bg-brand-orange/20" 
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      {imageUploading ? 'Uploading image...' : 'Select a valid image file to list this product.'}
+                    </p>
+                  </div>
+                </div>
               </div>
+
 
               <div className="pt-4 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md">Cancel</button>
-                <button type="submit" disabled={formLoading} className="px-4 py-2 text-sm font-medium text-white bg-brand-orange hover:bg-orange-600 rounded-md disabled:opacity-50">
+                <button type="submit" disabled={formLoading || imageUploading} className="px-4 py-2 text-sm font-medium text-white bg-brand-orange hover:bg-orange-600 rounded-md disabled:opacity-50">
                   {formLoading ? 'Creating...' : 'Create Product'}
                 </button>
               </div>

@@ -18,6 +18,10 @@ model User {
   role          UserRole      @default(STUDENT)
   firstName     String
   lastName      String
+  phone         String?
+  countryCode   String?
+  ethnicity     String?
+  dateOfBirth   DateTime?
   accountStatus AccountStatus @default(PENDING_VERIFICATION)
 
   // Auth Tracking
@@ -194,6 +198,24 @@ model Property {
   verificationStatus PropertyVerificationStatus @default(PENDING)
   listingMode        PropertyListingMode        @default(MULTI_UNIT)
 
+  listingType          PropertyListingType  @default(NORMAL)
+  propertyType         PropertyType?
+  offeringType         PropertyOfferingType?
+  furnishingType       FurnishingType?
+  furnishingFeatures   Json?
+  availableFrom        DateTime?
+  minimumStay          Int?
+  minimumStayUnit      String?
+  maximumStay          Int?
+  maximumStayUnit      String?
+  maximumOccupancy     Int?
+  hasExistingResidents Boolean              @default(false)
+  configuration        Json?
+  showContactDetails   Boolean              @default(false)
+
+  residents            Resident[]
+  houseRule            HouseRule?
+
   roomTypes      RoomType[]
   maintenance    MaintenanceRequest[]
   media          Media[]
@@ -216,6 +238,36 @@ model Property {
 enum PropertyListingMode {
   MULTI_UNIT
   INDIVIDUAL
+}
+
+enum PropertyListingType {
+  NORMAL
+  ROOM_RENTAL
+  ENTIRE_PLACE
+  STUDENT_ACCOMMODATION
+  CO_LIVING
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  STUDIO
+  GRANNY_FLAT
+  TOWNHOUSE
+  UNIT
+  DUPLEX
+  OTHER
+}
+
+enum PropertyOfferingType {
+  ROOM_IN_SHARED_SPACE
+  ENTIRE_PLACE
+}
+
+enum FurnishingType {
+  UNFURNISHED
+  FULLY_FURNISHED
+  FLEXIBLE
 }
 
 enum PropertyStatus {
@@ -305,12 +357,55 @@ model Room {
 
   identifier String // e.g. "Room 101"
 
+  capacity       Int       @default(1)
+  occupiedCount  Int       @default(0)
+  furnishing     String?
+  bathroomConfig String?
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
   @@unique([roomTypeId, identifier])
   @@index([roomTypeId])
+}
+
+model Resident {
+  id               String   @id @default(uuid())
+  propertyId       String
+  property         Property @relation(fields: [propertyId], references: [id])
+  name             String
+  email            String?
+  phone            String?
+  age              Int?
+  ethnicity        String?
+  occupation       String?
+  shortBio         String?
+  photoUrl         String?
+  isActive         Boolean  @default(true)
+  publicVisibility Json?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([propertyId])
+}
+
+model HouseRule {
+  id              String   @id @default(uuid())
+  propertyId      String   @unique
+  property        Property @relation(fields: [propertyId], references: [id])
+  smoking         String?
+  pets            String?
+  parties         String?
+  guests          String?
+  quietHoursStart String?
+  quietHoursEnd   String?
+  additionalRules String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Application {
@@ -406,6 +501,13 @@ enum InvoiceStatus {
   PAID
   OVERDUE
   CANCELLED
+}
+
+enum EnquiryStatus {
+  NEW
+  CONTACTED
+  IN_PROGRESS
+  CLOSED
 }
 
 model MaintenanceRequest {
@@ -856,16 +958,21 @@ model SavedProperty {
 
 model Enquiry {
   id         String    @id @default(uuid())
-  studentId  String
-  student    User      @relation(fields: [studentId], references: [id])
+  studentId  String?
+  student    User?     @relation(fields: [studentId], references: [id])
   propertyId String
   property   Property  @relation(fields: [propertyId], references: [id])
   roomTypeId String?
   roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
 
-  message String @db.Text
+  message     String @db.Text
+  seekerName  String?
+  seekerEmail String?
+  seekerPhone String?
+  status      EnquiryStatus @default(NEW)
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([studentId])
   @@index([propertyId])

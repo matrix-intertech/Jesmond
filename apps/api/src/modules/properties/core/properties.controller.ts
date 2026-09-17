@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
-import { OrgType } from '@prisma/client';
+import { OrgType, PropertyType, PropertyOfferingType, FurnishingType } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdatePropertyDto, UpdateRoomTypeDto, UpdateAmenitiesDto, CreateBuildingDto, CreateFloorDto, CreateRoomDto } from '../dtos/property.dto';
@@ -239,10 +239,20 @@ export class PropertiesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
+    @Query('propertyType') propertyType?: string,
+    @Query('furnishingType') furnishingType?: string,
+    @Query('offeringType') offeringType?: string,
+    @Query('minBedrooms') minBedrooms?: string,
+    @Query('minBathrooms') minBathrooms?: string,
+    @Query('minimumStay') minimumStay?: string,
+    @Query('maximumStay') maximumStay?: string,
   ) {
     // 1. Pagination Validation
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const parsedLimit = limit ? parseInt(limit, 10) : 20;
+    const safePage = page === 'undefined' ? undefined : page;
+    const safeLimit = limit === 'undefined' ? undefined : limit;
+    
+    const parsedPage = safePage ? parseInt(safePage, 10) : 1;
+    const parsedLimit = safeLimit ? parseInt(safeLimit, 10) : 20;
 
     if (isNaN(parsedPage) || parsedPage < 1) {
       throw new BadRequestException('Invalid page parameter. Must be >= 1');
@@ -272,8 +282,13 @@ export class PropertiesController {
     }
 
     // 3. Bounds Validation
-    if (bounds) {
-      const parts = bounds.split(',').map(p => parseFloat(p.trim()));
+    let effectiveBounds = bounds;
+    if (bounds === 'undefined' || bounds === 'undefined,undefined,undefined,undefined') {
+      effectiveBounds = undefined;
+    }
+
+    if (effectiveBounds) {
+      const parts = effectiveBounds.split(',').map(p => parseFloat(p.trim()));
       if (parts.length !== 4 || parts.some(isNaN)) {
         throw new BadRequestException('Bounds must contain exactly 4 valid numbers: sw_lat,sw_lng,ne_lat,ne_lng');
       }
@@ -292,23 +307,111 @@ export class PropertiesController {
     const effectiveRoomType = roomType || type;
     const effectiveMoveIn = moveIn || availability || semester;
 
+    const normalizeString = (val?: string) => (val && val.trim() !== '' ? val : undefined);
+    const parseNumber = (val?: string) => {
+      if (!val || val.trim() === '') return undefined;
+      const parsed = parseInt(val, 10);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+    const validateEnum = <T extends Record<string, string>>(val: string | undefined, enumObj: T): T[keyof T] | undefined => {
+      const normalized = normalizeString(val);
+      if (!normalized) return undefined;
+      return Object.values(enumObj).includes(normalized as any) ? (normalized as T[keyof T]) : undefined;
+    };
+
     return this.propertiesService.search({
-      city,
-      university: effectiveUniversity,
-      minPrice: parsedMinPrice,
-      maxPrice: parsedMaxPrice,
-      roomType: effectiveRoomType,
-      moveIn: effectiveMoveIn,
-      amenities: amenities ? amenities.split(',').map(a => a.trim()).filter(Boolean) : undefined,
-      bounds,
+      city: normalizeString(city),
+      university: normalizeString(effectiveUniversity),
+      minPrice: parseNumber(minPrice),
+      maxPrice: parseNumber(maxPrice),
+      roomType: normalizeString(effectiveRoomType),
+      moveIn: normalizeString(effectiveMoveIn),
+      amenities: amenities && amenities.trim() !== '' ? amenities.split(',').map(a => a.trim()).filter(Boolean) : undefined,
+      bounds: normalizeString(effectiveBounds),
       page: parsedPage,
       limit: parsedLimit,
-      sort,
+      sort: normalizeString(sort),
+      propertyType: validateEnum(propertyType, PropertyType) as string | undefined,
+      furnishingType: validateEnum(furnishingType, FurnishingType) as string | undefined,
+      offeringType: validateEnum(offeringType, PropertyOfferingType) as string | undefined,
+      minBedrooms: parseNumber(minBedrooms),
+      minBathrooms: parseNumber(minBathrooms),
+      minimumStay: parseNumber(minimumStay),
+      maximumStay: parseNumber(maximumStay),
     });
   }
 
   @Get('public/:id')
   async getPublicProperty(@Param('id') id: string) {
     return this.propertiesService.getPublicProperty(id);
+  }
+
+  @Post('public/:id/enquiries')
+  async createEnquiry(
+    @Param('id') id: string,
+    @Body() body: { message: string; roomTypeId?: string; seekerName?: string; seekerEmail?: string; seekerPhone?: string; studentId?: string }
+  ) {
+    if (!body?.message || typeof body.message !== 'string') {
+      throw new BadRequestException('Message is required and must be a string');
+    }
+    return this.propertiesService.createEnquiry(id, body);
+  }
+
+  // --- Residents ---
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Post('my/:id/residents')
+  async addResident(@Param('id') id: string, @Body() dto: any, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.addResident(id, req.user.organizationId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id/residents/:residentId')
+  async updateResident(@Param('id') id: string, @Param('residentId') residentId: string, @Body() dto: any, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.updateResident(id, req.user.organizationId, residentId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Delete('my/:id/residents/:residentId')
+  async deleteResident(@Param('id') id: string, @Param('residentId') residentId: string, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.deleteResident(id, req.user.organizationId, residentId);
+  }
+
+  // --- House Rules ---
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('my/:id/house-rules')
+  async updateHouseRules(@Param('id') id: string, @Body() dto: any, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.updateHouseRule(id, req.user.organizationId, dto);
+  }
+
+  // --- Enquiries ---
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Get('enquiries')
+  async getProviderEnquiries(@Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    return this.propertiesService.getProviderEnquiries(req.user.organizationId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @OrgTypes(OrgType.PROVIDER)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Put('enquiries/:enquiryId/status')
+  async updateEnquiryStatus(@Param('enquiryId') enquiryId: string, @Body() dto: { status: string }, @Request() req: any) {
+    if (!req.user.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!dto.status) throw new BadRequestException('Status is required');
+    return this.propertiesService.updateEnquiryStatus(enquiryId, req.user.organizationId, dto.status);
   }
 }

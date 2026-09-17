@@ -14,24 +14,75 @@ export class SettingsService {
       where: { id: userId },
       select: {
         id: true, email: true, firstName: true, lastName: true, role: true, accountStatus: true,
+        phone: true, countryCode: true, ethnicity: true, dateOfBirth: true,
+        orgStaffRoles: {
+          where: { deletedAt: null },
+          include: { organization: true },
+        }
       }
     });
     if (!user) throw new NotFoundException('User not found');
-    return user;
+
+    const requiredFields = ['phone', 'countryCode', 'ethnicity', 'dateOfBirth'] as const;
+    const missingFields: string[] = requiredFields.filter(f => !user[f]);
+
+    const activeRole = user.orgStaffRoles?.[0];
+    if (activeRole?.organization?.type === 'RETAIL') {
+      if (!activeRole.organization.name || activeRole.organization.name.trim() === '') {
+        missingFields.push('retailStoreName');
+      }
+    }
+
+    const profileCompletion = {
+      isComplete: missingFields.length === 0,
+      missingFields,
+    };
+
+    // Remove orgStaffRoles from the returned user object to avoid unexpected frontend payload changes
+    const { orgStaffRoles, ...userWithoutOrg } = user;
+    return { ...userWithoutOrg, profileCompletion };
   }
 
   async updateProfile(userId: string, data: any) {
     try {
-      return await this.prisma.user.update({
+      const updateData: any = {};
+      if (data.firstName !== undefined) updateData.firstName = data.firstName;
+      if (data.lastName !== undefined) updateData.lastName = data.lastName;
+      if (data.phone !== undefined) updateData.phone = data.phone;
+      if (data.countryCode !== undefined) updateData.countryCode = data.countryCode;
+      if (data.ethnicity !== undefined) updateData.ethnicity = data.ethnicity || null;
+      if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
+
+      const updated = await this.prisma.user.update({
         where: { id: userId },
-        data: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-        },
+        data: updateData,
         select: {
           id: true, email: true, firstName: true, lastName: true, role: true, accountStatus: true,
+          phone: true, countryCode: true, ethnicity: true, dateOfBirth: true,
+          orgStaffRoles: {
+            where: { deletedAt: null },
+            include: { organization: true },
+          }
         }
       });
+
+      const requiredFields = ['phone', 'countryCode', 'ethnicity', 'dateOfBirth'] as const;
+      const missingFields: string[] = requiredFields.filter(f => !updated[f]);
+
+      const activeRole = updated.orgStaffRoles?.[0];
+      if (activeRole?.organization?.type === 'RETAIL') {
+        if (!activeRole.organization.name || activeRole.organization.name.trim() === '') {
+          missingFields.push('retailStoreName');
+        }
+      }
+
+      const profileCompletion = {
+        isComplete: missingFields.length === 0,
+        missingFields,
+      };
+
+      const { orgStaffRoles, ...userWithoutOrg } = updated;
+      return { ...userWithoutOrg, profileCompletion };
     } catch (e) {
       throw new InternalServerErrorException('Failed to update profile');
     }

@@ -1,4 +1,4 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty, IsOptional, IsIn } from 'class-validator';
+import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty, IsOptional, IsIn, IsDateString } from 'class-validator';
 import { OrgType } from '@prisma/client';
 
 export class RegisterProviderDto {
@@ -24,6 +24,22 @@ export class RegisterProviderDto {
   @IsNotEmpty()
   @MaxLength(50)
   lastName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  countryCode!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone!: string;
+
+  @IsString()
+  @IsOptional()
+  ethnicity?: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  dateOfBirth!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -57,6 +73,22 @@ export class RegisterStudentDto {
   @IsNotEmpty()
   @MaxLength(50)
   lastName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  countryCode!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone!: string;
+
+  @IsString()
+  @IsOptional()
+  ethnicity?: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  dateOfBirth!: string;
 }
 
 export class LoginDto {

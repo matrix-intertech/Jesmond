@@ -51,7 +51,6 @@ export function GlobalNav() {
   const navLinks = [
     { label: "Retail", href: "/retail" },
     { label: "Universities", href: "/universities" },
-    { label: "States", href: "/states" },
     { label: "Providers", href: "/providers" },
     { label: "Support", href: "/support" },
   ];

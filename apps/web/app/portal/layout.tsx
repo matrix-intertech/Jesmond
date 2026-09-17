@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
+import ProfileCompletionBanner from '@/components/ui/ProfileCompletionBanner';
 import { getAccessToken, getCurrentUser, clearAuth, setCurrentUser, User } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 
@@ -33,7 +34,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
       
       const userOrgType = usr.orgType || 'PROVIDER';
       const isRetailRoute = pathname.startsWith('/portal/retail');
-      const isAccommodationRoute = pathname.startsWith('/portal/properties') || pathname.startsWith('/portal/applications');
+      const isAccommodationRoute = pathname.startsWith('/portal/properties') || pathname.startsWith('/portal/applications') || pathname.startsWith('/portal/enquiries');
       
       if (userOrgType === 'RETAIL' && isAccommodationRoute) {
         router.replace('/portal/retail');
@@ -91,6 +92,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   return (
     <DashboardShell role={user?.role as any}>
+      <ProfileCompletionBanner />
       {children}
     </DashboardShell>
   );

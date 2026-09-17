@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 
 import DashboardShell from '@/components/layout/DashboardShell';
+import ProfileCompletionBanner from '@/components/ui/ProfileCompletionBanner';
 import { getAccessToken, getCurrentUser, clearAuth, setCurrentUser, User } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 
@@ -73,6 +74,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   return (
     <DashboardShell role={user?.role as any}>
+      <ProfileCompletionBanner />
       {children}
     </DashboardShell>
   );

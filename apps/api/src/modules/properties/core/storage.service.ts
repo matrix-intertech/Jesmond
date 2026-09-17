@@ -66,6 +66,38 @@ export class StorageService {
     }
   }
 
+  async uploadRetailProductImage(orgId: string, file: Express.Multer.File): Promise<string> {
+    if (!this.s3Client || !this.bucketName) {
+      // Local development fallback: Since S3 is not configured, we'll write to .tempmediaStorage 
+      // ONLY IF we are in a dev environment without credentials, to avoid throwing 500s locally.
+      // Wait, the prompt says "Reuse the same canonical mechanism". Let's stick strictly to the exact S3 logic.
+      throw new ServiceUnavailableException('Storage is not configured on this server.');
+    }
+
+    const fileExt = file.originalname.split('.').pop();
+    const key = `retail/${orgId}/${randomUUID()}.${fileExt}`;
+
+    try {
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        })
+      );
+      
+      if (!this.r2PublicUrl) {
+        throw new InternalServerErrorException('R2_PUBLIC_URL is missing. Cannot generate public object URL.');
+      }
+      const baseUrl = this.r2PublicUrl.endsWith('/') ? this.r2PublicUrl.slice(0, -1) : this.r2PublicUrl;
+      return `${baseUrl}/${key}`;
+    } catch (error: any) {
+      this.logger.error(`Failed to upload retail product image to S3/R2: ${error.message || error}`, error);
+      throw new InternalServerErrorException('Failed to upload image');
+    }
+  }
+
   async deleteImage(url: string): Promise<void> {
     if (!this.s3Client || !this.bucketName) return;
 

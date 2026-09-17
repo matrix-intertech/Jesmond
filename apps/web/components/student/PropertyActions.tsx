@@ -6,11 +6,15 @@ import { getAccessToken, clearAuth } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 
-export function PropertyActions({ propertyId, roomTypes }: { propertyId: string, roomTypes: any[] }) {
+export function PropertyActions({ propertyId, roomTypes, showContactDetails, providerContact }: { propertyId: string, roomTypes: any[], showContactDetails?: boolean, providerContact?: any }) {
   const [showEnquiry, setShowEnquiry] = useState(false);
   const [showApply, setShowApply] = useState<string | null>(null);
   
   const [message, setMessage] = useState("");
+  const [seekerName, setSeekerName] = useState("");
+  const [seekerEmail, setSeekerEmail] = useState("");
+  const [seekerPhone, setSeekerPhone] = useState("");
+  
   const [moveInDate, setMoveInDate] = useState("");
   const [durationMonths, setDurationMonths] = useState(6);
   
@@ -34,14 +38,23 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
 
     try {
         const token = getAccessToken();
-        if (!token) throw new Error("Please login to send an enquiry");
+        let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/public/${propertyId}/enquiries`;
+        const headers: any = { 'Content-Type': 'application/json' };
+        
+        let bodyPayload: any = { message };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          if (!seekerName || !seekerEmail) throw new Error("Name and email are required for guest enquiries");
+          bodyPayload = { ...bodyPayload, seekerName, seekerEmail, seekerPhone };
+        }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${propertyId}/enquiries`, {
+        const res = await fetch(url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ message })
+          headers,
+          body: JSON.stringify(bodyPayload)
         });
-        const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+        const status = await handleApiError(res, () => { if (token) { clearAuth(); router.replace('/login'); } });
         if (status !== 'ok') {
           const isJson = res.headers.get('content-type')?.includes('application/json');
           const err = isJson ? await res.json() : { message: await res.text() };
@@ -90,15 +103,26 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
 
   return (
     <>
-      <div className="flex gap-4 mb-6">
-        {isAuth ? (
-          <button onClick={() => setShowEnquiry(true)} className="flex-1 bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
+      <div className="flex flex-col gap-4 mb-6">
+        {showContactDetails && providerContact ? (
+          <div className="bg-white border-2 border-brand-navy p-6 rounded-xl text-center shadow-sm">
+            <h3 className="font-bold text-brand-navy mb-2">Provider Contact</h3>
+            {providerContact.name && <p className="font-semibold text-lg text-slate-800">{providerContact.name}</p>}
+            {providerContact.phone ? (
+              <p className="text-brand-orange font-medium mt-1">{providerContact.phone}</p>
+            ) : (
+              <p className="text-sm text-slate-500 mt-1">Phone not provided</p>
+            )}
+            {providerContact.email ? (
+              <a href={`mailto:${providerContact.email}`} className="text-sm text-brand-navy hover:underline mt-1 block">{providerContact.email}</a>
+            ) : (
+              <p className="text-sm text-slate-500 mt-1 block">Email not provided</p>
+            )}
+          </div>
+        ) : (
+          <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
             Contact Provider
           </button>
-        ) : (
-          <Link href="/login" className="flex-1 text-center bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
-            Login to Contact
-          </Link>
         )}
       </div>
 
@@ -148,8 +172,24 @@ export function PropertyActions({ propertyId, roomTypes }: { propertyId: string,
             {success && <div className="bg-emerald-100 text-emerald-700 p-3 rounded mb-4">{success}</div>}
             {error && <div className="bg-rose-100 text-rose-700 p-3 rounded mb-4">{error}</div>}
             <form onSubmit={handleEnquiry}>
+              {!isAuth && (
+                <div className="space-y-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Your Name *</label>
+                    <input required type="text" className="w-full border rounded-lg p-3" value={seekerName} onChange={e => setSeekerName(e.target.value)} placeholder="John Doe" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Your Email *</label>
+                    <input required type="email" className="w-full border rounded-lg p-3" value={seekerEmail} onChange={e => setSeekerEmail(e.target.value)} placeholder="john@example.com" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Your Phone</label>
+                    <input type="tel" className="w-full border rounded-lg p-3" value={seekerPhone} onChange={e => setSeekerPhone(e.target.value)} placeholder="+61 400 000 000" />
+                  </div>
+                </div>
+              )}
               <div className="mb-4">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Message</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">Message *</label>
                 <textarea 
                   required 
                   rows={4} 

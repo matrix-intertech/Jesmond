@@ -1,10 +1,14 @@
 import { IsString, IsNotEmpty, MaxLength, IsNumber, Min, Max, IsUUID, IsOptional, IsInt, IsEnum } from 'class-validator';
-import { PropertyListingMode } from '@prisma/client';
+import { PropertyListingMode, PropertyListingType, PropertyType, PropertyOfferingType, FurnishingType } from '@prisma/client';
 
 export class CreatePropertyDto {
   @IsEnum(PropertyListingMode)
   @IsOptional()
   listingMode?: PropertyListingMode;
+
+  @IsEnum(PropertyListingType)
+  @IsOptional()
+  listingType?: PropertyListingType;
 
   @IsString()
   @IsNotEmpty()
@@ -38,6 +42,59 @@ export class CreatePropertyDto {
   @IsString()
   @IsNotEmpty()
   description!: string;
+
+  @IsEnum(PropertyType)
+  @IsOptional()
+  propertyType?: PropertyType;
+
+  @IsEnum(PropertyOfferingType)
+  @IsOptional()
+  offeringType?: PropertyOfferingType;
+
+  @IsEnum(FurnishingType)
+  @IsOptional()
+  furnishingType?: FurnishingType;
+
+  @IsOptional()
+  furnishingFeatures?: any;
+
+  @IsString()
+  @IsOptional()
+  availableFrom?: string;
+
+  @IsInt()
+  @IsOptional()
+  minimumStay?: number;
+
+  @IsString()
+  @IsOptional()
+  minimumStayUnit?: string;
+
+  @IsInt()
+  @IsOptional()
+  maximumStay?: number;
+
+  @IsString()
+  @IsOptional()
+  maximumStayUnit?: string;
+
+  @IsInt()
+  @IsOptional()
+  maximumOccupancy?: number;
+
+  @IsOptional()
+  hasExistingResidents?: boolean;
+
+  @IsOptional()
+  configuration?: any;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(5000)
+  pricePerWeek?: number; // In cents
+
+  @IsOptional()
+  showContactDetails?: boolean;
 }
 
 export class UpdatePropertyDto {
@@ -71,6 +128,63 @@ export class UpdatePropertyDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsEnum(PropertyListingType)
+  @IsOptional()
+  listingType?: PropertyListingType;
+
+  @IsEnum(PropertyType)
+  @IsOptional()
+  propertyType?: PropertyType;
+
+  @IsEnum(PropertyOfferingType)
+  @IsOptional()
+  offeringType?: PropertyOfferingType;
+
+  @IsEnum(FurnishingType)
+  @IsOptional()
+  furnishingType?: FurnishingType;
+
+  @IsOptional()
+  furnishingFeatures?: any;
+
+  @IsString()
+  @IsOptional()
+  availableFrom?: string;
+
+  @IsInt()
+  @IsOptional()
+  minimumStay?: number;
+
+  @IsString()
+  @IsOptional()
+  minimumStayUnit?: string;
+
+  @IsInt()
+  @IsOptional()
+  maximumStay?: number;
+
+  @IsString()
+  @IsOptional()
+  maximumStayUnit?: string;
+
+  @IsInt()
+  @IsOptional()
+  maximumOccupancy?: number;
+
+  @IsOptional()
+  hasExistingResidents?: boolean;
+
+  @IsOptional()
+  configuration?: any;
+
+  @IsNumber()
+  @IsOptional()
+  @Min(5000)
+  pricePerWeek?: number; // In cents
+
+  @IsOptional()
+  showContactDetails?: boolean;
 }
 
 export class CreateRoomTypeDto {
@@ -155,4 +269,126 @@ export class CreateRoomDto {
   @IsNotEmpty()
   @MaxLength(100)
   identifier!: string;
+
+  @IsInt()
+  @IsOptional()
+  capacity?: number;
+
+  @IsString()
+  @IsOptional()
+  furnishing?: string;
+
+  @IsString()
+  @IsOptional()
+  bathroomConfig?: string;
+}
+
+export class CreateResidentDto {
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsInt()
+  @IsOptional()
+  age?: number;
+
+  @IsString()
+  @IsOptional()
+  ethnicity?: string;
+
+  @IsString()
+  @IsOptional()
+  occupation?: string;
+
+  @IsString()
+  @IsOptional()
+  shortBio?: string;
+
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsOptional()
+  publicVisibility?: any;
+}
+
+export class UpdateResidentDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsInt()
+  @IsOptional()
+  age?: number;
+
+  @IsString()
+  @IsOptional()
+  ethnicity?: string;
+
+  @IsString()
+  @IsOptional()
+  occupation?: string;
+
+  @IsString()
+  @IsOptional()
+  shortBio?: string;
+
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsOptional()
+  publicVisibility?: any;
+}
+
+export class UpdateHouseRuleDto {
+  @IsString()
+  @IsOptional()
+  smoking?: string;
+
+  @IsString()
+  @IsOptional()
+  pets?: string;
+
+  @IsString()
+  @IsOptional()
+  parties?: string;
+
+  @IsString()
+  @IsOptional()
+  guests?: string;
+
+  @IsString()
+  @IsOptional()
+  quietHoursStart?: string;
+
+  @IsString()
+  @IsOptional()
+  quietHoursEnd?: string;
+
+  @IsString()
+  @IsOptional()
+  additionalRules?: string;
 }

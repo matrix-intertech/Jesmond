@@ -49,10 +49,13 @@ export class AuthService {
       });
 
       const data = await response.json();
+      
       if (!data.success) {
         throw new BadRequestException('Security verification failed. Please try again.');
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error instanceof BadRequestException) throw error;
+      console.error('Turnstile verification error:', error.message);
       throw new BadRequestException('Security verification failed. Please try again.');
     }
   }
@@ -88,6 +91,10 @@ export class AuthService {
             password: hashedPassword,
             firstName: dto.firstName,
             lastName: dto.lastName,
+            countryCode: dto.countryCode,
+            phone: dto.phone,
+            ethnicity: dto.ethnicity,
+            dateOfBirth: new Date(dto.dateOfBirth),
             role: UserRole.ORG_STAFF,
             emailVerificationToken: otpHash,
             emailVerificationExpiresAt: otpExpiresAt,
@@ -141,6 +148,10 @@ export class AuthService {
             password: hashedPassword,
             firstName: dto.firstName,
             lastName: dto.lastName,
+            countryCode: dto.countryCode,
+            phone: dto.phone,
+            ethnicity: dto.ethnicity,
+            dateOfBirth: new Date(dto.dateOfBirth),
             role: UserRole.ORG_STAFF,
             accountStatus: AccountStatus.PENDING_VERIFICATION,
             emailVerified: false,
@@ -202,6 +213,10 @@ export class AuthService {
           password: hashedPassword,
           firstName: dto.firstName,
           lastName: dto.lastName,
+          countryCode: dto.countryCode,
+          phone: dto.phone,
+          ethnicity: dto.ethnicity,
+          dateOfBirth: new Date(dto.dateOfBirth),
           role: UserRole.STUDENT,
           emailVerificationToken: otpHash,
           emailVerificationExpiresAt: otpExpiresAt,
@@ -216,6 +231,10 @@ export class AuthService {
           password: hashedPassword,
           firstName: dto.firstName,
           lastName: dto.lastName,
+          countryCode: dto.countryCode,
+          phone: dto.phone,
+          ethnicity: dto.ethnicity,
+          dateOfBirth: new Date(dto.dateOfBirth),
           role: UserRole.STUDENT,
           accountStatus: AccountStatus.PENDING_VERIFICATION,
           emailVerified: false,

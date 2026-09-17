@@ -62,7 +62,7 @@ export default async function UniversitiesPage({
             Study Destinations
           </span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-brand-navy mb-6 tracking-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
-            Find your university in Australia
+            Find accommodation near your university
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             Explore premium student accommodation near Australia's top universities. Live close to campus and focus on what matters.

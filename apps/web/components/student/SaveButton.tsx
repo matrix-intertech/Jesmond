@@ -7,7 +7,7 @@ import { getAccessToken, clearAuth } from '@/utils/auth';
 
 export function SaveButton({ propertyId }: { propertyId: string }) {
   const router = useRouter();
-  const onAuthError = () => { clearAuth(); router.replace('/login'); };
+  const onAuthError = () => { clearAuth(); };
   const [isSaved, setIsSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +16,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
     const checkSavedState = async () => {
       try {
         const token = getAccessToken();
-        if (!token) { onAuthError(); return; }
+        if (!token) { return; }
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/saved`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -37,7 +37,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
     e.preventDefault();
     e.stopPropagation();
     const token = getAccessToken();
-    if (!token) { onAuthError(); return; }
+    if (!token) { clearAuth(); router.push('/login'); return; }
 
     setLoading(true);
     const method = isSaved ? 'DELETE' : 'POST';
@@ -48,6 +48,10 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const status = await handleApiError(res, onAuthError);
+      if (status === 'unauthorized') {
+        router.push('/login');
+        return;
+      }
       if (status === 'ok') {
         setIsSaved(!isSaved);
       }

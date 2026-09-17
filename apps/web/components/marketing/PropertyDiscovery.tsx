@@ -8,6 +8,7 @@ import PropertyMap from "../ui/PropertyMap";
 import { type PropertyMarkerData } from "../ui/PropertyMapInner";
 
 import { getApiUrl } from "@/utils/api";
+import { BedDouble, Bath, CarFront } from "lucide-react";
 
 export function PropertyDiscovery() {
   const [activeTab, setActiveTab] = useState("top_rated");
@@ -233,6 +234,40 @@ export function PropertyDiscovery() {
                           <p className="text-xl font-bold text-brand-orange tracking-tight leading-none">${property.lowestPricePerWeek}<span className="text-[12px] font-medium text-slate-500">/wk</span></p>
                         </div>
                       </div>
+
+                      {(() => {
+                        const c = property.configuration || {};
+                        const hasBed = !!c.bedrooms;
+                        const hasBath = !!c.bathrooms;
+                        const hasCar = !!c.parkingSpaces;
+                        
+                        if (!hasBed && !hasBath && !hasCar) return null;
+
+                        return (
+                          <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
+                            {hasBed && (
+                              <span className="flex items-center gap-1.5" title="Bedrooms">
+                                <BedDouble className="h-4 w-4" />
+                                <span>{c.bedrooms}</span>
+                              </span>
+                            )}
+                            
+                            {hasBath && (
+                              <span className="flex items-center gap-1.5" title="Bathrooms">
+                                <Bath className="h-4 w-4" />
+                                <span>{c.bathrooms}</span>
+                              </span>
+                            )}
+                            
+                            {hasCar && (
+                              <span className="flex items-center gap-1.5" title="Parking Spaces">
+                                <CarFront className="h-4 w-4" />
+                                <span>{c.parkingSpaces}</span>
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       <div className="flex gap-2 mb-4 text-xs font-medium text-slate-600">
                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded border ${isAvailableNow ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-amber-700 bg-amber-50 border-amber-100'}`}>

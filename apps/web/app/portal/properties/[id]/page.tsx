@@ -1,14 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 import { SafeImage } from '../../../../components/ui/SafeImage';
 import PageHeader from '@/components/ui/PageHeader';
+import LocationPicker from '@/components/ui/LocationPicker';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 
 import { handleApiError } from '@/utils/api';
 import HierarchyManager from './HierarchyManager';
+import ResidentManager from './ResidentManager';
+import HouseRulesManager from './HouseRulesManager';
 
 export default function AccommodationManagementPage() {
   const router = useRouter();
@@ -27,16 +30,32 @@ export default function AccommodationManagementPage() {
   const [availCount, setAvailCount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditingProp, setIsEditingProp] = useState(false);
-  const [editPropForm, setEditPropForm] = useState({ name: '', address: '', postcode: '', lat: '', lng: '', description: '' });
+  const [editPropForm, setEditPropForm] = useState<any>({ name: '', address: '', postcode: '', lat: '', lng: '', description: '', showContactDetails: false });
   const [allAmenities, setAllAmenities] = useState<any[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [isEditingAmenities, setIsEditingAmenities] = useState(false);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+  const [suburbs, setSuburbs] = useState<any[]>([]);
+  const [selectedStateId, setSelectedStateId] = useState('');
+  const [selectedCityId, setSelectedCityId] = useState('');
+  const [statesLoading, setStatesLoading] = useState(true);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [suburbsLoading, setSuburbsLoading] = useState(false);
+  const [isManualLocation, setIsManualLocation] = useState(false);
+  const latestGeocodeReq = useRef(0);
+
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/amenities`)
       .then(res => res.json())
       .then(data => setAllAmenities(data))
       .catch(err => console.log('Failed to load amenities. Ensure API is running.', err.message));
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/states`)
+      .then(res => res.json())
+      .then(data => { setStates(data); setStatesLoading(false); })
+      .catch(() => setStatesLoading(false));
   }, []);
 
   const fetchProperty = async () => {
@@ -53,9 +72,36 @@ export default function AccommodationManagementPage() {
         setProperty(data);
         setEditPropForm({
           name: data.name, address: data.address, postcode: data.postcode,
-          lat: data.lat, lng: data.lng, description: data.description
+                    lat: data.lat, lng: data.lng, description: data.description,
+          suburbId: data.suburbId || data.suburb?.id || '',
+          propertyType: data.propertyType || '',
+          offeringType: data.offeringType || '',
+          furnishingType: data.furnishingType || '',
+          availableFrom: data.availableFrom ? new Date(data.availableFrom).toISOString().split('T')[0] : '',
+          minimumStay: data.minimumStay || '',
+          maximumStay: data.maximumStay || '',
+          maximumOccupancy: data.maximumOccupancy || '',
+          pricePerWeek: data.roomTypes?.[0]?.pricePerWeek ? (data.roomTypes[0].pricePerWeek / 100).toString() : '',
+          bedrooms: data.configuration?.bedrooms || '',
+          bathrooms: data.configuration?.bathrooms || '',
+          parkingSpaces: data.configuration?.parkingSpaces || '',
+          showContactDetails: data.showContactDetails || false,
         });
         setSelectedAmenities(data.amenities?.map((a: any) => a.amenityId) || []);
+
+        if (data.suburb?.city?.stateId) setSelectedStateId(data.suburb.city.stateId);
+        if (data.suburb?.cityId) setSelectedCityId(data.suburb.cityId);
+
+        if (data.suburb?.city?.stateId) {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${data.suburb.city.stateId}`)
+            .then(r => r.json())
+            .then(cData => setCities(Array.isArray(cData) ? cData : []));
+        }
+        if (data.suburb?.cityId) {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${data.suburb.cityId}`)
+            .then(r => r.json())
+            .then(sData => setSuburbs(Array.isArray(sData) ? sData : []));
+        }
       } else {
         setError('Failed to fetch property');
       }
@@ -99,6 +145,185 @@ export default function AccommodationManagementPage() {
     }
   };
 
+  
+  const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const stateId = e.target.value;
+    setSelectedStateId(stateId);
+    setSelectedCityId('');
+    setEditPropForm((prev: any) => ({ ...prev, suburbId: '', postcode: '' }));
+    setSuburbs([]);
+    setIsManualLocation(true);
+    if (!stateId) { setCities([]); return; }
+    setCitiesLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${stateId}`);
+      const data = await res.json();
+      setCities(Array.isArray(data) ? data : []);
+    } catch (err) {} finally { setCitiesLoading(false); }
+  };
+
+  const handleCityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityId = e.target.value;
+    setSelectedCityId(cityId);
+    setEditPropForm((prev: any) => ({ ...prev, suburbId: '', postcode: '' }));
+    setIsManualLocation(true);
+    if (!cityId) { setSuburbs([]); return; }
+    setSuburbsLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${cityId}`);
+      const data = await res.json();
+      setSuburbs(Array.isArray(data) ? data : []);
+    } catch (err) {} finally { setSuburbsLoading(false); }
+  };
+
+  const handleSuburbChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const sId = e.target.value;
+    setIsManualLocation(true);
+    const selectedSuburb = suburbs.find(s => s.id === sId);
+    setEditPropForm((prev: any) => {
+      const next = { ...prev, suburbId: sId };
+      if (selectedSuburb) {
+        if (selectedSuburb.postcode) next.postcode = selectedSuburb.postcode;
+        // Since we just set it to true, we know it's a manual location change. 
+        // We do NOT want to overwrite the map coordinates with generic suburb coordinates here,
+        // because the user might have placed a precise pin.
+      }
+      return next;
+    });
+  };
+
+  const handleLocationChange = async (lat: number, lng: number) => {
+    setIsManualLocation(false);
+    setEditPropForm((prev: any) => ({ ...prev, lat: String(lat), lng: String(lng) }));
+    setError('');
+
+    const reqId = Date.now();
+    latestGeocodeReq.current = reqId;
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
+      if (!res.ok) throw new Error('Geocoding failed');
+      const data = await res.json();
+      
+      if (latestGeocodeReq.current !== reqId) return;
+      
+      if (data && data.address) {
+        if (data.address.country_code !== 'au') {
+          setError("Couldn't automatically detect the location. Please select it manually.");
+          return;
+        }
+
+        const stateName = data.address.state;
+        if (stateName) {
+          const matchedState = states.find(s => 
+            s.name.toLowerCase() === stateName.trim().toLowerCase() || 
+            s.code.toLowerCase() === stateName.trim().toLowerCase() ||
+            stateName.trim().toLowerCase().includes(s.name.toLowerCase())
+          );
+          
+          if (matchedState) {
+            setSelectedStateId(matchedState.id);
+            
+            setCitiesLoading(true);
+            const cityRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${matchedState.id}`);
+            const cityData = await cityRes.json();
+            const loadedCities = Array.isArray(cityData) ? cityData : [];
+            setCities(loadedCities);
+            setCitiesLoading(false);
+            
+            if (latestGeocodeReq.current !== reqId) return;
+            
+            let matchedCity: any = null;
+            let matchedSuburb: any = null;
+
+            const cityName = data.address.city || data.address.town || data.address.municipality || data.address.locality || data.address.village;
+            if (cityName) {
+              matchedCity = loadedCities.find((c: any) => 
+                c.name.toLowerCase() === cityName.trim().toLowerCase() ||
+                cityName.trim().toLowerCase().includes(c.name.toLowerCase())
+              );
+            }
+              
+            if (matchedCity) {
+              setSelectedCityId(matchedCity.id);
+              
+              setSuburbsLoading(true);
+              const suburbRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
+              const suburbData = await suburbRes.json();
+              const loadedSuburbs = Array.isArray(suburbData) ? suburbData : [];
+              setSuburbs(loadedSuburbs);
+              setSuburbsLoading(false);
+              
+              if (latestGeocodeReq.current !== reqId) return;
+              
+              const suburbName = data.address.suburb || data.address.neighbourhood || data.address.locality || data.address.village || data.address.hamlet;
+              if (suburbName) {
+                matchedSuburb = loadedSuburbs.find((s: any) => 
+                  s.name.toLowerCase() === suburbName.trim().toLowerCase() ||
+                  suburbName.trim().toLowerCase().includes(s.name.toLowerCase())
+                );
+              }
+            }
+            
+            // FALLBACK TO GEOGRAPHIC DISTANCE RESOLUTION
+            if (!matchedSuburb) {
+              try {
+                const nearestRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/nearest?lat=${lat}&lng=${lng}&stateId=${matchedState.id}`);
+                if (nearestRes.ok) {
+                  const nearestData = await nearestRes.json();
+                  if (nearestData && nearestData.id) {
+                    if (nearestData.cityId) {
+                      matchedCity = loadedCities.find((c: any) => c.id === nearestData.cityId);
+                      if (matchedCity) {
+                        setSelectedCityId(matchedCity.id);
+                        setSuburbsLoading(true);
+                        const suburbRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
+                        const loadedSuburbs = await suburbRes.json();
+                        setSuburbs(loadedSuburbs);
+                        setSuburbsLoading(false);
+                        matchedSuburb = nearestData;
+                      }
+                    } else {
+                      matchedSuburb = nearestData;
+                      setSelectedCityId('');
+                      setSuburbs([nearestData]);
+                    }
+                  }
+                }
+              } catch (e) { console.log('[Location] Fallback resolution failed', e); }
+            }
+            
+            if (latestGeocodeReq.current !== reqId) return;
+
+            if (matchedSuburb) {
+              setEditPropForm((prev: any) => ({
+                ...prev,
+                suburbId: matchedSuburb.id,
+                postcode: data.address.postcode || matchedSuburb.postcode || prev.postcode
+              }));
+            } else if (matchedCity) {
+              setEditPropForm((prev: any) => ({ ...prev, suburbId: '', postcode: data.address.postcode || prev.postcode }));
+            } else {
+              setSelectedCityId('');
+              setSuburbs([]);
+              setEditPropForm((prev: any) => ({ ...prev, suburbId: '', postcode: data.address.postcode || prev.postcode }));
+            }
+          } else {
+            setSelectedStateId('');
+            setCities([]);
+            setSelectedCityId('');
+            setSuburbs([]);
+            setEditPropForm((prev: any) => ({ ...prev, suburbId: '', postcode: data.address.postcode || prev.postcode }));
+          }
+        }
+      }
+    } catch (err) {
+      if (latestGeocodeReq.current === reqId) {
+        setError("Couldn't automatically detect the location. Please select it manually.");
+      }
+    }
+  };
+
   const handleUpdateProperty = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getAccessToken();
@@ -111,6 +336,17 @@ export default function AccommodationManagementPage() {
           ...editPropForm,
           lat: parseFloat(editPropForm.lat),
           lng: parseFloat(editPropForm.lng),
+          suburbId: editPropForm.suburbId || undefined,
+          minimumStay: editPropForm.minimumStay ? parseInt(editPropForm.minimumStay as any) : undefined,
+          maximumStay: editPropForm.maximumStay ? parseInt(editPropForm.maximumStay as any) : undefined,
+          maximumOccupancy: editPropForm.maximumOccupancy ? parseInt(editPropForm.maximumOccupancy as any) : undefined,
+          pricePerWeek: editPropForm.pricePerWeek ? Math.round(parseFloat(editPropForm.pricePerWeek as any) * 100) : undefined,
+          showContactDetails: editPropForm.showContactDetails,
+          configuration: {
+            bedrooms: editPropForm.bedrooms ? parseInt(editPropForm.bedrooms as any) : undefined,
+            bathrooms: editPropForm.bathrooms ? parseInt(editPropForm.bathrooms as any) : undefined,
+            parkingSpaces: editPropForm.parkingSpaces ? parseInt(editPropForm.parkingSpaces as any) : undefined,
+          }
         })
       });
       if (await handleApiError(res, onAuthError) === 'ok') {
@@ -323,12 +559,114 @@ export default function AccommodationManagementPage() {
             <h2 className="text-xl font-medium mb-4">Edit Details</h2>
             <div><label className="block text-sm text-gray-700 mb-1">Name</label><input required type="text" value={editPropForm.name} onChange={e => setEditPropForm({...editPropForm, name: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
             <div><label className="block text-sm text-gray-700 mb-1">Address</label><input required type="text" value={editPropForm.address} onChange={e => setEditPropForm({...editPropForm, address: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-            <div className="grid grid-cols-3 gap-4">
-              <div><label className="block text-sm text-gray-700 mb-1">Postcode</label><input required type="text" value={editPropForm.postcode} onChange={e => setEditPropForm({...editPropForm, postcode: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">Lat</label><input required type="number" step="any" value={editPropForm.lat} onChange={e => setEditPropForm({...editPropForm, lat: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">Lng</label><input required type="number" step="any" value={editPropForm.lng} onChange={e => setEditPropForm({...editPropForm, lng: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                <select value={selectedStateId} onChange={handleStateChange} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <option value="">{statesLoading ? 'Loading states...' : 'Select State'}</option>
+                  {states.map((s: any) => (<option key={s.id} value={s.id}>{s.name} ({s.code})</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                <select value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId || citiesLoading} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <option value="">Select City</option>
+                  {cities.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
+                <select value={editPropForm.suburbId} onChange={handleSuburbChange} disabled={!selectedCityId || suburbsLoading} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <option value="">Select Suburb</option>
+                  {suburbs.map((s: any) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                </select>
+              </div>
             </div>
+            
+            <div><label className="block text-sm text-gray-700 mb-1">Postcode</label><input required type="text" value={editPropForm.postcode} onChange={e => setEditPropForm((prev:any)=>({...prev, postcode: e.target.value}))} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            
+            <LocationPicker lat={editPropForm.lat} lng={editPropForm.lng} onChange={handleLocationChange} suburbLat={suburbs.find(s => s.id === editPropForm.suburbId)?.lat} suburbLng={suburbs.find(s => s.id === editPropForm.suburbId)?.lng} />
             <div><label className="block text-sm text-gray-700 mb-1">Description</label><textarea required rows={4} value={editPropForm.description} onChange={e => setEditPropForm({...editPropForm, description: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            
+            {(property.listingMode === 'INDIVIDUAL' || property.offeringType === 'ENTIRE_PLACE') && (
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Price per Week ($)</label>
+                <input type="number" step="0.01" min="0" value={editPropForm.pricePerWeek} onChange={e => setEditPropForm({...editPropForm, pricePerWeek: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="e.g. 450" />
+              </div>
+            )}
+            
+            <h3 className="font-semibold text-lg mt-6">Structured Details</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Property Type</label>
+                <select value={editPropForm.propertyType} onChange={e => setEditPropForm({...editPropForm, propertyType: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2">
+                  <option value="">Select Property Type</option>
+                  <option value="HOUSE">House</option>
+                  <option value="APARTMENT">Apartment</option>
+                  <option value="STUDIO">Studio</option>
+                  <option value="UNIT">Unit</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Offering Type</label>
+                <select value={editPropForm.offeringType} onChange={e => setEditPropForm({...editPropForm, offeringType: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2">
+                  <option value="">Select Offering Type</option>
+                  <option value="ENTIRE_PLACE">Entire Place</option>
+                  <option value="ROOM_IN_SHARED_SPACE">Room in Shared Space</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Furnishing</label>
+                <select value={editPropForm.furnishingType} onChange={e => setEditPropForm({...editPropForm, furnishingType: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2">
+                  <option value="">Select Furnishing</option>
+                  <option value="FULLY_FURNISHED">Fully Furnished</option>
+                  <option value="UNFURNISHED">Unfurnished</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Available From</label>
+                <input type="date" value={editPropForm.availableFrom} onChange={e => setEditPropForm({...editPropForm, availableFrom: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Minimum Stay (months)</label>
+                <input type="number" min="1" value={editPropForm.minimumStay} onChange={e => setEditPropForm({...editPropForm, minimumStay: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Maximum Stay (months)</label>
+                <input type="number" min="1" value={editPropForm.maximumStay} onChange={e => setEditPropForm({...editPropForm, maximumStay: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div><label className="block text-sm text-gray-700 mb-1">Bedrooms</label><input type="number" min="0" value={editPropForm.bedrooms} onChange={e => setEditPropForm({...editPropForm, bedrooms: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">Bathrooms</label><input type="number" min="0" value={editPropForm.bathrooms} onChange={e => setEditPropForm({...editPropForm, bathrooms: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">Parking</label><input type="number" min="0" value={editPropForm.parkingSpaces} onChange={e => setEditPropForm({...editPropForm, parkingSpaces: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+              {property.listingType === 'CO_LIVING' && (
+                <div className="col-span-3">
+                  <label className="block text-sm text-gray-700 mb-1">Maximum Occupancy (Required)</label>
+                  <input type="number" min="1" value={editPropForm.maximumOccupancy} onChange={e => setEditPropForm({...editPropForm, maximumOccupancy: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-4 pt-4 border-t">
+              <label className="flex items-start space-x-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={editPropForm.showContactDetails} 
+                  onChange={(e) => setEditPropForm({...editPropForm, showContactDetails: e.target.checked})} 
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange" 
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>
+                  <span className="text-sm text-gray-500">
+                    If checked, your approved public contact phone and email will be visible to seekers.
+                  </span>
+                </div>
+              </label>
+            </div>
+
             <div className="flex gap-4 justify-end">
               <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-brand-navy disabled:opacity-50">Cancel</button>
               <button disabled={isSubmitting} type="submit" className="bg-brand-orange text-white px-4 py-2 rounded-md hover:bg-orange-600 disabled:opacity-50">
@@ -411,8 +749,18 @@ export default function AccommodationManagementPage() {
             )}
           </section>
 
+          {/* Resident Manager Section */}
+          {property.listingType === 'CO_LIVING' && (
+            <>
+              <ResidentManager propertyId={property.id} initialResidents={property.residents || []} onAuthError={onAuthError} onUpdate={fetchProperty} />
+              <HouseRulesManager propertyId={property.id} initialHouseRule={property.houseRule} onAuthError={onAuthError} onUpdate={fetchProperty} />
+            </>
+          )}
+
           {/* Hierarchy Section */}
-          <HierarchyManager property={property} fetchProperty={fetchProperty} isPending={isPending} />
+          {property.listingMode === 'MULTI_UNIT' && (
+            <HierarchyManager property={property} fetchProperty={fetchProperty} isPending={isPending} />
+          )}
 
         </div>
       </div>

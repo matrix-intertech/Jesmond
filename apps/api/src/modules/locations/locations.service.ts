@@ -145,4 +145,33 @@ export class LocationsService {
       },
     });
   }
+
+  async getNearestSuburb(lat: number, lng: number, stateId: string) {
+    if (!lat || !lng || !stateId) return null;
+
+    try {
+      // Euclidean approximation for nearest point since PostGIS is not available
+      const nearest: any[] = await this.prisma.$queryRaw`
+        SELECT id,
+               (POWER("lat" - CAST(${lat} AS DOUBLE PRECISION), 2) + POWER("lng" - CAST(${lng} AS DOUBLE PRECISION), 2)) as dist
+        FROM "Suburb"
+        WHERE "stateId" = ${stateId} AND "lat" IS NOT NULL AND "lng" IS NOT NULL
+        ORDER BY dist ASC
+        LIMIT 1
+      `;
+      
+      if (!nearest || nearest.length === 0) return null;
+      
+      return this.prisma.suburb.findUnique({
+        where: { id: nearest[0].id },
+        include: {
+          city: true,
+          state: true
+        }
+      });
+    } catch (e) {
+      console.error('Failed nearest suburb query:', e);
+      return null;
+    }
+  }
 }
