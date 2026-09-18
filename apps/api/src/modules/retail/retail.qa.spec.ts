@@ -11,6 +11,8 @@ import { PosWebhookController, PosWebhookService } from './pos/pos.controller';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 
+import { StorageService } from '../properties/core/storage.service';
+
 describe('Retail Backend QA Validation', () => {
   let catalogService: CatalogService;
   let branchesService: BranchesService;
@@ -27,6 +29,7 @@ describe('Retail Backend QA Validation', () => {
         InventoryService,
         OrdersService,
         PosWebhookService,
+        { provide: StorageService, useValue: { uploadFile: jest.fn() } },
         {
           provide: PrismaService,
           useValue: {

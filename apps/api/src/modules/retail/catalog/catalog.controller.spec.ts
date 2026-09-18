@@ -3,6 +3,8 @@ import { CatalogController } from './catalog.controller';
 import { CatalogService } from './catalog.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
+import { StorageService } from '../../properties/core/storage.service';
+
 describe('CatalogController', () => {
   let controller: CatalogController;
 
@@ -11,6 +13,7 @@ describe('CatalogController', () => {
       controllers: [CatalogController],
       providers: [
         { provide: CatalogService, useValue: {} },
+        { provide: StorageService, useValue: { uploadFile: jest.fn() } },
         { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
       ],
     }).compile();

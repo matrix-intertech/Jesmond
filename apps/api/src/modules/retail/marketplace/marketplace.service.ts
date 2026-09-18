@@ -36,27 +36,42 @@ export class MarketplaceService {
       throw new NotFoundException('Store not found or inactive');
     }
 
-    // Only return products with inventory > 0 for this branch
-    const inventory = await this.prisma.inventory.findMany({
+    // Return active products for the branch's organization with availability derived from inventory
+    const products = await this.prisma.product.findMany({
       where: {
-        branchId,
-        quantity: { gt: 0 }, // Only available stock
-        product: {
-          isActive: true,
-          imageUrl: { not: null },
-        },
+        organizationId: branch.organizationId,
+        isActive: true,
       },
       include: {
-        product: true,
+        inventory: {
+          where: { branchId },
+        },
       },
+      orderBy: { name: 'asc' },
+    });
+
+    const catalog = products.map(product => {
+      const inv = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
+      const quantity = inv ? inv.quantity : 0;
+      const reservedQuantity = inv ? inv.reservedQuantity : 0;
+      const availableQuantity = Math.max(0, quantity - reservedQuantity);
+
+      return {
+        ...product,
+        availableQuantity,
+        isAvailable: availableQuantity > 0,
+        outOfStock: availableQuantity <= 0,
+        availability: {
+          available: availableQuantity > 0,
+          outOfStock: availableQuantity <= 0,
+          quantity: availableQuantity,
+        },
+      };
     });
 
     return {
       branch,
-      catalog: inventory.map(inv => ({
-        ...inv.product,
-        availableQuantity: inv.quantity - inv.reservedQuantity,
-      })),
+      catalog,
     };
   }
 

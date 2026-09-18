@@ -51,4 +51,21 @@ export class InventoryController {
 
     return this.inventoryService.getInventoryByBranch(req.user.organizationId, branchId);
   }
+
+  @Get(':branchId/movements')
+  @RequirePermissions(RetailPermission.INVENTORY_VIEW)
+  async getMovements(
+    @Request() req: any,
+    @Param('branchId') branchId: string,
+  ) {
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('Authenticated user ID is required to fetch movements');
+    }
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required');
+    }
+
+    const productId = req.query?.productId as string | undefined;
+    return this.inventoryService.getInventoryMovements(req.user.organizationId, branchId, productId);
+  }
 }

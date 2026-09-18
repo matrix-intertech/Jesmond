@@ -70,8 +70,8 @@ export default async function StoreDetailPage({
       </div>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-brand-navy">Available Products</h2>
-        <p className="text-slate-500 mt-1">Browse and add items to your cart</p>
+        <h2 className="text-2xl font-bold text-brand-navy">Store Catalog</h2>
+        <p className="text-slate-500 mt-1">Browse items and add available stock to your cart</p>
       </div>
 
       {catalog.length === 0 ? (

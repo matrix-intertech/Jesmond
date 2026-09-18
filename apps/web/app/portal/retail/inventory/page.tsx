@@ -47,6 +47,8 @@ function InventoryWorkspaceContent() {
 
   // Drawer / Adjustment Modal
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [movements, setMovements] = useState<any[]>([]);
+  const [movementsLoading, setMovementsLoading] = useState(false);
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [adjType, setAdjType] = useState<"ADD" | "REMOVE">("ADD");
   const [adjQty, setAdjQty] = useState("1");
@@ -54,6 +56,25 @@ function InventoryWorkspaceContent() {
   const [adjLoading, setAdjLoading] = useState(false);
   const [adjError, setAdjError] = useState("");
   const [adjSuccess, setAdjSuccess] = useState("");
+
+  const fetchMovements = async (branch: string, prodId: string) => {
+    if (!branch || !prodId) return;
+    setMovementsLoading(true);
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branch}/movements?productId=${prodId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setMovements(await res.json());
+      }
+    } catch (e) {
+      console.error("Failed to fetch movements", e);
+    } finally {
+      setMovementsLoading(false);
+    }
+  };
 
   const fetchInventory = async (branch: string) => {
     if (!branch) return;
@@ -116,6 +137,14 @@ function InventoryWorkspaceContent() {
       fetchInventory(branchId);
     }
   }, [branchId]);
+
+  useEffect(() => {
+    if (selectedItem && branchId) {
+      fetchMovements(branchId, selectedItem.productId);
+    } else {
+      setMovements([]);
+    }
+  }, [selectedItem, branchId]);
 
   // Derived KPI and filtered data
   const { totalUnits, lowStockCount, outOfStockCount, filteredItems } = useMemo(() => {
@@ -497,6 +526,35 @@ function InventoryWorkspaceContent() {
                     >
                       Adjust Stock
                     </button>
+                  </div>
+
+                  {/* Stock Movement Ledger History */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-brand-navy mb-3 uppercase tracking-wider">Movement History</h4>
+                    {movementsLoading ? (
+                      <div className="p-4 text-xs text-slate-400 animate-pulse">Loading stock ledger history...</div>
+                    ) : movements.length === 0 ? (
+                      <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-500 text-center border border-slate-100">
+                        No movement history recorded yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                        {movements.map((m: any) => (
+                          <div key={m.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex justify-between items-center">
+                            <div>
+                              <div className="font-bold text-slate-700 flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${m.quantity > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                                {m.type} {m.reason ? `(${m.reason})` : ''}
+                              </div>
+                              <p className="text-[10px] text-slate-400 mt-0.5">{new Date(m.createdAt).toLocaleString()}</p>
+                            </div>
+                            <span className={`font-mono font-bold text-sm ${m.quantity > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

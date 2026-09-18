@@ -10,6 +10,8 @@ import { OrdersService } from './orders/orders.service';
 import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+import { StorageService } from '../properties/core/storage.service';
+
 describe('Retail Backend Auth & Isolation QA', () => {
   let branchesController: BranchesController;
   let catalogController: CatalogController;
@@ -29,6 +31,7 @@ describe('Retail Backend Auth & Isolation QA', () => {
         { provide: CatalogService, useValue: mockCatalogService },
         { provide: InventoryService, useValue: mockInventoryService },
         { provide: OrdersService, useValue: mockOrdersService },
+        { provide: StorageService, useValue: { uploadFile: jest.fn() } },
         { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
       ],
     }).compile();

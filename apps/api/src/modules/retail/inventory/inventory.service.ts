@@ -164,4 +164,40 @@ export class InventoryService {
       },
     });
   }
+
+  /**
+   * Fetch inventory movement history for a branch (and optional product).
+   */
+  async getInventoryMovements(organizationId: string, branchId: string, productId?: string) {
+    const branch = await this.prisma.retailBranch.findFirst({
+      where: {
+        id: branchId,
+        organizationId
+      }
+    });
+
+    if (!branch) {
+      throw new ForbiddenException('You do not have access to this branch or it does not exist');
+    }
+
+    const where: any = { branchId };
+    if (productId) {
+      where.productId = productId;
+    }
+
+    return this.prisma.inventoryMovement.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            sku: true,
+          }
+        }
+      }
+    });
+  }
 }
