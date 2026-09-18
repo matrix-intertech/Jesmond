@@ -1,15 +1,24 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../../redis/redis.service';
 import { FulfillmentType, OrderSource, OrderStatus } from '@prisma/client';
 
 @Injectable()
 export class MarketplaceService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redisService: RedisService
+  ) {}
 
   async listStores(lat?: number, lng?: number, radius?: number) {
+    const cacheKey = `retail:marketplace:stores:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}`;
+    const cached = await this.redisService.get<any[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     // Return active branches. In a real app with PostGIS we'd calculate distance.
-    // Here we'll just return all active branches for retail orgs.
-    return this.prisma.retailBranch.findMany({
+    const stores = await this.prisma.retailBranch.findMany({
       where: {
         isActive: true,
         organization: {
@@ -26,6 +35,13 @@ export class MarketplaceService {
         },
       },
     });
+
+    await this.redisService.set(cacheKey, stores, 45); // 45 seconds TTL
+    return stores;
+  }
+
+  async invalidateStoreCache() {
+    await this.redisService.delPattern('retail:marketplace:stores:*');
   }
 
   async getStoreCatalog(branchId: string) {
@@ -103,13 +119,20 @@ export class MarketplaceService {
       let subtotal = 0;
       const orderItems = [];
 
-      for (const item of items) {
-        // Find product and inventory
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
-        });
+      // Phase 1D: Batched Product Lookup (Eliminates N+1 query overhead while preserving branch & org validation)
+      const productIds = Array.from(new Set(items.map((i: any) => i.productId))) as string[];
+      const fetchedProducts = await tx.product.findMany({
+        where: {
+          id: { in: productIds },
+          organizationId: branch.organizationId,
+          isActive: true,
+        },
+      });
+      const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
 
-        if (!product || !product.isActive || product.organizationId !== branch.organizationId) {
+      for (const item of items) {
+        const product = productMap.get(item.productId);
+        if (!product) {
           throw new BadRequestException(`Product ${item.productId} is unavailable`);
         }
 

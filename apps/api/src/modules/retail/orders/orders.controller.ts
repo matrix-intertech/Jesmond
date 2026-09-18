@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -44,13 +44,35 @@ export class OrdersController {
     return this.ordersService.cancelSaleOrder(req.user.organizationId, id);
   }
 
+  @Get('stats')
+  @RequirePermissions(RetailPermission.ORDERS_VIEW)
+  async getOrderStats(@Request() req: any) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required to access sales order stats');
+    }
+    return this.ordersService.getOrderStats(req.user.organizationId, req.user.retailBranchId);
+  }
+
   @Get()
   @RequirePermissions(RetailPermission.ORDERS_VIEW)
-  async listOrders(@Request() req: any) {
+  async listOrders(
+    @Request() req: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: string
+  ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to access sales orders');
     }
-    return this.ordersService.listOrders(req.user.organizationId, req.user.retailBranchId);
+    const parsedPage = page ? parseInt(page, 10) : undefined;
+    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+    return this.ordersService.listOrders(
+      req.user.organizationId,
+      req.user.retailBranchId,
+      parsedPage,
+      parsedLimit,
+      status
+    );
   }
 
   @Get(':id')

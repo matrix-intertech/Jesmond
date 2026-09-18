@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 
 import { StorageService } from '../properties/core/storage.service';
+import { RedisService } from '../redis/redis.service';
 
 describe('Retail Backend QA Validation', () => {
   let catalogService: CatalogService;
@@ -30,6 +31,7 @@ describe('Retail Backend QA Validation', () => {
         OrdersService,
         PosWebhookService,
         { provide: StorageService, useValue: { uploadFile: jest.fn() } },
+        { provide: RedisService, useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn(), delByPattern: jest.fn() } },
         {
           provide: PrismaService,
           useValue: {

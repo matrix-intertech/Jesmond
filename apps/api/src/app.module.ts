@@ -17,9 +17,12 @@ import { RetailModule } from './modules/retail/retail.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
+import { RedisModule } from './modules/redis/redis.module';
+
 @Module({
   imports: [
     PrismaModule,
+    RedisModule,
     // 1. Configuration Module (Global)
     ConfigModule.forRoot({
       isGlobal: true,

@@ -333,16 +333,104 @@ export class OrdersService {
     return order;
   }
 
-  async listOrders(organizationId: string, branchId?: string) {
+  async listOrders(
+    organizationId: string,
+    branchId?: string,
+    page?: number,
+    limit?: number,
+    status?: string
+  ) {
     const where: any = { organizationId };
     if (branchId) {
       where.branchId = branchId;
     }
+    if (status && status !== 'ALL') {
+      if (status === 'ALL_ACTIVE') {
+        where.status = { in: [OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.PACKED] };
+      } else {
+        where.status = status as OrderStatus;
+      }
+    }
+
+    const isPaginated = page !== undefined || limit !== undefined;
+    const boundedPage = Math.max(1, page || 1);
+    const boundedLimit = Math.max(1, Math.min(100, limit || 20));
+    const skip = (boundedPage - 1) * boundedLimit;
+
+    if (isPaginated) {
+      const [orders, total] = await Promise.all([
+        this.prisma.salesOrder.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: boundedLimit,
+          include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
+        }),
+        this.prisma.salesOrder.count({ where })
+      ]);
+
+      return {
+        data: orders,
+        meta: {
+          page: boundedPage,
+          limit: boundedLimit,
+          total,
+          totalPages: Math.ceil(total / boundedLimit)
+        }
+      };
+    }
+
     return this.prisma.salesOrder.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
     });
+  }
+
+  async getOrderStats(organizationId: string, branchId?: string) {
+    const where: any = { organizationId };
+    if (branchId) {
+      where.branchId = branchId;
+    }
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const [groupedCounts, total, todayRevenueAgg] = await Promise.all([
+      this.prisma.salesOrder.groupBy({
+        by: ['status'],
+        where,
+        _count: { _all: true }
+      }),
+      this.prisma.salesOrder.count({ where }),
+      this.prisma.salesOrder.aggregate({
+        _sum: { total: true },
+        where: {
+          ...where,
+          status: { in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED, OrderStatus.TAKEN, OrderStatus.PAID] },
+          createdAt: { gte: startOfToday }
+        }
+      })
+    ]);
+
+    const statusMap: Record<string, number> = {};
+    for (const group of groupedCounts) {
+      statusMap[group.status] = group._count._all;
+    }
+
+    return {
+      totalOrders: total,
+      todayRevenue: todayRevenueAgg._sum.total || 0,
+      statusCounts: {
+        pending: statusMap[OrderStatus.PENDING] || 0,
+        accepted: statusMap[OrderStatus.ACCEPTED] || 0,
+        packed: statusMap[OrderStatus.PACKED] || 0,
+        delivered: statusMap[OrderStatus.DELIVERED] || 0,
+        taken: statusMap[OrderStatus.TAKEN] || 0,
+        cancelled: statusMap[OrderStatus.CANCELLED] || 0,
+        completed: statusMap[OrderStatus.COMPLETED] || 0,
+      }
+    };
   }
 
   async getCustomerOrders(email: string) {

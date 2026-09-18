@@ -1,9 +1,13 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../../redis/redis.service';
 
 @Injectable()
 export class BranchesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redisService: RedisService
+  ) {}
 
   async listBranches(organizationId: string) {
     return this.prisma.retailBranch.findMany({
@@ -29,7 +33,7 @@ export class BranchesService {
   }
 
   async createBranch(organizationId: string, data: any) {
-    return this.prisma.retailBranch.create({
+    const branch = await this.prisma.retailBranch.create({
       data: {
         organizationId,
         name: data.name,
@@ -40,12 +44,14 @@ export class BranchesService {
         takeawayEnabled: data.takeawayEnabled !== undefined ? data.takeawayEnabled : true,
       },
     });
+    await this.redisService.delByPattern('retail:marketplace:stores:*');
+    return branch;
   }
 
   async updateBranch(organizationId: string, branchId: string, data: any) {
     const branch = await this.getBranch(organizationId, branchId);
     
-    return this.prisma.retailBranch.update({
+    const updated = await this.prisma.retailBranch.update({
       where: { id: branch.id },
       data: {
         name: data.name,
@@ -56,16 +62,20 @@ export class BranchesService {
         takeawayEnabled: data.takeawayEnabled,
       },
     });
+    await this.redisService.delByPattern('retail:marketplace:stores:*');
+    return updated;
   }
 
   async deleteBranch(organizationId: string, branchId: string) {
     const branch = await this.getBranch(organizationId, branchId);
     
     // Deactivate instead of physical delete to preserve history
-    return this.prisma.retailBranch.update({
+    const updated = await this.prisma.retailBranch.update({
       where: { id: branch.id },
       data: { isActive: false },
     });
+    await this.redisService.delByPattern('retail:marketplace:stores:*');
+    return updated;
   }
 
   async getBranchEmployees(organizationId: string, branchId: string) {

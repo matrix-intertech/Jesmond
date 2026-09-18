@@ -39,10 +39,11 @@ function RetailOverviewContent() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
         // Fetch parallel
-        const [termRes, custRes, orderRes, branchRes] = await Promise.all([
+        const [termRes, custRes, statsRes, recentOrdersRes, branchRes] = await Promise.all([
           fetch(`${apiUrl}/api/v1/retail/terminals`, { headers }),
           fetch(`${apiUrl}/api/v1/retail/customers`, { headers }),
-          fetch(`${apiUrl}/api/v1/retail/orders`, { headers }),
+          fetch(`${apiUrl}/api/v1/retail/orders/stats`, { headers }),
+          fetch(`${apiUrl}/api/v1/retail/orders?page=1&limit=3`, { headers }),
           fetch(`${apiUrl}/api/v1/retail/branches`, { headers }),
         ]);
 
@@ -55,14 +56,14 @@ function RetailOverviewContent() {
         if (termRes.ok) terminalsCount = (await termRes.json()).length || 0;
         if (custRes.ok) customersCount = (await custRes.json()).length || 0;
 
-        if (orderRes.ok) {
-          const orders = await orderRes.json();
-          latestOrders = orders.slice(0, 3);
-          
-          const today = new Date().toDateString();
-          todayRevenue = orders
-            .filter((o: any) => o.status === 'COMPLETED' && new Date(o.createdAt).toDateString() === today)
-            .reduce((sum: number, o: any) => sum + o.total, 0);
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          todayRevenue = stats.todayRevenue || 0;
+        }
+
+        if (recentOrdersRes.ok) {
+          const resData = await recentOrdersRes.json();
+          latestOrders = Array.isArray(resData) ? resData.slice(0, 3) : (resData.data || []).slice(0, 3);
         }
 
         if (branchRes.ok) {
@@ -86,7 +87,7 @@ function RetailOverviewContent() {
         });
         setRecentOrders(latestOrders);
 
-        if (termRes.status === 401 || custRes.status === 401 || orderRes.status === 401) {
+        if (termRes.status === 401 || custRes.status === 401 || statsRes.status === 401 || recentOrdersRes.status === 401) {
           clearAuth();
           router.replace('/login');
         }

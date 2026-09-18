@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import RetailGuard from "@/components/retail/RetailGuard";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -52,7 +53,13 @@ function OrdersContent() {
   const [statusFilter, setStatusFilter] = useState("ALL_ACTIVE");
   const [typeFilter, setTypeFilter] = useState("ALL");
 
-  const fetchOrders = async () => {
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
     setError("");
     const token = getAccessToken();
@@ -61,12 +68,28 @@ function OrdersContent() {
       return;
     }
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders`, {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        status: statusFilter,
+      });
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders?${params.toString()}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        const data = await res.json();
-        setOrders(data);
+        const result = await res.json();
+        if (result && Array.isArray(result.data)) {
+          setOrders(result.data);
+          if (result.meta) {
+            setTotal(result.meta.total || result.data.length);
+            setTotalPages(result.meta.totalPages || 1);
+          }
+        } else if (Array.isArray(result)) {
+          setOrders(result);
+          setTotal(result.length);
+          setTotalPages(1);
+        }
       } else {
         if (res.status === 401) {
           clearAuth();
@@ -80,11 +103,21 @@ function OrdersContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, statusFilter, router]);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [fetchOrders]);
+
+  const handleStatusFilterChange = (val: string) => {
+    setStatusFilter(val);
+    setPage(1);
+  };
+
+  const handleTypeFilterChange = (val: string) => {
+    setTypeFilter(val);
+    setPage(1);
+  };
 
   const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
@@ -122,18 +155,8 @@ function OrdersContent() {
   };
 
   const displayedOrders = orders.filter(order => {
-    // Only show ONLINE/APP orders (Delivery/Takeaway)
     if (order.source === 'IN_STORE') return false;
-
-    // Type filter
     if (typeFilter !== 'ALL' && order.fulfillmentType !== typeFilter) return false;
-
-    // Status filter
-    if (statusFilter === 'ALL_ACTIVE') {
-      return ['PENDING', 'ACCEPTED', 'PACKED'].includes(order.status);
-    }
-    if (statusFilter !== 'ALL' && order.status !== statusFilter) return false;
-
     return true;
   });
 
@@ -151,7 +174,7 @@ function OrdersContent() {
           <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
           <select 
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => handleStatusFilterChange(e.target.value)}
             className="w-full sm:w-48 text-sm rounded-lg border-slate-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange"
           >
             <option value="ALL_ACTIVE">All Active</option>
@@ -168,7 +191,7 @@ function OrdersContent() {
           <label className="block text-xs font-medium text-slate-500 mb-1">Order Type</label>
           <select 
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={(e) => handleTypeFilterChange(e.target.value)}
             className="w-full sm:w-48 text-sm rounded-lg border-slate-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange"
           >
             <option value="ALL">All Types</option>
@@ -183,7 +206,7 @@ function OrdersContent() {
           <span>{error}</span>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           <div className="overflow-x-auto min-h-[400px]">
             {loading ? (
               <div className="p-8 space-y-4">
@@ -271,6 +294,31 @@ function OrdersContent() {
               </table>
             )}
           </div>
+
+          {/* Pagination Controls Footer */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+              <div>
+                Showing Page <span className="font-bold text-slate-800">{page}</span> of <span className="font-bold text-slate-800">{totalPages}</span> ({total} total orders)
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                  disabled={page <= 1}
+                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-medium hover:bg-slate-100 disabled:opacity-50 flex items-center gap-1 transition"
+                >
+                  <ChevronLeft size={14} /> Previous
+                </button>
+                <button
+                  onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-medium hover:bg-slate-100 disabled:opacity-50 flex items-center gap-1 transition"
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
