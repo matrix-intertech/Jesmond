@@ -51,3 +51,10 @@ yarn-error.log*
 qa-screenshots/
 test-results/
 playwright-report/
+
+# Local database backups
+live_db_backup.sql
+*.sql.backup
+
+# Local/generated Turborepo temp
+.turbo-clone-temp
