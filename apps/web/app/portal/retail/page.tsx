@@ -15,6 +15,7 @@ interface Order {
   total: number;
   status: string;
   createdAt: string;
+  fulfillmentType: string;
 }
 
 function RetailOverviewContent() {
@@ -205,11 +206,18 @@ function RetailOverviewContent() {
                   <div key={order.id} className="flex justify-between items-center p-3 border border-slate-100 rounded-lg bg-slate-50">
                     <div>
                       <div className="font-medium text-sm text-brand-navy">{order.orderNumber}</div>
-                      <div className="text-xs text-slate-500">{new Date(order.createdAt).toLocaleString()}</div>
+                      <div className="text-xs text-slate-500 mb-1">{new Date(order.createdAt).toLocaleString()}</div>
+                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-700' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>
+                        {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
+                      </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col justify-between items-end h-full">
                       <div className="font-semibold text-brand-navy">${(order.total / 100).toFixed(2)}</div>
-                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-1 ${order.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' : order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-2 ${
+                        ['COMPLETED', 'DELIVERED', 'TAKEN'].includes(order.status) ? 'bg-emerald-100 text-emerald-700' : 
+                        order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' : 
+                        'bg-amber-100 text-amber-700'
+                      }`}>
                         {order.status}
                       </div>
                     </div>

@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import RetailGuard from "@/components/retail/RetailGuard";
+import Link from "next/link";
 
 interface OrderItem {
   id: string;
@@ -30,6 +32,8 @@ interface Order {
   branchId: string;
   customerId?: string | null;
   status: string;
+  source: string;
+  fulfillmentType: string;
   subtotal: number;
   tax: number;
   total: number;
@@ -38,16 +42,15 @@ interface Order {
   payments: Payment[];
 }
 
-import RetailGuard from "@/components/retail/RetailGuard";
-
-function SalesHistoryContent() {
+function OrdersContent() {
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [cancelling, setCancelling] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const [statusFilter, setStatusFilter] = useState("ALL_ACTIVE");
+  const [typeFilter, setTypeFilter] = useState("ALL");
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -69,7 +72,7 @@ function SalesHistoryContent() {
           clearAuth();
           router.replace('/login');
         } else {
-          setError("Failed to fetch sales history.");
+          setError("Failed to fetch orders.");
         }
       }
     } catch (e: any) {
@@ -83,38 +86,96 @@ function SalesHistoryContent() {
     fetchOrders();
   }, []);
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (!confirm("Are you sure you want to cancel this order? This will restore inventory.")) return;
-    
-    setCancelling(true);
+  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+    setUpdatingId(orderId);
     const token = getAccessToken();
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${orderId}/cancel`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
-        // Refresh orders list
         await fetchOrders();
-        setSelectedOrder(null);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(`Failed to cancel order: ${err.message || 'Unknown error'}`);
+        alert(`Failed to update status: ${err.message || 'Unknown error'}`);
       }
     } catch (e: any) {
-      alert(`Error cancelling order: ${e.message}`);
+      alert(`Error updating order: ${e.message}`);
     } finally {
-      setCancelling(false);
+      setUpdatingId(null);
     }
   };
+
+  const getNextAction = (order: Order) => {
+    if (order.status === 'PENDING') return { label: 'Accept', status: 'ACCEPTED' };
+    if (order.status === 'ACCEPTED') return { label: 'Mark Packed', status: 'PACKED' };
+    if (order.status === 'PACKED') {
+      if (order.fulfillmentType === 'DELIVERY') return { label: 'Mark Delivered', status: 'DELIVERED' };
+      if (order.fulfillmentType === 'TAKEAWAY') return { label: 'Mark Taken', status: 'TAKEN' };
+    }
+    return null;
+  };
+
+  const displayedOrders = orders.filter(order => {
+    // Only show ONLINE/APP orders (Delivery/Takeaway)
+    if (order.source === 'IN_STORE') return false;
+
+    // Type filter
+    if (typeFilter !== 'ALL' && order.fulfillmentType !== typeFilter) return false;
+
+    // Status filter
+    if (statusFilter === 'ALL_ACTIVE') {
+      return ['PENDING', 'ACCEPTED', 'PACKED'].includes(order.status);
+    }
+    if (statusFilter !== 'ALL' && order.status !== statusFilter) return false;
+
+    return true;
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <PageHeader title="Sales History" description="View and manage retail orders and transactions." />
+        <PageHeader title="Orders" description="Manage active online and operational orders." />
         <button onClick={fetchOrders} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Refresh
         </button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200">
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full sm:w-48 text-sm rounded-lg border-slate-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange"
+          >
+            <option value="ALL_ACTIVE">All Active</option>
+            <option value="ALL">All Orders</option>
+            <option value="PENDING">Pending</option>
+            <option value="ACCEPTED">Accepted</option>
+            <option value="PACKED">Packed</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="TAKEN">Taken</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-500 mb-1">Order Type</label>
+          <select 
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="w-full sm:w-48 text-sm rounded-lg border-slate-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange"
+          >
+            <option value="ALL">All Types</option>
+            <option value="DELIVERY">Delivery</option>
+            <option value="TAKEAWAY">Take Away</option>
+          </select>
+        </div>
       </div>
 
       {error ? (
@@ -134,152 +195,81 @@ function SalesHistoryContent() {
                   </div>
                 ))}
               </div>
-            ) : orders.length === 0 ? (
+            ) : displayedOrders.length === 0 ? (
               <div className="p-12">
                 <EmptyState 
-                  title="No sales history found" 
-                  description="Orders will appear here once transactions are completed."
+                  title="No orders found" 
+                  description="Adjust filters or wait for new orders to arrive."
                 />
               </div>
             ) : (
               <table className="w-full text-sm text-left whitespace-nowrap">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
                   <tr>
-                    <th className="px-6 py-4 font-medium">Order Number</th>
+                    <th className="px-6 py-4 font-medium">Order ID</th>
                     <th className="px-6 py-4 font-medium">Date</th>
+                    <th className="px-6 py-4 font-medium">Type</th>
                     <th className="px-6 py-4 font-medium">Items</th>
-                    <th className="px-6 py-4 font-medium">Total</th>
+                    <th className="px-6 py-4 font-medium">Amount</th>
                     <th className="px-6 py-4 font-medium">Status</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {orders.map(order => (
-                    <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-brand-navy">{order.orderNumber}</td>
-                      <td className="px-6 py-4 text-slate-600">{new Date(order.createdAt).toLocaleString()}</td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} items
-                      </td>
-                      <td className="px-6 py-4 font-bold text-brand-navy">${(order.total / 100).toFixed(2)}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-800' : order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => setSelectedOrder(order)}
-                          className="text-brand-orange hover:text-orange-700 font-medium text-sm"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {displayedOrders.map(order => {
+                    const nextAction = getNextAction(order);
+                    return (
+                      <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-brand-navy">
+                          <Link href={`/portal/retail/orders/${order.id}`} className="hover:underline text-brand-orange">
+                            {order.orderNumber}
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">{new Date(order.createdAt).toLocaleString()}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                            {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : 'Take Away'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600">
+                          {order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} items
+                        </td>
+                        <td className="px-6 py-4 font-bold text-brand-navy">${(order.total / 100).toFixed(2)}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            order.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
+                            order.status === 'ACCEPTED' ? 'bg-sky-100 text-sky-800' :
+                            order.status === 'PACKED' ? 'bg-indigo-100 text-indigo-800' :
+                            order.status === 'DELIVERED' || order.status === 'TAKEN' ? 'bg-emerald-100 text-emerald-800' :
+                            order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
+                            'bg-slate-100 text-slate-800'
+                          }`}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right flex justify-end gap-3 items-center">
+                          {nextAction && (
+                            <button 
+                              onClick={() => handleUpdateStatus(order.id, nextAction.status)}
+                              disabled={updatingId === order.id}
+                              className="px-3 py-1.5 bg-brand-orange text-white hover:bg-orange-600 rounded text-xs font-medium transition-colors disabled:opacity-50"
+                            >
+                              {updatingId === order.id ? '...' : nextAction.label}
+                            </button>
+                          )}
+                          <Link 
+                            href={`/portal/retail/orders/${order.id}`}
+                            className="text-slate-500 hover:text-brand-navy font-medium text-xs"
+                          >
+                            Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
-          </div>
-        </div>
-      )}
-
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
-              <div>
-                <h3 className="font-semibold text-lg text-brand-navy">Order Details: {selectedOrder.orderNumber}</h3>
-                <p className="text-xs text-slate-500">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
-              </div>
-              <button onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-slate-600">&times;</button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto flex-1 space-y-6">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-slate-500 mb-1">Status</p>
-                  <p className="font-medium text-brand-navy">{selectedOrder.status}</p>
-                </div>
-                <div>
-                  <p className="text-slate-500 mb-1">Branch ID</p>
-                  <p className="font-medium text-brand-navy font-mono text-xs">{selectedOrder.branchId}</p>
-                </div>
-                {selectedOrder.customerId && (
-                  <div>
-                    <p className="text-slate-500 mb-1">Customer ID</p>
-                    <p className="font-medium text-brand-navy font-mono text-xs">{selectedOrder.customerId}</p>
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-brand-navy mb-3 text-sm border-b pb-2">Line Items</h4>
-                <div className="space-y-2">
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-sm p-2 bg-slate-50 rounded">
-                      <div>
-                        <p className="font-medium text-slate-700">Product ID: <span className="font-mono text-xs">{item.productId}</span></p>
-                        <p className="text-xs text-slate-500">{item.quantity} x ${(item.unitPrice / 100).toFixed(2)}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">${(item.lineTotal / 100).toFixed(2)}</p>
-                        <p className="text-[10px] text-slate-400">incl. tax ${(item.tax / 100).toFixed(2)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t pt-4 space-y-2 text-sm text-right">
-                <div className="flex justify-end gap-8 text-slate-600">
-                  <span>Subtotal:</span>
-                  <span className="w-20 font-medium">${(selectedOrder.subtotal / 100).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-end gap-8 text-slate-600">
-                  <span>Tax:</span>
-                  <span className="w-20 font-medium">${(selectedOrder.tax / 100).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-end gap-8 text-brand-navy font-bold text-lg pt-2 border-t mt-2">
-                  <span>Total:</span>
-                  <span className="w-20">${(selectedOrder.total / 100).toFixed(2)}</span>
-                </div>
-              </div>
-
-              {selectedOrder.payments?.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-brand-navy mb-3 text-sm border-b pb-2">Payments</h4>
-                  <div className="space-y-2">
-                    {selectedOrder.payments.map((payment, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm p-2 bg-blue-50/50 border border-blue-100 rounded">
-                        <div>
-                          <p className="font-medium text-blue-900">{payment.method} <span className="text-xs text-blue-600 ml-2">[{payment.status}]</span></p>
-                          {payment.provider && <p className="text-xs text-slate-500">Provider: {payment.provider} {payment.transactionId && `(${payment.transactionId})`}</p>}
-                        </div>
-                        <p className="font-bold text-blue-900">${(payment.amount / 100).toFixed(2)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl flex justify-between items-center">
-              {selectedOrder.status === 'PENDING' ? (
-                <button 
-                  onClick={() => handleCancelOrder(selectedOrder.id)}
-                  disabled={cancelling}
-                  className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                >
-                  {cancelling ? 'Cancelling...' : 'Cancel Order'}
-                </button>
-              ) : (
-                <div></div> // Empty div to keep the Close button on the right
-              )}
-              <button onClick={() => setSelectedOrder(null)} className="px-5 py-2 bg-slate-800 text-white hover:bg-slate-700 rounded-lg text-sm font-medium transition-colors">
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}
@@ -287,10 +277,10 @@ function SalesHistoryContent() {
   );
 }
 
-export default function SalesHistoryPage() {
+export default function OrdersPage() {
   return (
     <RetailGuard requirePermissions={['ORDERS_VIEW']}>
-      <SalesHistoryContent />
+      <OrdersContent />
     </RetailGuard>
   );
 }

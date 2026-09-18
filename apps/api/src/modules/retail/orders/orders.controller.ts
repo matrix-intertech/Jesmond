@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -60,5 +60,14 @@ export class OrdersController {
       throw new ForbiddenException('Organization context is required to get a sales order');
     }
     return this.ordersService.getOrder(req.user.organizationId, id, req.user.retailBranchId);
+  }
+
+  @Patch(':id/status')
+  @RequirePermissions(RetailPermission.ORDERS_MANAGE)
+  async updateStatus(@Request() req: any, @Param('id') id: string, @Body('status') status: any) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required to update a sales order');
+    }
+    return this.ordersService.updateOrderStatus(req.user.organizationId, id, status);
   }
 }

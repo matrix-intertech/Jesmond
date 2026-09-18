@@ -368,4 +368,58 @@ export class OrdersService {
     }
     return order;
   }
+
+  async updateOrderStatus(organizationId: string, orderId: string, newStatus: OrderStatus) {
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.salesOrder.findUnique({
+        where: { id: orderId }
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+      if (order.organizationId !== organizationId) {
+        throw new ForbiddenException('Order does not belong to your organization');
+      }
+
+      // Validate transitions
+      if (order.status === OrderStatus.CANCELLED || order.status === OrderStatus.REFUNDED) {
+        throw new BadRequestException('Cannot update a cancelled or refunded order');
+      }
+
+      if (newStatus === OrderStatus.ACCEPTED) {
+        if (order.status !== OrderStatus.PENDING) throw new BadRequestException('Order must be PENDING to accept');
+      } else if (newStatus === OrderStatus.PACKED) {
+        if (order.status !== OrderStatus.ACCEPTED) throw new BadRequestException('Order must be ACCEPTED to pack');
+      } else if (newStatus === OrderStatus.DELIVERED) {
+        if (order.status !== OrderStatus.PACKED) throw new BadRequestException('Order must be PACKED to deliver');
+        if (order.fulfillmentType !== 'DELIVERY') throw new BadRequestException('Only DELIVERY orders can be DELIVERED');
+      } else if (newStatus === OrderStatus.TAKEN) {
+        if (order.status !== OrderStatus.PACKED) throw new BadRequestException('Order must be PACKED to be marked as taken');
+        if (order.fulfillmentType !== 'TAKEAWAY') throw new BadRequestException('Only TAKEAWAY orders can be TAKEN');
+      } else {
+        // Other transitions not currently part of the operational workflow
+        throw new BadRequestException(`Cannot manually transition to ${newStatus}`);
+      }
+
+      const updatedOrder = await tx.salesOrder.update({
+        where: { id: orderId },
+        data: { status: newStatus },
+        include: { items: { include: { product: true } }, branch: true, customer: true }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actorId: 'SYSTEM',
+          actorType: 'USER',
+          action: 'order.update_status',
+          resourceType: 'SalesOrder',
+          resourceId: orderId,
+          changes: { oldStatus: order.status, newStatus } as any
+        }
+      });
+
+      return updatedOrder;
+    });
+  }
 }

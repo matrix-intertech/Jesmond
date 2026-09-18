@@ -1230,6 +1230,10 @@ model SalesOrder {
 enum OrderStatus {
   DRAFT
   PENDING
+  ACCEPTED
+  PACKED
+  DELIVERED
+  TAKEN
   PAID
   COMPLETED
   CANCELLED
