@@ -227,6 +227,9 @@ export class PropertiesController {
     @Query('city') city?: string,
     @Query('university') university?: string,
     @Query('uni') uni?: string,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
+    @Query('radiusKm') radiusKm?: string,
     @Query('minPrice') minPrice?: string,
     @Query('maxPrice') maxPrice?: string,
     @Query('roomType') roomType?: string,
@@ -239,6 +242,8 @@ export class PropertiesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sort') sort?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
     @Query('propertyType') propertyType?: string,
     @Query('furnishingType') furnishingType?: string,
     @Query('offeringType') offeringType?: string,
@@ -319,9 +324,42 @@ export class PropertiesController {
       return Object.values(enumObj).includes(normalized as any) ? (normalized as T[keyof T]) : undefined;
     };
 
+    const effectiveSort = normalizeString(sortBy || sort);
+    let parsedLatitude: number | undefined;
+    let parsedLongitude: number | undefined;
+    let parsedRadiusKm: number | undefined;
+
+    if (latitude !== undefined) {
+      parsedLatitude = parseFloat(latitude);
+      if (isNaN(parsedLatitude) || parsedLatitude < -90 || parsedLatitude > 90) {
+        throw new BadRequestException('Invalid latitude parameter. Must be between -90 and 90');
+      }
+    }
+
+    if (longitude !== undefined) {
+      parsedLongitude = parseFloat(longitude);
+      if (isNaN(parsedLongitude) || parsedLongitude < -180 || parsedLongitude > 180) {
+        throw new BadRequestException('Invalid longitude parameter. Must be between -180 and 180');
+      }
+    }
+
+    if (radiusKm !== undefined) {
+      parsedRadiusKm = parseFloat(radiusKm);
+      if (isNaN(parsedRadiusKm) || parsedRadiusKm <= 0 || parsedRadiusKm > 20000) {
+        throw new BadRequestException('Invalid radiusKm parameter. Must be greater than 0');
+      }
+    }
+
+    if (effectiveSort === 'distance' && (parsedLatitude === undefined || parsedLongitude === undefined)) {
+      throw new BadRequestException('sortBy distance requires latitude and longitude parameters');
+    }
+
     return this.propertiesService.search({
       city: normalizeString(city),
       university: normalizeString(effectiveUniversity),
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
+      radiusKm: parsedRadiusKm,
       minPrice: parseNumber(minPrice),
       maxPrice: parseNumber(maxPrice),
       roomType: normalizeString(effectiveRoomType),
@@ -330,7 +368,8 @@ export class PropertiesController {
       bounds: normalizeString(effectiveBounds),
       page: parsedPage,
       limit: parsedLimit,
-      sort: normalizeString(sort),
+      sort: effectiveSort,
+      sortOrder: normalizeString(sortOrder) as 'asc' | 'desc' | undefined,
       propertyType: validateEnum(propertyType, PropertyType) as string | undefined,
       furnishingType: validateEnum(furnishingType, FurnishingType) as string | undefined,
       offeringType: validateEnum(offeringType, PropertyOfferingType) as string | undefined,

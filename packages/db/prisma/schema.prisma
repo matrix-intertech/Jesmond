@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -30,14 +30,14 @@ model User {
   emailVerificationExpiresAt DateTime?
   emailOtpAttempts           Int       @default(0)
   emailOtpLastSentAt         DateTime?
-  
-  passwordResetToken         String?   @unique
-  passwordResetExpiresAt     DateTime?
-  passwordResetOtpAttempts   Int       @default(0)
-  passwordResetLastSentAt    DateTime?
-  
-  failedLoginAttempts        Int       @default(0)
-  lockedUntil                DateTime?
+
+  passwordResetToken       String?   @unique
+  passwordResetExpiresAt   DateTime?
+  passwordResetOtpAttempts Int       @default(0)
+  passwordResetLastSentAt  DateTime?
+
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
 
   // MFA
   mfaEnabled     Boolean @default(false)
@@ -54,23 +54,25 @@ model User {
   permissions String[]
 
   // Relations
-  applications           Application[]
-  leases                 Lease[]
-  maintenance            MaintenanceRequest[]
-  orgStaffRoles          OrgStaff[]
-  documents              Document[]
-  sessions               Session[]
-  passwordHistory        PasswordHistory[]
-  loginHistory           LoginHistory[]
-  identityProviders      IdentityProvider[]
-  invitations            Invitation[]
-  savedSearches          SavedSearch[]
-  recentSearches         RecentSearch[]
-  recentlyViewed         RecentlyViewed[]
-  notificationTriggers   NotificationTrigger[]
-  savedProperties        SavedProperty[]
-  enquiries              Enquiry[]
-  accountDeletionRequest AccountDeletionRequest?
+  applications            Application[]
+  leases                  Lease[]
+  maintenance             MaintenanceRequest[]
+  orgStaffRoles           OrgStaff[]
+  documents               Document[]
+  sessions                Session[]
+  passwordHistory         PasswordHistory[]
+  loginHistory            LoginHistory[]
+  identityProviders       IdentityProvider[]
+  Invitation              Invitation[]
+  SavedSearch             SavedSearch[]
+  RecentSearch            RecentSearch[]
+  RecentlyViewed          RecentlyViewed[]
+  NotificationTrigger     NotificationTrigger[]
+  SavedProperty           SavedProperty[]
+  Enquiry                 Enquiry[]
+  accountDeletionRequest  AccountDeletionRequest?
+  ConversationParticipant ConversationParticipant[]
+  Message                 Message[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -169,8 +171,10 @@ model OrgStaff {
   role        UserRole @default(ORG_STAFF)
   permissions String[] // Granular permissions e.g., ["property:read"]
 
-  retailBranchId String?
+  retailBranchId    String?
   retailBranch   RetailBranch? @relation(fields: [retailBranchId], references: [id])
+  managedProperties PropertyManager[]
+  branches       OrgStaffBranch[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -198,7 +202,7 @@ model Property {
   verificationStatus PropertyVerificationStatus @default(PENDING)
   listingMode        PropertyListingMode        @default(MULTI_UNIT)
 
-  listingType          PropertyListingType  @default(NORMAL)
+  listingType          PropertyListingType   @default(NORMAL)
   propertyType         PropertyType?
   offeringType         PropertyOfferingType?
   furnishingType       FurnishingType?
@@ -209,12 +213,12 @@ model Property {
   maximumStay          Int?
   maximumStayUnit      String?
   maximumOccupancy     Int?
-  hasExistingResidents Boolean              @default(false)
+  hasExistingResidents Boolean               @default(false)
   configuration        Json?
-  showContactDetails   Boolean              @default(false)
+  showContactDetails   Boolean               @default(false)
 
-  residents            Resident[]
-  houseRule            HouseRule?
+  residents Resident[]
+  houseRule HouseRule?
 
   roomTypes      RoomType[]
   maintenance    MaintenanceRequest[]
@@ -225,6 +229,8 @@ model Property {
   versions       PropertyVersion[]
   savedBy        SavedProperty[]
   enquiries      Enquiry[]
+  managers       PropertyManager[]
+  conversations  Conversation[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -357,8 +363,8 @@ model Room {
 
   identifier String // e.g. "Room 101"
 
-  capacity       Int       @default(1)
-  occupiedCount  Int       @default(0)
+  capacity       Int     @default(1)
+  occupiedCount  Int     @default(0)
   furnishing     String?
   bathroomConfig String?
 
@@ -965,7 +971,7 @@ model Enquiry {
   roomTypeId String?
   roomType   RoomType? @relation(fields: [roomTypeId], references: [id])
 
-  message     String @db.Text
+  message     String        @db.Text
   seekerName  String?
   seekerEmail String?
   seekerPhone String?
@@ -995,13 +1001,14 @@ model FeatureFlag {
 }
 
 model PlatformSettings {
-  id              String  @id @default("singleton")
-  siteName        String  @default("Jesmond")
-  supportEmail    String  @default("support@jesmond.local")
-  supportPhone    String?
-  defaultTimezone String  @default("Australia/Sydney")
-  defaultCurrency String  @default("AUD")
-  maintenanceMode Boolean @default(false)
+  id                   String  @id @default("singleton")
+  siteName             String  @default("Jesmond")
+  supportEmail         String  @default("support@jesmond.local")
+  supportPhone         String?
+  defaultTimezone      String  @default("Australia/Sydney")
+  defaultCurrency      String  @default("AUD")
+  maintenanceMode      Boolean @default(false)
+  propertyAutoApproval Boolean @default(false)
 
   updatedAt DateTime @updatedAt
 }
@@ -1022,21 +1029,22 @@ model AccountDeletionRequest {
 // ---------------------------------------------------------
 
 model RetailBranch {
-  id             String              @id @default(uuid())
-  organizationId String
-  organization   Organization        @relation(fields: [organizationId], references: [id])
-  name           String
-  address        String?
-  phone          String?
-  isActive       Boolean             @default(true)
-  deliveryEnabled Boolean            @default(false)
-  takeawayEnabled Boolean            @default(true)
-  terminals      PosTerminal[]
-  inventory      Inventory[]
-  movements      InventoryMovement[]
-  orders         SalesOrder[]
-  syncJobs       PosSyncJob[]
-  staff          OrgStaff[]
+  id              String              @id @default(uuid())
+  organizationId  String
+  organization    Organization        @relation(fields: [organizationId], references: [id])
+  name            String
+  address         String?
+  phone           String?
+  isActive        Boolean             @default(true)
+  deliveryEnabled Boolean             @default(false)
+  takeawayEnabled Boolean             @default(true)
+  terminals       PosTerminal[]
+  inventory       Inventory[]
+  movements       InventoryMovement[]
+  orders          SalesOrder[]
+  syncJobs        PosSyncJob[]
+  staff           OrgStaff[]
+  staffBranches   OrgStaffBranch[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1045,9 +1053,9 @@ model RetailBranch {
 }
 
 model PosTerminal {
-  id         String         @id @default(uuid())
-  branchId   String
-  branch     RetailBranch   @relation(fields: [branchId], references: [id])
+  id                 String         @id @default(uuid())
+  branchId           String
+  branch             RetailBranch   @relation(fields: [branchId], references: [id])
   name               String
   externalId         String?
   provider           String?
@@ -1057,8 +1065,8 @@ model PosTerminal {
   lastSeenAt         DateTime?
   lastSyncAt         DateTime?
   metadata           Json?
-  orders     SalesOrder[]
-  syncJobs   PosSyncJob[]
+  orders             SalesOrder[]
+  syncJobs           PosSyncJob[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1204,17 +1212,17 @@ model SalesOrder {
   customerId     String?
   customer       RetailCustomer? @relation(fields: [customerId], references: [id])
 
-  orderNumber String
-  status      OrderStatus @default(PENDING)
-  subtotal    Int // cents
-  tax         Int // cents
-  discount    Int         @default(0) // cents
-  deliveryFee Int         @default(0) // cents
+  orderNumber     String
+  status          OrderStatus     @default(PENDING)
+  subtotal        Int // cents
+  tax             Int // cents
+  discount        Int             @default(0) // cents
+  deliveryFee     Int             @default(0) // cents
   fulfillmentType FulfillmentType @default(IN_STORE)
-  total       Int // cents
-  currency    String      @default("AUD")
-  source      OrderSource @default(IN_STORE)
-  externalId  String? // POS order ID
+  total           Int // cents
+  currency        String          @default("AUD")
+  source          OrderSource     @default(IN_STORE)
+  externalId      String? // POS order ID
 
   items    SalesOrderItem[]
   payments RetailPayment[]
@@ -1264,17 +1272,17 @@ model SalesOrderItem {
 }
 
 model RetailPayment {
-  id            String              @id @default(uuid())
-  orderId       String
-  order         SalesOrder          @relation(fields: [orderId], references: [id])
-  method        PaymentMethod
+  id                      String               @id @default(uuid())
+  orderId                 String
+  order                   SalesOrder           @relation(fields: [orderId], references: [id])
+  method                  PaymentMethod
   provider                String? // e.g. "SQUARE", "STRIPE"
   transactionId           String? // External reference
   providerRequestId       String? // For idempotency
   internalPaymentIntentId String? // Internal correlation
   amount                  Int // cents
-  currency                String              @default("AUD")
-  status                  RetailPaymentStatus @default(PENDING)
+  currency                String               @default("AUD")
+  status                  RetailPaymentStatus  @default(PENDING)
   reconciliationStatus    ReconciliationStatus @default(PENDING)
   metadata                Json?
 
@@ -1370,4 +1378,75 @@ enum WebhookStatus {
   PROCESSED
   FAILED
   IGNORED
+}
+
+model PropertyManager {
+  id         String   @id @default(uuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  orgStaffId String
+  orgStaff   OrgStaff @relation(fields: [orgStaffId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([propertyId, orgStaffId])
+  @@index([propertyId])
+  @@index([orgStaffId])
+}
+
+model Conversation {
+  id              String   @id @default(uuid())
+  conversationKey String   @unique
+  propertyId      String
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt DateTime?
+  joinedAt   DateTime  @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Restrict)
+
+  encryptedPayload String  @db.Text
+  iv               String?
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model OrgStaffBranch {
+  staffId  String
+  staff    OrgStaff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  branchId String
+  branch   RetailBranch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([staffId, branchId])
+  @@index([branchId])
 }

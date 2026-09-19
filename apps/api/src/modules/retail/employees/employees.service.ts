@@ -13,7 +13,7 @@ export class EmployeesService {
   ) {}
 
   async createEmployee(organizationId: string, requesterUserId: string, data: any) {
-    const { email, firstName, lastName, role, branchId } = data;
+    const { email, firstName, lastName, role, branchId, branchIds } = data;
 
     // Check if email is already in use
     const existingUser = await this.prisma.user.findUnique({
@@ -24,12 +24,15 @@ export class EmployeesService {
       throw new ConflictException('Email already in use.');
     }
 
-    // Verify branch belongs to organization
-    if (branchId) {
-      const branch = await this.prisma.retailBranch.findUnique({
-        where: { id: branchId },
+    // Determine the list of branch IDs to assign
+    const branchesToAssign = branchIds ? branchIds : (branchId ? [branchId] : []);
+
+    // Verify branches belong to organization
+    if (branchesToAssign.length > 0) {
+      const branches = await this.prisma.retailBranch.findMany({
+        where: { id: { in: branchesToAssign } },
       });
-      if (!branch || branch.organizationId !== organizationId) {
+      if (branches.length !== branchesToAssign.length || branches.some(b => b.organizationId !== organizationId)) {
         throw new ForbiddenException('Invalid branch assignment');
       }
     }
@@ -84,9 +87,12 @@ export class EmployeesService {
         data: {
           userId: user.id,
           organizationId,
-          retailBranchId: branchId || null,
+          retailBranchId: branchesToAssign.length > 0 ? branchesToAssign[0] : null, // legacy fallback
           role: finalRole,
           permissions: finalPermissions,
+          branches: {
+            create: branchesToAssign.map((id: string) => ({ branchId: id }))
+          }
         },
       });
 
@@ -125,6 +131,13 @@ export class EmployeesService {
             name: true,
           },
         },
+        branches: {
+          include: {
+            branch: {
+              select: { id: true, name: true }
+            }
+          }
+        }
       },
     });
   }
@@ -148,6 +161,13 @@ export class EmployeesService {
             name: true,
           },
         },
+        branches: {
+          include: {
+            branch: {
+              select: { id: true, name: true }
+            }
+          }
+        }
       },
     });
 
@@ -165,13 +185,15 @@ export class EmployeesService {
   async updateEmployee(organizationId: string, requesterUserId: string, employeeId: string, data: any) {
     const employee = await this.getEmployee(organizationId, employeeId);
 
-    const { branchId, role, accountStatus, permissions } = data;
+    const { branchId, branchIds, role, accountStatus, permissions } = data;
 
-    if (branchId) {
-      const branch = await this.prisma.retailBranch.findUnique({
-        where: { id: branchId },
+    const branchesToAssign = branchIds !== undefined ? branchIds : (branchId !== undefined ? (branchId ? [branchId] : []) : undefined);
+
+    if (branchesToAssign) {
+      const branches = await this.prisma.retailBranch.findMany({
+        where: { id: { in: branchesToAssign } },
       });
-      if (!branch || branch.organizationId !== organizationId) {
+      if (branches.length !== branchesToAssign.length || branches.some(b => b.organizationId !== organizationId)) {
         throw new ForbiddenException('Invalid branch assignment');
       }
     }
@@ -216,11 +238,20 @@ export class EmployeesService {
       const updatedStaff = await tx.orgStaff.update({
         where: { id: employeeId },
         data: {
-          retailBranchId: branchId !== undefined ? branchId : employee.retailBranchId,
+          retailBranchId: branchesToAssign ? (branchesToAssign.length > 0 ? branchesToAssign[0] : null) : employee.retailBranchId,
           role: finalRole,
           permissions: finalPermissions,
         },
       });
+
+      if (branchesToAssign) {
+        await tx.orgStaffBranch.deleteMany({ where: { staffId: employeeId } });
+        if (branchesToAssign.length > 0) {
+          await tx.orgStaffBranch.createMany({
+            data: branchesToAssign.map((bId: string) => ({ staffId: employeeId, branchId: bId }))
+          });
+        }
+      }
 
       // Update User if needed (like accountStatus)
       if (accountStatus) {

@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto } from '../dtos/property.dto';
 import { StorageService } from './storage.service';
 
@@ -22,6 +23,10 @@ interface SearchParams {
   minBathrooms?: number;
   minimumStay?: number;
   maximumStay?: number;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+  sortOrder?: 'asc' | 'desc';
 }
 
 @Injectable()
@@ -144,12 +149,12 @@ export class PropertiesService {
           where: { id: roomType.id },
           data: { pricePerWeek: dto.pricePerWeek }
         });
-        
+
         const currentPrice = await this.prisma.pricingHistory.findFirst({
           where: { roomTypeId: roomType.id },
           orderBy: { effectiveFrom: 'desc' }
         });
-        
+
         if (!currentPrice || currentPrice.pricePerWeek !== dto.pricePerWeek) {
           await this.prisma.pricingHistory.create({
             data: {
@@ -234,7 +239,7 @@ export class PropertiesService {
     const url = await this.storage.uploadPropertyImage(propertyId, file);
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Lock the Property row to serialize concurrent uploads and prevent race conditions
         await tx.$executeRaw`SELECT 1 FROM "Property" WHERE id = ${propertyId} FOR UPDATE`;
 
@@ -286,7 +291,7 @@ export class PropertiesService {
       if (!floor || floor.building.propertyId !== propertyId) throw new NotFoundException('Floor not found');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const room = await tx.roomType.create({
         data: {
           propertyId,
@@ -316,7 +321,7 @@ export class PropertiesService {
     const roomExists = await this.prisma.roomType.findUnique({ where: { id: roomId, propertyId } });
     if (!roomExists) throw new NotFoundException('Room not found or does not belong to this property.');
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const room = await tx.roomType.update({
         where: { id: roomId },
         data: {
@@ -360,7 +365,7 @@ export class PropertiesService {
       throw new BadRequestException('Cannot delete room type with active applications.');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.pricingHistory.deleteMany({ where: { roomTypeId: roomId } });
       await tx.availabilityCalendar.deleteMany({ where: { roomTypeId: roomId } });
 
@@ -375,7 +380,7 @@ export class PropertiesService {
     const uniqueAmenityIds = [...new Set(amenityIds)];
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      return await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         await tx.propertyAmenity.deleteMany({
           where: { propertyId }
         });
@@ -459,9 +464,14 @@ export class PropertiesService {
       if (roomTypeCount === 0) throw new BadRequestException('At least one room type/space is required for Co-Living listings.');
     }
 
+    const settings = await this.prisma.platformSettings.findUnique({ where: { id: 'singleton' } });
+    const autoApprove = settings?.propertyAutoApproval ?? false;
+    const newStatus = autoApprove ? 'PUBLISHED' : 'PENDING_APPROVAL';
+    const newVerificationStatus = autoApprove ? 'VERIFIED' : 'PENDING';
+
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status: 'PENDING_APPROVAL', verificationStatus: 'PENDING' }
+      data: { status: newStatus, verificationStatus: newVerificationStatus }
     });
 
     // Create property version audit log
@@ -470,7 +480,7 @@ export class PropertiesService {
         propertyId: id,
         versionNum: (await this.prisma.propertyVersion.count({ where: { propertyId: id } })) + 1,
         payload: updated as any,
-        changes: { action: 'SUBMIT', previousStatus: 'DRAFT', newStatus: 'PENDING_APPROVAL' },
+        changes: { action: 'SUBMIT', previousStatus: 'DRAFT', newStatus },
         authorId: userId,
       }
     });
@@ -480,192 +490,258 @@ export class PropertiesService {
 
   async search(params: SearchParams) {
     try {
-      const { city, university, minPrice, maxPrice, roomType, moveIn, amenities, bounds, page, limit, sort, propertyType, furnishingType, offeringType, minBedrooms, minBathrooms, minimumStay, maximumStay } = params;
-
-      const whereClause: any = {
-        status: 'PUBLISHED'
-      };
-
-      // 1. City Filter
-      if (city) {
-        whereClause.suburb = {
-          city: { name: { equals: city, mode: 'insensitive' } }
-        };
-      }
-
-      // 2. University Filter
-      if (university) {
-        const uniRecord = await this.prisma.university.findFirst({
-          where: {
-            OR: [
-              { slug: { equals: university, mode: 'insensitive' } },
-              { name: { contains: university, mode: 'insensitive' } }
-            ]
-          },
-          include: {
-            campuses: {
-              select: { suburbId: true }
-            }
-          }
-        });
-
-        if (uniRecord && uniRecord.campuses.length > 0) {
-          const suburbIds = uniRecord.campuses.map(c => c.suburbId).filter(Boolean);
-          whereClause.suburbId = { in: suburbIds };
-        } else {
-          whereClause.OR = [
-            { name: { contains: university, mode: 'insensitive' } },
-            { description: { contains: university, mode: 'insensitive' } },
-            { suburb: { name: { contains: university, mode: 'insensitive' } } }
-          ];
-        }
-      }
-
-      // 3. Bounds Filter
-      if (bounds) {
-        const [swLat, swLng, neLat, neLng] = bounds.split(',').map(parseFloat);
-        whereClause.lat = { gte: swLat, lte: neLat };
-        whereClause.lng = { gte: swLng, lte: neLng };
-      }
-
-      // 4. Room Type & Price Filter
-      if (minPrice !== undefined || maxPrice !== undefined || roomType) {
-        const roomTypeSome: any = {
-          ...(minPrice !== undefined && { pricePerWeek: { gte: minPrice * 100 } }),
-          ...(maxPrice !== undefined && { pricePerWeek: { lte: maxPrice * 100 } }),
-        };
-
-        if (roomType) {
-          const lower = roomType.toLowerCase();
-          let keyword = roomType;
-          let altKeyword = '';
-
-          if (lower.includes('studio')) {
-            keyword = 'studio';
-          } else if (lower.includes('ensuite') || lower.includes('en-suite')) {
-            keyword = 'ensuite';
-            altKeyword = 'en-suite';
-          } else if (lower.includes('shared')) {
-            keyword = 'shared';
-          } else if (lower.includes('apartment') || lower.includes('entire')) {
-            keyword = 'apartment';
-            altKeyword = 'entire';
-          }
-
-          if (altKeyword) {
-            roomTypeSome.OR = [
-              { name: { contains: keyword, mode: 'insensitive' } },
-              { name: { contains: altKeyword, mode: 'insensitive' } },
-            ];
-          } else {
-            roomTypeSome.name = { contains: keyword, mode: 'insensitive' };
-          }
-        }
-
-        whereClause.roomTypes = {
-          some: roomTypeSome
-        };
-      }
-
-      // 5. Amenities Filter (Must contain ALL requested amenities)
-      if (amenities && amenities.length > 0) {
-        whereClause.AND = amenities.map(amenityName => ({
-          amenities: {
-            some: {
-              amenity: { name: { equals: amenityName, mode: 'insensitive' } }
-            }
-          }
-        }));
-      }
-
-      // 6. Structured Filters
-      if (propertyType) whereClause.propertyType = propertyType;
-      if (furnishingType) whereClause.furnishingType = furnishingType;
-      if (offeringType) whereClause.offeringType = offeringType;
-
-      if (minimumStay !== undefined) {
-        whereClause.minimumStay = { lte: minimumStay };
-      }
-      if (maximumStay !== undefined) {
-        whereClause.maximumStay = { gte: maximumStay };
-      }
-
-      if (minBedrooms !== undefined || minBathrooms !== undefined) {
-        whereClause.configuration = { path: [], equals: undefined }; // Initializer for type bypass, JSON filtering in Prisma requires specific approach
-        
-        // Prisma JSON filtering for PostgreSQL
-        const configConditions: any[] = [];
-        if (minBedrooms !== undefined) {
-          configConditions.push({ configuration: { path: ['bedrooms'], gte: minBedrooms } });
-        }
-        if (minBathrooms !== undefined) {
-          configConditions.push({ configuration: { path: ['bathrooms'], gte: minBathrooms } });
-        }
-
-        if (configConditions.length > 0) {
-          if (!whereClause.AND) whereClause.AND = [];
-          whereClause.AND = [...whereClause.AND, ...configConditions];
-        }
-        delete whereClause.configuration;
-      }
+      const {
+        city, university, minPrice, maxPrice, roomType, moveIn, amenities, bounds,
+        page = 1, limit = 20, sort, sortOrder, propertyType, furnishingType,
+        offeringType, minBedrooms, minBathrooms, minimumStay, maximumStay,
+        latitude, longitude, radiusKm
+      } = params;
 
       const skip = (page - 1) * limit;
 
-      // 6. Handle Move-In / Availability & Sort
-      if (sort === 'available_now' || moveIn === 'immediate' || moveIn === 'now' || moveIn === 'available_now') {
-        if (!whereClause.roomTypes) whereClause.roomTypes = {};
-        if (!whereClause.roomTypes.some) whereClause.roomTypes.some = {};
-        whereClause.roomTypes.some.inventory = { gt: 0 };
-      }
+      const includeQuery = {
+        organization: { select: { id: true, name: true, status: true } },
+        roomTypes: { select: { id: true, name: true, pricePerWeek: true, inventory: true } },
+        media: { take: 5, orderBy: { displayOrder: 'asc' }, select: { url: true, type: true, displayOrder: true } },
+        suburb: { select: { name: true, city: { select: { name: true } } } },
+        amenities: { select: { amenity: { select: { name: true } } } },
+      };
 
-      let orderBy: any = { createdAt: 'desc' };
-      if (sort === 'top_rated') {
-        orderBy = { savedBy: { _count: 'desc' } };
-      } else if (sort === 'closest_to_campus') {
-        // Distance calculation requires geospatial data which is deferred. 
-        // Fallback to createdAt or default sorting.
-        orderBy = { createdAt: 'desc' };
-      }
+      let data: any[] = [];
+      let total = 0;
+      let propertyDistances: Record<string, number> = {};
 
-      const [data, total] = await Promise.all([
-        this.prisma.property.findMany({
-          where: whereClause,
-          include: {
-            organization: {
-              select: { id: true, name: true, status: true }
-            },
-            roomTypes: {
-              select: { id: true, name: true, pricePerWeek: true, inventory: true }
-            },
-            media: { 
-              take: 5, 
-              orderBy: { displayOrder: 'asc' },
-              select: { url: true, type: true, displayOrder: true }
-            },
-            suburb: { 
-              select: { name: true, city: { select: { name: true } } } 
-            },
-            amenities: { 
-              select: { amenity: { select: { name: true } } } 
-            },
-          },
-          skip,
-          take: limit,
-          orderBy
-        }),
-        this.prisma.property.count({ where: whereClause })
-      ]);
+      if (latitude !== undefined && longitude !== undefined && radiusKm !== undefined) {
+        // --- DB-LAYER GEOGRAPHIC SEARCH ---
+        const conditions: Prisma.Sql[] = [Prisma.sql`p.status = 'PUBLISHED'`];
+
+        if (radiusKm <= 0) {
+          return { data: [], meta: { total: 0, page, limit, totalPages: 0 } };
+        }
+
+        // 1. Haversine Radius & Bounding Box
+        const latMin = latitude - (radiusKm / 111);
+        const latMax = latitude + (radiusKm / 111);
+        const lngMin = longitude - (radiusKm / (111 * Math.cos(latitude * (Math.PI / 180))));
+        const lngMax = longitude + (radiusKm / (111 * Math.cos(latitude * (Math.PI / 180))));
+
+        conditions.push(Prisma.sql`p.lat BETWEEN ${latMin} AND ${latMax}`);
+        conditions.push(Prisma.sql`p.lng BETWEEN ${lngMin} AND ${lngMax}`);
+
+        // Clamped distance to avoid NaN
+        const distanceExpr = Prisma.sql`(6371 * acos(LEAST(1.0, GREATEST(-1.0, cos(radians(${latitude})) * cos(radians(p.lat)) * cos(radians(p.lng) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(p.lat))))))`;
+        conditions.push(Prisma.sql`${distanceExpr} <= ${radiusKm}`);
+
+        // 2. City
+        if (city) {
+          conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "Suburb" s JOIN "City" c ON s."cityId" = c.id WHERE s.id = p."suburbId" AND c.name ILIKE ${city})`);
+        }
+
+        // 3. University
+        if (university) {
+          const uniRecord = await this.prisma.university.findFirst({
+            where: { OR: [{ slug: { equals: university, mode: 'insensitive' } }, { name: { contains: university, mode: 'insensitive' } }] },
+            include: { campuses: { select: { suburbId: true } } }
+          });
+          if (uniRecord && uniRecord.campuses.length > 0) {
+            const suburbIds = uniRecord.campuses.map((c: any) => c.suburbId).filter(Boolean);
+            if (suburbIds.length > 0) {
+              conditions.push(Prisma.sql`p."suburbId" IN (${Prisma.join(suburbIds)})`);
+            }
+          } else {
+             conditions.push(Prisma.sql`(p.name ILIKE ${'%' + university + '%'} OR p.description ILIKE ${'%' + university + '%'} OR EXISTS (SELECT 1 FROM "Suburb" s WHERE s.id = p."suburbId" AND s.name ILIKE ${'%' + university + '%'}))`);
+          }
+        }
+
+        // 4. Room Type & Price & Move-in
+        if (minPrice !== undefined || maxPrice !== undefined || roomType || sort === 'available_now' || moveIn === 'immediate' || moveIn === 'now' || moveIn === 'available_now') {
+          const roomConditions: Prisma.Sql[] = [];
+          if (minPrice !== undefined) roomConditions.push(Prisma.sql`rt."pricePerWeek" >= ${minPrice * 100}`);
+          if (maxPrice !== undefined) roomConditions.push(Prisma.sql`rt."pricePerWeek" <= ${maxPrice * 100}`);
+          if (sort === 'available_now' || moveIn === 'immediate' || moveIn === 'now' || moveIn === 'available_now') {
+            roomConditions.push(Prisma.sql`rt.inventory > 0`);
+          }
+          if (roomType) {
+            const lower = roomType.toLowerCase();
+            let keyword = roomType;
+            let altKeyword = '';
+            if (lower.includes('studio')) keyword = 'studio';
+            else if (lower.includes('ensuite') || lower.includes('en-suite')) { keyword = 'ensuite'; altKeyword = 'en-suite'; }
+            else if (lower.includes('shared')) keyword = 'shared';
+            else if (lower.includes('apartment') || lower.includes('entire')) { keyword = 'apartment'; altKeyword = 'entire'; }
+
+            if (altKeyword) roomConditions.push(Prisma.sql`(rt.name ILIKE ${'%' + keyword + '%'} OR rt.name ILIKE ${'%' + altKeyword + '%'})`);
+            else roomConditions.push(Prisma.sql`rt.name ILIKE ${'%' + keyword + '%'}`);
+          }
+
+          if (roomConditions.length > 0) {
+             conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "RoomType" rt WHERE rt."propertyId" = p.id AND ${Prisma.join(roomConditions, ' AND ')})`);
+          }
+        }
+
+        // 5. Amenities
+        if (amenities && amenities.length > 0) {
+          for (const amenity of amenities) {
+            conditions.push(Prisma.sql`EXISTS (SELECT 1 FROM "PropertyAmenity" pa JOIN "Amenity" a ON pa."amenityId" = a.id WHERE pa."propertyId" = p.id AND a.name ILIKE ${amenity})`);
+          }
+        }
+
+        // 6. Direct Fields
+        if (propertyType) conditions.push(Prisma.sql`p."propertyType" = CAST(${propertyType} AS "PropertyType")`);
+        if (furnishingType) conditions.push(Prisma.sql`p."furnishingType" = CAST(${furnishingType} AS "FurnishingType")`);
+        if (offeringType) conditions.push(Prisma.sql`p."offeringType" = CAST(${offeringType} AS "PropertyOfferingType")`);
+        if (minimumStay !== undefined) conditions.push(Prisma.sql`p."minimumStay" <= ${minimumStay}`);
+        if (maximumStay !== undefined) conditions.push(Prisma.sql`p."maximumStay" >= ${maximumStay}`);
+
+        // JSON Configuration
+        if (minBedrooms !== undefined) conditions.push(Prisma.sql`CAST(p.configuration->>'bedrooms' AS INTEGER) >= ${minBedrooms}`);
+        if (minBathrooms !== undefined) conditions.push(Prisma.sql`CAST(p.configuration->>'bathrooms' AS INTEGER) >= ${minBathrooms}`);
+
+        const whereSql = Prisma.join(conditions, ' AND ');
+
+        // Pagination & DB hit
+        const countQuery = Prisma.sql`SELECT COUNT(*) as total FROM "Property" p WHERE ${whereSql}`;
+        const countRes: any[] = await this.prisma.$queryRaw(countQuery);
+        total = Number(countRes[0].total);
+
+        if (total > 0) {
+           let orderBySql = Prisma.sql`ORDER BY distance ASC, p.id ASC`;
+           if (sort === 'distance' && sortOrder === 'desc') {
+             orderBySql = Prisma.sql`ORDER BY distance DESC, p.id ASC`;
+           } else if (sort === 'top_rated') {
+             orderBySql = Prisma.sql`ORDER BY (SELECT COUNT(*) FROM "SavedProperty" sp WHERE sp."propertyId" = p.id) DESC, p.id ASC`;
+           } else if (sort !== 'distance' && sort !== 'closest_to_campus') {
+             orderBySql = Prisma.sql`ORDER BY p."createdAt" DESC, p.id ASC`;
+           }
+
+           const selectQuery = Prisma.sql`
+             SELECT p.id, ${distanceExpr} AS distance
+             FROM "Property" p
+             WHERE ${whereSql}
+             ${orderBySql}
+             LIMIT ${limit} OFFSET ${skip}
+           `;
+           const nearbyProps: any[] = await this.prisma.$queryRaw(selectQuery);
+           const paginatedIds = nearbyProps.map((p: any) => p.id);
+
+           nearbyProps.forEach((p: any) => { propertyDistances[p.id] = p.distance; });
+
+           if (paginatedIds.length > 0) {
+             data = await this.prisma.property.findMany({
+               where: { id: { in: paginatedIds } },
+               include: includeQuery as any,
+             });
+             const idToIndex = new Map(paginatedIds.map((id, idx) => [id, idx]));
+             data.sort((a, b) => (idToIndex.get(a.id) ?? 0) - (idToIndex.get(b.id) ?? 0));
+           }
+        }
+      } else {
+        // --- STANDARD IN-MEMORY PRISMA SEARCH ---
+        const whereClause: any = { status: 'PUBLISHED' };
+
+        if (city) {
+          whereClause.suburb = { city: { name: { equals: city, mode: 'insensitive' } } };
+        }
+
+        if (university) {
+          const uniRecord = await this.prisma.university.findFirst({
+            where: { OR: [{ slug: { equals: university, mode: 'insensitive' } }, { name: { contains: university, mode: 'insensitive' } }] },
+            include: { campuses: { select: { suburbId: true } } }
+          });
+          if (uniRecord && uniRecord.campuses.length > 0) {
+            const suburbIds = uniRecord.campuses.map((c: any) => c.suburbId).filter(Boolean);
+            whereClause.suburbId = { in: suburbIds };
+          } else {
+            whereClause.OR = [
+              { name: { contains: university, mode: 'insensitive' } },
+              { description: { contains: university, mode: 'insensitive' } },
+              { suburb: { name: { contains: university, mode: 'insensitive' } } }
+            ];
+          }
+        }
+
+        if (bounds) {
+          const [swLat, swLng, neLat, neLng] = bounds.split(',').map(parseFloat);
+          whereClause.lat = { gte: swLat, lte: neLat };
+          whereClause.lng = { gte: swLng, lte: neLng };
+        }
+
+        if (minPrice !== undefined || maxPrice !== undefined || roomType) {
+          const roomTypeSome: any = {
+            ...(minPrice !== undefined && { pricePerWeek: { gte: minPrice * 100 } }),
+            ...(maxPrice !== undefined && { pricePerWeek: { lte: maxPrice * 100 } }),
+          };
+          if (roomType) {
+            const lower = roomType.toLowerCase();
+            let keyword = roomType;
+            let altKeyword = '';
+            if (lower.includes('studio')) keyword = 'studio';
+            else if (lower.includes('ensuite') || lower.includes('en-suite')) { keyword = 'ensuite'; altKeyword = 'en-suite'; }
+            else if (lower.includes('shared')) keyword = 'shared';
+            else if (lower.includes('apartment') || lower.includes('entire')) { keyword = 'apartment'; altKeyword = 'entire'; }
+
+            if (altKeyword) {
+              roomTypeSome.OR = [
+                { name: { contains: keyword, mode: 'insensitive' } },
+                { name: { contains: altKeyword, mode: 'insensitive' } },
+              ];
+            } else {
+              roomTypeSome.name = { contains: keyword, mode: 'insensitive' };
+            }
+          }
+          whereClause.roomTypes = { some: roomTypeSome };
+        }
+
+        if (amenities && amenities.length > 0) {
+          whereClause.AND = amenities.map(amenityName => ({
+            amenities: { some: { amenity: { name: { equals: amenityName, mode: 'insensitive' } } } }
+          }));
+        }
+
+        if (propertyType) whereClause.propertyType = propertyType;
+        if (furnishingType) whereClause.furnishingType = furnishingType;
+        if (offeringType) whereClause.offeringType = offeringType;
+        if (minimumStay !== undefined) whereClause.minimumStay = { lte: minimumStay };
+        if (maximumStay !== undefined) whereClause.maximumStay = { gte: maximumStay };
+
+        if (minBedrooms !== undefined || minBathrooms !== undefined) {
+          const configConditions: any[] = [];
+          if (minBedrooms !== undefined) configConditions.push({ configuration: { path: ['bedrooms'], gte: minBedrooms } });
+          if (minBathrooms !== undefined) configConditions.push({ configuration: { path: ['bathrooms'], gte: minBathrooms } });
+          if (configConditions.length > 0) {
+            if (!whereClause.AND) whereClause.AND = [];
+            whereClause.AND = [...whereClause.AND, ...configConditions];
+          }
+        }
+
+        if (sort === 'available_now' || moveIn === 'immediate' || moveIn === 'now' || moveIn === 'available_now') {
+          if (!whereClause.roomTypes) whereClause.roomTypes = {};
+          if (!whereClause.roomTypes.some) whereClause.roomTypes.some = {};
+          whereClause.roomTypes.some.inventory = { gt: 0 };
+        }
+
+        let orderBy: any = { createdAt: 'desc' };
+        if (sort === 'top_rated') orderBy = { savedBy: { _count: 'desc' } };
+
+        const result = await Promise.all([
+          this.prisma.property.findMany({ where: whereClause, include: includeQuery as any, skip, take: limit, orderBy }),
+          this.prisma.property.count({ where: whereClause })
+        ]);
+        data = result[0];
+        total = result[1];
+      }
 
       const totalPages = Math.ceil(total / limit) || 0;
 
       return {
-        data: data.map(this.mapPropertyResponse),
-        meta: {
-          total,
-          page,
-          limit,
-          totalPages
-        }
+        data: data.map((p: any) => {
+          const mapped = this.mapPropertyResponse(p);
+          if (propertyDistances[p.id] !== undefined) {
+            (mapped as any).distance = propertyDistances[p.id];
+          }
+          return mapped;
+        }),
+        meta: { total, page, limit, totalPages }
       };
     } catch (error) {
       console.error('Search error:', error);
@@ -708,7 +784,7 @@ export class PropertiesService {
       throw new NotFoundException('Property not found');
     }
 
-    const publicResidents = pubProperty.residents.map(resident => {
+    const publicResidents = pubProperty.residents.map((resident: any) => {
       const visibility = (resident.publicVisibility as any) || {};
       return {
         id: resident.id,
@@ -848,13 +924,13 @@ export class PropertiesService {
   // --- Residents ---
   async addResident(propertyId: string, organizationId: string, dto: any) {
     const property = await this.getPropertyForProvider(propertyId, organizationId, true);
-    
+
     // Check maximum occupancy limit
     if (property.maximumOccupancy !== null && property.maximumOccupancy !== undefined) {
       const activeResidentsCount = await this.prisma.resident.count({
         where: { propertyId, isActive: true, deletedAt: null }
       });
-      
+
       if (activeResidentsCount >= property.maximumOccupancy) {
         throw new BadRequestException('Maximum occupancy reached. Cannot add more residents.');
       }
@@ -879,7 +955,7 @@ export class PropertiesService {
 
   async updateResident(propertyId: string, organizationId: string, residentId: string, dto: any) {
     await this.getPropertyForProvider(propertyId, organizationId, true);
-    
+
     const resident = await this.prisma.resident.findUnique({ where: { id: residentId, propertyId } });
     if (!resident) throw new NotFoundException('Resident not found');
 
@@ -890,7 +966,7 @@ export class PropertiesService {
          const activeResidentsCount = await this.prisma.resident.count({
            where: { propertyId, isActive: true, deletedAt: null }
          });
-         
+
          if (activeResidentsCount >= property.maximumOccupancy) {
            throw new BadRequestException('Maximum occupancy reached. Cannot activate resident.');
          }
@@ -916,7 +992,7 @@ export class PropertiesService {
 
   async deleteResident(propertyId: string, organizationId: string, residentId: string) {
     await this.getPropertyForProvider(propertyId, organizationId, true);
-    
+
     const resident = await this.prisma.resident.findUnique({ where: { id: residentId, propertyId } });
     if (!resident) throw new NotFoundException('Resident not found');
 
@@ -984,7 +1060,7 @@ export class PropertiesService {
   // --- House Rules ---
   async updateHouseRule(propertyId: string, organizationId: string, dto: any) {
     await this.getPropertyForProvider(propertyId, organizationId, true);
-    
+
     return this.prisma.houseRule.upsert({
       where: { propertyId },
       create: {

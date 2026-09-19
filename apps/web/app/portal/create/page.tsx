@@ -4,13 +4,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import LocationPicker from '@/components/ui/LocationPicker';
+import { LocationAutocomplete, LocationResult } from '@/components/location/LocationAutocomplete';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { handleApiError, getApiUrl } from '@/utils/api';
 
 export default function CreatePropertyPage() {
   const router = useRouter();
   const onAuthError = () => { clearAuth(); router.replace('/login'); };
-  
+
   const [states, setStates] = useState<any[]>([]);
   const [cities, setCities] = useState<any[]>([]);
   const [suburbs, setSuburbs] = useState<any[]>([]);
@@ -81,7 +82,7 @@ export default function CreatePropertyPage() {
       const res = await fetch(`${apiUrl}/api/v1/locations/cities?stateId=${encodeURIComponent(stateId)}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       setCities(Array.isArray(await res.json()) ? await res.json() : []);
-    } catch (err: any) { setError('Failed to load cities for the selected state.'); } 
+    } catch (err: any) { setError('Failed to load cities for the selected state.'); }
     finally { setCitiesLoading(false); }
   };
 
@@ -98,7 +99,7 @@ export default function CreatePropertyPage() {
       const res = await fetch(`${apiUrl}/api/v1/locations/suburbs?cityId=${encodeURIComponent(cityId)}`);
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       setSuburbs(Array.isArray(await res.json()) ? await res.json() : []);
-    } catch (err: any) { setError('Failed to load suburbs for the selected city.'); } 
+    } catch (err: any) { setError('Failed to load suburbs for the selected city.'); }
     finally { setSuburbsLoading(false); }
   };
 
@@ -106,12 +107,12 @@ export default function CreatePropertyPage() {
     const sId = e.target.value;
     setIsManualLocation(true);
     const selectedSuburb = suburbs.find(s => s.id === sId);
-    
+
     setFormData(prev => {
       const next = { ...prev, suburbId: sId };
       if (selectedSuburb) {
         if (selectedSuburb.postcode) next.postcode = selectedSuburb.postcode;
-        // Since we just set it to true, we know it's a manual location change. 
+        // Since we just set it to true, we know it's a manual location change.
         // We do NOT want to overwrite the map coordinates with generic suburb coordinates here,
         // because the user might have placed a precise pin.
       }
@@ -124,7 +125,7 @@ export default function CreatePropertyPage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleLocationChange = async (lat: number, lng: number) => {
+  const handleLocationChange = async (lat: number, lng: number, locationResult?: any) => {
     setIsManualLocation(false);
     setFormData(prev => ({ ...prev, lat: String(lat), lng: String(lng) }));
     setError('');
@@ -132,13 +133,42 @@ export default function CreatePropertyPage() {
     const reqTime = Date.now();
     latestGeocodeReq.current = reqTime;
 
+    if (locationResult && locationResult.suburb) {
+      try {
+        const apiUrl = getApiUrl();
+        const url = new URL(`${apiUrl}/api/v1/locations/match`);
+        url.searchParams.append('suburb', locationResult.suburb);
+        if (locationResult.city) url.searchParams.append('city', locationResult.city);
+
+        const res = await fetch(url.toString());
+        if (res.ok) {
+          const match = await res.json();
+          if (latestGeocodeReq.current !== reqTime) return;
+
+          setSelectedStateId(match.stateId);
+          setSelectedCityId(match.cityId);
+          setCities([{ id: match.cityId, name: match.city }]);
+          setSuburbs([{ id: match.suburbId, name: match.suburb }]);
+
+          setFormData(prev => ({
+            ...prev,
+            suburbId: match.suburbId,
+            postcode: locationResult.postcode || match.postcode || prev.postcode
+          }));
+          return; // Skip Nominatim reverse geocoding
+        }
+      } catch (err) {
+        console.log('[Location] Failed to match location to database, falling back to reverse geocode', err);
+      }
+    }
+
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
       if (!res.ok) throw new Error('Geocoding failed');
       const data = await res.json();
-      
+
       if (latestGeocodeReq.current !== reqTime) return;
-      
+
       if (data && data.address) {
         if (data.address.country_code !== 'au') {
           setError("Couldn't automatically detect the location. Please select it manually.");
@@ -147,15 +177,15 @@ export default function CreatePropertyPage() {
 
         const stateName = data.address.state;
         if (stateName) {
-          const matchedState = states.find(s => 
-            s.name.toLowerCase() === stateName.trim().toLowerCase() || 
+          const matchedState = states.find(s =>
+            s.name.toLowerCase() === stateName.trim().toLowerCase() ||
             s.code.toLowerCase() === stateName.trim().toLowerCase() ||
             stateName.trim().toLowerCase().includes(s.name.toLowerCase())
           );
-          
+
           if (matchedState) {
             setSelectedStateId(matchedState.id);
-            
+
             // Fetch cities
             setCitiesLoading(true);
             const apiUrl = getApiUrl();
@@ -164,23 +194,23 @@ export default function CreatePropertyPage() {
             const loadedCities = Array.isArray(cityData) ? cityData : [];
             setCities(loadedCities);
             setCitiesLoading(false);
-            
+
             if (latestGeocodeReq.current !== reqTime) return;
 
             let matchedCity: any = null;
             let matchedSuburb: any = null;
-            
+
             const cityName = data.address.city || data.address.town || data.address.municipality || data.address.locality || data.address.village;
             if (cityName) {
-              matchedCity = loadedCities.find((c: any) => 
+              matchedCity = loadedCities.find((c: any) =>
                 c.name.toLowerCase() === cityName.trim().toLowerCase() ||
                 cityName.trim().toLowerCase().includes(c.name.toLowerCase())
               );
             }
-              
+
             if (matchedCity) {
               setSelectedCityId(matchedCity.id);
-              
+
               // Fetch suburbs
               setSuburbsLoading(true);
               const suburbRes = await fetch(`${apiUrl}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
@@ -188,18 +218,18 @@ export default function CreatePropertyPage() {
               const loadedSuburbs = Array.isArray(suburbData) ? suburbData : [];
               setSuburbs(loadedSuburbs);
               setSuburbsLoading(false);
-              
+
               if (latestGeocodeReq.current !== reqTime) return;
 
               const suburbName = data.address.suburb || data.address.neighbourhood || data.address.locality || data.address.village || data.address.hamlet;
               if (suburbName) {
-                matchedSuburb = loadedSuburbs.find((s: any) => 
+                matchedSuburb = loadedSuburbs.find((s: any) =>
                   s.name.toLowerCase() === suburbName.trim().toLowerCase() ||
                   suburbName.trim().toLowerCase().includes(s.name.toLowerCase())
                 );
               }
             }
-            
+
             // FALLBACK TO GEOGRAPHIC DISTANCE RESOLUTION
             if (!matchedSuburb) {
               try {
@@ -221,13 +251,13 @@ export default function CreatePropertyPage() {
                     } else {
                       matchedSuburb = nearestData;
                       setSelectedCityId('');
-                      setSuburbs([nearestData]); 
+                      setSuburbs([nearestData]);
                     }
                   }
                 }
               } catch (e) { console.log('[Location] Fallback resolution failed', e); }
             }
-            
+
             if (latestGeocodeReq.current !== reqTime) return;
 
             if (matchedSuburb) {
@@ -277,7 +307,7 @@ export default function CreatePropertyPage() {
     try {
       const apiUrl = getApiUrl();
       const { bedrooms, bathrooms, parkingSpaces, ...restFormData } = formData;
-      
+
       const t2 = performance.now();
       const res = await fetch(`${apiUrl}/api/v1/properties`, {
         method: 'POST',
@@ -307,7 +337,7 @@ export default function CreatePropertyPage() {
         throw new Error(Array.isArray(errData.message) ? errData.message.join(', ') : errData.message || 'Failed to create property');
       }
       const createdProperty = await res.json();
-      
+
       const t3 = performance.now();
       console.log(`[CreateProperty] property-create: ${Math.round(t3 - t2)}ms`);
 
@@ -342,7 +372,7 @@ export default function CreatePropertyPage() {
       if (failedUploads > 0) {
         setError(`Property created, but ${failedUploads} image(s) failed to upload. Check Edit Property to retry.`);
       }
-      
+
       setTimeout(() => { router.push('/portal'); }, failedUploads > 0 ? 5000 : 2000);
     } catch (err: any) {
       setError(err.message);
@@ -377,13 +407,13 @@ export default function CreatePropertyPage() {
           <div className="flex justify-between items-center mb-6 border-b pb-4">
             <h3 className="text-lg font-bold text-brand-navy">Step {step} of 8</h3>
           </div>
-          
+
           {error && !success && <div className="bg-red-50 text-red-600 p-4 rounded-md text-sm">{error}</div>}
 
           {step === 1 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">1. Listing Type & Property Type</h4>
-              
+
               <div className="bg-surface-muted p-4 rounded-lg border border-gray-200">
                 <label className="block text-sm font-medium text-brand-navy mb-3">Listing Mode</label>
                 <div className="flex flex-col space-y-3">
@@ -431,7 +461,7 @@ export default function CreatePropertyPage() {
           {step === 2 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">2. Configuration & Offering</h4>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 {formData.listingType === 'CO_LIVING' && (
                   <div className="col-span-2">
@@ -468,7 +498,7 @@ export default function CreatePropertyPage() {
           {step === 3 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">3. Furnishing & Availability</h4>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Furnishing</label>
                 <select name="furnishingType" value={formData.furnishingType} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2">
@@ -537,13 +567,13 @@ export default function CreatePropertyPage() {
             <div className="space-y-6">
               <h4 className="text-md font-semibold">6. Photos & Media</h4>
               <p className="text-sm text-gray-600">Upload high-quality images of the property. You can upload multiple images at once.</p>
-              
+
               <div className="flex flex-wrap gap-4 mb-4">
                 {mediaFiles.map((file, i) => (
                   <div key={i} className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
                     <img src={URL.createObjectURL(file)} alt="Preview" className="object-cover w-full h-full" />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setMediaFiles(prev => prev.filter((_, idx) => idx !== i))}
                       className="absolute top-1 right-1 bg-white rounded-full text-red-500 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm"
                     >
@@ -552,19 +582,19 @@ export default function CreatePropertyPage() {
                   </div>
                 ))}
               </div>
-              
+
               <label className="bg-brand-orange/10 text-brand-orange px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
                 <span>+ Select Images</span>
-                <input 
-                  type="file" 
-                  multiple 
-                  className="hidden" 
-                  accept="image/*" 
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept="image/*"
                   onChange={(e) => {
                     if (e.target.files) {
                       setMediaFiles(prev => [...prev, ...Array.from(e.target.files!)]);
                     }
-                  }} 
+                  }}
                 />
               </label>
             </div>
@@ -573,10 +603,24 @@ export default function CreatePropertyPage() {
           {step === 7 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">7. Location</h4>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                <input required type="text" name="address" value={formData.address} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="123 Example Street" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
+                <LocationAutocomplete
+                  value={null}
+                  onChange={(res) => {
+                    setFormData(prev => ({ ...prev, address: res.label || '' }));
+                    if (res) {
+                      handleLocationChange(res.latitude, res.longitude, res);
+                    }
+                  }}
+                  placeholder="Start typing your address..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Street Address</label>
+                <input required type="text" name="address" value={formData.address} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50" placeholder="123 Example Street" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -616,14 +660,14 @@ export default function CreatePropertyPage() {
             <div className="space-y-6">
               <h4 className="text-md font-semibold">8. Contact & Enquiry Preferences</h4>
               <p className="text-sm text-gray-600">Choose how seekers can contact you about this property.</p>
-              
+
               <div className="bg-surface-muted p-4 rounded-lg border border-gray-200">
                 <label className="flex items-start space-x-3 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={formData.showContactDetails} 
-                    onChange={(e) => setFormData({...formData, showContactDetails: e.target.checked})} 
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange" 
+                  <input
+                    type="checkbox"
+                    checked={formData.showContactDetails}
+                    onChange={(e) => setFormData({...formData, showContactDetails: e.target.checked})}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange"
                   />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>
@@ -640,7 +684,7 @@ export default function CreatePropertyPage() {
             {step > 1 ? (
               <button type="button" onClick={() => setStep(step - 1)} className="px-6 py-2 rounded-md border text-gray-600 hover:bg-gray-50">Back</button>
             ) : <div/>}
-            
+
             {step < 8 ? (
               <button type="button" onClick={() => setStep(step + 1)} className="bg-brand-navy text-white px-6 py-2 rounded-md hover:bg-opacity-90">Next Step</button>
             ) : (

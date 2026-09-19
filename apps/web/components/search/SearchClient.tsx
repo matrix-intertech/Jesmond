@@ -11,7 +11,7 @@ import { handleApiError, getApiUrl } from '@/utils/api';
 import { BedDouble, Bath, CarFront } from "lucide-react";
 
 // Dynamically import Leaflet map to avoid window is not defined SSR error
-const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), { 
+const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 font-medium">Loading Map Engine...</div>
 });
@@ -21,7 +21,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
   const pathname = usePathname();
   const onAuthError = () => { clearAuth(); };
   const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
-  
+
   // API State
   const [properties, setProperties] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>({ total: 0, page: 1, limit: 20, totalPages: 1 });
@@ -32,7 +32,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
   const updateSearchState = (updates: Record<string, string | null>) => {
     const current = new URLSearchParams(window.location.search);
     let changed = false;
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value === null || value === '') {
         if (current.has(key)) {
@@ -60,11 +60,11 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
   // Fetch properties whenever initialParams change
   useEffect(() => {
     const controller = new AbortController();
-    
+
     const fetchProperties = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         // Construct query string
         const searchParams = new URLSearchParams();
@@ -73,7 +73,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             searchParams.append(key, String(value));
           }
         });
-        
+
         const apiUrl = getApiUrl();
         const token = getAccessToken();
         const onAuthError = () => { clearAuth(); };
@@ -98,9 +98,9 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
         setIsLoading(false);
       }
     };
-    
+
     fetchProperties();
-    
+
     return () => {
       controller.abort();
     };
@@ -108,10 +108,10 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
   return (
     <div className="flex flex-1 h-[calc(100vh-80px)] overflow-hidden relative">
-      
+
       {/* LEFT: Scrollable Results */}
       <div className="w-full lg:w-[60%] xl:w-[50%] h-full overflow-y-auto bg-surface-muted flex flex-col custom-scrollbar relative">
-        
+
         {/* Results Header */}
         <div className="px-6 sm:px-10 pt-8 pb-4 sticky top-0 bg-surface-muted/90 backdrop-blur-md z-10">
           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -119,7 +119,9 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             {isLoading && `Searching properties...`}
           </p>
           <h1 className="text-3xl font-bold text-brand-navy tracking-tight">
-            {initialParams.university || initialParams.uni
+            {initialParams.locationLabel
+              ? `Properties within ${initialParams.radiusKm || 10}km of ${initialParams.locationLabel}`
+              : initialParams.university || initialParams.uni
               ? `Accommodation near ${initialParams.university || initialParams.uni}`
               : initialParams.city
               ? `Student Accommodation in ${initialParams.city}`
@@ -127,12 +129,16 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
               ? `${(initialParams.roomType || initialParams.type).charAt(0).toUpperCase() + (initialParams.roomType || initialParams.type).slice(1)} Student Housing`
               : 'Discover Student Living'}
           </h1>
-          
-          {/* Quick Filters - interacting with URL State */}
+
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
-            <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '450' ? null : '450' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '450' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $450/wk</button>
+            {initialParams.locationLabel && (
+              <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })} className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-brand-navy text-white border-brand-navy">
+                📍 {initialParams.locationLabel} ✕
+              </button>
+            )}
+            <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $200/wk</button>
             <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Studio</button>
-            <button onClick={() => updateSearchState({ maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
+            <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
           </div>
         </div>
 
@@ -187,7 +193,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
               const verified = prop.provider?.verified;
 
               return (
-                <div 
+                <div
                   key={prop.id}
                   onClick={() => router.push(`/property/${prop.id}`)}
                   onMouseEnter={() => setHoveredPropertyId(prop.id)}
@@ -208,13 +214,17 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   <div className="p-6 flex flex-col justify-between flex-grow">
                     <div>
                       <h3 className="text-xl font-bold text-brand-navy mb-1">{prop.name}</h3>
-                      <p className="text-sm font-medium text-slate-500 mb-3">{location}</p>
+                      <p className="text-sm font-medium text-slate-500 mb-1">{location}</p>
+                      {prop.distance !== undefined && (
+                        <p className="text-xs font-bold text-brand-orange mb-3">{prop.distance.toFixed(1)} km away</p>
+                      )}
+                      {!prop.distance && <div className="mb-3" />}
                       {(() => {
                         const c = prop.configuration || {};
                         const hasBed = !!c.bedrooms;
                         const hasBath = !!c.bathrooms;
                         const hasCar = !!c.parkingSpaces;
-                        
+
                         if (!hasBed && !hasBath && !hasCar) return null;
 
                         return (
@@ -225,14 +235,14 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                                 <span>{c.bedrooms}</span>
                               </span>
                             )}
-                            
+
                             {hasBath && (
                               <span className="flex items-center gap-1.5" title="Bathrooms">
                                 <Bath className="h-4 w-4" />
                                 <span>{c.bathrooms}</span>
                               </span>
                             )}
-                            
+
                             {hasCar && (
                               <span className="flex items-center gap-1.5" title="Parking Spaces">
                                 <CarFront className="h-4 w-4" />
@@ -256,7 +266,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
         {/* Pagination Controls */}
         {!isLoading && !error && meta.totalPages > 1 && (
           <div className="px-6 sm:px-10 pb-10 pt-4 flex items-center justify-between border-t border-slate-200 mt-auto">
-            <button 
+            <button
               disabled={meta.page <= 1}
               onClick={() => updateSearchState({ page: String(meta.page - 1) })}
               className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -266,7 +276,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
             <span className="text-sm font-medium text-slate-500">
               Page {meta.page} of {meta.totalPages}
             </span>
-            <button 
+            <button
               disabled={meta.page >= meta.totalPages}
               onClick={() => updateSearchState({ page: String(meta.page + 1) })}
               className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -279,10 +289,10 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
       {/* RIGHT: Interactive Map */}
       <div className="hidden lg:block lg:w-[40%] xl:w-[50%] h-full relative border-l border-slate-300">
-        <MapExperience 
-          properties={properties} 
-          hoveredPropertyId={hoveredPropertyId} 
-          onMarkerHover={setHoveredPropertyId} 
+        <MapExperience
+          properties={properties}
+          hoveredPropertyId={hoveredPropertyId}
+          onMarkerHover={setHoveredPropertyId}
         />
       </div>
 

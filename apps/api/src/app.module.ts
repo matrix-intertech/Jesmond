@@ -11,9 +11,11 @@ import { LocationsModule } from './modules/locations/locations.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { StudentActionsModule } from './modules/student-actions/student-actions.module';
 import { ApplicationsModule } from './modules/applications/applications.module';
+import { LocationModule } from './modules/location/location.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { RetailModule } from './modules/retail/retail.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -23,6 +25,7 @@ import { RedisModule } from './modules/redis/redis.module';
   imports: [
     PrismaModule,
     RedisModule,
+    LocationModule,
     // 1. Configuration Module (Global)
     ConfigModule.forRoot({
       isGlobal: true,
@@ -62,6 +65,7 @@ import { RedisModule } from './modules/redis/redis.module';
     PaymentsModule,
     SettingsModule,
     RetailModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

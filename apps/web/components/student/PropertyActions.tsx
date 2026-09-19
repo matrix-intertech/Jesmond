@@ -30,6 +30,32 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
     setIsAuth(!!getAccessToken());
   }, []);
 
+  const handleSendMessage = async () => {
+    if (!isAuth) return router.push('/login');
+    setLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/chat/init`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getAccessToken()}`
+        },
+        body: JSON.stringify({ propertyId })
+      });
+      if (res.ok) {
+        const convo = await res.json();
+        router.push(`/messages/${convo.id}`);
+      } else {
+        const err = await res.json();
+        setError(err.message || "Failed to start chat");
+      }
+    } catch(err) {
+      setError("Failed to start chat");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleEnquiry = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -120,9 +146,16 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
             )}
           </div>
         ) : (
-          <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
-            Contact Provider
-          </button>
+          <div className="flex flex-col gap-3">
+            <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
+              Contact Provider (Email)
+            </button>
+            {isAuth && (
+              <button disabled={loading} onClick={handleSendMessage} className="w-full bg-brand-navy border-2 border-brand-navy text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-navy/90 transition">
+                Send Message (Chat)
+              </button>
+            )}
+          </div>
         )}
       </div>
 

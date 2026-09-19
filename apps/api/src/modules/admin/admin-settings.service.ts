@@ -33,6 +33,7 @@ export class AdminSettingsService {
           defaultTimezone: data.defaultTimezone,
           defaultCurrency: data.defaultCurrency,
           maintenanceMode: data.maintenanceMode,
+          propertyAutoApproval: data.propertyAutoApproval,
         }
       });
 

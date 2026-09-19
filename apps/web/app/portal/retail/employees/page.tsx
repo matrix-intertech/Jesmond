@@ -28,6 +28,7 @@ interface Employee {
   user: UserData;
   retailBranch?: Branch;
   retailBranchId?: string;
+  branches?: { branch: Branch }[];
 }
 
 import RetailGuard from "@/components/retail/RetailGuard";
@@ -38,19 +39,19 @@ function EmployeesPageContent() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     role: 'ORG_STAFF',
-    branchId: '',
+    branchIds: [] as string[],
     accountStatus: 'ACTIVE'
   });
-  
+
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -65,7 +66,7 @@ function EmployeesPageContent() {
       ]);
 
       await handleApiError(empRes, () => { clearAuth(); router.replace('/login'); });
-      
+
       if (empRes.ok && brRes.ok) {
         setEmployees(await empRes.json());
         setBranches(await brRes.json());
@@ -85,7 +86,7 @@ function EmployeesPageContent() {
 
   const openCreateModal = () => {
     setEditingEmployee(null);
-    setFormData({ firstName: '', lastName: '', email: '', role: 'ORG_STAFF', branchId: '', accountStatus: 'ACTIVE' });
+    setFormData({ firstName: '', lastName: '', email: '', role: 'ORG_STAFF', branchIds: [], accountStatus: 'ACTIVE' });
     setFormError("");
     setIsModalOpen(true);
   };
@@ -97,7 +98,7 @@ function EmployeesPageContent() {
       lastName: emp.user.lastName || '',
       email: emp.user.email,
       role: emp.role,
-      branchId: emp.retailBranch?.id || '',
+      branchIds: emp.branches?.map(b => b.branch.id) || (emp.retailBranch?.id ? [emp.retailBranch.id] : []),
       accountStatus: emp.user.accountStatus,
     });
     setFormError("");
@@ -106,7 +107,7 @@ function EmployeesPageContent() {
 
   const deactivateEmployee = async (empId: string) => {
     if (!confirm('Are you sure you want to deactivate this employee? They will no longer be able to log in.')) return;
-    
+
     const token = getAccessToken();
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees/${empId}`, {
@@ -131,12 +132,12 @@ function EmployeesPageContent() {
     try {
       const isEdit = !!editingEmployee;
       const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees${isEdit ? `/${editingEmployee.id}` : ''}`;
-      
+
       let payload: any = {};
       if (isEdit) {
         payload = {
           role: formData.role,
-          branchId: formData.branchId || null,
+          branchIds: formData.branchIds,
           accountStatus: formData.accountStatus,
         };
       } else {
@@ -145,7 +146,7 @@ function EmployeesPageContent() {
           lastName: formData.lastName || undefined,
           email: formData.email,
           role: formData.role,
-          branchId: formData.branchId || null,
+          branchIds: formData.branchIds,
         };
       }
 
@@ -157,7 +158,7 @@ function EmployeesPageContent() {
         },
         body: JSON.stringify(payload)
       });
-      
+
       if (res.ok) {
         setIsModalOpen(false);
         fetchData();
@@ -215,13 +216,17 @@ function EmployeesPageContent() {
                   <td className="px-6 py-4 text-slate-600">
                     <div className="flex flex-col">
                       <span className="font-medium text-slate-700">{emp.role.replace('_', ' ')}</span>
-                      <span className="text-xs text-slate-400">{emp.retailBranch?.name || 'No branch assigned'}</span>
+                      <span className="text-xs text-slate-400">
+                        {emp.branches && emp.branches.length > 0
+                          ? emp.branches.map(b => b.branch.name).join(', ')
+                          : (emp.retailBranch?.name || 'No branch assigned')}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      emp.user.accountStatus === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                      emp.user.accountStatus === 'PENDING_VERIFICATION' ? 'bg-amber-100 text-amber-800' : 
+                      emp.user.accountStatus === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                      emp.user.accountStatus === 'PENDING_VERIFICATION' ? 'bg-amber-100 text-amber-800' :
                       'bg-slate-100 text-slate-800'
                     }`}>
                       {emp.user.accountStatus.replace('_', ' ')}
@@ -247,11 +252,11 @@ function EmployeesPageContent() {
               <h3 className="font-semibold text-lg text-brand-navy">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">&times;</button>
             </div>
-            
+
             <div className="overflow-y-auto p-6">
               <form id="employee-form" onSubmit={handleSubmit} className="space-y-4">
                 {formError && <div className="p-3 bg-rose-50 text-rose-700 rounded text-sm">{formError}</div>}
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
@@ -278,13 +283,29 @@ function EmployeesPageContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Branch</label>
-                    <select value={formData.branchId} onChange={e => setFormData({...formData, branchId: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm">
-                      <option value="">No Branch</option>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Branches</label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto p-2 border border-gray-300 rounded-md">
                       {branches.map(b => (
-                        <option key={b.id} value={b.id}>{b.name}</option>
+                        <label key={b.id} className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.branchIds.includes(b.id)}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setFormData(prev => ({
+                                ...prev,
+                                branchIds: checked
+                                  ? [...prev.branchIds, b.id]
+                                  : prev.branchIds.filter(id => id !== b.id)
+                              }));
+                            }}
+                            className="rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                          />
+                          <span>{b.name}</span>
+                        </label>
                       ))}
-                    </select>
+                      {branches.length === 0 && <span className="text-xs text-slate-400">No branches available</span>}
+                    </div>
                   </div>
                 </div>
 

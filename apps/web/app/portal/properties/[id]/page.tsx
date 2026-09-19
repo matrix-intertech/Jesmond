@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { SafeImage } from '../../../../components/ui/SafeImage';
 import PageHeader from '@/components/ui/PageHeader';
 import LocationPicker from '@/components/ui/LocationPicker';
+import { LocationAutocomplete, LocationResult } from '@/components/location/LocationAutocomplete';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 
 import { handleApiError } from '@/utils/api';
@@ -145,7 +146,7 @@ export default function AccommodationManagementPage() {
     }
   };
 
-  
+
   const handleStateChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const stateId = e.target.value;
     setSelectedStateId(stateId);
@@ -184,7 +185,7 @@ export default function AccommodationManagementPage() {
       const next = { ...prev, suburbId: sId };
       if (selectedSuburb) {
         if (selectedSuburb.postcode) next.postcode = selectedSuburb.postcode;
-        // Since we just set it to true, we know it's a manual location change. 
+        // Since we just set it to true, we know it's a manual location change.
         // We do NOT want to overwrite the map coordinates with generic suburb coordinates here,
         // because the user might have placed a precise pin.
       }
@@ -192,7 +193,7 @@ export default function AccommodationManagementPage() {
     });
   };
 
-  const handleLocationChange = async (lat: number, lng: number) => {
+  const handleLocationChange = async (lat: number, lng: number, locationResult?: any) => {
     setIsManualLocation(false);
     setEditPropForm((prev: any) => ({ ...prev, lat: String(lat), lng: String(lng) }));
     setError('');
@@ -200,13 +201,41 @@ export default function AccommodationManagementPage() {
     const reqId = Date.now();
     latestGeocodeReq.current = reqId;
 
+    if (locationResult && locationResult.suburb) {
+      try {
+        const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/match`);
+        url.searchParams.append('suburb', locationResult.suburb);
+        if (locationResult.city) url.searchParams.append('city', locationResult.city);
+
+        const res = await fetch(url.toString());
+        if (res.ok) {
+          const match = await res.json();
+          if (latestGeocodeReq.current !== reqId) return;
+
+          setSelectedStateId(match.stateId);
+          setSelectedCityId(match.cityId);
+          setCities([{ id: match.cityId, name: match.city }]);
+          setSuburbs([{ id: match.suburbId, name: match.suburb }]);
+
+          setEditPropForm((prev: any) => ({
+            ...prev,
+            suburbId: match.suburbId,
+            postcode: locationResult.postcode || match.postcode || prev.postcode
+          }));
+          return; // Skip Nominatim reverse geocoding
+        }
+      } catch (err) {
+        console.log('[Location] Failed to match location to database, falling back to reverse geocode', err);
+      }
+    }
+
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
       if (!res.ok) throw new Error('Geocoding failed');
       const data = await res.json();
-      
+
       if (latestGeocodeReq.current !== reqId) return;
-      
+
       if (data && data.address) {
         if (data.address.country_code !== 'au') {
           setError("Couldn't automatically detect the location. Please select it manually.");
@@ -215,56 +244,56 @@ export default function AccommodationManagementPage() {
 
         const stateName = data.address.state;
         if (stateName) {
-          const matchedState = states.find(s => 
-            s.name.toLowerCase() === stateName.trim().toLowerCase() || 
+          const matchedState = states.find(s =>
+            s.name.toLowerCase() === stateName.trim().toLowerCase() ||
             s.code.toLowerCase() === stateName.trim().toLowerCase() ||
             stateName.trim().toLowerCase().includes(s.name.toLowerCase())
           );
-          
+
           if (matchedState) {
             setSelectedStateId(matchedState.id);
-            
+
             setCitiesLoading(true);
             const cityRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${matchedState.id}`);
             const cityData = await cityRes.json();
             const loadedCities = Array.isArray(cityData) ? cityData : [];
             setCities(loadedCities);
             setCitiesLoading(false);
-            
+
             if (latestGeocodeReq.current !== reqId) return;
-            
+
             let matchedCity: any = null;
             let matchedSuburb: any = null;
 
             const cityName = data.address.city || data.address.town || data.address.municipality || data.address.locality || data.address.village;
             if (cityName) {
-              matchedCity = loadedCities.find((c: any) => 
+              matchedCity = loadedCities.find((c: any) =>
                 c.name.toLowerCase() === cityName.trim().toLowerCase() ||
                 cityName.trim().toLowerCase().includes(c.name.toLowerCase())
               );
             }
-              
+
             if (matchedCity) {
               setSelectedCityId(matchedCity.id);
-              
+
               setSuburbsLoading(true);
               const suburbRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
               const suburbData = await suburbRes.json();
               const loadedSuburbs = Array.isArray(suburbData) ? suburbData : [];
               setSuburbs(loadedSuburbs);
               setSuburbsLoading(false);
-              
+
               if (latestGeocodeReq.current !== reqId) return;
-              
+
               const suburbName = data.address.suburb || data.address.neighbourhood || data.address.locality || data.address.village || data.address.hamlet;
               if (suburbName) {
-                matchedSuburb = loadedSuburbs.find((s: any) => 
+                matchedSuburb = loadedSuburbs.find((s: any) =>
                   s.name.toLowerCase() === suburbName.trim().toLowerCase() ||
                   suburbName.trim().toLowerCase().includes(s.name.toLowerCase())
                 );
               }
             }
-            
+
             // FALLBACK TO GEOGRAPHIC DISTANCE RESOLUTION
             if (!matchedSuburb) {
               try {
@@ -292,7 +321,7 @@ export default function AccommodationManagementPage() {
                 }
               } catch (e) { console.log('[Location] Fallback resolution failed', e); }
             }
-            
+
             if (latestGeocodeReq.current !== reqId) return;
 
             if (matchedSuburb) {
@@ -403,7 +432,7 @@ export default function AccommodationManagementPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
@@ -437,7 +466,7 @@ export default function AccommodationManagementPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms/${roomId}/availability`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
@@ -558,7 +587,25 @@ export default function AccommodationManagementPage() {
           <form onSubmit={handleUpdateProperty} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 space-y-4">
             <h2 className="text-xl font-medium mb-4">Edit Details</h2>
             <div><label className="block text-sm text-gray-700 mb-1">Name</label><input required type="text" value={editPropForm.name} onChange={e => setEditPropForm({...editPropForm, name: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-            <div><label className="block text-sm text-gray-700 mb-1">Address</label><input required type="text" value={editPropForm.address} onChange={e => setEditPropForm({...editPropForm, address: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+
+            <div>
+              <label className="block text-sm text-gray-700 mb-1 mt-4">Search New Address</label>
+              <LocationAutocomplete
+                value={null}
+                onChange={(res) => {
+                  setEditPropForm((prev: any) => ({ ...prev, address: res.label || '' }));
+                  if (res) {
+                    handleLocationChange(res.latitude, res.longitude, res);
+                  }
+                }}
+                placeholder="Type to update your address and map pin..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-700 mb-1 mt-4">Street Address</label>
+              <input required type="text" value={editPropForm.address} onChange={e => setEditPropForm({...editPropForm, address: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />
+            </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
@@ -582,19 +629,19 @@ export default function AccommodationManagementPage() {
                 </select>
               </div>
             </div>
-            
+
             <div><label className="block text-sm text-gray-700 mb-1">Postcode</label><input required type="text" value={editPropForm.postcode} onChange={e => setEditPropForm((prev:any)=>({...prev, postcode: e.target.value}))} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-            
+
             <LocationPicker lat={editPropForm.lat} lng={editPropForm.lng} onChange={handleLocationChange} suburbLat={suburbs.find(s => s.id === editPropForm.suburbId)?.lat} suburbLng={suburbs.find(s => s.id === editPropForm.suburbId)?.lng} />
             <div><label className="block text-sm text-gray-700 mb-1">Description</label><textarea required rows={4} value={editPropForm.description} onChange={e => setEditPropForm({...editPropForm, description: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-            
+
             {(property.listingMode === 'INDIVIDUAL' || property.offeringType === 'ENTIRE_PLACE') && (
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Price per Week ($)</label>
                 <input type="number" step="0.01" min="0" value={editPropForm.pricePerWeek} onChange={e => setEditPropForm({...editPropForm, pricePerWeek: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="e.g. 450" />
               </div>
             )}
-            
+
             <h3 className="font-semibold text-lg mt-6">Structured Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -649,14 +696,14 @@ export default function AccommodationManagementPage() {
                 </div>
               )}
             </div>
-            
+
             <div className="mt-4 pt-4 border-t">
               <label className="flex items-start space-x-3 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={editPropForm.showContactDetails} 
-                  onChange={(e) => setEditPropForm({...editPropForm, showContactDetails: e.target.checked})} 
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange" 
+                <input
+                  type="checkbox"
+                  checked={editPropForm.showContactDetails}
+                  onChange={(e) => setEditPropForm({...editPropForm, showContactDetails: e.target.checked})}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange"
                 />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>

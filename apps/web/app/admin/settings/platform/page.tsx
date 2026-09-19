@@ -18,6 +18,7 @@ export default function PlatformSettingsPage() {
     defaultTimezone: "",
     defaultCurrency: "",
     maintenanceMode: false,
+    propertyAutoApproval: false,
   });
 
   useEffect(() => {
@@ -126,6 +127,20 @@ export default function PlatformSettingsPage() {
             </label>
           </div>
           <p className="ml-6 text-xs text-gray-500 mt-1">If enabled, the platform will be unavailable to non-admin users.</p>
+
+          <div className="flex items-center mt-4">
+            <input
+              id="propertyAutoApproval"
+              type="checkbox"
+              checked={data.propertyAutoApproval || false}
+              onChange={e => setData({...data, propertyAutoApproval: e.target.checked})}
+              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
+            />
+            <label htmlFor="propertyAutoApproval" className="ml-2 block text-sm text-brand-navy font-medium">
+              Property Auto Approval
+            </label>
+          </div>
+          <p className="ml-6 text-xs text-gray-500 mt-1">If enabled, newly submitted properties will bypass manual review and be published automatically.</p>
 
           <div className="flex justify-end pt-4 border-t border-gray-100">
             <button
