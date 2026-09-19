@@ -8,7 +8,9 @@ RUN corepack enable pnpm
 
 # Copy root workspace config
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# Copy ALL workspace package.json files so pnpm can resolve all lockfile importers
 COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
 COPY packages/ ./packages/
 
 # Install dependencies
