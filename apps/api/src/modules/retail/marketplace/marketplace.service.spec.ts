@@ -56,14 +56,24 @@ describe('MarketplaceService', () => {
 
     it('should query DB and set Redis cache on cache miss', async () => {
       redisMock.get.mockResolvedValue(null);
-      const mockStores = [{ id: 'b-1', name: 'DB Branch' }];
+      const mockStores = [{ id: 'b-1', name: 'DB Branch', isActive: true }];
       prismaMock.retailBranch.findMany.mockResolvedValue(mockStores);
 
       const result = await service.listStores();
 
-      expect(result).toEqual(mockStores);
+      const expectedStores = [{
+        id: 'b-1',
+        name: 'DB Branch',
+        isActive: true,
+        availability: {
+          available: true,
+          label: 'Available'
+        }
+      }];
+
+      expect(result).toEqual(expectedStores);
       expect(prismaMock.retailBranch.findMany).toHaveBeenCalled();
-      expect(redisMock.set).toHaveBeenCalledWith(expect.stringContaining('retail:marketplace:stores:'), mockStores, 45);
+      expect(redisMock.set).toHaveBeenCalledWith(expect.stringContaining('retail:marketplace:stores:'), expectedStores, 45);
     });
   });
 

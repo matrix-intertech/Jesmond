@@ -20,7 +20,7 @@ type Inventory = {
   product: Product;
 };
 
-export function ProductCard({ inventory, branchId }: { inventory: Inventory, branchId: string }) {
+export function ProductCard({ inventory, branchId, storeIsActive = true }: { inventory: Inventory, branchId: string, storeIsActive?: boolean }) {
   const { addItem, items } = useCart();
   const [added, setAdded] = useState(false);
 
@@ -31,7 +31,7 @@ export function ProductCard({ inventory, branchId }: { inventory: Inventory, bra
   const cartItem = items.find(i => i.productId === product.id);
   const qtyInCart = cartItem ? cartItem.quantity : 0;
 
-  const canAdd = availableQty > qtyInCart;
+  const canAdd = storeIsActive && availableQty > qtyInCart;
 
   const handleAdd = () => {
     if (!canAdd) return;
@@ -73,8 +73,14 @@ export function ProductCard({ inventory, branchId }: { inventory: Inventory, bra
           </div>
         )}
 
-        {availableQty <= 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+        {!storeIsActive ? (
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+            <div className="px-4 py-1.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
+              Currently Unavailable
+            </div>
+          </div>
+        ) : availableQty <= 0 && (
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
             <div className="px-4 py-1.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
               Out of stock
             </div>
@@ -95,7 +101,7 @@ export function ProductCard({ inventory, branchId }: { inventory: Inventory, bra
 
           <button
             onClick={handleAdd}
-            disabled={!canAdd || availableQty <= 0}
+            disabled={!canAdd || availableQty <= 0 || !storeIsActive}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
               added
                 ? "bg-green-500 text-white shadow-lg shadow-green-500/20"

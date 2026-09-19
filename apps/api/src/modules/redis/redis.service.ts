@@ -87,9 +87,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.delPattern(pattern);
   }
 
-  onModuleDestroy() {
+  async onModuleDestroy() {
     if (this.client) {
-      this.client.disconnect();
+      if (this.isConnected) {
+        await this.client.quit();
+      } else {
+        this.client.disconnect();
+      }
     }
   }
 }

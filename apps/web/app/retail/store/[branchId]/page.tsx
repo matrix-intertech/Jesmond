@@ -40,6 +40,12 @@ export default async function StoreDetailPage({
         <ArrowLeft size={18} /> Back to Stores
       </Link>
 
+      {!branch.isActive && (
+        <div className="mb-8 p-4 bg-slate-100 border border-slate-200 rounded-xl text-center text-slate-600 font-bold uppercase tracking-wider">
+          Currently Unavailable
+        </div>
+      )}
+
       <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200/60 shadow-sm mb-12 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-60 pointer-events-none"></div>
 
@@ -88,7 +94,7 @@ export default async function StoreDetailPage({
               reservedQuantity: 0,
               product: item
             };
-            return <ProductCard key={item.id} inventory={inv} branchId={branch.id} />;
+            return <ProductCard key={item.id} inventory={inv} branchId={branch.id} storeIsActive={branch.isActive} />;
           })}
         </div>
       )}

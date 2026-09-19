@@ -20,7 +20,6 @@ export class MarketplaceService {
     // Return active branches. In a real app with PostGIS we'd calculate distance.
     const stores = await this.prisma.retailBranch.findMany({
       where: {
-        isActive: true,
         organization: {
           status: 'VERIFIED',
           type: 'RETAIL',
@@ -36,8 +35,16 @@ export class MarketplaceService {
       },
     });
 
-    await this.redisService.set(cacheKey, stores, 45); // 45 seconds TTL
-    return stores;
+    const mappedStores = stores.map(store => ({
+      ...store,
+      availability: {
+        available: store.isActive,
+        label: store.isActive ? 'Available' : 'Currently Unavailable',
+      }
+    }));
+
+    await this.redisService.set(cacheKey, mappedStores, 45); // 45 seconds TTL
+    return mappedStores;
   }
 
   async invalidateStoreCache() {
@@ -48,9 +55,11 @@ export class MarketplaceService {
     const branch = await this.prisma.retailBranch.findUnique({
       where: { id: branchId },
     });
-    if (!branch || !branch.isActive) {
-      throw new NotFoundException('Store not found or inactive');
+    if (!branch) {
+      throw new NotFoundException('Store not found');
     }
+
+    const isBranchActive = branch.isActive;
 
     // Return active products for the branch's organization with availability derived from inventory
     const products = await this.prisma.product.findMany({
@@ -75,12 +84,13 @@ export class MarketplaceService {
       return {
         ...product,
         availableQuantity,
-        isAvailable: availableQuantity > 0,
-        outOfStock: availableQuantity <= 0,
+        isAvailable: isBranchActive && availableQuantity > 0,
+        outOfStock: isBranchActive && availableQuantity <= 0,
         availability: {
-          available: availableQuantity > 0,
-          outOfStock: availableQuantity <= 0,
+          available: isBranchActive && availableQuantity > 0,
+          outOfStock: isBranchActive && availableQuantity <= 0,
           quantity: availableQuantity,
+          label: !isBranchActive ? 'Currently Unavailable' : (availableQuantity > 0 ? 'Available' : 'Out of Stock')
         },
       };
     });
@@ -103,8 +113,12 @@ export class MarketplaceService {
       include: { organization: true },
     });
 
-    if (!branch || !branch.isActive) {
-      throw new NotFoundException('Store not found or inactive');
+    if (!branch) {
+      throw new NotFoundException('Store not found');
+    }
+    
+    if (!branch.isActive) {
+      throw new BadRequestException('Branch is currently unavailable');
     }
 
     if (fulfillmentType === 'DELIVERY' && !branch.deliveryEnabled) {

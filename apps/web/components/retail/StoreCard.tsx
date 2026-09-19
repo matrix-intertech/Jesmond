@@ -8,6 +8,10 @@ type StoreCardProps = {
     deliveryEnabled: boolean;
     takeawayEnabled: boolean;
     distance?: number;
+    availability?: {
+      available: boolean;
+      label: string;
+    };
   };
 };
 
@@ -33,20 +37,28 @@ export function StoreCard({ store }: StoreCardProps) {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {store.deliveryEnabled && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
-              <Navigation size={12} /> Delivery Available
+          {store.availability?.available === false ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-full border border-slate-200">
+              <Store size={12} /> {store.availability.label}
             </span>
-          )}
-          {store.takeawayEnabled && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
-              <Clock size={12} /> Takeaway
-            </span>
-          )}
-          {!store.deliveryEnabled && !store.takeawayEnabled && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 text-slate-600 text-xs font-semibold rounded-full border border-slate-200">
-              <Store size={12} /> In-Store Only
-            </span>
+          ) : (
+            <>
+              {store.deliveryEnabled && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
+                  <Navigation size={12} /> Delivery Available
+                </span>
+              )}
+              {store.takeawayEnabled && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
+                  <Clock size={12} /> Takeaway
+                </span>
+              )}
+              {!store.deliveryEnabled && !store.takeawayEnabled && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 text-slate-600 text-xs font-semibold rounded-full border border-slate-200">
+                  <Store size={12} /> In-Store Only
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>

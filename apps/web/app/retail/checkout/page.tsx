@@ -14,6 +14,7 @@ type BranchDetails = {
   name: string;
   deliveryEnabled: boolean;
   takeawayEnabled: boolean;
+  isActive?: boolean;
 };
 
 export default function CheckoutPage() {
@@ -47,6 +48,9 @@ export default function CheckoutPage() {
         if (res.ok) {
           const data = await res.json();
           setBranch(data.branch);
+          if (data.branch.isActive === false) {
+            setError("Store is currently unavailable. Please remove items from your cart.");
+          }
           // Set default fulfillment securely based on actual branch capabilities
           if (data.branch.deliveryEnabled) setFulfillment('DELIVERY');
           else if (data.branch.takeawayEnabled) setFulfillment('TAKEAWAY');
@@ -243,7 +247,7 @@ export default function CheckoutPage() {
 
             <button
               onClick={handleCheckout}
-              disabled={submitting}
+              disabled={submitting || branch.isActive === false}
               className="w-full py-4 bg-brand-orange hover:bg-orange-600 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-500/25 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {submitting ? (
