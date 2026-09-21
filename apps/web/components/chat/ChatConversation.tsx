@@ -9,6 +9,12 @@ import { clearAuth, getAccessToken } from "@/utils/auth";
 type ChatConversationProps = {
   conversationId: string;
   backHref: string;
+  embedded?: boolean;
+  onConversationUpdated?: (update: {
+    conversationId: string;
+    conversation?: any;
+    readAt?: string;
+  }) => void;
 };
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -41,11 +47,13 @@ const formatMessageTime = (dateValue: string) =>
 
 const getMessageKey = (message: any) => message ? `${message.id || "message"}:${message.createdAt || ""}` : "";
 
-export default function ChatConversation({ conversationId, backHref }: ChatConversationProps) {
+export default function ChatConversation({ conversationId, backHref, embedded = false, onConversationUpdated }: ChatConversationProps) {
   const router = useRouter();
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
   const lastMessageKeyRef = useRef<string | null>(null);
   const isNearBottomRef = useRef(true);
+  const lastReadNotifiedKeyRef = useRef<string | null>(null);
+  const onConversationUpdatedRef = useRef(onConversationUpdated);
   const [conversation, setConversation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState("");
@@ -66,6 +74,10 @@ export default function ChatConversation({ conversationId, backHref }: ChatConve
     .join(", ");
 
   useEffect(() => {
+    onConversationUpdatedRef.current = onConversationUpdated;
+  }, [onConversationUpdated]);
+
+  useEffect(() => {
     const token = getAccessToken();
     if (token) {
       try {
@@ -75,14 +87,19 @@ export default function ChatConversation({ conversationId, backHref }: ChatConve
     }
   }, []);
 
-  const markRead = async (token: string) => {
-    await fetch(`${apiBase}/api/v1/chat/conversations/${conversationId}/read`, {
+  const markRead = async (token: string, latestMessageKey?: string) => {
+    const res = await fetch(`${apiBase}/api/v1/chat/conversations/${conversationId}/read`, {
       method: "PATCH",
       headers: { Authorization: `Bearer ${token}` },
     });
+
+    if (res.ok && latestMessageKey && lastReadNotifiedKeyRef.current !== latestMessageKey) {
+      lastReadNotifiedKeyRef.current = latestMessageKey;
+      onConversationUpdatedRef.current?.({ conversationId, readAt: new Date().toISOString() });
+    }
   };
 
-  const fetchConversation = async () => {
+  const fetchConversation = async (options?: { notifyParent?: boolean }) => {
     const token = getAccessToken();
     if (!token) return router.push("/login");
 
@@ -92,9 +109,16 @@ export default function ChatConversation({ conversationId, backHref }: ChatConve
       });
 
       if (res.ok) {
-        setConversation(await res.json());
+        const data = await res.json();
+        const latestMessage = data.messages?.[data.messages.length - 1];
+        const latestMessageKey = getMessageKey(latestMessage);
+
+        setConversation(data);
         setError("");
-        void markRead(token);
+        if (options?.notifyParent) {
+          onConversationUpdatedRef.current?.({ conversationId, conversation: data });
+        }
+        void markRead(token, latestMessageKey);
       } else if (res.status === 401) {
         clearAuth();
         router.push("/login");
@@ -111,6 +135,7 @@ export default function ChatConversation({ conversationId, backHref }: ChatConve
   useEffect(() => {
     lastMessageKeyRef.current = null;
     isNearBottomRef.current = true;
+    lastReadNotifiedKeyRef.current = null;
     void fetchConversation();
     const interval = setInterval(fetchConversation, 5000);
     return () => clearInterval(interval);
@@ -173,7 +198,7 @@ export default function ChatConversation({ conversationId, backHref }: ChatConve
 
       if (res.ok) {
         setNewMessage("");
-        await fetchConversation();
+        await fetchConversation({ notifyParent: true });
       } else {
         const isJson = res.headers.get("content-type")?.includes("application/json");
         const body = isJson ? await res.json() : { message: await res.text() };
@@ -198,7 +223,7 @@ export default function ChatConversation({ conversationId, backHref }: ChatConve
   let lastDateLabel = "";
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-72px)] w-full max-w-4xl flex-col overflow-hidden bg-white sm:my-4 sm:h-[calc(100vh-104px)] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm">
+    <div className={`mx-auto flex w-full flex-col overflow-hidden bg-white ${embedded ? "h-full max-w-none" : "h-[calc(100vh-72px)] max-w-4xl sm:my-4 sm:h-[calc(100vh-104px)] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm"}`}>
       <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
         <Link
           href={backHref}
