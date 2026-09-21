@@ -42,10 +42,11 @@ export default function ProfileCompletionBanner() {
     fetchCompletionStatus();
   }, []);
 
-  // Do not show on the actual profile page
+  // Do not block chat reading/replying with profile completion.
   const isProfilePage = pathname === '/settings/profile' || pathname === '/portal/settings/profile';
+  const isChatPage = pathname === '/messages' || pathname.startsWith('/messages/') || pathname === '/portal/chats' || pathname.startsWith('/portal/chats/');
 
-  if (loading || dismissed || isProfilePage || !profileCompletion || profileCompletion.isComplete) {
+  if (loading || dismissed || isProfilePage || isChatPage || !profileCompletion || profileCompletion.isComplete) {
     return null;
   }
 

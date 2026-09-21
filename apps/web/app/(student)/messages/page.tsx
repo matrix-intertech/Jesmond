@@ -10,6 +10,7 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -19,23 +20,26 @@ export default function MessagesPage() {
         return;
       }
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/chat/conversations`, {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/chat/conversations`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const data = await res.json();
           setConversations(data);
+          setError("");
 
           try {
-            const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+            const tokenPayload = JSON.parse(atob(token.split(".")[1]));
             setUserId(tokenPayload.sub);
           } catch(e) {}
         } else if (res.status === 401) {
           clearAuth();
           router.push("/login");
+        } else {
+          setError("Failed to load messages.");
         }
-      } catch (err) {
-        console.error(err);
+      } catch {
+        setError("Failed to load messages.");
       } finally {
         setLoading(false);
       }
@@ -45,12 +49,9 @@ export default function MessagesPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 min-h-screen">
-      <PageHeader title="Messages" description="End-to-End Encrypted Chat (E2EE Preview)" />
+      <PageHeader title="Messages" description="Private conversations with property hosts" />
 
-      <div className="bg-brand-navy/5 border border-brand-navy/10 rounded-xl p-4 mb-8 text-sm text-brand-navy">
-        <strong>Security Notice:</strong> All messages sent on this platform are End-to-End Encrypted (E2EE).
-        The server stores only opaque ciphertext. For this preview, client-side encryption/decryption keys would be securely generated and exchanged between devices.
-      </div>
+      {error && <div className="mb-6 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
       {loading ? (
         <div className="animate-pulse flex flex-col gap-4">
@@ -65,23 +66,23 @@ export default function MessagesPage() {
         <div className="flex flex-col gap-4">
           {conversations.map(conv => {
             const myParticipant = conv.participants?.find((p: any) => p.userId === userId);
-            const isUnread = myParticipant && conv.updatedAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(conv.updatedAt));
+            const latestMessage = conv.messages?.[0];
+            const latestActivityAt = latestMessage?.createdAt || conv.updatedAt;
+            const isUnread = myParticipant && latestActivityAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(latestActivityAt));
 
             return (
-              <div key={conv.id} className={`p-4 bg-white border ${isUnread ? 'border-brand-navy shadow-sm' : 'border-slate-200'} rounded-xl hover:shadow-md transition-shadow cursor-pointer flex justify-between items-center relative`} onClick={() => router.push(`/messages/${conv.id}`)}>
+              <div key={conv.id} className={`p-4 bg-white border ${isUnread ? "border-brand-navy shadow-sm" : "border-slate-200"} rounded-xl hover:shadow-md transition-shadow cursor-pointer flex justify-between items-center relative`} onClick={() => router.push(`/messages/${conv.id}`)}>
                 {isUnread && (
                   <div className="absolute top-4 right-4 w-3 h-3 bg-brand-orange rounded-full"></div>
                 )}
                 <div>
-                  <h3 className={`font-semibold ${isUnread ? 'text-brand-navy font-bold' : 'text-slate-800'}`}>{conv.property?.name || 'Unknown Property'}</h3>
+                  <h3 className={`font-semibold ${isUnread ? "text-brand-navy font-bold" : "text-slate-800"}`}>{conv.property?.name || "Unknown Property"}</h3>
                   <p className="text-sm text-slate-500 mt-1 line-clamp-1">
-                    {conv.messages && conv.messages.length > 0 ? (
-                      <span className="italic">Encrypted Message</span>
-                    ) : 'No messages yet'}
+                    {latestMessage ? "New message" : "No messages yet"}
                   </p>
                 </div>
                 <div className="text-xs text-slate-400 mt-6 md:mt-0">
-                  {new Date(conv.updatedAt).toLocaleDateString()}
+                  {new Date(latestActivityAt).toLocaleDateString()}
                 </div>
               </div>
             );

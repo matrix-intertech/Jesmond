@@ -117,6 +117,17 @@ const navConfig: NavItem[] = [
     orgTypes: ['PROVIDER'],
   },
   {
+    href: '/portal/chats',
+    label: 'Chats',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+      </svg>
+    ),
+    roles: ['ORG_STAFF'],
+    orgTypes: ['PROVIDER'],
+  },
+  {
     href: '/portal/settings',
     label: 'Settings',
     icon: (
@@ -325,6 +336,16 @@ const navConfig: NavItem[] = [
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
         <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+      </svg>
+    ),
+    roles: ['STUDENT'],
+  },
+  {
+    href: '/messages',
+    label: 'Messages',
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
       </svg>
     ),
     roles: ['STUDENT'],

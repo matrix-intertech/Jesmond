@@ -32,6 +32,8 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
 
   const handleSendMessage = async () => {
     if (!isAuth) return router.push('/login');
+    setError("");
+    setSuccess("");
     setLoading(true);
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/chat/init`, {
@@ -146,16 +148,21 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
-              Contact Provider (Email)
-            </button>
-            {isAuth && (
-              <button disabled={loading} onClick={handleSendMessage} className="w-full bg-brand-navy border-2 border-brand-navy text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-navy/90 transition">
-                Send Message (Chat)
+          <>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
+                Contact Provider (Email)
               </button>
+              {isAuth && (
+                <button disabled={loading} onClick={handleSendMessage} className="w-full bg-brand-navy border-2 border-brand-navy text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-navy/90 transition">
+                  Send Message (Chat)
+                </button>
+              )}
+            </div>
+            {error && !showEnquiry && !showApply && (
+              <div className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
             )}
-          </div>
+          </>
         )}
       </div>
 
