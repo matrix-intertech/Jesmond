@@ -155,7 +155,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
               </button>
               {isAuth && (
                 <button disabled={loading} onClick={handleSendMessage} className="w-full bg-brand-navy border-2 border-brand-navy text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-navy/90 transition">
-                  Send Message (Chat)
+                  Message Host
                 </button>
               )}
             </div>

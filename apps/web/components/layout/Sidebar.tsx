@@ -1,6 +1,7 @@
 // apps/web/components/layout/Sidebar.tsx
 "use client";
 import { ReactNode } from 'react';
+import { MessageCircle } from 'lucide-react';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -10,7 +11,7 @@ import { useState, useEffect } from 'react';
 /**
  * Sidebar navigation for the dashboard.
  * Uses the existing inline SVG icons from the project to avoid adding new dependencies.
- * RoleÃ¢â‚¬â€˜based navigation items are defined in a simple config object.
+ * Role-based navigation items are defined in a simple config object.
  */
 interface NavItem {
   href: string;
@@ -120,9 +121,7 @@ const navConfig: NavItem[] = [
     href: '/portal/chats',
     label: 'Chats',
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-      </svg>
+      <MessageCircle className="w-5 h-5" />
     ),
     roles: ['ORG_STAFF'],
     orgTypes: ['PROVIDER'],
@@ -344,9 +343,7 @@ const navConfig: NavItem[] = [
     href: '/messages',
     label: 'Messages',
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
-      </svg>
+      <MessageCircle className="w-5 h-5" />
     ),
     roles: ['STUDENT'],
   },
@@ -429,7 +426,7 @@ export default function Sidebar({ role }: { role: string }) {
         </svg>
       </button>
 
-      {/* Sidebar Ã¢â‚¬â€œ hidden on mobile unless open */}
+      {/* Sidebar hidden on mobile unless open */}
       <nav
         className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:sticky lg:top-0 lg:h-screen inset-y-0 left-0 z-30`}
       >
@@ -444,7 +441,12 @@ export default function Sidebar({ role }: { role: string }) {
         </div>
         <ul className="flex-1 overflow-y-auto px-4 space-y-1 mt-2">
           {visibleItems.map((item) => {
-            const isActive = pathname?.startsWith(item.href) && (item.href === pathname || item.href !== '/admin' && item.href !== '/portal' && item.href !== '/student' || pathname === item.href);
+            const isActive = pathname === item.href || (
+              item.href !== '/admin' &&
+              item.href !== '/portal' &&
+              item.href !== '/student' &&
+              !!pathname?.startsWith(`${item.href}/`)
+            );
             return (
               <li key={item.href}>
                 <Link

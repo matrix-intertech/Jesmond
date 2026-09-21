@@ -5,6 +5,32 @@ import { getAccessToken, clearAuth } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 
+const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const placeholderImage = "/assets/property-placeholder.png";
+
+const getPropertyImage = (property: any) =>
+  property?.thumbnailUrl ||
+  property?.imageUrl ||
+  property?.coverImage ||
+  property?.media?.[0]?.url ||
+  property?.photos?.[0]?.url ||
+  property?.images?.[0]?.url ||
+  "";
+
+const formatConversationTime = (dateValue: string) => {
+  const date = new Date(dateValue);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+
+  return date.toLocaleDateString([], { day: "numeric", month: "short" });
+};
+
 export default function HostChatsPage() {
   const router = useRouter();
   const [conversations, setConversations] = useState<any[]>([]);
@@ -20,7 +46,7 @@ export default function HostChatsPage() {
         return;
       }
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/chat/conversations`, {
+        const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -31,7 +57,7 @@ export default function HostChatsPage() {
           try {
             const tokenPayload = JSON.parse(atob(token.split(".")[1]));
             setUserId(tokenPayload.sub);
-          } catch(e) {}
+          } catch {}
         } else if (res.status === 401) {
           clearAuth();
           router.push("/login");
@@ -48,56 +74,70 @@ export default function HostChatsPage() {
   }, [router]);
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <PageHeader title="Chats" description="Private conversations with interested seekers" />
 
       {error && <div className="mb-6 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
       {loading ? (
-        <div className="animate-pulse flex flex-col gap-4">
-          <div className="h-16 bg-slate-100 rounded-xl"></div>
-          <div className="h-16 bg-slate-100 rounded-xl"></div>
+        <div className="space-y-3">
+          {[0, 1, 2].map((item) => (
+            <div key={item} className="flex animate-pulse items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="h-16 w-16 rounded-xl bg-slate-100" />
+              <div className="min-w-0 flex-1 space-y-3">
+                <div className="h-4 w-1/2 rounded bg-slate-100" />
+                <div className="h-3 w-3/4 rounded bg-slate-100" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : conversations.length === 0 ? (
-        <div className="text-center py-12 text-slate-500 bg-white rounded-2xl border border-slate-200">
-          No enquiries or chats yet.
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
+          <h2 className="text-lg font-bold text-brand-navy">No chats yet.</h2>
+          <p className="mt-2 text-sm text-slate-500">New property conversations will appear here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {conversations.map(conv => {
+        <div className="space-y-3">
+          {conversations.map((conv) => {
             const myParticipant = conv.participants?.find((p: any) => p.userId === userId);
             const otherParticipant = conv.participants?.find((p: any) => p.userId !== userId);
+            const participantName = [otherParticipant?.user?.firstName, otherParticipant?.user?.lastName].filter(Boolean).join(" ");
             const latestMessage = conv.messages?.[0];
             const latestMessagePreview = typeof latestMessage?.encryptedPayload === "string" && latestMessage.encryptedPayload.trim()
               ? latestMessage.encryptedPayload
-              : null;
+              : "No messages yet";
             const latestActivityAt = latestMessage?.createdAt || conv.updatedAt;
             const isUnread = myParticipant && latestActivityAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(latestActivityAt));
+            const propertyImage = getPropertyImage(conv.property);
 
             return (
-              <div
+              <button
                 key={conv.id}
-                className={`p-6 bg-white border ${isUnread ? "border-brand-orange shadow-md ring-1 ring-brand-orange" : "border-slate-200 hover:shadow-md"} rounded-2xl transition-all cursor-pointer relative`}
+                type="button"
+                className={`group flex w-full items-center gap-4 rounded-2xl border bg-white p-3 text-left transition hover:border-brand-orange hover:shadow-md sm:p-4 ${
+                  isUnread ? "border-brand-orange shadow-sm ring-1 ring-brand-orange/20" : "border-slate-200"
+                }`}
                 onClick={() => router.push(`/portal/chats/${conv.id}`)}
               >
-                {isUnread && (
-                  <div className="absolute top-4 right-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-1 rounded-full">NEW</div>
-                )}
-
-                <h3 className="font-bold text-brand-navy truncate pr-12">{conv.property?.name || "Unknown Property"}</h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  Seeker: <span className="font-medium text-slate-700">{otherParticipant?.user?.firstName || "Unknown"} {otherParticipant?.user?.lastName || ""}</span>
-                </p>
-
-                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                  <p className="text-sm text-slate-400 italic">
-                    {latestMessagePreview || "No messages yet"}
-                  </p>
-                  <div className="text-xs font-medium text-slate-400">
-                    {new Date(latestActivityAt).toLocaleDateString()}
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-20 sm:w-20">
+                  <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className={`truncate text-base font-bold group-hover:text-brand-orange ${isUnread ? "text-brand-navy" : "text-slate-800"}`}>
+                        {conv.property?.name || "Unknown Property"}
+                      </h3>
+                      {participantName && <p className="mt-0.5 truncate text-xs font-medium text-slate-500">{participantName}</p>}
+                    </div>
+                    {latestActivityAt && <span className="shrink-0 text-xs font-medium text-slate-400">{formatConversationTime(latestActivityAt)}</span>}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    {isUnread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-orange" aria-label="Unread conversation" />}
+                    <p className={`truncate text-sm ${isUnread ? "font-semibold text-brand-navy" : "text-slate-500"}`}>{latestMessagePreview}</p>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
