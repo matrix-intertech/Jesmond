@@ -753,7 +753,29 @@ export class PropertiesService {
     const pubProperty = await this.prisma.property.findUnique({
       where: { id, status: 'PUBLISHED' },
       include: {
-        organization: { select: { name: true, abn: true, settings: true } },
+        organization: {
+          select: {
+            name: true,
+            abn: true,
+            settings: true,
+            staff: {
+              where: { deletedAt: null },
+              orderBy: { createdAt: 'asc' },
+              select: {
+                role: true,
+                user: {
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    phone: true,
+                    countryCode: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         suburb: { select: { name: true, city: { select: { name: true } }, state: { select: { name: true, code: true } } } },
         media: { orderBy: { displayOrder: 'asc' } },
         roomTypes: {
@@ -801,10 +823,19 @@ export class PropertiesService {
     let providerContact = null;
     if (pubProperty.showContactDetails) {
       const settings: any = pubProperty.organization.settings || {};
+      const contactStaff =
+        pubProperty.organization.staff.find((staff: any) => staff.role === 'ADMIN')?.user ??
+        pubProperty.organization.staff[0]?.user;
+      const profilePhone = contactStaff?.phone
+        ? contactStaff.phone.startsWith('+') || !contactStaff.countryCode
+          ? contactStaff.phone
+          : `${contactStaff.countryCode} ${contactStaff.phone}`
+        : undefined;
+
       providerContact = {
         name: pubProperty.organization.name,
-        email: settings.enquiryPreferences?.contactEmail || undefined,
-        phone: settings.enquiryPreferences?.contactPhone || undefined,
+        email: settings.enquiryPreferences?.contactEmail || contactStaff?.email || undefined,
+        phone: settings.enquiryPreferences?.contactPhone || profilePhone,
       };
     }
 
