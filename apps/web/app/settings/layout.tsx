@@ -1,4 +1,5 @@
 import SettingsLayout from "@/components/layout/SettingsLayout";
+import StudentLayout from "../student/layout";
 import { User, Shield, Bell, Lock } from "lucide-react";
 
 const links = [
@@ -10,8 +11,10 @@ const links = [
 
 export default function StudentSettingsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SettingsLayout title="Account Settings" description="Manage your personal preferences." links={links}>
-      {children}
-    </SettingsLayout>
+    <StudentLayout>
+      <SettingsLayout title="Account Settings" description="Manage your personal preferences." links={links}>
+        {children}
+      </SettingsLayout>
+    </StudentLayout>
   );
 }

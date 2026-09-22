@@ -126,7 +126,7 @@ export default function ProfileSettings() {
 
       {missingFields.length > 0 && (
         <div className="mx-6 mt-5 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
-          <span className="text-amber-500 mt-0.5">⚠️</span>
+          <span className="text-amber-500 mt-0.5">&#9888;</span>
           <div>
             <p className="text-sm font-medium text-amber-800">Profile incomplete</p>
             <p className="text-sm text-amber-700 mt-0.5">
