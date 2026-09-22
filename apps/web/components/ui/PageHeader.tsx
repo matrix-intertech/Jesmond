@@ -51,7 +51,7 @@ export default function PageHeader({
     <header className="mb-8">
       {/* Breadcrumb */}
       {breadcrumb && breadcrumb.length > 0 && (
-        <nav className="flex text-sm text-slate-500 mb-2" aria-label="breadcrumb">
+        <nav className="mb-2 flex overflow-x-auto text-sm text-slate-500" aria-label="breadcrumb">
           <ol className="inline-flex items-center space-x-2">
             {breadcrumb.map((item, idx) => (
               <li key={idx} className="flex items-center">
@@ -75,12 +75,12 @@ export default function PageHeader({
       )}
 
       {/* Title & description */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           {onBack && (
             <button onClick={onBack} className="text-sm font-semibold text-brand-orange hover:underline mb-2 block">&larr; Back</button>
           )}
-          <h1 className="text-3xl font-outfit font-semibold text-brand-navy">
+          <h1 className="break-words font-outfit text-2xl font-semibold text-brand-navy sm:text-3xl">
             {title}
           </h1>
           {description && (
@@ -92,12 +92,12 @@ export default function PageHeader({
 
         {/* Actions */}
         {(primaryAction || secondaryAction) && (
-          <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+          <div className="flex w-full flex-col gap-3 sm:mt-0 sm:w-auto sm:flex-row sm:items-center">
             {secondaryAction && (
               <Link
                 href={secondaryAction.href}
                 onClick={secondaryAction.onClick as any}
-                className="px-4 py-2 rounded-md text-sm font-medium bg-white text-brand-navy border border-slate-300 hover:bg-surface-muted transition"
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-brand-navy transition hover:bg-surface-muted"
               >
                 {secondaryAction.label}
               </Link>
@@ -106,7 +106,7 @@ export default function PageHeader({
               <Link
                 href={primaryAction.href}
                 onClick={primaryAction.onClick as any}
-                className="px-4 py-2 rounded-md text-sm font-medium bg-brand-navy text-white hover:bg-brand-navy/90 transition"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-brand-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-navy/90"
               >
                 {primaryAction.label}
               </Link>

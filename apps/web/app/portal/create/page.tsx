@@ -383,8 +383,8 @@ export default function CreatePropertyPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow text-center">
+      <div className="flex min-h-screen items-center justify-center bg-surface-muted p-4">
+        <div className="w-full max-w-md rounded-xl bg-white p-5 text-center shadow sm:p-8">
           <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -402,9 +402,9 @@ export default function CreatePropertyPage() {
   return (
     <>
       <PageHeader title="Create Property Listing" onBack={() => router.push('/portal')} />
-      <div className="max-w-[800px] mx-auto py-12">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6">
-          <div className="flex justify-between items-center mb-6 border-b pb-4">
+      <div className="mx-auto max-w-[800px] py-4 sm:py-8 lg:py-12">
+        <div className="space-y-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+          <div className="mb-6 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-lg font-bold text-brand-navy">Step {step} of 8</h3>
           </div>
 
@@ -462,9 +462,9 @@ export default function CreatePropertyPage() {
             <div className="space-y-6">
               <h4 className="text-md font-semibold">2. Configuration & Offering</h4>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {formData.listingType === 'CO_LIVING' && (
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Occupancy (Required)</label>
                     <input type="number" name="maximumOccupancy" value={formData.maximumOccupancy} onChange={handleChange} placeholder="e.g. 6" min="1" className="w-full border border-gray-300 rounded-md px-3 py-2" />
                     <p className="text-xs text-gray-500 mt-1">Total number of residents allowed to live at this property.</p>
@@ -514,7 +514,7 @@ export default function CreatePropertyPage() {
                 <input type="date" name="availableFrom" value={formData.availableFrom} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Stay (months)</label>
                   <input type="number" min="1" name="minimumStay" value={formData.minimumStay} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
@@ -568,9 +568,9 @@ export default function CreatePropertyPage() {
               <h4 className="text-md font-semibold">6. Photos & Media</h4>
               <p className="text-sm text-gray-600">Upload high-quality images of the property. You can upload multiple images at once.</p>
 
-              <div className="flex flex-wrap gap-4 mb-4">
+              <div className="mb-4 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-4">
                 {mediaFiles.map((file, i) => (
-                  <div key={i} className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
+                  <div key={i} className="relative aspect-square w-full sm:h-32 sm:w-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
                     <img src={URL.createObjectURL(file)} alt="Preview" className="object-cover w-full h-full" />
                     <button
                       type="button"
@@ -680,15 +680,15 @@ export default function CreatePropertyPage() {
             </div>
           )}
 
-          <div className="pt-4 flex justify-between border-t mt-8">
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-between">
             {step > 1 ? (
-              <button type="button" onClick={() => setStep(step - 1)} className="px-6 py-2 rounded-md border text-gray-600 hover:bg-gray-50">Back</button>
+              <button type="button" onClick={() => setStep(step - 1)} className="min-h-11 rounded-md border px-6 py-2 text-gray-600 hover:bg-gray-50">Back</button>
             ) : <div/>}
 
             {step < 8 ? (
-              <button type="button" onClick={() => setStep(step + 1)} className="bg-brand-navy text-white px-6 py-2 rounded-md hover:bg-opacity-90">Next Step</button>
+              <button type="button" onClick={() => setStep(step + 1)} className="min-h-11 rounded-md bg-brand-navy px-6 py-2 text-white hover:bg-opacity-90">Next Step</button>
             ) : (
-              <button type="button" onClick={handleSubmit} disabled={loading} className="bg-brand-orange text-white px-6 py-2 rounded-md hover:bg-orange-600 transition disabled:opacity-50">
+              <button type="button" onClick={handleSubmit} disabled={loading} className="min-h-11 rounded-md bg-brand-orange px-6 py-2 text-white transition hover:bg-orange-600 disabled:opacity-50">
                 {loading ? 'Creating...' : 'Save Draft & Continue'}
               </button>
             )}

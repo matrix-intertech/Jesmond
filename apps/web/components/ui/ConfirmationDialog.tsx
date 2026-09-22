@@ -11,20 +11,20 @@ interface ConfirmationDialogProps {
 export default function ConfirmationDialog({ open, title, message, onConfirm, onCancel }: ConfirmationDialogProps) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-5 shadow-lg sm:p-6">
         <h2 className="text-xl font-bold mb-4">{title}</h2>
         <p className="mb-6 text-gray-700">{message}</p>
-        <div className="flex justify-end gap-4">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 text-brand-navy/90 rounded hover:bg-gray-300 transition"
+            className="min-h-11 rounded bg-gray-200 px-4 py-2 text-brand-navy/90 transition hover:bg-gray-300"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 bg-brand-orange text-white rounded hover:bg-orange-600 transition"
+            className="min-h-11 rounded bg-brand-orange px-4 py-2 text-white transition hover:bg-orange-600"
           >
             Confirm
           </button>

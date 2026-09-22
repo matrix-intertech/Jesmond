@@ -164,9 +164,9 @@ function CatalogPageContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader title="Catalog" description="Manage retail products and categories." />
-        <button onClick={openCreateModal} className="bg-brand-navy hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={openCreateModal} className="min-h-11 w-full rounded-lg bg-brand-navy px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 sm:w-auto">
           Add Product
         </button>
       </div>
@@ -196,7 +196,7 @@ function CatalogPageContent() {
               />
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center sm:gap-2">
               <span className="text-sm text-slate-500 font-medium">Branch:</span>
               <select
                 value={branchId}
@@ -237,7 +237,27 @@ function CatalogPageContent() {
                 )}
               </div>
             ) : (
-              <table className="w-full text-sm text-left">
+              <>
+                <div className="space-y-3 p-3 md:hidden">
+                  {products.map(p => (
+                    <div key={`mobile-${p.id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-brand-navy">{p.name}</p>
+                          <p className="mt-1 break-all font-mono text-xs text-slate-500">{p.sku} {p.barcode && `• ${p.barcode}`}</p>
+                        </div>
+                        <StatusBadge status={p.active ? 'ENABLED' : 'DISABLED'} />
+                      </div>
+                      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div><dt className="text-xs uppercase text-slate-400">Category</dt><dd className="font-medium text-slate-700">{p.category?.name || 'Uncategorized'}</dd></div>
+                        <div><dt className="text-xs uppercase text-slate-400">Price</dt><dd className="font-bold text-brand-navy">${(p.sellingPrice / 100).toFixed(2)}</dd></div>
+                        {branchId && <div><dt className="text-xs uppercase text-slate-400">Stock</dt><dd className="font-bold text-brand-navy">{p.availableStock ?? '-'}</dd></div>}
+                      </dl>
+                    </div>
+                  ))}
+                </div>
+
+                <table className="hidden w-full text-left text-sm md:table">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
                   <tr>
                     <th className="px-6 py-4 font-medium">Product</th>
@@ -269,15 +289,16 @@ function CatalogPageContent() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </>
             )}
           </div>
         </div>
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-white shadow-xl">
             <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
               <h3 className="font-semibold text-lg text-brand-navy">Add Product</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">&times;</button>
@@ -355,7 +376,7 @@ function CatalogPageContent() {
               </div>
 
 
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md">Cancel</button>
                 <button type="submit" disabled={formLoading || imageUploading} className="px-4 py-2 text-sm font-medium text-white bg-brand-orange hover:bg-orange-600 rounded-md disabled:opacity-50">
                   {formLoading ? 'Creating...' : 'Create Product'}

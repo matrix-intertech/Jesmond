@@ -16,14 +16,14 @@ export default async function SearchPage({
   return (
     <main className="min-h-screen bg-surface-muted flex flex-col h-screen overflow-hidden">
       {/* Top Header / Filter Bar */}
-      <header className="h-20 bg-white border-b border-slate-200 flex items-center px-6 shrink-0 z-20 shadow-sm">
-        <div className="flex items-center gap-4 w-full max-w-[1440px] mx-auto justify-between">
-          <Link href="/" className="font-bold text-xl tracking-tighter flex items-center gap-2 hover:opacity-80 transition-opacity">
+      <header className="min-h-20 shrink-0 border-b border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-6 lg:flex lg:items-center">
+        <div className="mx-auto flex w-full max-w-[1440px] items-center gap-3 sm:gap-4 lg:justify-between">
+          <Link href="/" className="flex shrink-0 items-center gap-2 text-xl font-bold tracking-tighter transition-opacity hover:opacity-80">
             <div className="w-8 h-8 bg-brand-navy text-white flex items-center justify-center rounded-lg">J</div>
             <span className="hidden sm:block">Jesmond.</span>
           </Link>
           
-          <div className="flex-grow max-w-2xl mx-8">
+          <div className="min-w-0 flex-1 lg:mx-8 lg:max-w-2xl">
             <div className="h-12 bg-slate-100 rounded-full flex items-center px-4 gap-3 text-slate-500 hover:bg-slate-200/50 transition-colors cursor-pointer border border-slate-200/50">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               <span className="text-sm font-medium flex-grow truncate">{resolvedParams.city || 'Search Melbourne, Sydney...'}</span>
@@ -34,7 +34,7 @@ export default async function SearchPage({
             </div>
           </div>
 
-          <div className="w-8" /> {/* Balance spacer */}
+          <div className="hidden w-8 lg:block" /> {/* Balance spacer */}
         </div>
       </header>
 

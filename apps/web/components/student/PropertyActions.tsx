@@ -166,7 +166,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
         )}
       </div>
 
-      <div className="bg-surface-muted border border-slate-200 rounded-[24px] p-8 h-fit">
+      <div className="h-fit rounded-[20px] border border-slate-200 bg-surface-muted p-4 sm:rounded-[24px] sm:p-8">
         <h3 className="text-xl font-bold text-brand-navy mb-6">Room Types</h3>
         {roomTypes.length === 0 ? (
           <p className="text-slate-500">No rooms available.</p>
@@ -179,7 +179,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
                 <p className="text-xs text-slate-400 mb-3">
                   {room.inventory > 0 ? `${room.inventory} available` : 'Currently unavailable'}
                 </p>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="font-bold text-brand-orange">${(room.pricePerWeek / 100).toFixed(0)}/wk</span>
                   {isAuth ? (
                     <button 
@@ -205,8 +205,8 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
       </div>
 
       {showEnquiry && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 sm:p-6">
             <button onClick={() => setShowEnquiry(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">✕</button>
             <h2 className="text-2xl font-bold mb-4">Send Enquiry</h2>
             {success && <div className="bg-emerald-100 text-emerald-700 p-3 rounded mb-4">{success}</div>}
@@ -239,7 +239,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
                   placeholder="I am interested in this property..."
                 />
               </div>
-              <button disabled={loading} className="w-full bg-brand-orange text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition">
+              <button disabled={loading} className="min-h-11 w-full rounded-lg bg-brand-orange py-3 font-bold text-white transition hover:bg-orange-600">
                 {loading ? 'Sending...' : 'Send Enquiry'}
               </button>
             </form>
@@ -248,8 +248,8 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
       )}
 
       {showApply && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
+          <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 sm:p-6">
             <button onClick={() => { setShowApply(null); setApplicationResult(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">✕</button>
             
             {applicationResult ? (

@@ -107,18 +107,18 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
   }, [initialParams]);
 
   return (
-    <div className="flex flex-1 h-[calc(100vh-80px)] overflow-hidden relative">
+    <div className="relative flex min-h-[calc(100vh-72px)] flex-1 overflow-hidden lg:h-[calc(100vh-80px)]">
 
       {/* LEFT: Scrollable Results */}
       <div className="w-full lg:w-[60%] xl:w-[50%] h-full overflow-y-auto bg-surface-muted flex flex-col custom-scrollbar relative">
 
         {/* Results Header */}
-        <div className="px-6 sm:px-10 pt-8 pb-4 sticky top-0 bg-surface-muted/90 backdrop-blur-md z-10">
+        <div className="sticky top-0 z-10 bg-surface-muted/90 px-4 pb-4 pt-5 backdrop-blur-md sm:px-10 sm:pt-8">
           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">
             {!isLoading && `${meta.total} verified student homes`}
             {isLoading && `Searching properties...`}
           </p>
-          <h1 className="text-3xl font-bold text-brand-navy tracking-tight">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
             {initialParams.locationLabel
               ? `Properties within ${initialParams.radiusKm || 10}km of ${initialParams.locationLabel}`
               : initialParams.university || initialParams.uni
@@ -144,7 +144,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* State Handling: Loading */}
         {isLoading && (
-          <div className="px-6 sm:px-10 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex flex-col sm:flex-row bg-white border border-slate-200 rounded-[24px] overflow-hidden animate-pulse h-[320px] sm:h-[240px]">
                 <div className="w-full sm:w-[300px] h-[200px] sm:h-full bg-slate-200 shrink-0"></div>
@@ -153,7 +153,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                     <div className="w-3/4 h-6 bg-slate-200 rounded mb-2"></div>
                     <div className="w-1/2 h-4 bg-slate-200 rounded"></div>
                   </div>
-                  <div className="mt-4 flex justify-between items-end">
+                  <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                     <div className="w-24 h-8 bg-slate-200 rounded"></div>
                   </div>
                 </div>
@@ -164,7 +164,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* State Handling: Error */}
         {!isLoading && error && (
-          <div className="p-10 m-6 bg-red-50 border border-red-200 rounded-2xl flex flex-col items-center justify-center text-center">
+          <div className="m-4 bg-red-50 p-6 sm:m-6 sm:p-10 border border-red-200 rounded-2xl flex flex-col items-center justify-center text-center">
             <svg className="w-12 h-12 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
             <h3 className="text-lg font-bold text-red-900 mb-2">Failed to load properties</h3>
             <p className="text-red-700 mb-4">{error}</p>
@@ -174,7 +174,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* State Handling: Empty */}
         {!isLoading && !error && properties.length === 0 && (
-          <div className="p-10 m-6 bg-white border border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center h-[400px]">
+          <div className="m-4 bg-white p-6 sm:m-6 sm:p-10 border border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center h-[400px]">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
               <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
@@ -186,7 +186,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* Property Grid */}
         {!isLoading && !error && properties.length > 0 && (
-          <div className="px-6 sm:px-10 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
             {properties.map((prop) => {
               const image = (prop.media && prop.media.length > 0) ? prop.media[0].url : '/assets/property-placeholder.png';
               const location = `${prop.suburb}, ${prop.city}`;
@@ -198,7 +198,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   onClick={() => router.push(`/property/${prop.id}`)}
                   onMouseEnter={() => setHoveredPropertyId(prop.id)}
                   onMouseLeave={() => setHoveredPropertyId(null)}
-                  className="flex flex-col sm:flex-row gap-6 bg-white rounded-[24px] overflow-hidden border border-slate-200 hover:border-brand-orange transition group relative cursor-pointer"
+                  className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-white sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-slate-200 hover:border-brand-orange transition group relative cursor-pointer"
                 >
                   <div className="absolute top-4 right-4 z-20">
                     <SaveButton propertyId={prop.id} />
@@ -211,7 +211,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                       </div>
                     )}
                   </div>
-                  <div className="p-6 flex flex-col justify-between flex-grow">
+                  <div className="flex flex-grow flex-col justify-between p-4 sm:p-6">
                     <div>
                       <h3 className="text-xl font-bold text-brand-navy mb-1">{prop.name}</h3>
                       <p className="text-sm font-medium text-slate-500 mb-1">{location}</p>
@@ -253,7 +253,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                         );
                       })()}
                     </div>
-                    <div className="mt-4 flex justify-between items-end">
+                    <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                       <p className="text-2xl font-bold text-brand-navy tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-slate-500">/wk</span></p>
                     </div>
                   </div>
@@ -265,7 +265,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* Pagination Controls */}
         {!isLoading && !error && meta.totalPages > 1 && (
-          <div className="px-6 sm:px-10 pb-10 pt-4 flex items-center justify-between border-t border-slate-200 mt-auto">
+          <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-200 px-4 pb-8 pt-4 sm:px-10">
             <button
               disabled={meta.page <= 1}
               onClick={() => updateSearchState({ page: String(meta.page - 1) })}

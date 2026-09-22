@@ -61,13 +61,13 @@ export function GlobalNav() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ${
+        className={`fixed top-0 left-0 z-[100] w-full max-w-full overflow-x-hidden transition-all duration-300 ${
           isScrolled
             ? "bg-white/95 backdrop-blur-md border-b border-slate-200/60 py-4 shadow-sm"
             : "bg-white py-6"
         }`}
       >
-        <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-12 lg:px-16 flex items-center justify-between">
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group relative z-50">

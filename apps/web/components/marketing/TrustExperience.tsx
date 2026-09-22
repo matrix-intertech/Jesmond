@@ -83,7 +83,7 @@ export function TrustExperience() {
           className="mt-20 bg-brand-navy rounded-[32px] p-12 relative overflow-hidden"
         >
           {/* Subtle background decoration */}
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-white/5 blur-3xl sm:h-96 sm:w-96 sm:translate-x-1/3 sm:-translate-y-1/3" />
 
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center md:text-left divide-x divide-white/10">
             <div className="px-4">

@@ -414,7 +414,7 @@ export default function Sidebar({ role }: { role: string }) {
     <>
       {/* Mobile toggle button */}
       <button
-        className="lg:hidden p-2 m-2 rounded-md bg-slate-200 hover:bg-slate-300"
+        className="fixed left-3 top-3 z-40 flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-brand-navy shadow-sm transition hover:bg-slate-100 lg:hidden"
         onClick={() => setOpen(!open)}
         aria-label="Toggle navigation"
       >
@@ -428,7 +428,7 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* Sidebar hidden on mobile unless open */}
       <nav
-        className={`bg-white border-r border-slate-200/60 w-72 flex flex-col flex-shrink-0 transition-transform duration-300 ease-in-out lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-full'} fixed lg:sticky lg:top-0 lg:h-screen inset-y-0 left-0 z-30`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-slate-200/60 bg-white transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-[110%]'}` }
       >
         <div className="flex items-center justify-between px-6 py-6">
           <span className="text-2xl font-bold text-brand-navy font-outfit tracking-tight">Jesmond</span>
@@ -451,7 +451,8 @@ export default function Sidebar({ role }: { role: string }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-brand-orange/10 text-brand-orange font-semibold shadow-sm' : 'text-brand-navy/90 hover:bg-surface-muted hover:text-brand-navy'}`}
+                  onClick={() => setOpen(false)}
+                  className={`flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-brand-orange/10 text-brand-orange font-semibold shadow-sm' : 'text-brand-navy/90 hover:bg-surface-muted hover:text-brand-navy'}`}
                 >
                   <div className={`${isActive ? 'text-brand-orange' : 'text-gray-600'}`}>
                     {item.icon}

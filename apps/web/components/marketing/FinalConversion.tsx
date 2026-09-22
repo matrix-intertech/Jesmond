@@ -17,7 +17,7 @@ export function FinalConversion() {
     <section className="w-full bg-brand-navy py-32 lg:py-48 relative overflow-hidden">
 
       {/* Background ambient light */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#1a2f6b] rounded-full blur-[120px] opacity-50 pointer-events-none" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-full max-h-[800px] w-full max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1a2f6b] opacity-50 blur-[120px]" />
 
       <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 relative z-10 flex flex-col items-center text-center">
 

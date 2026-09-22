@@ -66,50 +66,78 @@ export default function AdminPropertiesPage() {
       ) : error ? (
         <div className="p-12 text-center text-red-600">{error}</div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-surface-muted border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-sm font-medium text-brand-navy">Property</th>
-                <th className="px-6 py-4 text-sm font-medium text-brand-navy">Provider</th>
-                <th className="px-6 py-4 text-sm font-medium text-brand-navy">Location</th>
-                {activeTab === 'active' && (
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Status</th>
-                )}
-                <th className="px-6 py-4 text-sm font-medium text-brand-navy text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {properties.length === 0 ? (
+        <>
+          <div className="space-y-3 md:hidden">
+            {properties.length === 0 ? (
+              <div className="rounded-xl border bg-white p-6 text-center text-slate-600">
+                {activeTab === 'pending' ? 'No properties pending approval.' : 'No active properties.'}
+              </div>
+            ) : (
+              properties.map(p => (
+                <div key={p.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-brand-navy">{p.name}</p>
+                    <p className="mt-1 text-sm text-slate-500">{p.organization.name}</p>
+                    <p className="mt-1 text-sm text-slate-500">{p.suburb.name}</p>
+                  </div>
+                  {activeTab === 'active' && (
+                    <span className={`mt-3 inline-flex px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-gray-100 text-brand-navy/90'}`}>
+                      {p.status}
+                    </span>
+                  )}
+                  <a href={`/admin/properties/${p.id}`} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-brand-orange px-4 py-2 text-sm font-semibold text-brand-orange">
+                    Review
+                  </a>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block">
+            <table className="w-full text-left">
+              <thead className="bg-surface-muted border-b border-gray-200">
                 <tr>
-                  <td colSpan={activeTab === 'active' ? 5 : 4} className="px-6 py-8 text-center text-slate-600">
-                    {activeTab === 'pending' ? 'No properties pending approval.' : 'No active properties.'}
-                  </td>
+                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Property</th>
+                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Provider</th>
+                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Location</th>
+                  {activeTab === 'active' && (
+                    <th className="px-6 py-4 text-sm font-medium text-brand-navy">Status</th>
+                  )}
+                  <th className="px-6 py-4 text-sm font-medium text-brand-navy text-right">Action</th>
                 </tr>
-              ) : (
-                properties.map(p => (
-                  <tr key={p.id}>
-                    <td className="px-6 py-4 font-medium text-brand-navy">{p.name}</td>
-                    <td className="px-6 py-4 text-sm text-brand-navy">{p.organization.name}</td>
-                    <td className="px-6 py-4 text-sm text-brand-navy">{p.suburb.name}</td>
-                    {activeTab === 'active' && (
-                      <td className="px-6 py-4 text-sm">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-gray-100 text-brand-navy/90'}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                    )}
-                    <td className="px-6 py-4 text-right">
-                      <a href={`/admin/properties/${p.id}`} className="text-brand-orange font-medium text-sm hover:underline">
-                        Review →
-                      </a>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {properties.length === 0 ? (
+                  <tr>
+                    <td colSpan={activeTab === 'active' ? 5 : 4} className="px-6 py-8 text-center text-slate-600">
+                      {activeTab === 'pending' ? 'No properties pending approval.' : 'No active properties.'}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  properties.map(p => (
+                    <tr key={p.id}>
+                      <td className="px-6 py-4 font-medium text-brand-navy">{p.name}</td>
+                      <td className="px-6 py-4 text-sm text-brand-navy">{p.organization.name}</td>
+                      <td className="px-6 py-4 text-sm text-brand-navy">{p.suburb.name}</td>
+                      {activeTab === 'active' && (
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-gray-100 text-brand-navy/90'}`}>
+                            {p.status}
+                          </span>
+                        </td>
+                      )}
+                      <td className="px-6 py-4 text-right">
+                        <a href={`/admin/properties/${p.id}`} className="text-brand-orange font-medium text-sm hover:underline">
+                          Review →
+                        </a>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </>
   );

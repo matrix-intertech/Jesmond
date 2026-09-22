@@ -229,19 +229,19 @@ function InventoryWorkspaceContent() {
     : 100;
 
   return (
-    <div className="space-y-6 bg-slate-50 min-h-[calc(100vh-80px)] p-6 -m-2">
+    <div className="-m-2 min-h-[calc(100vh-80px)] space-y-4 bg-slate-50 p-3 sm:space-y-6 sm:p-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <PageHeader
           title="Inventory"
           description="Manage stock levels, track movements, and optimize retail operations."
         />
-        <div className="flex items-center gap-3">
-          <div className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+          <div className="flex w-full min-w-0 flex-col gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm sm:w-auto sm:flex-row sm:items-center sm:gap-2">
             <span className="text-sm font-medium text-slate-500">Inventory for:</span>
             <select
               value={branchId}
               onChange={(e) => setBranchId(e.target.value)}
-              className="text-sm font-semibold text-brand-navy border-none bg-transparent focus:ring-0 p-0 cursor-pointer"
+              className="min-w-0 text-sm font-semibold text-brand-navy border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
             >
               {branches.length === 0 ? (
                 <option value="">No branches found...</option>
@@ -269,7 +269,7 @@ function InventoryWorkspaceContent() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
             <StatCard label="Total Products" value={loading ? "-" : inventory.length} loading={loading} />
             <StatCard label="Total Units" value={loading ? "-" : totalUnits} loading={loading} />
             <StatCard label="Low Stock" value={loading ? "-" : lowStockCount} loading={loading} />
@@ -368,7 +368,7 @@ function InventoryWorkspaceContent() {
                               <span className="text-sm text-slate-600">{item.product.category?.name || 'Uncategorized'}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center gap-3">
+                              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
                                 <span className={`text-lg font-bold w-8 text-right ${isOutOfStock ? 'text-rose-600' : isLowStock ? 'text-amber-600' : 'text-emerald-600'}`}>
                                   {item.quantity}
                                 </span>
@@ -466,7 +466,7 @@ function InventoryWorkspaceContent() {
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm transition-opacity">
           <div className="bg-white w-full max-w-md h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 p-4 sm:p-6">
               <div>
                 <h2 className="text-xl font-bold text-brand-navy mb-1">{selectedItem.product.name}</h2>
                 <div className="flex items-center gap-2 text-sm text-slate-500 font-mono">
@@ -489,7 +489,7 @@ function InventoryWorkspaceContent() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <div className="flex-1 space-y-6 overflow-y-auto p-4 sm:space-y-8 sm:p-6">
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <span className="text-sm font-medium text-slate-500">Current Stock</span>
                 <span className={`text-3xl font-black ${selectedItem.quantity <= 0 ? 'text-rose-600' : selectedItem.quantity <= 10 ? 'text-amber-600' : 'text-emerald-600'}`}>
@@ -653,7 +653,7 @@ function InventoryWorkspaceContent() {
                         </div>
                       </div>
 
-                      <div className="flex gap-3 pt-4 border-t border-slate-100">
+                      <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row">
                         <button
                           type="button"
                           onClick={() => setIsAdjusting(false)}
