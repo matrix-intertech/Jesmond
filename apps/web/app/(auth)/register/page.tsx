@@ -30,6 +30,8 @@ function RegisterForm() {
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+  const lastVerificationAttemptRef = useRef<string | null>(null);
+  const verificationInFlightRef = useRef(false);
 
   const handleTurnstileVerify = useCallback((token: string) => setTurnstileToken(token), []);
   const handleTurnstileError = useCallback(() => { setTurnstileToken(''); setError('Security verification failed.'); }, []);
@@ -144,34 +146,65 @@ function RegisterForm() {
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
+  const verifyOtp = useCallback(async (code: string, options: { manual?: boolean } = {}) => {
+    const normalizedOtp = code.replace(/\D/g, '').slice(0, 6);
 
-    if (otp.length !== 6) {
-      setError('Please enter a valid 6-digit code.');
+    if (!/^\d{6}$/.test(normalizedOtp)) {
+      setError('Enter a valid OTP.');
       return;
     }
 
+    if (verificationInFlightRef.current) return;
+    if (!options.manual && lastVerificationAttemptRef.current === normalizedOtp) return;
+
+    verificationInFlightRef.current = true;
+    lastVerificationAttemptRef.current = normalizedOtp;
+    setError('');
     setLoading(true);
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), otp }),
+        body: JSON.stringify({ email: email.trim(), otp: normalizedOtp }),
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Verification failed');
+        lastVerificationAttemptRef.current = null;
+        setError('Enter a valid OTP.');
+        return;
       }
       setAccessToken(data.access_token);
       setCurrentUser(data.user);
       router.push(data.user.role === 'STUDENT' ? '/student' : '/portal');
     } catch (err: any) {
-      setError(err.message);
+      lastVerificationAttemptRef.current = null;
+      setError(err.message === 'Failed to fetch'
+        ? "We couldn't verify the code. Please check your connection and try again."
+        : "We couldn't verify the code. Please try again.");
     } finally {
+      verificationInFlightRef.current = false;
       setLoading(false);
     }
+  }, [email, router]);
+
+  useEffect(() => {
+    if (!showOtp || !/^\d{6}$/.test(otp)) return;
+    void verifyOtp(otp);
+  }, [showOtp, otp, verifyOtp]);
+
+  const handleOtpChange = (value: string) => {
+    const sanitizedOtp = value.replace(/\D/g, '').slice(0, 6);
+    if (lastVerificationAttemptRef.current && sanitizedOtp !== lastVerificationAttemptRef.current) {
+      lastVerificationAttemptRef.current = null;
+    }
+    setError('');
+    setOtp(sanitizedOtp);
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await verifyOtp(otp, { manual: true });
   };
 
   const handleResendOtp = async () => {
@@ -220,13 +253,18 @@ function RegisterForm() {
                 className="appearance-none rounded relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-brand-navy focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-lg text-center tracking-widest font-mono"
                 placeholder="000000"
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => handleOtpChange(e.target.value)}
               />
             </div>
+            {loading && (
+              <p className="text-xs font-medium text-gray-500" role="status">
+                Verifying code...
+              </p>
+            )}
             <div>
               <button
                 type="submit"
-                disabled={loading || otp.length !== 6}
+                disabled={loading || !/^\d{6}$/.test(otp)}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Verifying...' : 'Verify Email'}

@@ -3,12 +3,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 import { isAuthenticated, getCurrentUser } from "@/utils/auth";
 
 export function GlobalNav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string }>({ isAuth: false });
+  const pathname = usePathname();
+  const isMessagesActive = pathname === "/messages" || pathname.startsWith("/messages/");
 
   useEffect(() => {
     setAuthStatus({
@@ -102,6 +106,16 @@ export function GlobalNav() {
             <div className="w-px h-5 bg-slate-200" />
             {authStatus.isAuth ? (
               <>
+                <Link
+                  href="/messages"
+                  className={`inline-flex items-center gap-1.5 text-sm font-semibold transition-colors px-2 ${
+                    isMessagesActive ? "text-orange-600" : "text-brand-navy hover:text-orange-600"
+                  }`}
+                  aria-current={isMessagesActive ? "page" : undefined}
+                >
+                  <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                  Messages
+                </Link>
                 <Link
                   href="/my-orders"
                   className="text-sm font-semibold text-brand-navy hover:text-orange-600 transition-colors px-2"
@@ -197,6 +211,19 @@ export function GlobalNav() {
                 </Link>
                 {authStatus.isAuth ? (
                   <>
+                    <Link
+                      href="/messages"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`w-full py-4 rounded-xl border text-lg font-semibold flex justify-center items-center gap-2 ${
+                        isMessagesActive
+                          ? "border-orange-200 bg-orange-50 text-orange-600"
+                          : "border-slate-200 text-brand-navy"
+                      }`}
+                      aria-current={isMessagesActive ? "page" : undefined}
+                    >
+                      <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                      Messages
+                    </Link>
                     <Link
                       href="/my-orders"
                       onClick={() => setIsMobileMenuOpen(false)}
