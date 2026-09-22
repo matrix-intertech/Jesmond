@@ -4,6 +4,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import MobileBottomNav from './MobileBottomNav';
 import type { ReactNode } from 'react';
 import { getCurrentUser } from '@/utils/auth';
 
@@ -31,7 +32,8 @@ export default function DashboardShell({ role, children }: DashboardShellProps) 
         {/* Header */}
         <Header />
         {/* Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
+        <MobileBottomNav role={effectiveRole as any} />
       </div>
     </div>
   );
