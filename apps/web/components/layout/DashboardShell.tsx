@@ -28,11 +28,11 @@ export default function DashboardShell({ role, children }: DashboardShellProps) 
       {/* Sidebar */}
       <Sidebar role={effectiveRole as any} />
       {/* Main area */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
         <Header />
         {/* Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(5.75rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
         <MobileBottomNav role={effectiveRole as any} />
       </div>
     </div>

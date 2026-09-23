@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { SearchClient } from '@/components/search/SearchClient';
+import StudentMobileBottomNavGate from '@/components/layout/StudentMobileBottomNavGate';
 
 export const metadata = {
   title: "Search Student Accommodation | Jesmond",
@@ -14,7 +15,7 @@ export default async function SearchPage({
   const resolvedParams = await searchParams;
   // Pass the raw searchParams down to the client layout where URL syncing occurs
   return (
-    <main className="min-h-screen bg-surface-muted flex flex-col h-screen overflow-hidden">
+    <main className="min-h-screen bg-surface-muted flex flex-col h-screen overflow-hidden pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
       {/* Top Header / Filter Bar */}
       <header className="min-h-20 shrink-0 border-b border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-6 lg:flex lg:items-center">
         <div className="mx-auto flex w-full max-w-[1440px] items-center gap-3 sm:gap-4 lg:justify-between">
@@ -42,6 +43,7 @@ export default async function SearchPage({
       <Suspense fallback={<div className="p-8 text-slate-500 font-medium">Loading search engine...</div>}>
         <SearchClient initialParams={resolvedParams} />
       </Suspense>
+      <StudentMobileBottomNavGate />
     </main>
   );
 }

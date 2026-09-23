@@ -414,7 +414,7 @@ export default function Sidebar({ role }: { role: string }) {
     <>
       {/* Mobile toggle button */}
       <button
-        className="fixed left-3 top-3 z-40 flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-brand-navy shadow-sm transition hover:bg-slate-100 lg:hidden"
+        className="fixed left-3 top-3 z-[70] flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-brand-navy shadow-sm transition hover:bg-slate-100 lg:hidden"
         onClick={() => setOpen(!open)}
         aria-label="Toggle navigation"
       >
@@ -428,7 +428,7 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* Sidebar hidden on mobile unless open */}
       <nav
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-slate-200/60 bg-white transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-[110%]'}` }
+        className={`fixed inset-y-0 left-0 z-[70] flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-slate-200/60 bg-white transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-[110%]'}` }
       >
         <div className="flex items-center justify-between px-6 py-6">
           <span className="text-2xl font-bold text-brand-navy font-outfit tracking-tight">Jesmond</span>

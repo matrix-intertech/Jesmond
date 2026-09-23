@@ -65,7 +65,7 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
   return (
     <nav
       aria-label="Primary mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
+      className="student-mobile-bottom-nav fixed inset-x-0 bottom-0 z-[60] w-screen border-t border-slate-200/80 bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
     >
       <ul className="mx-auto grid max-w-md grid-cols-5 gap-1">
         {studentItems.map((item) => {
