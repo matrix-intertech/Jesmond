@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react";
 import MobileBottomNav from "./MobileBottomNav";
-import { getCurrentUser } from "@/utils/auth";
+import { getCurrentUser, type User } from "@/utils/auth";
 
 export default function StudentMobileBottomNavGate() {
-  const [isStudent, setIsStudent] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    setIsStudent(getCurrentUser()?.role === "STUDENT");
+    setUser(getCurrentUser());
   }, []);
 
-  if (!isStudent) return null;
+  if (!user) return null;
 
-  return <MobileBottomNav role="STUDENT" />;
+  return <MobileBottomNav role={user.role as any} />;
 }

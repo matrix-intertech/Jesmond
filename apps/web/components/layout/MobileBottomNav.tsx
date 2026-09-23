@@ -2,19 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, Home, MessageCircle, Search, Settings } from "lucide-react";
-import { useEffect, useState, type ComponentType } from "react";
+import {
+  Boxes,
+  Building2,
+  ClipboardList,
+  Home,
+  MessageCircle,
+  Package,
+  Search,
+  Settings,
+  ShoppingCart,
+} from "lucide-react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { getCurrentUser, type User } from "@/utils/auth";
 
 interface MobileBottomNavProps {
   role: "ADMIN" | "SUPER_ADMIN" | "ORG_STAFF" | "STUDENT";
 }
 
-interface BottomNavItem {
+type BottomNavIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+
+type BottomNavItem = {
   href: string;
   label: string;
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  icon: BottomNavIcon;
   isActive: (pathname: string, hash: string) => boolean;
-}
+  requiredPermissions?: string[];
+};
+
+const exact = (href: string) => (pathname: string) => pathname === href;
+const section = (href: string) => (pathname: string) => pathname === href || pathname.startsWith(`${href}/`);
 
 const studentItems: BottomNavItem[] = [
   {
@@ -27,13 +44,13 @@ const studentItems: BottomNavItem[] = [
     href: "/search",
     label: "Search",
     icon: Search,
-    isActive: (pathname) => pathname === "/search",
+    isActive: exact("/search"),
   },
   {
     href: "/messages",
     label: "Chat",
     icon: MessageCircle,
-    isActive: (pathname) => pathname === "/messages" || pathname.startsWith("/messages/"),
+    isActive: section("/messages"),
   },
   {
     href: "/student#applications",
@@ -45,13 +62,134 @@ const studentItems: BottomNavItem[] = [
     href: "/settings/profile",
     label: "Settings",
     icon: Settings,
-    isActive: (pathname) => pathname.startsWith("/settings/"),
+    isActive: section("/settings"),
   },
 ];
+
+const providerItems: BottomNavItem[] = [
+  {
+    href: "/portal",
+    label: "Home",
+    icon: Home,
+    isActive: exact("/portal"),
+  },
+  {
+    href: "/portal/properties",
+    label: "Properties",
+    icon: Building2,
+    isActive: section("/portal/properties"),
+  },
+  {
+    href: "/portal/chats",
+    label: "Chat",
+    icon: MessageCircle,
+    isActive: section("/portal/chats"),
+  },
+  {
+    href: "/portal/applications",
+    label: "Activity",
+    icon: ClipboardList,
+    isActive: section("/portal/applications"),
+  },
+  {
+    href: "/portal/settings",
+    label: "Settings",
+    icon: Settings,
+    isActive: section("/portal/settings"),
+  },
+];
+
+const retailItems: BottomNavItem[] = [
+  {
+    href: "/portal/retail",
+    label: "Home",
+    icon: Home,
+    isActive: exact("/portal/retail"),
+    requiredPermissions: ["RETAIL_DASHBOARD_VIEW"],
+  },
+  {
+    href: "/portal/retail/catalog",
+    label: "Catalog",
+    icon: Package,
+    isActive: section("/portal/retail/catalog"),
+  },
+  {
+    href: "/portal/retail/inventory",
+    label: "Inventory",
+    icon: Boxes,
+    isActive: section("/portal/retail/inventory"),
+  },
+  {
+    href: "/portal/retail/orders",
+    label: "Orders",
+    icon: ShoppingCart,
+    isActive: section("/portal/retail/orders"),
+    requiredPermissions: ["ORDERS_VIEW"],
+  },
+  {
+    href: "/portal/retail/settings",
+    label: "Settings",
+    icon: Settings,
+    isActive: section("/portal/retail/settings"),
+    requiredPermissions: ["RETAIL_SETTINGS_VIEW"],
+  },
+];
+
+const adminItems: BottomNavItem[] = [
+  {
+    href: "/admin",
+    label: "Home",
+    icon: Home,
+    isActive: exact("/admin"),
+  },
+  {
+    href: "/admin/properties",
+    label: "Properties",
+    icon: Building2,
+    isActive: section("/admin/properties"),
+  },
+  {
+    href: "/admin/applications",
+    label: "Activity",
+    icon: ClipboardList,
+    isActive: section("/admin/applications"),
+  },
+  {
+    href: "/admin/settings",
+    label: "Settings",
+    icon: Settings,
+    isActive: section("/admin/settings"),
+  },
+];
+
+const hasPermission = (user: User | null, item: BottomNavItem) => {
+  if (!item.requiredPermissions?.length) return true;
+  if (user?.orgRole === "ADMIN") return true;
+  const permissions = user?.permissions || [];
+  return permissions.includes("*") || item.requiredPermissions.some((permission) => permissions.includes(permission));
+};
+
+function getItemsForUser(role: MobileBottomNavProps["role"], user: User | null) {
+  if (role === "STUDENT") return studentItems;
+  if (role === "ADMIN" || role === "SUPER_ADMIN") return adminItems;
+
+  if (role === "ORG_STAFF") {
+    const orgType = user?.orgType || "PROVIDER";
+    if (orgType === "RETAIL") return retailItems.filter((item) => hasPermission(user, item));
+    return providerItems;
+  }
+
+  return [];
+}
 
 export default function MobileBottomNav({ role }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [hash, setHash] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
 
   useEffect(() => {
     const syncHash = () => setHash(window.location.hash);
@@ -60,15 +198,18 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
     return () => window.removeEventListener("hashchange", syncHash);
   }, []);
 
-  if (role !== "STUDENT") return null;
+  const effectiveRole = (user?.role || role) as MobileBottomNavProps["role"];
+  const items = useMemo(() => getItemsForUser(effectiveRole, user), [effectiveRole, user]);
+
+  if (!items.length) return null;
 
   return (
     <nav
       aria-label="Primary mobile navigation"
       className="student-mobile-bottom-nav fixed inset-x-0 bottom-0 z-[60] w-screen border-t border-slate-200/80 bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-5 gap-1">
-        {studentItems.map((item) => {
+      <ul className={`mx-auto grid max-w-md gap-1 ${items.length === 4 ? "grid-cols-4" : "grid-cols-5"}`}>
+        {items.map((item) => {
           const Icon = item.icon;
           const active = item.isActive(pathname, hash);
 
