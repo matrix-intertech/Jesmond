@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import StudentMobileBottomNavGate from "@/components/layout/StudentMobileBottomNavGate";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -28,7 +29,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+        <StudentMobileBottomNavGate />
       </body>
     </html>
   );

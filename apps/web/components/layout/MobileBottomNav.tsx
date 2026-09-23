@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpen,
   Boxes,
   Building2,
   ClipboardList,
@@ -12,12 +13,15 @@ import {
   Search,
   Settings,
   ShoppingCart,
+  Store,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { getCurrentUser, type User } from "@/utils/auth";
 
+type UserRole = "ADMIN" | "SUPER_ADMIN" | "ORG_STAFF" | "STUDENT";
+
 interface MobileBottomNavProps {
-  role: "ADMIN" | "SUPER_ADMIN" | "ORG_STAFF" | "STUDENT";
+  role?: UserRole;
 }
 
 type BottomNavIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -33,13 +37,43 @@ type BottomNavItem = {
 const exact = (href: string) => (pathname: string) => pathname === href;
 const section = (href: string) => (pathname: string) => pathname === href || pathname.startsWith(`${href}/`);
 
-const studentItems: BottomNavItem[] = [
+const homeItem: BottomNavItem = {
+  href: "/",
+  label: "Home",
+  icon: Home,
+  isActive: exact("/"),
+};
+
+const publicItems: BottomNavItem[] = [
+  homeItem,
   {
-    href: "/student",
-    label: "Home",
-    icon: Home,
-    isActive: (pathname, hash) => pathname === "/student" && hash !== "#applications",
+    href: "/search",
+    label: "Search",
+    icon: Search,
+    isActive: exact("/search"),
   },
+  {
+    href: "/retail",
+    label: "Retail",
+    icon: Store,
+    isActive: section("/retail"),
+  },
+  {
+    href: "/providers",
+    label: "Providers",
+    icon: Building2,
+    isActive: section("/providers"),
+  },
+  {
+    href: "/guide",
+    label: "Guide",
+    icon: BookOpen,
+    isActive: section("/guide"),
+  },
+];
+
+const studentItems: BottomNavItem[] = [
+  homeItem,
   {
     href: "/search",
     label: "Search",
@@ -67,12 +101,7 @@ const studentItems: BottomNavItem[] = [
 ];
 
 const providerItems: BottomNavItem[] = [
-  {
-    href: "/portal",
-    label: "Home",
-    icon: Home,
-    isActive: exact("/portal"),
-  },
+  homeItem,
   {
     href: "/portal/properties",
     label: "Properties",
@@ -100,13 +129,7 @@ const providerItems: BottomNavItem[] = [
 ];
 
 const retailItems: BottomNavItem[] = [
-  {
-    href: "/portal/retail",
-    label: "Home",
-    icon: Home,
-    isActive: exact("/portal/retail"),
-    requiredPermissions: ["RETAIL_DASHBOARD_VIEW"],
-  },
+  homeItem,
   {
     href: "/portal/retail/catalog",
     label: "Catalog",
@@ -136,12 +159,7 @@ const retailItems: BottomNavItem[] = [
 ];
 
 const adminItems: BottomNavItem[] = [
-  {
-    href: "/admin",
-    label: "Home",
-    icon: Home,
-    isActive: exact("/admin"),
-  },
+  homeItem,
   {
     href: "/admin/properties",
     label: "Properties",
@@ -169,7 +187,8 @@ const hasPermission = (user: User | null, item: BottomNavItem) => {
   return permissions.includes("*") || item.requiredPermissions.some((permission) => permissions.includes(permission));
 };
 
-function getItemsForUser(role: MobileBottomNavProps["role"], user: User | null) {
+function getItemsForUser(role: UserRole | undefined, user: User | null) {
+  if (!role) return publicItems;
   if (role === "STUDENT") return studentItems;
   if (role === "ADMIN" || role === "SUPER_ADMIN") return adminItems;
 
@@ -179,7 +198,7 @@ function getItemsForUser(role: MobileBottomNavProps["role"], user: User | null) 
     return providerItems;
   }
 
-  return [];
+  return publicItems;
 }
 
 export default function MobileBottomNav({ role }: MobileBottomNavProps) {
@@ -198,7 +217,7 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
     return () => window.removeEventListener("hashchange", syncHash);
   }, []);
 
-  const effectiveRole = (user?.role || role) as MobileBottomNavProps["role"];
+  const effectiveRole = (user?.role || role) as UserRole | undefined;
   const items = useMemo(() => getItemsForUser(effectiveRole, user), [effectiveRole, user]);
 
   if (!items.length) return null;

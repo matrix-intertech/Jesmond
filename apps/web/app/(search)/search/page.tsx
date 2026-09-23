@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { SearchClient } from '@/components/search/SearchClient';
-import StudentMobileBottomNavGate from '@/components/layout/StudentMobileBottomNavGate';
 
 export const metadata = {
   title: "Search Student Accommodation | Jesmond",
@@ -43,7 +42,6 @@ export default async function SearchPage({
       <Suspense fallback={<div className="p-8 text-slate-500 font-medium">Loading search engine...</div>}>
         <SearchClient initialParams={resolvedParams} />
       </Suspense>
-      <StudentMobileBottomNavGate />
     </main>
   );
 }
