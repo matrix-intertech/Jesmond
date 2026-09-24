@@ -129,7 +129,7 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
   const isChatView = !!selectedConversationId;
 
   const desktopClasses = isChatView
-    ? "sm:fixed sm:bottom-6 sm:right-6 sm:top-auto sm:w-[400px] sm:h-[600px] sm:max-h-[calc(100vh-48px)] sm:rounded-2xl"
+    ? "sm:fixed sm:bottom-6 sm:right-6 sm:top-auto sm:w-[400px] sm:h-[520px] sm:max-h-[calc(100vh-48px)] sm:rounded-2xl"
     : "sm:fixed sm:top-20 sm:right-4 lg:right-12 xl:right-[max(3rem,calc(50vw-650px))] sm:bottom-auto sm:w-96 sm:h-[480px] sm:max-h-[calc(100vh-100px)] sm:rounded-2xl";
 
   const mobileClasses = "fixed inset-0 sm:inset-auto w-full h-[100dvh] sm:h-auto z-[150]";
@@ -141,7 +141,7 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
       onClick={(e) => e.stopPropagation()}
     >
       {selectedConversationId ? (
-        <div className="flex flex-col h-full bg-white relative">
+        <div className="flex flex-col h-full min-h-0 bg-white relative">
           <div className="absolute top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur z-20 border-b border-slate-100 flex items-center px-4">
             <button 
               onClick={() => setSelectedConversationId(null)}
@@ -158,7 +158,7 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="flex-1 overflow-hidden pt-14 pb-2">
+          <div className="flex-1 overflow-hidden min-h-0 pt-14 pb-2 flex flex-col">
             <ChatConversation 
               conversationId={selectedConversationId} 
               backHref="#" 

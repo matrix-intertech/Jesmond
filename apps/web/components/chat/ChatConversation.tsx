@@ -248,7 +248,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
         <div className="m-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>
       ) : (
         <>
-          <div ref={scrollAreaRef} onScroll={handleMessagesScroll} className="flex-1 overflow-y-auto bg-slate-50/70 px-4 py-5 sm:px-6">
+          <div ref={scrollAreaRef} onScroll={handleMessagesScroll} className="flex-1 min-h-0 overflow-y-auto bg-slate-50/70 px-4 py-5 sm:px-6">
             {messages.length === 0 ? (
               <div className="mx-auto mt-16 max-w-sm rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-8 text-center">
                 <h2 className="text-lg font-bold text-brand-navy">Start the conversation</h2>
