@@ -230,7 +230,7 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
   return (
     <div className={`mx-auto w-full max-w-7xl sm:px-6 lg:h-[calc(100vh-48px)] lg:min-h-0 lg:py-6 ${
       selectedConversationId 
-        ? "fixed inset-0 z-[150] h-[100dvh] bg-white sm:static sm:z-auto sm:h-auto sm:bg-transparent flex flex-col min-h-0" 
+        ? "fixed inset-0 z-[150] h-[100dvh] max-h-[100dvh] bg-white sm:static sm:z-auto sm:h-auto sm:max-h-none sm:bg-transparent flex flex-col min-h-0" 
         : "min-h-[calc(100vh-72px)] px-4 py-6"
     }`}>
       {error && <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}

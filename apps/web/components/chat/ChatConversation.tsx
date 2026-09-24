@@ -223,7 +223,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
   let lastDateLabel = "";
 
   return (
-    <div className={`mx-auto flex w-full flex-col overflow-hidden bg-white ${embedded ? "h-full max-w-none" : "h-[calc(100vh-72px)] max-w-4xl sm:my-4 sm:h-[calc(100vh-104px)] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm"}`}>
+    <div className={`mx-auto flex w-full flex-col overflow-hidden bg-white ${embedded ? "flex-1 min-h-0 max-w-none" : "h-[calc(100vh-72px)] max-w-4xl sm:my-4 sm:h-[calc(100vh-104px)] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm"}`}>
       <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
         <Link
           href={backHref}

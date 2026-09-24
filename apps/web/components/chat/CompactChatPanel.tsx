@@ -132,16 +132,16 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
     ? "sm:fixed sm:bottom-6 sm:right-6 sm:top-auto sm:w-[400px] sm:h-[450px] sm:max-h-[calc(100vh-48px)] sm:rounded-2xl"
     : "sm:fixed sm:top-20 sm:right-4 lg:right-12 xl:right-[max(3rem,calc(50vw-650px))] sm:bottom-auto sm:w-96 sm:h-[480px] sm:max-h-[calc(100vh-100px)] sm:rounded-2xl";
 
-  const mobileClasses = "fixed inset-0 sm:inset-auto w-full h-[100dvh] sm:h-auto z-[150]";
+  const mobileClasses = "fixed inset-0 sm:inset-auto w-full h-[100dvh] max-h-[100dvh] sm:max-h-none z-[150]";
 
   return createPortal(
     <div 
       ref={panelRef}
-      className={`${mobileClasses} ${desktopClasses} bg-white shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col`}
+      className={`${mobileClasses} ${desktopClasses} bg-white shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col min-h-0`}
       onClick={(e) => e.stopPropagation()}
     >
       {selectedConversationId ? (
-        <div className="flex flex-col h-full min-h-0 bg-white relative">
+        <div className="flex flex-col flex-1 min-h-0 bg-white relative">
           <div className="absolute top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur z-20 border-b border-slate-100 flex items-center px-4">
             <button 
               onClick={() => setSelectedConversationId(null)}
