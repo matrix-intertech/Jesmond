@@ -62,9 +62,11 @@ export function MapExperience({ properties, hoveredPropertyId, onMarkerHover }: 
       </MapContainer>
       
       {/* Dev Warning */}
-      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 py-1.5 rounded shadow-sm z-[1000] border border-slate-200">
-        DEV MODE: OpenStreetMap Tiles
-      </div>
+      {process.env.NODE_ENV !== 'production' && (
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 py-1.5 rounded shadow-sm z-[1000] border border-slate-200">
+          DEV MODE: OpenStreetMap Tiles
+        </div>
+      )}
     </div>
   );
 }
