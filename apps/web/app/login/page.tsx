@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,17 +39,18 @@ export default function LoginPage() {
       setCurrentUser(data.user);
 
       // Role-based redirect
+      const returnUrl = searchParams.get('returnUrl');
       switch (data.user.role) {
         case 'STUDENT':
-          router.push('/student');
+          router.push(returnUrl || '/');
           break;
         case 'SUPER_ADMIN':
         case 'ADMIN':
-          router.push('/admin');
+          router.push(returnUrl || '/admin');
           break;
         case 'ORG_STAFF':
         default:
-          router.push('/portal');
+          router.push(returnUrl || '/portal');
           break;
       }
     } catch (err: any) {
@@ -131,5 +133,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><p>Loading...</p></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

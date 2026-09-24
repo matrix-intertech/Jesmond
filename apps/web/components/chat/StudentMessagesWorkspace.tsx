@@ -214,10 +214,16 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
   };
 
   return (
-    <div className="mx-auto min-h-[calc(100vh-72px)] w-full max-w-7xl px-4 py-6 sm:px-6 lg:h-[calc(100vh-48px)] lg:min-h-0 lg:py-6">
+    <div className={`mx-auto w-full max-w-7xl sm:px-6 lg:h-[calc(100vh-48px)] lg:min-h-0 lg:py-6 ${
+      selectedConversationId 
+        ? "fixed inset-0 top-[72px] sm:top-auto sm:inset-auto z-40 bg-white sm:static sm:bg-transparent sm:z-auto h-[calc(100vh-72px)] sm:h-auto" 
+        : "min-h-[calc(100vh-72px)] px-4 py-6"
+    }`}>
       {error && <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
-      <div className="overflow-hidden bg-white lg:grid lg:h-full lg:grid-cols-[360px_minmax(0,1fr)] lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm xl:grid-cols-[400px_minmax(0,1fr)]">
+      <div className={`overflow-hidden bg-white lg:grid lg:h-full lg:grid-cols-[360px_minmax(0,1fr)] lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm xl:grid-cols-[400px_minmax(0,1fr)] ${
+        selectedConversationId ? "h-full" : ""
+      }`}>
         <aside className={`${selectedConversationId ? "hidden lg:flex" : "flex"} min-h-0 flex-col bg-white lg:border-r lg:border-slate-200`}>
           <div className="shrink-0 border-b border-slate-200 px-4 py-5 sm:px-5">
             <h1 className="text-2xl font-bold text-brand-navy">Messages</h1>

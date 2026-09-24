@@ -133,31 +133,41 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
     <>
       <div className="flex flex-col gap-4 mb-6">
         {showContactDetails && providerContact ? (
-          <div className="bg-white border-2 border-brand-navy p-6 rounded-xl text-center shadow-sm">
-            <h3 className="font-bold text-brand-navy mb-2">Provider Contact</h3>
-            {providerContact.name && <p className="font-semibold text-lg text-slate-800">{providerContact.name}</p>}
-            {providerContact.phone ? (
-              <p className="text-brand-orange font-medium mt-1">{providerContact.phone}</p>
-            ) : (
-              <p className="text-sm text-slate-500 mt-1">Phone not provided</p>
+          <div className="flex flex-col gap-3">
+            <div className="bg-white border-2 border-brand-navy p-6 rounded-xl text-center shadow-sm">
+              <h3 className="font-bold text-brand-navy mb-2">Provider Contact</h3>
+              {providerContact.name && <p className="font-semibold text-lg text-slate-800">{providerContact.name}</p>}
+              {providerContact.phone ? (
+                <p className="text-brand-orange font-medium mt-1">{providerContact.phone}</p>
+              ) : (
+                <p className="text-sm text-slate-500 mt-1">Phone not provided</p>
+              )}
+              {providerContact.email ? (
+                <a href={`mailto:${providerContact.email}`} className="text-sm text-brand-navy hover:underline mt-1 block">{providerContact.email}</a>
+              ) : (
+                <p className="text-sm text-slate-500 mt-1 block">Email not provided</p>
+              )}
+            </div>
+            {isAuth && (
+              <button disabled={loading} onClick={handleSendMessage} className="w-full bg-brand-navy border-2 border-brand-navy text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-navy/90 transition">
+                Message Host
+              </button>
             )}
-            {providerContact.email ? (
-              <a href={`mailto:${providerContact.email}`} className="text-sm text-brand-navy hover:underline mt-1 block">{providerContact.email}</a>
-            ) : (
-              <p className="text-sm text-slate-500 mt-1 block">Email not provided</p>
+            {error && !showEnquiry && !showApply && (
+              <div className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
             )}
           </div>
         ) : (
           <>
             <div className="flex flex-col gap-3">
-              <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
-                Contact Provider (Email)
-              </button>
               {isAuth && (
                 <button disabled={loading} onClick={handleSendMessage} className="w-full bg-brand-navy border-2 border-brand-navy text-white font-bold py-3 px-6 rounded-xl hover:bg-brand-navy/90 transition">
                   Message Host
                 </button>
               )}
+              <button onClick={() => setShowEnquiry(true)} className="w-full bg-white border-2 border-brand-orange text-brand-orange font-bold py-3 px-6 rounded-xl hover:bg-brand-orange/10 transition">
+                Request Contact Details
+              </button>
             </div>
             {error && !showEnquiry && !showApply && (
               <div className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
@@ -208,7 +218,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
           <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-4 sm:p-6">
             <button onClick={() => setShowEnquiry(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">✕</button>
-            <h2 className="text-2xl font-bold mb-4">Send Enquiry</h2>
+            <h2 className="text-2xl font-bold mb-4">{showContactDetails && providerContact ? 'Send Enquiry' : 'Request Contact Details'}</h2>
             {success && <div className="bg-emerald-100 text-emerald-700 p-3 rounded mb-4">{success}</div>}
             {error && <div className="bg-rose-100 text-rose-700 p-3 rounded mb-4">{error}</div>}
             <form onSubmit={handleEnquiry}>

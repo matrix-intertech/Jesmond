@@ -6,10 +6,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { isAuthenticated, getCurrentUser } from "@/utils/auth";
+import { CompactChatPanel } from "../chat/CompactChatPanel";
 
 export function GlobalNav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string }>({ isAuth: false });
   const pathname = usePathname();
   const isMessagesActive = pathname === "/messages" || pathname.startsWith("/messages/");
@@ -106,16 +108,19 @@ export function GlobalNav() {
             <div className="w-px h-5 bg-slate-200" />
             {authStatus.isAuth ? (
               <>
-                <Link
-                  href="/messages"
-                  className={`inline-flex items-center gap-1.5 text-sm font-semibold transition-colors px-2 ${
-                    isMessagesActive ? "text-orange-600" : "text-brand-navy hover:text-orange-600"
-                  }`}
-                  aria-current={isMessagesActive ? "page" : undefined}
-                >
-                  <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                  Messages
-                </Link>
+                <div className="relative">
+                  <button
+                    onClick={() => setIsChatOpen(!isChatOpen)}
+                    className={`inline-flex items-center gap-1.5 text-sm font-semibold transition-colors px-2 ${
+                      isMessagesActive || isChatOpen ? "text-orange-600" : "text-brand-navy hover:text-orange-600"
+                    }`}
+                    aria-current={isMessagesActive ? "page" : undefined}
+                  >
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                    Messages
+                  </button>
+                  {isChatOpen && <CompactChatPanel onClose={() => setIsChatOpen(false)} />}
+                </div>
                 <Link
                   href="/my-orders"
                   className="text-sm font-semibold text-brand-navy hover:text-orange-600 transition-colors px-2"
@@ -211,9 +216,8 @@ export function GlobalNav() {
                 </Link>
                 {authStatus.isAuth ? (
                   <>
-                    <Link
-                      href="/messages"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                    <button
+                      onClick={() => { setIsChatOpen(true); setIsMobileMenuOpen(false); }}
                       className={`w-full py-4 rounded-xl border text-lg font-semibold flex justify-center items-center gap-2 ${
                         isMessagesActive
                           ? "border-orange-200 bg-orange-50 text-orange-600"
@@ -223,7 +227,7 @@ export function GlobalNav() {
                     >
                       <MessageCircle className="h-5 w-5" aria-hidden="true" />
                       Messages
-                    </Link>
+                    </button>
                     <Link
                       href="/my-orders"
                       onClick={() => setIsMobileMenuOpen(false)}
