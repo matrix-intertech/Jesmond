@@ -12,6 +12,7 @@ export function GlobalNav() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
   const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string }>({ isAuth: false });
   const pathname = usePathname();
   const isMessagesActive = pathname === "/messages" || pathname.startsWith("/messages/");
@@ -21,6 +22,15 @@ export function GlobalNav() {
       isAuth: isAuthenticated(),
       role: getCurrentUser()?.role,
     });
+  }, []);
+
+  useEffect(() => {
+    const handleOpenChat = (e: any) => {
+      setInitialConversationId(e.detail?.conversationId || null);
+      setIsChatOpen(true);
+    };
+    window.addEventListener('openCompactChat', handleOpenChat);
+    return () => window.removeEventListener('openCompactChat', handleOpenChat);
   }, []);
 
   const getDashboardRoute = (role?: string) => {
@@ -119,7 +129,7 @@ export function GlobalNav() {
                     <MessageCircle className="h-4 w-4" aria-hidden="true" />
                     Messages
                   </button>
-                  {isChatOpen && <CompactChatPanel onClose={() => setIsChatOpen(false)} />}
+                  {isChatOpen && <CompactChatPanel onClose={() => { setIsChatOpen(false); setInitialConversationId(null); }} initialConversationId={initialConversationId} />}
                 </div>
                 <Link
                   href="/my-orders"

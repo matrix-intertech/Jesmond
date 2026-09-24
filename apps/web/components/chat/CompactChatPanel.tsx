@@ -25,13 +25,13 @@ const formatConversationTime = (dateValue: string) => {
   return date.toLocaleDateString([], { day: "numeric", month: "short" });
 };
 
-export function CompactChatPanel({ onClose }: { onClose: () => void }) {
+export function CompactChatPanel({ onClose, initialConversationId }: { onClose: () => void, initialConversationId?: string | null }) {
   const router = useRouter();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(initialConversationId || null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const [mounted, setMounted] = useState(false);
@@ -39,6 +39,12 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (initialConversationId) {
+      setSelectedConversationId(initialConversationId);
+    }
+  }, [initialConversationId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

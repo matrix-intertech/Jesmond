@@ -46,7 +46,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
       });
       if (res.ok) {
         const convo = await res.json();
-        router.push(`/messages/${convo.id}`);
+        window.dispatchEvent(new CustomEvent('openCompactChat', { detail: { conversationId: convo.id } }));
       } else {
         const err = await res.json();
         setError(err.message || "Failed to start chat");
