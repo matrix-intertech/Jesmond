@@ -30,7 +30,8 @@ export class LocationService {
       return [];
     }
 
-    const cacheKey = `location:search:au:${query.toLowerCase().trim()}:${limit}`;
+    const q = query.trim();
+    const cacheKey = `location:search:au:${q.toLowerCase()}:${limit}`;
 
     try {
       const cached = await this.redisService.get(cacheKey);
@@ -41,7 +42,90 @@ export class LocationService {
       this.logger.warn(`Redis cache error during location search: ${error.message}`);
     }
 
-    const results = await this.provider.search({ query, limit });
+    let localMatches: any[] = [];
+    const isPostcode = /^\d+$/.test(q);
+
+    try {
+      if (isPostcode) {
+        localMatches = await this.prisma.suburb.findMany({
+          where: { postcode: { startsWith: q } },
+          include: { city: { include: { state: true } } },
+          take: limit,
+        });
+      } else {
+        const suburbs = await this.prisma.suburb.findMany({
+          where: {
+            OR: [
+              { name: { startsWith: q, mode: 'insensitive' } },
+              { postcode: { startsWith: q } },
+              { city: { name: { startsWith: q, mode: 'insensitive' } } }
+            ]
+          },
+          include: { city: { include: { state: true } } },
+          take: limit * 2, // Take extra for JS ranking
+        });
+
+        const lowerQ = q.toLowerCase();
+        const exactMatch = [];
+        const prefixMatch = [];
+        const otherMatch = [];
+
+        for (const s of suburbs) {
+          const sName = s.name.toLowerCase();
+          if (sName === lowerQ) exactMatch.push(s);
+          else if (sName.startsWith(lowerQ)) prefixMatch.push(s);
+          else otherMatch.push(s);
+        }
+
+        localMatches = [...exactMatch, ...prefixMatch, ...otherMatch].slice(0, limit);
+      }
+    } catch (dbError) {
+      this.logger.warn(`Database query failed during location search: ${dbError.message}`);
+    }
+
+    let results: LocationResult[] = localMatches.map(s => {
+      const stateName = s.city?.state?.name || '';
+      const stateCode = s.city?.state?.code || '';
+      const cityName = s.city?.name || '';
+
+      const labelParts = [];
+      if (s.name && s.name !== cityName) labelParts.push(s.name);
+      if (cityName) labelParts.push(cityName);
+      if (stateCode) labelParts.push(stateCode);
+
+      return {
+        id: s.id,
+        label: labelParts.join(', '),
+        latitude: s.lat || 0,
+        longitude: s.lng || 0,
+        country: 'Australia',
+        state: stateName,
+        city: cityName,
+        suburb: s.name,
+        postcode: s.postcode,
+        type: 'suburb',
+        source: 'local-db'
+      };
+    });
+
+    if (results.length < limit) {
+      try {
+        const photonResults = await this.provider.search({ query: q, limit });
+        const existingIds = new Set(results.map(r => r.id));
+        const existingNames = new Set(results.map(r => `${r.suburb?.toLowerCase()}-${r.postcode}`));
+
+        for (const p of photonResults) {
+          const dupKey = `${p.suburb?.toLowerCase()}-${p.postcode}`;
+          if (!existingIds.has(p.id) && !existingNames.has(dupKey) && results.length < limit) {
+            results.push(p);
+            existingIds.add(p.id);
+            existingNames.add(dupKey);
+          }
+        }
+      } catch (photonError) {
+        this.logger.warn(`Photon provider error: ${photonError.message}`);
+      }
+    }
 
     try {
       if (results && results.length > 0) {
