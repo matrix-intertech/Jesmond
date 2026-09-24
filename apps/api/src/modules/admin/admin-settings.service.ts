@@ -34,6 +34,7 @@ export class AdminSettingsService {
           defaultCurrency: data.defaultCurrency,
           maintenanceMode: data.maintenanceMode,
           propertyAutoApproval: data.propertyAutoApproval,
+          featuredPropertyId: data.featuredPropertyId !== undefined ? data.featuredPropertyId : undefined,
         }
       });
 

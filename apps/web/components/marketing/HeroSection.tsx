@@ -4,14 +4,23 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { HeroSearchBar } from "./HeroSearchBar";
 
-export function HeroSection() {
+import Link from "next/link";
+
+interface FeaturedPropertyData {
+  id: string;
+  name: string;
+  location: string;
+  imageUrl: string | null;
+}
+
+export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedPropertyData | null }) {
   return (
     <section className="relative w-full min-h-[600px] lg:h-[720px] flex flex-col justify-center pb-24 lg:pb-0 pt-24 mt-16">
 
       {/* 1. FULL-BLEED BACKGROUND IMAGE */}
       <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
         <Image
-          src="/assets/user_hero_bg.jpg"
+          src={featuredProperty?.imageUrl || "/assets/user_hero_bg.jpg"}
           alt="Jesmond Student Accommodation"
           fill
           sizes="100vw"
@@ -92,15 +101,25 @@ export function HeroSection() {
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                 Verified Listings
               </div>
-              <div className="bg-brand-navy/60 backdrop-blur-md text-white rounded-xl p-4 border border-white/10 shadow-lg flex items-center gap-4 w-full max-w-[260px]">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex flex-shrink-0 items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                </div>
-                <div>
-                  <p className="text-xs text-white/60 font-semibold uppercase tracking-wider">Premium Providers</p>
-                  <p className="text-sm font-medium">Scrape, Iglu, Unilodge</p>
-                </div>
-              </div>
+              
+              {featuredProperty && (
+                <Link href={`/property/${featuredProperty.id}`} className="block w-full max-w-[260px]">
+                  <div className="bg-brand-navy/60 backdrop-blur-md hover:bg-brand-navy/80 transition-colors text-white rounded-xl p-4 border border-white/10 shadow-lg flex items-center gap-4 w-full cursor-pointer">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex flex-shrink-0 items-center justify-center overflow-hidden relative">
+                      {featuredProperty.imageUrl ? (
+                        <Image src={featuredProperty.imageUrl} alt={featuredProperty.name} fill className="object-cover" />
+                      ) : (
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                      )}
+                    </div>
+                    <div className="overflow-hidden">
+                      <p className="text-xs text-brand-orange font-semibold uppercase tracking-wider mb-0.5">Featured Property</p>
+                      <p className="text-sm font-medium truncate" title={featuredProperty.name}>{featuredProperty.name}</p>
+                      <p className="text-xs text-white/70 truncate" title={featuredProperty.location}>{featuredProperty.location}</p>
+                    </div>
+                  </div>
+                </Link>
+              )}
             </motion.div>
           </div>
 

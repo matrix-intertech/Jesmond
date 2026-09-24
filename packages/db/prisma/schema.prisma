@@ -1009,6 +1009,8 @@ model PlatformSettings {
   defaultCurrency      String  @default("AUD")
   maintenanceMode      Boolean @default(false)
   propertyAutoApproval Boolean @default(false)
+  
+  featuredPropertyId   String?
 
   updatedAt DateTime @updatedAt
 }

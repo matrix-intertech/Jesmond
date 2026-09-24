@@ -11,7 +11,7 @@ export default function PlatformSettingsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [data, setData] = useState({
+  const [data, setData] = useState<any>({
     siteName: "",
     supportEmail: "",
     supportPhone: "",
@@ -19,30 +19,46 @@ export default function PlatformSettingsPage() {
     defaultCurrency: "",
     maintenanceMode: false,
     propertyAutoApproval: false,
+    featuredPropertyId: null,
   });
+  const [properties, setProperties] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchPlatform = async () => {
+    const fetchData = async () => {
       const token = getAccessToken();
       if (!token) return;
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/settings/platform`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+        const [settingsRes, propsRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/settings/platform`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/active`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+        ]);
+
+        const status = await handleApiError(settingsRes, () => { clearAuth(); router.replace('/login'); });
         if (status === 'ok') {
-          const json = await res.json();
+          const json = await settingsRes.json();
           setData(json);
         } else {
           setError('Failed to load platform settings');
         }
+
+        if (propsRes.ok) {
+          const propsJson = await propsRes.json();
+          // Filter to only PUBLISHED and VERIFIED
+          const eligible = propsJson.filter((p: any) => p.status === 'PUBLISHED' && p.verificationStatus === 'VERIFIED');
+          setProperties(eligible);
+        }
+
       } catch (e: any) {
         setError(e.message);
       } finally {
         setLoading(false);
       }
     };
-    fetchPlatform();
+    fetchData();
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,6 +157,30 @@ export default function PlatformSettingsPage() {
             </label>
           </div>
           <p className="ml-6 text-xs text-gray-500 mt-1">If enabled, newly submitted properties will bypass manual review and be published automatically.</p>
+
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <h4 className="text-md leading-6 font-medium text-brand-navy mb-4">Homepage Featured Property</h4>
+            <div className="max-w-xl">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select Property</label>
+              <select
+                value={data.featuredPropertyId || ''}
+                onChange={e => setData({...data, featuredPropertyId: e.target.value || null})}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">-- None (Default Hero) --</option>
+                <optgroup label="Available Properties">
+                  {properties.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.suburb?.name})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              <p className="mt-2 text-xs text-gray-500">
+                This property will be displayed prominently on the homepage hero section. Only Published and Verified properties are eligible.
+              </p>
+            </div>
+          </div>
 
           <div className="flex justify-end pt-4 border-t border-gray-100">
             <button
