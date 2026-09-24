@@ -129,7 +129,7 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
   const isChatView = !!selectedConversationId;
 
   const desktopClasses = isChatView
-    ? "sm:fixed sm:bottom-6 sm:right-6 sm:top-auto sm:w-[400px] sm:h-[520px] sm:max-h-[calc(100vh-48px)] sm:rounded-2xl"
+    ? "sm:fixed sm:bottom-6 sm:right-6 sm:top-auto sm:w-[400px] sm:h-[450px] sm:max-h-[calc(100vh-48px)] sm:rounded-2xl"
     : "sm:fixed sm:top-20 sm:right-4 lg:right-12 xl:right-[max(3rem,calc(50vw-650px))] sm:bottom-auto sm:w-96 sm:h-[480px] sm:max-h-[calc(100vh-100px)] sm:rounded-2xl";
 
   const mobileClasses = "fixed inset-0 sm:inset-auto w-full h-[100dvh] sm:h-auto z-[150]";
