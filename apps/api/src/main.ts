@@ -27,9 +27,19 @@ expressApp.set('trust proxy', 1);
   // 3. Security: Helmet
   app.use(helmet());
 
-  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  // Support comma-separated list of allowed origins in CORS_ORIGIN
+  const corsOriginEnv = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  const corsOrigins = corsOriginEnv
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const allowedOrigins = [
+    ...corsOrigins,
+    'http://127.0.0.1:3000',
+    'http://localhost:3000',
+  ];
   app.enableCors({
-    origin: [corsOrigin, 'http://127.0.0.1:3000', 'http://localhost:3000'],
+    origin: allowedOrigins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
