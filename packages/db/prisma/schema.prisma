@@ -1388,12 +1388,18 @@ model PropertyManager {
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   orgStaffId String
   orgStaff   OrgStaff @relation(fields: [orgStaffId], references: [id], onDelete: Cascade)
+  permission PropertyPermission @default(MANAGE)
 
   createdAt DateTime @default(now())
 
   @@unique([propertyId, orgStaffId])
   @@index([propertyId])
   @@index([orgStaffId])
+}
+
+enum PropertyPermission {
+  VIEW
+  MANAGE
 }
 
 model Conversation {

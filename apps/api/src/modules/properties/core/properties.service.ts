@@ -36,7 +36,7 @@ export class PropertiesService {
     private readonly storage: StorageService
   ) {}
 
-  async createProperty(dto: CreatePropertyDto, organizationId: string) {
+  async createProperty(dto: CreatePropertyDto, user: any) {
     // Basic verification of suburb exists
     const suburb = await this.prisma.suburb.findUnique({ where: { id: dto.suburbId } });
     if (!suburb) {
@@ -52,8 +52,7 @@ export class PropertiesService {
         lng: dto.lng,
         description: dto.description,
         status: 'DRAFT',
-        suburbId: dto.suburbId,
-        organizationId,
+        suburbId: dto.suburbId, organizationId: user.organizationId,
         listingMode: dto.listingMode || 'MULTI_UNIT',
         listingType: dto.listingType || 'NORMAL',
         propertyType: dto.propertyType,
@@ -96,9 +95,9 @@ export class PropertiesService {
     return property;
   }
 
-  async updateProperty(id: string, organizationId: string, dto: any) {
+  async updateProperty(id: string, user: any, dto: any) {
     // getPropertyForProvider already checks ownership and pending status
-    await this.getPropertyForProvider(id, organizationId);
+    await this.getPropertyForProvider(id, user);
 
     if (dto.minimumStay !== undefined && dto.maximumStay !== undefined) {
       if (dto.minimumStay > dto.maximumStay) {
@@ -170,9 +169,15 @@ export class PropertiesService {
     return updatedProperty;
   }
 
-  async getMyProperties(organizationId: string) {
+  async getMyProperties(user: any) {
+    const where: any = { organizationId: user.organizationId };
+    
+    if (user.orgRole !== 'ADMIN' && user.orgRole !== 'SUPER_ADMIN') {
+      where.managers = { some: { orgStaff: { userId: user.id } } };
+    }
+
     return this.prisma.property.findMany({
-      where: { organizationId },
+      where,
       include: {
         suburb: { select: { name: true, city: { select: { name: true } } } },
       },
@@ -180,7 +185,19 @@ export class PropertiesService {
     });
   }
 
-  async getPropertyForProvider(id: string, organizationId: string, allowPending = false) {
+  async verifyPropertyAccess(propertyId: string, user: any, requireManage = false) {
+    if (user.orgRole === 'ADMIN' || user.orgRole === 'SUPER_ADMIN') return;
+    const manager = await this.prisma.propertyManager.findFirst({
+      where: {
+        propertyId,
+        orgStaff: { userId: user.id, organizationId: user.organizationId }
+      }
+    });
+    if (!manager) throw new ForbiddenException('You are not assigned to this property');
+    if (requireManage && manager.permission !== 'MANAGE') throw new ForbiddenException('You need MANAGE permission for this property');
+  }
+
+  async getPropertyForProvider(id: string, user: any, allowPending = false) {
     const property = await this.prisma.property.findUnique({
       where: { id },
       include: {
@@ -220,9 +237,22 @@ export class PropertiesService {
       throw new NotFoundException('Property not found');
     }
 
-    if (property.organizationId !== organizationId) {
+    if (property.organizationId !== user.organizationId) {
       throw new ForbiddenException('You do not have permission to view this property');
     }
+
+    if (user.orgRole !== 'ADMIN' && user.orgRole !== 'SUPER_ADMIN') {
+      const manager = await this.prisma.propertyManager.findFirst({
+        where: {
+          propertyId: id,
+          orgStaff: { userId: user.id, organizationId: user.organizationId }
+        }
+      });
+      if (!manager) throw new ForbiddenException('You are not assigned to this property');
+      // For now, allowPending=false loosely implies MANAGE access required for mutating endpoints
+      if (!allowPending && manager.permission !== 'MANAGE') throw new ForbiddenException('You need MANAGE permission for this property');
+    }
+
 
     if (!allowPending && (property.status === 'PENDING_APPROVAL' || property.status === 'PUBLISHED')) {
       throw new ForbiddenException(`Cannot edit property while it is ${property.status}.`);
@@ -232,8 +262,8 @@ export class PropertiesService {
   }
 
   // --- Media ---
-  async addMedia(propertyId: string, organizationId: string, file: Express.Multer.File) {
-    await this.getPropertyForProvider(propertyId, organizationId); // Validates ownership & status
+  async addMedia(propertyId: string, user: any, file: Express.Multer.File) {
+    await this.getPropertyForProvider(propertyId, user); // Validates ownership & status
 
     // We upload to R2 first, then try to bind it to the database transactionally.
     const url = await this.storage.uploadPropertyImage(propertyId, file);
@@ -271,8 +301,8 @@ export class PropertiesService {
     }
   }
 
-  async deleteMedia(propertyId: string, organizationId: string, mediaId: string) {
-    await this.getPropertyForProvider(propertyId, organizationId); // Validates ownership
+  async deleteMedia(propertyId: string, user: any, mediaId: string) {
+    await this.getPropertyForProvider(propertyId, user); // Validates ownership
 
     const media = await this.prisma.media.findUnique({ where: { id: mediaId, propertyId } });
     if (!media) throw new NotFoundException('Media not found');
@@ -283,8 +313,8 @@ export class PropertiesService {
   }
 
   // --- Rooms ---
-  async createRoomType(propertyId: string, organizationId: string, dto: CreateRoomTypeDto) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async createRoomType(propertyId: string, user: any, dto: CreateRoomTypeDto) {
+    await this.getPropertyForProvider(propertyId, user);
 
     if (dto.floorId) {
       const floor = await this.prisma.floor.findUnique({ where: { id: dto.floorId }, include: { building: true } });
@@ -315,8 +345,8 @@ export class PropertiesService {
     });
   }
 
-  async updateRoomType(propertyId: string, organizationId: string, roomId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async updateRoomType(propertyId: string, user: any, roomId: string, dto: any) {
+    await this.getPropertyForProvider(propertyId, user);
 
     const roomExists = await this.prisma.roomType.findUnique({ where: { id: roomId, propertyId } });
     if (!roomExists) throw new NotFoundException('Room not found or does not belong to this property.');
@@ -353,8 +383,8 @@ export class PropertiesService {
     });
   }
 
-  async deleteRoomType(propertyId: string, organizationId: string, roomId: string) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async deleteRoomType(propertyId: string, user: any, roomId: string) {
+    await this.getPropertyForProvider(propertyId, user);
 
     const roomExists = await this.prisma.roomType.findUnique({ where: { id: roomId, propertyId } });
     if (!roomExists) throw new NotFoundException('Room not found or does not belong to this property.');
@@ -374,8 +404,8 @@ export class PropertiesService {
   }
 
   // --- Amenities ---
-  async updateAmenities(propertyId: string, organizationId: string, amenityIds: string[]) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async updateAmenities(propertyId: string, user: any, amenityIds: string[]) {
+    await this.getPropertyForProvider(propertyId, user);
 
     const uniqueAmenityIds = [...new Set(amenityIds)];
 
@@ -404,8 +434,8 @@ export class PropertiesService {
   }
 
   // --- Availability ---
-  async updateAvailability(propertyId: string, organizationId: string, roomId: string, dto: UpdateAvailabilityDto) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async updateAvailability(propertyId: string, user: any, roomId: string, dto: UpdateAvailabilityDto) {
+    await this.getPropertyForProvider(propertyId, user);
 
     const room = await this.prisma.roomType.findUnique({ where: { id: roomId, propertyId } });
     if (!room) throw new NotFoundException('Room not found');
@@ -431,8 +461,8 @@ export class PropertiesService {
     });
   }
 
-  async submitProperty(id: string, organizationId: string, userId: string) {
-    const property = await this.getPropertyForProvider(id, organizationId, true);
+  async submitProperty(id: string, user: any, userId: string) {
+    const property = await this.getPropertyForProvider(id, user, true);
 
     if (property.status !== 'DRAFT') {
       throw new BadRequestException('Only DRAFT properties can be submitted for review.');
@@ -889,50 +919,50 @@ export class PropertiesService {
   }
 
   // --- Buildings ---
-  async addBuilding(propertyId: string, organizationId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async addBuilding(propertyId: string, user: any, dto: any) {
+    await this.getPropertyForProvider(propertyId, user);
     return this.prisma.building.create({ data: { propertyId, name: dto.name } });
   }
 
-  async updateBuilding(propertyId: string, organizationId: string, buildingId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async updateBuilding(propertyId: string, user: any, buildingId: string, dto: any) {
+    await this.getPropertyForProvider(propertyId, user);
     const b = await this.prisma.building.findUnique({ where: { id: buildingId, propertyId } });
     if (!b) throw new NotFoundException('Building not found');
     return this.prisma.building.update({ where: { id: buildingId }, data: { name: dto.name } });
   }
 
-  async deleteBuilding(propertyId: string, organizationId: string, buildingId: string) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async deleteBuilding(propertyId: string, user: any, buildingId: string) {
+    await this.getPropertyForProvider(propertyId, user);
     const b = await this.prisma.building.findUnique({ where: { id: buildingId, propertyId } });
     if (!b) throw new NotFoundException('Building not found');
     return this.prisma.building.delete({ where: { id: buildingId } });
   }
 
   // --- Floors ---
-  async addFloor(propertyId: string, organizationId: string, buildingId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async addFloor(propertyId: string, user: any, buildingId: string, dto: any) {
+    await this.getPropertyForProvider(propertyId, user);
     const b = await this.prisma.building.findUnique({ where: { id: buildingId, propertyId } });
     if (!b) throw new NotFoundException('Building not found');
     return this.prisma.floor.create({ data: { buildingId, level: dto.level, name: dto.name } });
   }
 
-  async updateFloor(propertyId: string, organizationId: string, buildingId: string, floorId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async updateFloor(propertyId: string, user: any, buildingId: string, floorId: string, dto: any) {
+    await this.getPropertyForProvider(propertyId, user);
     const f = await this.prisma.floor.findUnique({ where: { id: floorId, buildingId }, include: { building: true } });
     if (!f || f.building.propertyId !== propertyId) throw new NotFoundException('Floor not found');
     return this.prisma.floor.update({ where: { id: floorId }, data: { level: dto.level, name: dto.name } });
   }
 
-  async deleteFloor(propertyId: string, organizationId: string, buildingId: string, floorId: string) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async deleteFloor(propertyId: string, user: any, buildingId: string, floorId: string) {
+    await this.getPropertyForProvider(propertyId, user);
     const f = await this.prisma.floor.findUnique({ where: { id: floorId, buildingId }, include: { building: true } });
     if (!f || f.building.propertyId !== propertyId) throw new NotFoundException('Floor not found');
     return this.prisma.floor.delete({ where: { id: floorId } });
   }
 
   // --- Rooms ---
-  async addRoom(propertyId: string, organizationId: string, roomTypeId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async addRoom(propertyId: string, user: any, roomTypeId: string, dto: any) {
+    await this.getPropertyForProvider(propertyId, user);
     const rt = await this.prisma.roomType.findUnique({ where: { id: roomTypeId, propertyId } });
     if (!rt) throw new NotFoundException('RoomType not found');
     try {
@@ -945,16 +975,16 @@ export class PropertiesService {
     }
   }
 
-  async deleteRoom(propertyId: string, organizationId: string, roomTypeId: string, roomId: string) {
-    await this.getPropertyForProvider(propertyId, organizationId);
+  async deleteRoom(propertyId: string, user: any, roomTypeId: string, roomId: string) {
+    await this.getPropertyForProvider(propertyId, user);
     const r = await this.prisma.room.findUnique({ where: { id: roomId, roomTypeId }, include: { roomType: true } });
     if (!r || r.roomType.propertyId !== propertyId) throw new NotFoundException('Room not found');
     return this.prisma.room.delete({ where: { id: roomId } });
   }
 
   // --- Residents ---
-  async addResident(propertyId: string, organizationId: string, dto: any) {
-    const property = await this.getPropertyForProvider(propertyId, organizationId, true);
+  async addResident(propertyId: string, user: any, dto: any) {
+    const property = await this.getPropertyForProvider(propertyId, user, true);
 
     // Check maximum occupancy limit
     if (property.maximumOccupancy !== null && property.maximumOccupancy !== undefined) {
@@ -984,8 +1014,8 @@ export class PropertiesService {
     });
   }
 
-  async updateResident(propertyId: string, organizationId: string, residentId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId, true);
+  async updateResident(propertyId: string, user: any, residentId: string, dto: any) {
+    await this.getPropertyForProvider(propertyId, user, true);
 
     const resident = await this.prisma.resident.findUnique({ where: { id: residentId, propertyId } });
     if (!resident) throw new NotFoundException('Resident not found');
@@ -1021,8 +1051,8 @@ export class PropertiesService {
     });
   }
 
-  async deleteResident(propertyId: string, organizationId: string, residentId: string) {
-    await this.getPropertyForProvider(propertyId, organizationId, true);
+  async deleteResident(propertyId: string, user: any, residentId: string) {
+    await this.getPropertyForProvider(propertyId, user, true);
 
     const resident = await this.prisma.resident.findUnique({ where: { id: residentId, propertyId } });
     if (!resident) throw new NotFoundException('Resident not found');
@@ -1035,10 +1065,10 @@ export class PropertiesService {
   }
 
   // --- Enquiries ---
-  async getProviderEnquiries(organizationId: string) {
+  async getProviderEnquiries(user: any) {
     return this.prisma.enquiry.findMany({
       where: {
-        property: { organizationId }
+        property: { organizationId: user.organizationId }
       },
       include: {
         property: { select: { name: true, id: true } },
@@ -1048,13 +1078,13 @@ export class PropertiesService {
     });
   }
 
-  async updateEnquiryStatus(enquiryId: string, organizationId: string, status: any) {
+  async updateEnquiryStatus(enquiryId: string, user: any, status: any) {
     const enquiry = await this.prisma.enquiry.findUnique({
       where: { id: enquiryId },
       include: { property: { select: { organizationId: true } } }
     });
 
-    if (!enquiry || enquiry.property.organizationId !== organizationId) {
+    if (!enquiry || enquiry.property.organizationId !== user.organizationId) {
       throw new NotFoundException('Enquiry not found');
     }
 
@@ -1089,8 +1119,8 @@ export class PropertiesService {
   }
 
   // --- House Rules ---
-  async updateHouseRule(propertyId: string, organizationId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, organizationId, true);
+  async updateHouseRule(propertyId: string, user: any, dto: any) {
+    await this.getPropertyForProvider(propertyId, user, true);
 
     return this.prisma.houseRule.upsert({
       where: { propertyId },
