@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import ChatConversation from "./ChatConversation";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 
 const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -33,23 +34,48 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     const handleClickOutside = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        // Prevent closing if they clicked on the messages button in the navbar
+        // We'll just check if it's the chat panel itself
         onClose();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("mousedown", handleClickOutside);
+    // Delay adding the click listener slightly so the toggle button click doesn't immediately close it
+    const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 10);
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
 
+  useEffect(() => {
+    if (mounted) {
+      const isMobile = window.innerWidth < 640;
+      if (isMobile) {
+        document.body.style.overflow = 'hidden';
+      }
+      return () => {
+        if (isMobile) {
+          document.body.style.overflow = 'unset';
+        }
+      };
+    }
+  }, [mounted]);
+
+  // ... fetchConversations ...
   useEffect(() => {
     const fetchConversations = async () => {
       const token = getAccessToken();
@@ -98,10 +124,20 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
     );
   }, [userId]);
 
-  return (
+  if (!mounted) return null;
+
+  const isChatView = !!selectedConversationId;
+
+  const desktopClasses = isChatView
+    ? "sm:fixed sm:bottom-6 sm:right-6 sm:top-auto sm:w-[400px] sm:h-[600px] sm:max-h-[calc(100vh-48px)] sm:rounded-2xl"
+    : "sm:fixed sm:top-20 sm:right-4 lg:right-12 xl:right-[max(3rem,calc(50vw-650px))] sm:bottom-auto sm:w-96 sm:h-[480px] sm:max-h-[calc(100vh-100px)] sm:rounded-2xl";
+
+  const mobileClasses = "fixed inset-0 sm:inset-auto w-full h-[100dvh] sm:h-auto z-[150]";
+
+  return createPortal(
     <div 
       ref={panelRef}
-      className="fixed inset-x-0 bottom-0 top-auto h-[80vh] sm:h-[480px] sm:max-h-[calc(100vh-80px)] sm:absolute sm:top-12 sm:bottom-auto sm:right-0 sm:left-auto sm:w-96 bg-white sm:rounded-2xl shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col z-[150]"
+      className={`${mobileClasses} ${desktopClasses} bg-white shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col`}
       onClick={(e) => e.stopPropagation()}
     >
       {selectedConversationId ? (
@@ -216,6 +252,7 @@ export function CompactChatPanel({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
