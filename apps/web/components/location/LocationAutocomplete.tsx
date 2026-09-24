@@ -42,12 +42,14 @@ export function LocationAutocomplete({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Custom hook implementation if not available
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 350);
+    const timer = setTimeout(() => setDebouncedQuery(query), 200);
     return () => clearTimeout(timer);
   }, [query]);
+
+  // Client-side cache for recent queries
+  const queryCache = useRef<Record<string, LocationResult[]>>({});
 
   // Click outside to close
   useEffect(() => {
@@ -71,15 +73,25 @@ export function LocationAutocomplete({
 
   // Fetch results
   useEffect(() => {
+    const controller = new AbortController();
     const fetchResults = async () => {
-      if (debouncedQuery.length < 3) {
+      const trimmedQuery = debouncedQuery.trim();
+      if (trimmedQuery.length < 3) {
         setResults([]);
         setIsOpen(false);
         return;
       }
 
       // If the query perfectly matches the selected value, we don't need to search again
-      if (value && debouncedQuery === value.label) {
+      if (value && trimmedQuery === value.label.trim()) {
+        return;
+      }
+
+      const cacheKey = trimmedQuery.toLowerCase();
+      if (queryCache.current[cacheKey]) {
+        setResults(queryCache.current[cacheKey]);
+        setIsOpen(true);
+        setSelectedIndex(-1);
         return;
       }
 
@@ -87,23 +99,40 @@ export function LocationAutocomplete({
       setError(null);
 
       try {
-        const response = await fetch(`/api/v1/locations/search?q=${encodeURIComponent(debouncedQuery)}&limit=5`);
+        const response = await fetch(`/api/v1/locations/search?q=${encodeURIComponent(trimmedQuery)}&limit=5`, {
+          signal: controller.signal
+        });
         if (!response.ok) throw new Error('Failed to fetch');
 
         const data = await response.json();
+        
+        // Cache the result to avoid duplicate requests later
+        queryCache.current[cacheKey] = data;
+        
         setResults(data);
         setIsOpen(true);
         setSelectedIndex(-1);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          // Request was cancelled due to a newer query, ignore
+          return;
+        }
         console.error('Location search error:', err);
         setError('Failed to load suggestions');
       } finally {
-        setIsLoading(false);
+        // Only set loading false if this isn't an aborted request
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchResults();
-  }, [debouncedQuery]);
+    
+    return () => {
+      controller.abort();
+    };
+  }, [debouncedQuery, value]);
 
   const handleSelect = (location: LocationResult) => {
     setQuery(location.label);
