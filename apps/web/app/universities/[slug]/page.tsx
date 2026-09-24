@@ -17,8 +17,19 @@ interface CampusWithLocation {
   };
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const uni = await prisma.university.findUnique({ where: { slug } });
+  if (!uni) return { title: "University Not Found" };
+  return {
+    title: `${uni.name} — Student Accommodation`,
+    description: `Find student accommodation near ${uni.name} campuses across Australia.`,
+  };
+}
+
 export default async function UniversityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
+
 
   const universitiesFeature = await prisma.featureFlag.findUnique({ where: { key: 'UNIVERSITIES' } });
   if (universitiesFeature && !universitiesFeature.enabled) {

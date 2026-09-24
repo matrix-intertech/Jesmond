@@ -1,9 +1,10 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Verification Process | Jesmond",
+  title: "Provider Verification",
   description: "Learn how Jesmond verifies student accommodation providers.",
 };
+
 
 export default function VerificationPage() {
   return (

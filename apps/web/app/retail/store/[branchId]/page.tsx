@@ -20,6 +20,21 @@ async function getStoreCatalog(branchId: string) {
   }
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ branchId: string }> }) {
+  try {
+    const { branchId } = await params;
+    const data = await getStoreCatalog(branchId);
+    const name = data?.branch?.name;
+    if (!name) return { title: "Store" };
+    return {
+      title: `${name} — Local Store`,
+      description: `Browse products and availability at ${name}.`,
+    };
+  } catch {
+    return { title: "Store" };
+  }
+}
+
 export default async function StoreDetailPage({
   params,
 }: {

@@ -1,6 +1,12 @@
-﻿import { GlobalNav } from "../../components/marketing/GlobalNav";
+import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
+
+export const metadata = {
+  title: "Help & Support",
+  description: "Get help with finding accommodation, managing your account, and using Jesmond.",
+};
+
 
 export default function SupportPage() {
   const faqCategories = [

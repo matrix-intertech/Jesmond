@@ -1,9 +1,10 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Student Visa Resources | Jesmond",
+  title: "Student Visa Resources",
   description: "Information about the Subclass 500 Student Visa for Australia.",
 };
+
 
 export default function VisaPage() {
   return (

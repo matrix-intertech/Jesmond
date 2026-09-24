@@ -1,9 +1,10 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Accessibility | Jesmond",
+  title: "Accessibility",
   description: "Jesmond's commitment to digital accessibility.",
 };
+
 
 export default function AccessibilityPage() {
   return (

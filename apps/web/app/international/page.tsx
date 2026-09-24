@@ -2,9 +2,10 @@ import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 import Link from "next/link";
 
 export const metadata = {
-  title: "International Students | Jesmond",
+  title: "International Students",
   description: "Dedicated resources and accommodation for international students studying in Australia.",
 };
+
 
 export default function InternationalPage() {
   return (

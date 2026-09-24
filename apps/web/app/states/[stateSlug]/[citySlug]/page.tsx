@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
   if (!city) return { title: "City Not Found" };
 
   return {
-    title: `${city.name}, ${city.state.name} Student Accommodation | Jesmond`,
+    title: `${city.name}, ${city.state.name} Student Accommodation`,
     description: `Find premium student housing in ${city.name}, ${city.state.name}.`,
   };
 }

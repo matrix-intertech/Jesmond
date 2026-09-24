@@ -2,6 +2,12 @@ import { getApiUrl } from "@/utils/api";
 import { StoreCard } from "@/components/retail/StoreCard";
 import { Search, ShoppingBag, Store } from "lucide-react";
 
+export const metadata = {
+  title: "Local Retail Stores",
+  description: "Shop from local stores and retailers connected to the Jesmond community.",
+};
+
+
 async function getStores() {
   try {
     const res = await fetch(`${getApiUrl()}/api/v1/retail/marketplace/stores`, {

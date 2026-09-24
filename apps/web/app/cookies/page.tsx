@@ -1,9 +1,10 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Cookies Policy | Jesmond",
+  title: "Cookies Policy",
   description: "How Jesmond uses cookies and tracking technologies.",
 };
+
 
 export default function CookiesPage() {
   return (

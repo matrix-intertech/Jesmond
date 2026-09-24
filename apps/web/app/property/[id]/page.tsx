@@ -10,6 +10,28 @@ import { SaveButton } from "../../../components/student/SaveButton";
 import { PropertyActions } from "../../../components/student/PropertyActions";
 import { formatLocation } from "../../../utils/location";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/public/${id}`,
+      { cache: 'no-store' }
+    );
+    if (!res.ok) return { title: "Property Details" };
+    const property = await res.json();
+    const name = property?.title || property?.name;
+    if (!name) return { title: "Property Details" };
+    return {
+      title: `${name} — Student Accommodation`,
+      description: property?.description
+        ? property.description.slice(0, 155)
+        : `View details and availability for ${name} on Jesmond.`,
+    };
+  } catch {
+    return { title: "Property Details" };
+  }
+}
+
 export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   let property;

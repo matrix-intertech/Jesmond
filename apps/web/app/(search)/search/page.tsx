@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { SearchClient } from '@/components/search/SearchClient';
 
 export const metadata = {
-  title: "Search Student Accommodation | Jesmond",
+  title: "Search Student Accommodation",
 };
+
 
 export default async function SearchPage({
   searchParams,

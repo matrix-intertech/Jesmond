@@ -1,9 +1,10 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Safety Guide | Jesmond",
+  title: "Safety Guide",
   description: "Important safety information and emergency contacts for students in Australia.",
 };
+
 
 export default function SafetyPage() {
   return (

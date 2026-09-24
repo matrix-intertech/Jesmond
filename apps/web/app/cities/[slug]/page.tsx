@@ -4,6 +4,12 @@ import { prisma } from "@jesmond/db";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
+export const metadata = {
+  title: "Student Accommodation by City",
+  description: "Find verified student accommodation in Australian cities.",
+};
+
+
 export default async function CityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const rawSlug = resolvedParams.slug.toLowerCase().trim();

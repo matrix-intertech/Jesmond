@@ -1,6 +1,13 @@
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
+export const metadata = {
+  title: "Order Confirmed",
+  description: "Your order has been placed successfully.",
+  robots: { index: false, follow: false },
+};
+
+
 export default async function OrderSuccessPage({
   params,
 }: {

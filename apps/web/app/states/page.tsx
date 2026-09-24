@@ -8,9 +8,10 @@ import { prisma } from "@jesmond/db";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Explore Australian States | Jesmond",
+  title: "Explore Australian States",
   description: "Find premium student housing across Australian states and territories.",
 };
+
 
 export default async function StatesPage({
   searchParams,

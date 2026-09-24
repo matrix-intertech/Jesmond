@@ -13,9 +13,14 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Jesmond",
-  description: "Jesmond Provider and Admin Portal",
+  title: {
+    default: "Jesmond | Student Accommodation, Retail & Local Services",
+    template: "%s | Jesmond",
+  },
+  description:
+    "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
 };
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,

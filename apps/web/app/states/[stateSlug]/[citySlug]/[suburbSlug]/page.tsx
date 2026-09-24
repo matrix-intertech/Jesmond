@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
   if (!suburb) return { title: "Suburb Not Found" };
 
   return {
-    title: `Student Accommodation in ${suburb.name}, ${suburb.city?.name || ''}, ${suburb.state.name} | Jesmond`,
+    title: `Student Accommodation in ${suburb.name}, ${suburb.city?.name || ''}, ${suburb.state.name}`,
     description: `Find premium student housing and properties in ${suburb.name}, ${suburb.city?.name || ''}, ${suburb.state.name}.`,
   };
 }

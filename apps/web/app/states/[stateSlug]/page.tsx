@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
   if (!state) return { title: "State Not Found" };
 
   return {
-    title: `${state.name} Student Accommodation | Jesmond`,
+    title: `${state.name} Student Accommodation`,
     description: `Find premium student housing in ${state.name}, Australia.`,
   };
 }

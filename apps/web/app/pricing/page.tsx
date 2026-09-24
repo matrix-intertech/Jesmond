@@ -3,9 +3,10 @@ import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Provider Pricing | Jesmond",
+  title: "Provider Pricing",
   description: "Transparent pricing for accommodation providers listing on Jesmond.",
 };
+
 
 export default function PricingPage() {
   return (

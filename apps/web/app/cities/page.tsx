@@ -1,10 +1,16 @@
-﻿import { GlobalNav } from "../../components/marketing/GlobalNav";
+import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import { prisma } from "@jesmond/db";
 import Link from "next/link";
 import EmptyState from "../../components/ui/EmptyState";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "Student Accommodation by City",
+  description: "Find verified student accommodation in cities across Australia.",
+};
+
 
 interface CityWithState {
   id: string;

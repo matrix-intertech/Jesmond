@@ -2,9 +2,10 @@ import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Moving to Australia | Jesmond",
+  title: "Moving to Australia",
   description: "Essential information for international students relocating to Australia.",
 };
+
 
 export default function MovingPage() {
   return (

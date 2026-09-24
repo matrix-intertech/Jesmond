@@ -7,6 +7,12 @@ import { prisma } from "@jesmond/db";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Universities & Campuses",
+  description: "Browse Australian universities and find student accommodation near your campus.",
+};
+
+
 interface CampusWithLocation {
   id: string;
   name: string;

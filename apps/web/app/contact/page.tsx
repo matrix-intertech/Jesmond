@@ -1,9 +1,10 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Contact Us | Jesmond",
+  title: "Contact Us",
   description: "Get in touch with the Jesmond team.",
 };
+
 
 export default function ContactPage() {
   return (

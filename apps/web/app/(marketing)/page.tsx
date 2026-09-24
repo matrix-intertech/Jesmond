@@ -9,8 +9,11 @@ import { FinalConversion } from "@/components/marketing/FinalConversion";
 import { EditorialFooter } from "@/components/marketing/EditorialFooter";
 
 export const metadata = {
-  title: "Jesmond | Premium Student Accommodation in Australia",
+  title: {
+    absolute: "Jesmond | Premium Student Accommodation in Australia",
+  },
 };
+
 
 export default function Homepage() {
   return (

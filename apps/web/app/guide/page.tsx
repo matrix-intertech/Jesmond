@@ -2,9 +2,10 @@ import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Accommodation Guide | Jesmond",
+  title: "Student Accommodation Guide",
   description: "Your complete guide to finding and securing student accommodation in Australia.",
 };
+
 
 export default function GuidePage() {
   return (
