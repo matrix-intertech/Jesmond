@@ -177,6 +177,34 @@ export class AgencyService {
     });
   }
 
+  async updatePropertyTeam(organizationId: string, propertyId: string, assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[]) {
+    // Verify property belongs to org
+    const prop = await this.prisma.property.findFirst({ where: { id: propertyId, organizationId } });
+    if (!prop) throw new NotFoundException('Property not found');
+
+    return this.prisma.$transaction(async (tx) => {
+      // Clear existing assignments for this property
+      await tx.propertyManager.deleteMany({ where: { propertyId } });
+
+      const newAssignments = [];
+      for (const assignment of assignments) {
+        // Verify staff belongs to org
+        const staff = await tx.orgStaff.findFirst({ where: { id: assignment.orgStaffId, organizationId } });
+        if (staff) {
+          const pm = await tx.propertyManager.create({
+            data: {
+              propertyId,
+              orgStaffId: staff.id,
+              permission: assignment.permission === 'MANAGE' ? PropertyPermission.MANAGE : PropertyPermission.VIEW
+            }
+          });
+          newAssignments.push(pm);
+        }
+      }
+      return newAssignments;
+    });
+  }
+
   // --- Public Directory ---
   async getPublicAgencies(query: any) {
     const { search, limit = 20, page = 1 } = query;
