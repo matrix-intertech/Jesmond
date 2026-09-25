@@ -83,13 +83,16 @@ export class LeadsService {
       where: { userId_organizationId: { userId, organizationId } }
     });
 
-    if (!staff) throw new ForbiddenException('Not associated with this organization.');
+    const isGlobalAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    if (!isGlobalAdmin && !staff) {
+      throw new ForbiddenException('Not associated with this organization.');
+    }
 
-    const isAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN || staff.agencyRole === 'AGENCY_ADMIN';
+    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
 
     let leadCondition: any = { organizationId };
 
-    if (!isAdmin) {
+    if (!isAdmin && staff) {
       // Team Member: can see property leads they manage OR leads assigned to them
       const managedProperties = await this.prisma.propertyManager.findMany({
         where: { orgStaffId: staff.id },
@@ -157,15 +160,19 @@ export class LeadsService {
     const staff = await this.prisma.orgStaff.findUnique({
       where: { userId_organizationId: { userId, organizationId } }
     });
-    if (!staff) throw new ForbiddenException('Not associated with this organization.');
 
-    const isAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN || staff.agencyRole === 'AGENCY_ADMIN';
+    const isGlobalAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    if (!isGlobalAdmin && !staff) {
+      throw new ForbiddenException('Not associated with this organization.');
+    }
+
+    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
 
     // Verify access and MANAGE permission
     const lead = await this.prisma.lead.findFirst({
       where: { id: leadId, organizationId },
       include: {
-        assignments: { where: { orgStaffId: staff.id, removedAt: null } }
+        assignments: staff ? { where: { orgStaffId: staff.id, removedAt: null } } : false
       }
     });
 
@@ -173,7 +180,7 @@ export class LeadsService {
 
     let canManage = isAdmin;
 
-    if (!isAdmin) {
+    if (!isAdmin && staff) {
       // Check if they manage the property with MANAGE permission
       if (lead.propertyId) {
         const pm = await this.prisma.propertyManager.findFirst({
@@ -184,7 +191,7 @@ export class LeadsService {
       
       // If they are directly assigned, they can manage (assuming assignment grants management rights, 
       // otherwise we would need granular lead permission)
-      if (lead.assignments.length > 0) {
+      if (lead.assignments && lead.assignments.length > 0) {
         canManage = true;
       }
     }
@@ -210,8 +217,13 @@ export class LeadsService {
     const staff = await this.prisma.orgStaff.findUnique({
       where: { userId_organizationId: { userId, organizationId } }
     });
-    if (!staff) throw new ForbiddenException('Not associated with this organization.');
-    const isAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN || staff.agencyRole === 'AGENCY_ADMIN';
+
+    const isGlobalAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    if (!isGlobalAdmin && !staff) {
+      throw new ForbiddenException('Not associated with this organization.');
+    }
+    
+    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
     if (!isAdmin) throw new ForbiddenException('Only Agency Admin can assign leads.');
 
     // Verify Lead

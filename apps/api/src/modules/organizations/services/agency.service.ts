@@ -36,7 +36,9 @@ export class AgencyService {
       }
     });
 
-    if (!agency) throw new NotFoundException('Agency not found');
+    if (!agency || !agency.name || agency.name.trim() === '') {
+      throw new NotFoundException('Agency not found or name not configured');
+    }
     return agency;
   }
 
@@ -213,7 +215,8 @@ export class AgencyService {
 
     const where: any = {
       type: OrgType.PROVIDER,
-      status: 'VERIFIED'
+      status: 'VERIFIED',
+      name: { not: '' }
     };
 
     if (search) {
@@ -241,7 +244,7 @@ export class AgencyService {
 
   async getPublicAgencyDetails(id: string) {
     const agency = await this.prisma.organization.findFirst({
-      where: { id, type: OrgType.PROVIDER, status: 'VERIFIED' },
+      where: { id, type: OrgType.PROVIDER, status: 'VERIFIED', name: { not: '' } },
       select: {
         id: true,
         name: true,
