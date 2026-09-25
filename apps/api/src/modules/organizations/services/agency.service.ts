@@ -42,7 +42,25 @@ export class AgencyService {
     return agency;
   }
 
-  async updateAgency(organizationId: string, data: any) {
+  private async verifyAgencyAdmin(user: any) {
+    const { organizationId, id: userId, orgRole, role } = user;
+    const staff = await this.prisma.orgStaff.findUnique({
+      where: { userId_organizationId: { userId, organizationId } }
+    });
+
+    const isGlobalAdmin = role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN || orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+
+    if (!isGlobalAdmin && !staff) {
+      throw new ForbiddenException('Not associated with this organization.');
+    }
+
+    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
+    if (!isAdmin) throw new ForbiddenException('Only Agency Admin can perform this action.');
+  }
+
+  async updateAgency(user: any, data: any) {
+    await this.verifyAgencyAdmin(user);
+    const organizationId = user.organizationId;
     return this.prisma.organization.update({
       where: { id: organizationId },
       data: {
@@ -65,7 +83,9 @@ export class AgencyService {
     });
   }
 
-  async inviteTeamMember(organizationId: string, inviterUserId: string, data: any) {
+  async inviteTeamMember(user: any, data: any) {
+    await this.verifyAgencyAdmin(user);
+    const organizationId = user.organizationId;
     const { email, firstName, lastName, agencyRole, propertyAssignments } = data;
 
     // Validate agencyRole
@@ -129,7 +149,9 @@ export class AgencyService {
     });
   }
 
-  async updateTeamMemberRole(organizationId: string, staffId: string, agencyRole: string) {
+  async updateTeamMemberRole(user: any, staffId: string, agencyRole: string) {
+    await this.verifyAgencyAdmin(user);
+    const organizationId = user.organizationId;
     const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
     if (!staff) throw new NotFoundException('Team member not found');
 
@@ -142,7 +164,9 @@ export class AgencyService {
     });
   }
 
-  async updateTeamMemberPermissions(organizationId: string, staffId: string, propertyAssignments: any[]) {
+  async updateTeamMemberPermissions(user: any, staffId: string, propertyAssignments: any[]) {
+    await this.verifyAgencyAdmin(user);
+    const organizationId = user.organizationId;
     // Verify staff belongs to org
     const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
     if (!staff) throw new NotFoundException('Team member not found');
@@ -169,7 +193,9 @@ export class AgencyService {
     });
   }
 
-  async removeTeamMember(organizationId: string, staffId: string) {
+  async removeTeamMember(user: any, staffId: string) {
+    await this.verifyAgencyAdmin(user);
+    const organizationId = user.organizationId;
     const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
     if (!staff) throw new NotFoundException('Team member not found');
 
@@ -179,7 +205,9 @@ export class AgencyService {
     });
   }
 
-  async updatePropertyTeam(organizationId: string, propertyId: string, assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[]) {
+  async updatePropertyTeam(user: any, propertyId: string, assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[]) {
+    await this.verifyAgencyAdmin(user);
+    const organizationId = user.organizationId;
     // Verify property belongs to org
     const prop = await this.prisma.property.findFirst({ where: { id: propertyId, organizationId } });
     if (!prop) throw new NotFoundException('Property not found');

@@ -51,12 +51,12 @@ export class AgencyController {
   // PUT /agency/my — Update Agency Settings (Agency Admin only)
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
   @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @Put('my')
   async updateAgency(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
       throw new BadRequestException('User is not associated with an organization.');
-    return this.agencyService.updateAgency(req.user.organizationId, data);
+    return this.agencyService.updateAgency(req.user, data);
   }
 
   // GET /agency/my/members — List Team Members
@@ -73,18 +73,18 @@ export class AgencyController {
   // POST /agency/my/members — Invite Team Member (Agency Admin only)
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
   @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @Post('my/members')
   async inviteTeamMember(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
       throw new BadRequestException('User is not associated with an organization.');
-    return this.agencyService.inviteTeamMember(req.user.organizationId, req.user.id, data);
+    return this.agencyService.inviteTeamMember(req.user, data);
   }
 
   // PUT /agency/my/members/:id/role — Change Agency Role (Agency Admin only)
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
   @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @Put('my/members/:id/role')
   async updateTeamMemberRole(
     @Param('id') id: string,
@@ -93,13 +93,13 @@ export class AgencyController {
   ) {
     if (!req.user?.organizationId)
       throw new BadRequestException('User is not associated with an organization.');
-    return this.agencyService.updateTeamMemberRole(req.user.organizationId, id, data.agencyRole);
+    return this.agencyService.updateTeamMemberRole(req.user, id, data.agencyRole);
   }
 
   // PUT /agency/my/members/:id/permissions — Update Property Assignments (Agency Admin only)
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
   @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @Put('my/members/:id/permissions')
   async updateTeamMemberPermissions(
     @Param('id') id: string,
@@ -109,7 +109,7 @@ export class AgencyController {
     if (!req.user?.organizationId)
       throw new BadRequestException('User is not associated with an organization.');
     return this.agencyService.updateTeamMemberPermissions(
-      req.user.organizationId,
+      req.user,
       id,
       data.propertyAssignments,
     );
@@ -118,18 +118,18 @@ export class AgencyController {
   // DELETE /agency/my/members/:id — Remove Team Member (Agency Admin only)
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
   @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @Delete('my/members/:id')
   async removeTeamMember(@Param('id') id: string, @Request() req: any) {
     if (!req.user?.organizationId)
       throw new BadRequestException('User is not associated with an organization.');
-    return this.agencyService.removeTeamMember(req.user.organizationId, id);
+    return this.agencyService.removeTeamMember(req.user, id);
   }
 
   // PUT /agency/properties/:propertyId/team — Update Team Members for a Property (Agency Admin only)
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
   @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @Put('properties/:propertyId/team')
   async updatePropertyTeam(
     @Param('propertyId') propertyId: string,
@@ -139,7 +139,7 @@ export class AgencyController {
     if (!req.user?.organizationId)
       throw new BadRequestException('User is not associated with an organization.');
     return this.agencyService.updatePropertyTeam(
-      req.user.organizationId,
+      req.user,
       propertyId,
       data.assignments,
     );
