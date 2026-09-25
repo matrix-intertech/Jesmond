@@ -43,18 +43,21 @@ export class AgencyService {
   }
 
   private async verifyAgencyAdmin(user: any) {
-    const { organizationId, id: userId, orgRole, role } = user;
+    const { organizationId, id: userId, role } = user;
     const staff = await this.prisma.orgStaff.findUnique({
       where: { userId_organizationId: { userId, organizationId } }
     });
 
-    const isGlobalAdmin = role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN || orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    const isGlobalAdmin = role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
 
     if (!isGlobalAdmin && !staff) {
       throw new ForbiddenException('Not associated with this organization.');
     }
 
-    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
+    const isOrganizationOwner = staff?.role === UserRole.ADMIN;
+    const isAgencyAdmin = staff?.agencyRole === AgencyRole.AGENCY_ADMIN;
+
+    const isAdmin = isGlobalAdmin || isOrganizationOwner || isAgencyAdmin;
     if (!isAdmin) throw new ForbiddenException('Only Agency Admin can perform this action.');
   }
 
