@@ -15,6 +15,7 @@ export class SettingsService {
       select: {
         id: true, email: true, firstName: true, lastName: true, role: true, accountStatus: true,
         phone: true, countryCode: true, ethnicity: true, dateOfBirth: true,
+        allowPublicContactDetails: true,
         orgStaffRoles: {
           where: { deletedAt: null },
           include: { organization: true },
@@ -52,6 +53,7 @@ export class SettingsService {
       if (data.countryCode !== undefined) updateData.countryCode = data.countryCode;
       if (data.ethnicity !== undefined) updateData.ethnicity = data.ethnicity || null;
       if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
+      if (data.allowPublicContactDetails !== undefined) updateData.allowPublicContactDetails = Boolean(data.allowPublicContactDetails);
 
       const updated = await this.prisma.user.update({
         where: { id: userId },
@@ -59,6 +61,7 @@ export class SettingsService {
         select: {
           id: true, email: true, firstName: true, lastName: true, role: true, accountStatus: true,
           phone: true, countryCode: true, ethnicity: true, dateOfBirth: true,
+          allowPublicContactDetails: true,
           orgStaffRoles: {
             where: { deletedAt: null },
             include: { organization: true },

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { getAccessToken } from '@/utils/auth';
 import {
   Building2,
   Users,
@@ -13,6 +14,7 @@ import {
   Shield,
   RefreshCw,
   AlertCircle,
+  X,
 } from 'lucide-react';
 import { LeadTracker } from '@/components/marketing/LeadTracker';
 
@@ -21,8 +23,16 @@ interface AgencyDetail {
   name: string;
   branding: any;
   staff: Array<{
+    id: string;
     role: string;
-    user: { firstName: string; lastName: string };
+    user: { 
+      id: string;
+      firstName: string; 
+      lastName: string;
+      email?: string;
+      phone?: string;
+      allowPublicContactDetails: boolean;
+    };
   }>;
   properties: Array<{
     id: string;
@@ -35,12 +45,17 @@ interface AgencyDetail {
 
 export default function AgencyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.slug as string;
 
   const [agency, setAgency] = useState<AgencyDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState('');
+  const [selectedMember, setSelectedMember] = useState<AgencyDetail['staff'][0] | null>(null);
+  
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState('');
 
   useEffect(() => {
     if (id) fetchAgency();
@@ -64,6 +79,43 @@ export default function AgencyDetailPage() {
       setError(e?.message || 'Network error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDirectMessage = async () => {
+    if (!selectedMember) return;
+    const token = getAccessToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    setChatError('');
+    setChatLoading(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/chat/conversations/direct`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ recipientUserId: selectedMember.user.id })
+      });
+      
+      if (res.ok) {
+        const convo = await res.json();
+        // Option 1: navigate to messages
+        router.push(`/messages/${convo.id}`);
+        // Option 2 (fallback): trigger compact chat event if they are on global layout
+        window.dispatchEvent(new CustomEvent('openCompactChat', { detail: { conversationId: convo.id } }));
+      } else {
+        const err = await res.json();
+        setChatError(err.message || 'Failed to start conversation');
+      }
+    } catch (e: any) {
+      setChatError(e?.message || 'Network error');
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -260,18 +312,22 @@ export default function AgencyDetailPage() {
                   const name = `${member.user.firstName} ${member.user.lastName}`;
                   const avatarInitial = (member.user.firstName?.[0] ?? '') + (member.user.lastName?.[0] ?? '');
                   return (
-                    <li key={i} className="flex items-center gap-3 px-5 py-3">
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                        style={{ backgroundColor: color }}
+                    <li key={i}>
+                      <button 
+                        onClick={() => setSelectedMember(member)}
+                        className="w-full text-left flex items-center gap-3 px-5 py-3 hover:bg-gray-50 focus:outline-none focus:bg-gray-50 transition-colors"
                       >
-                        {avatarInitial.toUpperCase()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
-                        {/* Only show whether they are a team member - no agencyRole exposed */}
-                        <p className="text-xs text-gray-400">Team Member</p>
-                      </div>
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                          style={{ backgroundColor: color }}
+                        >
+                          {avatarInitial.toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
+                          <p className="text-xs text-gray-400">Team Member</p>
+                        </div>
+                      </button>
                     </li>
                   );
                 })}
@@ -280,6 +336,78 @@ export default function AgencyDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Team Member Modal */}
+      {selectedMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-gray-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">Team Member</h3>
+              <button 
+                onClick={() => setSelectedMember(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6">
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+                  style={{ backgroundColor: color }}
+                >
+                  {((selectedMember.user.firstName?.[0] ?? '') + (selectedMember.user.lastName?.[0] ?? '')).toUpperCase()}
+                </div>
+                <div>
+                  <h4 className="text-lg font-bold text-gray-900">
+                    {selectedMember.user.firstName} {selectedMember.user.lastName}
+                  </h4>
+                  <p className="text-sm text-gray-500">Team Member</p>
+                </div>
+              </div>
+
+              {selectedMember.user.allowPublicContactDetails ? (
+                <div className="space-y-3 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  {selectedMember.user.email && (
+                    <div>
+                      <p className="text-xs text-gray-500 mb-0.5">Email</p>
+                      <a href={`mailto:${selectedMember.user.email}`} className="text-sm font-medium text-gray-900 hover:text-orange-600">
+                        {selectedMember.user.email}
+                      </a>
+                    </div>
+                  )}
+                  {selectedMember.user.phone && (
+                    <div>
+                      <p className="text-xs text-gray-500 mb-0.5">Phone</p>
+                      <a href={`tel:${selectedMember.user.phone}`} className="text-sm font-medium text-gray-900 hover:text-orange-600">
+                        {selectedMember.user.phone}
+                      </a>
+                    </div>
+                  )}
+                  {!selectedMember.user.email && !selectedMember.user.phone && (
+                     <p className="text-sm text-gray-500">Contact details not provided.</p>
+                  )}
+                </div>
+              ) : (
+                <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                  <p className="text-sm font-medium text-gray-900 mb-1">Contact details are private.</p>
+                  <p className="text-xs text-gray-500">You can message this team member through Jesmond.</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleDirectMessage}
+                disabled={chatLoading}
+                className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange disabled:opacity-50"
+              >
+                {chatLoading ? 'Starting...' : 'Message on Jesmond'}
+              </button>
+              {chatError && <p className="mt-2 text-xs text-red-500 text-center">{chatError}</p>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

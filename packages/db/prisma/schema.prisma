@@ -49,6 +49,7 @@ model User {
   emailNotifications Boolean @default(true)
   smsNotifications   Boolean @default(false)
   pushNotifications  Boolean @default(true)
+  allowPublicContactDetails Boolean @default(false)
 
   // Global Permissions for non-org users
   permissions String[]
@@ -1417,8 +1418,8 @@ enum PropertyPermission {
 model Conversation {
   id              String   @id @default(uuid())
   conversationKey String   @unique
-  propertyId      String
-  property        Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  propertyId      String?
+  property        Property? @relation(fields: [propertyId], references: [id], onDelete: Restrict)
 
   participants ConversationParticipant[]
   messages     Message[]

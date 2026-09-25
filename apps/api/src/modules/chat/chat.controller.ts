@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Req, UnauthorizedException, 
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
-import { InitConversationDto, SendMessageDto } from './dtos/chat.dto';
+import { InitConversationDto, InitDirectConversationDto, SendMessageDto } from './dtos/chat.dto';
 
 interface AuthenticatedRequest {
   user?: AuthenticatedUser;
@@ -24,6 +24,11 @@ export class ChatController {
   @Post('init')
   async initConversation(@Req() req: AuthenticatedRequest, @Body() body: InitConversationDto) {
     return this.chatService.initConversation(body.propertyId, this.getAuthenticatedUserId(req));
+  }
+
+  @Post('conversations/direct')
+  async initDirectConversation(@Req() req: AuthenticatedRequest, @Body() body: InitDirectConversationDto) {
+    return this.chatService.initDirectConversation(body.recipientUserId, this.getAuthenticatedUserId(req));
   }
 
   @Get('conversations')

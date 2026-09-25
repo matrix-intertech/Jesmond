@@ -280,12 +280,22 @@ export class AgencyService {
         id: true,
         name: true,
         branding: true,
-        // Only expose public member names - no emails, phones, permissions, or agencyRole
         staff: {
           where: { deletedAt: null },
           select: {
+            id: true,
             role: true,
-            user: { select: { firstName: true, lastName: true } }
+            agencyRole: true,
+            user: { 
+              select: { 
+                id: true, 
+                firstName: true, 
+                lastName: true, 
+                email: true, 
+                phone: true, 
+                allowPublicContactDetails: true 
+              } 
+            }
           }
         },
         properties: {
@@ -302,6 +312,24 @@ export class AgencyService {
     });
 
     if (!agency) throw new NotFoundException('Agency not found');
-    return agency;
+
+    const mappedStaff = agency.staff.map(s => {
+      const isPublic = Boolean(s.user.allowPublicContactDetails);
+      return {
+        id: s.id,
+        role: s.role,
+        agencyRole: s.agencyRole,
+        user: {
+          id: s.user.id,
+          firstName: s.user.firstName,
+          lastName: s.user.lastName,
+          allowPublicContactDetails: isPublic,
+          email: isPublic ? s.user.email : undefined,
+          phone: isPublic ? s.user.phone : undefined
+        }
+      };
+    });
+
+    return { ...agency, staff: mappedStaff };
   }
 }

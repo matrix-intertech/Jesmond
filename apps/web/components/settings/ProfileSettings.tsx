@@ -15,6 +15,7 @@ interface ProfileData {
   countryCode: string;
   ethnicity: string;
   dateOfBirth: string;
+  allowPublicContactDetails: boolean;
   profileCompletion?: { isComplete: boolean; missingFields: string[] };
 }
 
@@ -37,6 +38,7 @@ export default function ProfileSettings() {
     countryCode: "+61",
     ethnicity: "",
     dateOfBirth: "",
+    allowPublicContactDetails: false,
   });
 
   useEffect(() => {
@@ -89,6 +91,7 @@ export default function ProfileSettings() {
           countryCode: data.countryCode || undefined,
           ethnicity: data.ethnicity || undefined,
           dateOfBirth: data.dateOfBirth || undefined,
+          allowPublicContactDetails: data.allowPublicContactDetails,
         })
       });
       if (res.ok) {
@@ -218,6 +221,30 @@ export default function ProfileSettings() {
                   className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm px-3 py-2 focus:border-brand-orange focus:ring-brand-orange ${missingFields.includes('dateOfBirth') ? 'border-amber-400 bg-amber-50' : 'border-gray-300'}`}
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 pt-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Public Contact Information</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              Allow students and visitors to view my contact details on my public Agency profile.
+            </p>
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={data.allowPublicContactDetails}
+                onClick={() => setData({ ...data, allowPublicContactDetails: !data.allowPublicContactDetails })}
+                className={`${data.allowPublicContactDetails ? 'bg-brand-orange' : 'bg-gray-200'} relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`${data.allowPublicContactDetails ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                />
+              </button>
+              <span className="text-sm font-medium text-gray-900">
+                {data.allowPublicContactDetails ? 'ON: Your email and phone number may be displayed publicly on your Agency profile.' : 'OFF: Your contact details are private.'}
+              </span>
             </div>
           </div>
 

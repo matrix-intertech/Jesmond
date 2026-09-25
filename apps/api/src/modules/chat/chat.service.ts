@@ -138,6 +138,55 @@ export class ChatService {
     });
   }
 
+  async initDirectConversation(studentUserId: string, recipientUserId: string) {
+    const userId = this.assertId(studentUserId, 'Authenticated user id');
+    const targetUserId = this.assertId(recipientUserId, 'Recipient user id');
+    
+    if (userId === targetUserId) {
+      throw new BadRequestException('Cannot start a conversation with yourself');
+    }
+    
+    await this.assertActiveChatUser(userId);
+
+    const recipientStaff = await this.prisma.orgStaff.findFirst({
+      where: {
+        userId: targetUserId,
+        deletedAt: null,
+        user: {
+          accountStatus: AccountStatus.ACTIVE,
+          deletedAt: null,
+        },
+        organization: {
+          type: 'PROVIDER',
+          status: 'VERIFIED',
+        }
+      },
+      include: { organization: true }
+    });
+
+    if (!recipientStaff) {
+      throw new ForbiddenException('Recipient is not eligible for direct messaging');
+    }
+
+    const sortedIds = [userId, targetUserId].sort();
+    const conversationKey = `direct_user_${sortedIds[0]}_user_${sortedIds[1]}`;
+
+    return this.prisma.conversation.upsert({
+      where: { conversationKey },
+      update: {},
+      create: {
+        conversationKey,
+        participants: {
+          create: [{ userId }, { userId: targetUserId }],
+        },
+      },
+      include: {
+        participants: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+        messages: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+  }
+
   async getUserConversations(userId: string) {
     const id = this.assertId(userId, 'Authenticated user id');
     await this.assertActiveChatUser(id);

@@ -6,6 +6,12 @@ export class InitConversationDto {
   propertyId!: string;
 }
 
+export class InitDirectConversationDto {
+  @IsUUID()
+  @IsNotEmpty()
+  recipientUserId!: string;
+}
+
 export class SendMessageDto {
   @IsString()
   @IsNotEmpty()
