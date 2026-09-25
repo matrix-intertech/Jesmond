@@ -1,6 +1,6 @@
 import { Injectable, ForbiddenException, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UserRole, AccountStatus, OrgType, PropertyPermission } from '@prisma/client';
+import { UserRole, AccountStatus, OrgType, PropertyPermission, AgencyRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -14,11 +14,24 @@ export class AgencyService {
       include: {
         staff: {
           where: { deletedAt: null },
-          include: { user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } } }
+          include: {
+            user: {
+              select: { id: true, firstName: true, lastName: true, email: true, phone: true, accountStatus: true }
+            },
+            managedProperties: {
+              include: { property: { select: { id: true, name: true } } }
+            }
+          }
         },
         properties: {
           where: { deletedAt: null },
-          select: { id: true, name: true, status: true, address: true, suburb: { select: { name: true, postcode: true, city: { select: { name: true, stateId: true } } } } }
+          select: {
+            id: true,
+            name: true,
+            status: true,
+            address: true,
+            suburb: { select: { name: true, postcode: true, city: { select: { name: true, stateId: true } } } }
+          }
         }
       }
     });
@@ -51,7 +64,11 @@ export class AgencyService {
   }
 
   async inviteTeamMember(organizationId: string, inviterUserId: string, data: any) {
-    const { email, firstName, lastName, role, propertyAssignments } = data;
+    const { email, firstName, lastName, agencyRole, propertyAssignments } = data;
+
+    // Validate agencyRole
+    const resolvedAgencyRole: AgencyRole =
+      agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
 
     // Check if email already in use
     let existingUser = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
@@ -85,7 +102,8 @@ export class AgencyService {
         data: {
           userId: user.id,
           organizationId,
-          role: role === 'ADMIN' ? UserRole.ADMIN : UserRole.ORG_STAFF,
+          role: UserRole.ORG_STAFF,
+          agencyRole: resolvedAgencyRole,
         }
       });
 
@@ -106,6 +124,19 @@ export class AgencyService {
       }
 
       return { user, orgStaff };
+    });
+  }
+
+  async updateTeamMemberRole(organizationId: string, staffId: string, agencyRole: string) {
+    const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
+    if (!staff) throw new NotFoundException('Team member not found');
+
+    const resolvedAgencyRole: AgencyRole =
+      agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
+
+    return this.prisma.orgStaff.update({
+      where: { id: staffId },
+      data: { agencyRole: resolvedAgencyRole }
     });
   }
 
@@ -168,7 +199,7 @@ export class AgencyService {
           id: true,
           name: true,
           branding: true,
-          _count: { select: { staff: true, properties: true } }
+          _count: { select: { staff: { where: { deletedAt: null } }, properties: { where: { deletedAt: null } } } }
         },
         take,
         skip,
@@ -187,6 +218,7 @@ export class AgencyService {
         id: true,
         name: true,
         branding: true,
+        // Only expose public member names - no emails, phones, permissions, or agencyRole
         staff: {
           where: { deletedAt: null },
           select: {

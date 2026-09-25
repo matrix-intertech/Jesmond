@@ -168,8 +168,9 @@ model OrgStaff {
   officeId       String?
   office         Office?      @relation(fields: [officeId], references: [id])
 
-  role        UserRole @default(ORG_STAFF)
-  permissions String[] // Granular permissions e.g., ["property:read"]
+  role        UserRole    @default(ORG_STAFF)
+  agencyRole  AgencyRole? // Agency-specific role; null for non-agency staff
+  permissions String[]    // Granular permissions e.g., ["property:read"]
 
   retailBranchId    String?
   retailBranch   RetailBranch? @relation(fields: [retailBranchId], references: [id])
@@ -183,6 +184,13 @@ model OrgStaff {
   @@unique([userId, organizationId])
   @@index([organizationId])
   @@index([retailBranchId])
+}
+
+/// Agency-scoped role (only meaningful when org.type = AGENCY).
+/// Separate from global UserRole to avoid conflation.
+enum AgencyRole {
+  AGENCY_ADMIN
+  TEAM_MEMBER
 }
 
 model Property {

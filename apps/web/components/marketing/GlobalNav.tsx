@@ -68,6 +68,7 @@ export function GlobalNav() {
     { label: "Retail", href: "/retail" },
     { label: "Universities", href: "/universities" },
     { label: "Providers", href: "/providers" },
+    { label: "Agencies", href: "/agencies" },
     { label: "Support", href: "/support" },
   ];
 
