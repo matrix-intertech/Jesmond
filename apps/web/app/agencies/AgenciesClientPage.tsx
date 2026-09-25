@@ -21,6 +21,8 @@ interface Meta {
   totalPages: number;
 }
 
+import { GlobalNav } from '@/components/marketing/GlobalNav';
+
 export default function AgenciesClientPage() {
   const [agencies, setAgencies] = useState<Agency[]>([]);
   const [meta, setMeta] = useState<Meta | null>(null);
@@ -65,9 +67,10 @@ export default function AgenciesClientPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <GlobalNav />
       {/* Hero */}
-      <section className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <section className="bg-white border-b border-gray-200 pt-[104px]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="text-center">
             <span className="inline-block mb-3 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase bg-orange-100 text-orange-700">
               Verified Agencies
