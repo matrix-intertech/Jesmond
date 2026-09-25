@@ -73,6 +73,7 @@ model User {
   accountDeletionRequest  AccountDeletionRequest?
   ConversationParticipant ConversationParticipant[]
   Message                 Message[]
+  leads                   Lead[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -114,6 +115,7 @@ model Organization {
   properties Property[]
   staff      OrgStaff[]
   apiKeys    ApiKey[]
+  leads      Lead[]
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -176,6 +178,7 @@ model OrgStaff {
   retailBranch   RetailBranch? @relation(fields: [retailBranchId], references: [id])
   managedProperties PropertyManager[]
   branches       OrgStaffBranch[]
+  leadAssignments LeadAssignment[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -239,6 +242,7 @@ model Property {
   enquiries      Enquiry[]
   managers       PropertyManager[]
   conversations  Conversation[]
+  leads          Lead[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -1465,4 +1469,70 @@ model OrgStaffBranch {
 
   @@id([staffId, branchId])
   @@index([branchId])
+}
+
+enum LeadSourceType {
+  PROPERTY_PAGE
+  AGENCY_PAGE
+}
+
+enum LeadTemperature {
+  COLD
+  WARM
+  HOT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  FOLLOW_UP
+  QUALIFIED
+  APPLICATION_STARTED
+  CONVERTED
+  LOST
+}
+
+model Lead {
+  id             String         @id @default(uuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  propertyId     String?
+  property       Property?      @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  
+  sourceType     LeadSourceType
+  temperature    LeadTemperature @default(COLD)
+  status         LeadStatus     @default(NEW)
+  
+  visitorId      String?        // Session ID
+  userId         String?
+  user           User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  firstVisitedAt DateTime       @default(now())
+  lastVisitedAt  DateTime       @default(now())
+  visitCount     Int            @default(1)
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  assignments    LeadAssignment[]
+
+  @@index([organizationId])
+  @@index([propertyId])
+  @@index([userId])
+}
+
+model LeadAssignment {
+  id          String   @id @default(uuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  orgStaffId  String
+  orgStaff    OrgStaff @relation(fields: [orgStaffId], references: [id], onDelete: Cascade)
+  assignedBy  String?
+  
+  assignedAt  DateTime @default(now())
+  removedAt   DateTime?
+
+  @@unique([leadId, orgStaffId])
+  @@index([leadId])
+  @@index([orgStaffId])
 }

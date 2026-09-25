@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,6 +14,7 @@ import {
   Settings,
   ShoppingCart,
   Store,
+  Users,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { getCurrentUser, type User } from "@/utils/auth";
@@ -107,6 +108,12 @@ const providerItems: BottomNavItem[] = [
     label: "Properties",
     icon: Building2,
     isActive: section("/portal/properties"),
+  },
+  {
+    href: "/portal/leads",
+    label: "Leads",
+    icon: Users,
+    isActive: section("/portal/leads"),
   },
   {
     href: "/portal/chats",

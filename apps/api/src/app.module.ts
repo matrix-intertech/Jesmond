@@ -16,6 +16,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { RetailModule } from './modules/retail/retail.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { LeadsModule } from './modules/leads/leads.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -66,6 +67,7 @@ import { RedisModule } from './modules/redis/redis.module';
     SettingsModule,
     RetailModule,
     ChatModule,
+    LeadsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

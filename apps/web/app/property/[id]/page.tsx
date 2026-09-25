@@ -9,6 +9,7 @@ import PropertyMap from "../../../components/ui/PropertyMap";
 import { SaveButton } from "../../../components/student/SaveButton";
 import { PropertyActions } from "../../../components/student/PropertyActions";
 import { formatLocation } from "../../../utils/location";
+import { LeadTracker } from "../../../components/marketing/LeadTracker";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   try {
@@ -53,6 +54,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   return (
     <div className="min-h-screen bg-white">
       <GlobalNav />
+      {property.organizationId && (
+        <LeadTracker organizationId={property.organizationId} propertyId={property.id} />
+      )}
       <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 pt-32 pb-12 min-h-[70vh]">
         <Link href="/search" className="text-sm font-semibold text-brand-orange hover:underline mb-8 inline-block">&larr; Back to Search</Link>
         <div className="flex justify-between items-start mb-8">

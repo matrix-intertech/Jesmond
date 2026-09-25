@@ -14,6 +14,7 @@ import {
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
+import { LeadTracker } from '@/components/marketing/LeadTracker';
 
 interface AgencyDetail {
   id: string;
@@ -141,6 +142,7 @@ export default function AgencyDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <LeadTracker organizationId={agency.id} />
       {/* Back */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <Link
