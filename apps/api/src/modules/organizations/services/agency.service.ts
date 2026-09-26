@@ -160,17 +160,13 @@ export class AgencyService {
     if (data.customRoleId !== undefined) {
       if (data.customRoleId === null) {
          updateData.customRoleId = null;
-         updateData.permissions = updateData.agencyRole === AgencyRole.AGENCY_ADMIN ? ['*'] : [];
       } else {
          const customRole = await this.prisma.agencyCustomRole.findUnique({
            where: { id: data.customRoleId, organizationId }
          });
          if (!customRole) throw new NotFoundException('Custom role not found');
          updateData.customRoleId = customRole.id;
-         updateData.permissions = customRole.permissions;
       }
-    } else if (updateData.agencyRole !== undefined && updateData.agencyRole === AgencyRole.AGENCY_ADMIN) {
-         updateData.permissions = ['*'];
     }
 
     return this.prisma.orgStaff.update({
@@ -247,14 +243,58 @@ export class AgencyService {
     });
   }
 
-  // --- Custom Roles ---
-  async getCustomRoles(organizationId: string) {
-    return this.prisma.agencyCustomRole.findMany({
+  // --- Roles & Permissions ---
+  async getRoles(organizationId: string) {
+    // We can inject or instantiate it, but let's just ensure they exist inline here if we don't want to inject
+    const systemRoles = [
+      { name: 'Admin', description: 'Full access to agency settings, team, and all properties.', permissions: ['*'], isSystem: true },
+      { name: 'Team Member', description: 'Standard team member with basic access.', permissions: ['property.view', 'lead.view', 'enquiry.view', 'team.view'], isSystem: true }
+    ];
+
+    for (const role of systemRoles) {
+      const exists = await this.prisma.agencyCustomRole.findFirst({
+        where: { organizationId, name: role.name, isSystem: true }
+      });
+      if (!exists) {
+        await this.prisma.agencyCustomRole.create({
+          data: {
+            organizationId,
+            name: role.name,
+            description: role.description,
+            permissions: role.permissions,
+            isSystem: true
+          }
+        });
+      }
+    }
+
+    const roles = await this.prisma.agencyCustomRole.findMany({
       where: { organizationId },
       include: {
         _count: { select: { staff: true } }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: [
+        { isSystem: 'desc' },
+        { createdAt: 'desc' }
+      ]
+    });
+
+    const staffCounts = await this.prisma.orgStaff.groupBy({
+      by: ['agencyRole'],
+      where: { organizationId, agencyRole: { not: null }, deletedAt: null },
+      _count: { id: true }
+    });
+
+    return roles.map(role => {
+      if (role.name === 'Admin') {
+        const count = staffCounts.find(c => c.agencyRole === 'AGENCY_ADMIN')?._count.id || 0;
+        return { ...role, _count: { staff: count + role._count.staff } };
+      }
+      if (role.name === 'Team Member') {
+        const count = staffCounts.find(c => c.agencyRole === 'TEAM_MEMBER')?._count.id || 0;
+        return { ...role, _count: { staff: count + role._count.staff } };
+      }
+      return role;
     });
   }
 
@@ -281,13 +321,16 @@ export class AgencyService {
 
     const role = await this.prisma.agencyCustomRole.findFirst({ where: { id: roleId, organizationId } });
     if (!role) throw new NotFoundException('Role not found');
-    if (role.isSystem) throw new ForbiddenException('Cannot modify system roles');
 
-    if (data.name && data.name !== role.name) {
-      const existing = await this.prisma.agencyCustomRole.findFirst({
-        where: { organizationId, name: data.name }
-      });
-      if (existing) throw new ConflictException('A role with this name already exists');
+    if (role.isSystem) {
+      if (data.name && data.name !== role.name) throw new ForbiddenException('Cannot rename system roles');
+    } else {
+      if (data.name && data.name !== role.name) {
+        const existing = await this.prisma.agencyCustomRole.findFirst({
+          where: { organizationId, name: data.name }
+        });
+        if (existing) throw new ConflictException('A role with this name already exists');
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -300,13 +343,8 @@ export class AgencyService {
          }
        });
 
-       // Sync permissions to all staff members using this role
-       if (data.permissions) {
-         await tx.orgStaff.updateMany({
-           where: { customRoleId: roleId },
-           data: { permissions: data.permissions }
-         });
-       }
+       // We no longer sync permissions to OrgStaff.permissions.
+       // The AgencyPermissionsService handles dynamic resolution based on the role.
        return updatedRole;
     });
   }

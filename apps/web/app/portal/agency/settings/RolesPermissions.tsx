@@ -12,16 +12,43 @@ interface CustomRole {
 }
 
 const PERMISSION_GROUPS = [
-  { group: 'Agency', options: [{ label: 'View agency', value: 'AGENCY_VIEW' }, { label: 'Manage agency', value: 'AGENCY_MANAGE' }] },
-  { group: 'Team', options: [{ label: 'View team members', value: 'TEAM_VIEW' }, { label: 'Manage team members', value: 'TEAM_MANAGE' }, { label: 'Manage roles', value: 'ROLES_MANAGE' }] },
-  { group: 'Properties', options: [{ label: 'View properties', value: 'PROPERTIES_VIEW' }, { label: 'Manage properties', value: 'PROPERTIES_MANAGE' }] },
-  { group: 'Leads', options: [{ label: 'View leads', value: 'LEADS_VIEW' }, { label: 'Manage leads', value: 'LEADS_MANAGE' }] },
-  { group: 'Messages', options: [{ label: 'View messages', value: 'MESSAGES_VIEW' }, { label: 'Manage messages', value: 'MESSAGES_MANAGE' }] },
+  { group: 'Properties', options: [
+    { label: 'View properties', value: 'property.view' },
+    { label: 'View property details', value: 'property.view_details' },
+    { label: 'Create properties', value: 'property.create' },
+    { label: 'Edit properties', value: 'property.edit' },
+    { label: 'Delete properties', value: 'property.delete' },
+    { label: 'Manage applications', value: 'property.manage_applications' },
+  ]},
+  { group: 'Leads', options: [
+    { label: 'View leads', value: 'lead.view' },
+    { label: 'Create leads', value: 'lead.create' },
+    { label: 'Edit leads', value: 'lead.edit' },
+    { label: 'Delete leads', value: 'lead.delete' },
+    { label: 'Assign leads', value: 'lead.assign' },
+  ]},
+  { group: 'Enquiries', options: [
+    { label: 'View enquiries', value: 'enquiry.view' },
+    { label: 'Respond to enquiries', value: 'enquiry.respond' },
+    { label: 'Delete enquiries', value: 'enquiry.delete' },
+  ]},
+  { group: 'Team', options: [
+    { label: 'View team members', value: 'team.view' },
+    { label: 'Invite team members', value: 'team.invite' },
+    { label: 'Edit team members', value: 'team.edit' },
+    { label: 'Remove team members', value: 'team.remove' },
+  ]},
+  { group: 'Agency', options: [
+    { label: 'View settings', value: 'agency.view_settings' },
+    { label: 'Manage settings', value: 'agency.manage_settings' },
+    { label: 'Manage roles', value: 'agency.manage_roles' },
+  ]},
 ];
 
 export default function RolesPermissions() {
   const [roles, setRoles] = useState<CustomRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<CustomRole | null>(null);
@@ -75,6 +102,7 @@ export default function RolesPermissions() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaving(true);
     try {
       const token = getAccessToken();
       const url = editingRole 
@@ -95,6 +123,8 @@ export default function RolesPermissions() {
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -125,8 +155,8 @@ export default function RolesPermissions() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Custom Roles</h3>
-          <p className="mt-1 text-sm text-gray-500">Create custom roles to assign granular permissions to your team.</p>
+          <h3 className="text-lg font-medium leading-6 text-gray-900">Roles & Permissions</h3>
+          <p className="mt-1 text-sm text-gray-500">Manage your organization's roles and assign granular permissions.</p>
         </div>
         <button
           onClick={openCreateModal}
@@ -140,7 +170,7 @@ export default function RolesPermissions() {
       <div className="overflow-hidden bg-white shadow sm:rounded-md">
         <ul role="list" className="divide-y divide-gray-200">
           {roles.length === 0 ? (
-            <li className="px-4 py-8 text-center text-sm text-gray-500">No custom roles created yet.</li>
+            <li className="px-4 py-8 text-center text-sm text-gray-500">No roles found.</li>
           ) : (
             roles.map(role => (
               <li key={role.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors flex justify-between items-center">
@@ -181,7 +211,8 @@ export default function RolesPermissions() {
                   <label className="block text-sm font-medium text-gray-900">Role Name</label>
                   <input
                     required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm"
+                    disabled={editingRole?.isSystem}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -189,7 +220,8 @@ export default function RolesPermissions() {
                 <div>
                   <label className="block text-sm font-medium text-gray-900">Description</label>
                   <input
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm"
+                    disabled={editingRole?.isSystem}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                   />
@@ -230,9 +262,10 @@ export default function RolesPermissions() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-brand-orange px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500"
+                  disabled={saving}
+                  className="rounded-md bg-brand-orange px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
                 >
-                  Save Role
+                  {saving ? 'Saving...' : 'Save Role'}
                 </button>
               </div>
             </form>

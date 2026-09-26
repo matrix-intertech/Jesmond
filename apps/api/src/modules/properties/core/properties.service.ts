@@ -176,7 +176,7 @@ export class PropertiesService {
       const staff = await this.prisma.orgStaff.findUnique({
         where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
       });
-      const hasGlobalView = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('PROPERTIES_VIEW') || staff.permissions.includes('PROPERTIES_MANAGE')));
+      const hasGlobalView = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('property.view') || staff.permissions.includes('property.edit')));
       
       if (!hasGlobalView) {
         where.managers = { some: { orgStaff: { userId: user.id } } };
@@ -197,10 +197,10 @@ export class PropertiesService {
     const staff = await this.prisma.orgStaff.findUnique({
       where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
     });
-    const hasGlobalManage = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('PROPERTIES_MANAGE')));
+    const hasGlobalManage = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('property.edit')));
     if (hasGlobalManage) return;
 
-    const hasGlobalView = staff?.permissions?.includes('PROPERTIES_VIEW');
+    const hasGlobalView = staff?.permissions?.includes('property.view');
     if (hasGlobalView && !requireManage) return;
 
     const manager = await this.prisma.propertyManager.findFirst({
@@ -261,8 +261,8 @@ export class PropertiesService {
       const staff = await this.prisma.orgStaff.findUnique({
         where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
       });
-      const hasGlobalManage = staff?.agencyRole === 'AGENCY_ADMIN' || staff?.permissions.includes('*') || staff?.permissions.includes('PROPERTIES_MANAGE');
-      const hasGlobalView = staff?.permissions.includes('PROPERTIES_VIEW');
+      const hasGlobalManage = staff?.agencyRole === 'AGENCY_ADMIN' || staff?.permissions.includes('*') || staff?.permissions.includes('property.edit');
+      const hasGlobalView = staff?.permissions.includes('property.view');
 
       if (!hasGlobalManage && (!hasGlobalView || !allowPending)) {
         const manager = await this.prisma.propertyManager.findFirst({

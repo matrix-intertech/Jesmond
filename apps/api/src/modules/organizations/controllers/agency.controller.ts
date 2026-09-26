@@ -43,7 +43,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.AGENCY_VIEW)
+  @RequireAgencyPermissions(AgencyPermission.AGENCY_VIEW_SETTINGS)
   @Get('my')
   async getMyAgency(@Request() req: any) {
     if (!req.user?.organizationId)
@@ -55,7 +55,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_SETTINGS)
   @Put('my')
   async updateAgency(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
@@ -79,7 +79,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.TEAM_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.TEAM_INVITE)
   @Post('my/members')
   async inviteTeamMember(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
@@ -91,7 +91,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.TEAM_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.TEAM_EDIT)
   @Put('my/members/:id/role')
   async updateTeamMemberRole(
     @Param('id') id: string,
@@ -107,7 +107,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.TEAM_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.TEAM_EDIT)
   @Put('my/members/:id/permissions')
   async updateTeamMemberPermissions(
     @Param('id') id: string,
@@ -127,7 +127,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.TEAM_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.TEAM_REMOVE)
   @Delete('my/members/:id')
   async removeTeamMember(@Param('id') id: string, @Request() req: any) {
     if (!req.user?.organizationId)
@@ -139,7 +139,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.PROPERTIES_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.PROPERTY_EDIT)
   @Put('properties/:propertyId/team')
   async updatePropertyTeam(
     @Param('propertyId') propertyId: string,
@@ -159,17 +159,17 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.ROLES_MANAGE, AgencyPermission.TEAM_VIEW) // can view roles if either
+  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES, AgencyPermission.TEAM_VIEW) // can view roles if either
   @Get('my/roles')
   async getCustomRoles(@Request() req: any) {
     if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
-    return this.agencyService.getCustomRoles(req.user.organizationId);
+    return this.agencyService.getRoles(req.user.organizationId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.ROLES_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
   @Post('my/roles')
   async createCustomRole(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
@@ -179,7 +179,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.ROLES_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
   @Put('my/roles/:id')
   async updateCustomRole(@Param('id') id: string, @Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
@@ -189,7 +189,7 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.ROLES_MANAGE)
+  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
   @Delete('my/roles/:id')
   async deleteCustomRole(@Param('id') id: string, @Request() req: any) {
     if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');

@@ -2,14 +2,16 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { AgencyPermission } from '../agency-permissions.enum';
 import { AGENCY_PERMISSIONS_KEY } from '../decorators/require-agency-permissions.decorator';
-import { UserRole, AgencyRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AgencyPermissionsService, SYSTEM_ROLE_ADMIN } from '../../services/agency-permissions.service';
 
 @Injectable()
 export class AgencyPermissionGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private prisma: PrismaService
+    private prisma: PrismaService,
+    private permissionsService: AgencyPermissionsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -47,13 +49,17 @@ export class AgencyPermissionGuard implements CanActivate {
       throw new ForbiddenException('Employee record not found for this organization');
     }
 
-    // Org owner or Agency Admin override
-    if (orgStaff.role === UserRole.ADMIN || orgStaff.agencyRole === AgencyRole.AGENCY_ADMIN) {
+    // Org owner override
+    if (orgStaff.role === UserRole.ADMIN) {
       return true;
     }
 
-    // Check specific permissions
-    const userPermissions: string[] = orgStaff.permissions || [];
+    // Calculate effective permissions
+    const userPermissions = await this.permissionsService.getEffectivePermissions(user.id, user.organizationId);
+
+    // Also attach to request for later use
+    request.user.effectivePermissions = userPermissions;
+
     const hasAllRequired = requiredPermissions.every((perm) =>
       userPermissions.includes('*') || userPermissions.includes(perm)
     );

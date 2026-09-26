@@ -10,6 +10,7 @@ import { OfficesService } from './services/offices.service';
 import { OrgStaffService } from './services/org-staff.service';
 import { ProviderVerificationService } from './services/provider-verification.service';
 import { AgencyService } from './services/agency.service';
+import { AgencyPermissionsService } from './services/agency-permissions.service';
 
 @Module({
   imports: [],
@@ -26,7 +27,8 @@ import { AgencyService } from './services/agency.service';
     OrgStaffService,
     ProviderVerificationService,
     AgencyService,
+    AgencyPermissionsService,
   ],
-  exports: [OrganizationsService, OrgStaffService, AgencyService],
+  exports: [OrganizationsService, OrgStaffService, AgencyService, AgencyPermissionsService],
 })
 export class OrganizationsModule {}
