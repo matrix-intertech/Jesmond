@@ -22,20 +22,26 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Request() req: any, @Body() dto: LoginDto) {
+    const ipAddress = req.ip;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.login(dto, { ipAddress, userAgent });
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('login/2fa')
-  async login2fa(@Body() dto: Login2faDto) {
-    return this.authService.login2fa(dto);
+  async login2fa(@Request() req: any, @Body() dto: Login2faDto) {
+    const ipAddress = req.ip;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.login2fa(dto, { ipAddress, userAgent });
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('verify-email')
-  async verifyEmail(@Body() dto: VerifyEmailDto) {
-    return this.authService.verifyEmail(dto);
+  async verifyEmail(@Request() req: any, @Body() dto: VerifyEmailDto) {
+    const ipAddress = req.ip;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.verifyEmail(dto, { ipAddress, userAgent });
   }
 
   @HttpCode(HttpStatus.OK)

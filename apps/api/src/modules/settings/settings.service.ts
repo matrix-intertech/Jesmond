@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as qrcode from 'qrcode';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dtos/settings.dto';
+import { parseUserAgent } from '../../utils/device.util';
 const { authenticator } = require('otplib');
 
 @Injectable()
@@ -99,10 +100,25 @@ export class SettingsService {
       }),
       this.prisma.session.findMany({
         where: { userId, isRevoked: false },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, ipAddress: true, deviceInfo: true, createdAt: true, expiresAt: true, isRevoked: true }
       })
     ]);
-    return { mfaEnabled: user?.mfaEnabled, sessions };
+
+    const mappedSessions = sessions.map(s => {
+      const device = parseUserAgent(s.deviceInfo);
+      return {
+        id: s.id,
+        ipAddress: s.ipAddress,
+        createdAt: s.createdAt,
+        expiresAt: s.expiresAt,
+        isRevoked: s.isRevoked,
+        deviceInfo: undefined, // Do not expose raw User-Agent
+        device,
+      };
+    });
+
+    return { mfaEnabled: user?.mfaEnabled, sessions: mappedSessions };
   }
 
   async changePassword(userId: string, data: ChangePasswordDto) {

@@ -255,7 +255,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, clientInfo?: { ipAddress?: string, userAgent?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
       include: {
@@ -298,6 +298,8 @@ export class AuthService {
         userId: user.id,
         refreshToken: crypto.randomBytes(32).toString('hex'), // Minimal placeholder for refresh token requirement
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // Match 7d from JwtModule
+        ipAddress: clientInfo?.ipAddress,
+        deviceInfo: clientInfo?.userAgent,
       },
     });
 
@@ -328,7 +330,7 @@ export class AuthService {
     };
   }
 
-  async login2fa(dto: { mfaToken: string; code: string }) {
+  async login2fa(dto: { mfaToken: string; code: string }, clientInfo?: { ipAddress?: string, userAgent?: string }) {
     let payload;
     try {
       payload = this.jwtService.verify(dto.mfaToken);
@@ -363,6 +365,8 @@ export class AuthService {
         userId: user.id,
         refreshToken: crypto.randomBytes(32).toString('hex'),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ipAddress: clientInfo?.ipAddress,
+        deviceInfo: clientInfo?.userAgent,
       },
     });
 
@@ -383,7 +387,7 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
+  async verifyEmail(dto: VerifyEmailDto, clientInfo?: { ipAddress?: string, userAgent?: string }) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
       include: { orgStaffRoles: true },
@@ -434,6 +438,8 @@ export class AuthService {
         userId: updatedUser.id,
         refreshToken: crypto.randomBytes(32).toString('hex'),
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ipAddress: clientInfo?.ipAddress,
+        deviceInfo: clientInfo?.userAgent,
       },
     });
 

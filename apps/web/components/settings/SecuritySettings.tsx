@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAccessToken } from "@/utils/auth";
-import { LogOut } from "lucide-react";
+import { LogOut, Monitor, Smartphone, Tablet } from "lucide-react";
 
 export default function SecuritySettings() {
   const [mfaEnabled, setMfaEnabled] = useState(false);
@@ -279,17 +279,32 @@ export default function SecuritySettings() {
           <p className="mt-1 text-sm text-gray-500">Devices that are currently logged in to your account.</p>
         </div>
         <ul className="divide-y divide-gray-200">
-          {sessions.map((session: any) => (
-            <li key={session.id} className="p-6 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-brand-navy">{session.deviceInfo || 'Unknown Device'}</p>
-                <p className="text-xs text-gray-500 mt-1">IP: {session.ipAddress || 'Unknown'} • Started: {new Date(session.createdAt).toLocaleDateString()}</p>
-              </div>
-              <button onClick={() => revokeSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2 rounded-full hover:bg-rose-50" title="Log out session">
-                <LogOut className="w-5 h-5" />
-              </button>
-            </li>
-          ))}
+          {sessions.map((session: any) => {
+            const isDesktop = session.device?.type === 'desktop';
+            const isMobile = session.device?.type === 'mobile';
+            const isTablet = session.device?.type === 'tablet';
+
+            const deviceName = session.device && session.device.browser !== 'Unknown'
+              ? `${session.device.browser} on ${session.device.os}`
+              : 'Unknown Device';
+
+            return (
+              <li key={session.id} className="p-6 flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-shrink-0 text-gray-500">
+                    {isDesktop ? <Monitor className="w-6 h-6" /> : isTablet ? <Tablet className="w-6 h-6" /> : isMobile ? <Smartphone className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-brand-navy">{deviceName}</p>
+                    <p className="text-xs text-gray-500 mt-1">IP: {session.ipAddress || 'Unknown'} • Started: {new Date(session.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+                <button onClick={() => revokeSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2 rounded-full hover:bg-rose-50" title="Log out session">
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </li>
+            );
+          })}
           {!sessions.length && <li className="p-6 text-sm text-gray-500 text-center">No active sessions found.</li>}
         </ul>
       </div>
