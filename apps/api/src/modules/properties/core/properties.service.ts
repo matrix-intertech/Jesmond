@@ -171,13 +171,13 @@ export class PropertiesService {
 
   async getMyProperties(user: any) {
     const where: any = { organizationId: user.organizationId };
-    
+
     if (user.orgRole !== 'ADMIN' && user.orgRole !== 'SUPER_ADMIN') {
       const staff = await this.prisma.orgStaff.findUnique({
         where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
       });
       const hasGlobalView = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('property.view') || staff.permissions.includes('property.edit')));
-      
+
       if (!hasGlobalView) {
         where.managers = { some: { orgStaff: { userId: user.id } } };
       }
@@ -809,35 +809,15 @@ export class PropertiesService {
       include: {
         organization: {
           select: {
+            id: true,
             name: true,
             abn: true,
             settings: true,
-            staff: {
-              where: { deletedAt: null },
-              orderBy: { createdAt: 'asc' },
-              select: {
-                role: true,
-                user: {
-                  select: {
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                    phone: true,
-                    countryCode: true,
-                  },
-                },
-              },
-            },
           },
         },
         suburb: { select: { name: true, city: { select: { name: true } }, state: { select: { name: true, code: true } } } },
         media: { orderBy: { displayOrder: 'asc' } },
-        roomTypes: {
-          include: {
-            availabilityCalendar: { where: { date: { gte: new Date() } }, orderBy: { date: 'asc' } },
-            pricingHistory: { orderBy: { effectiveFrom: 'desc' }, take: 1 }
-          }
-        },
+        roomTypes: true,
         residents: {
           where: { deletedAt: null, isActive: true },
           select: {
@@ -877,9 +857,19 @@ export class PropertiesService {
     let providerContact = null;
     if (pubProperty.showContactDetails) {
       const settings: any = pubProperty.organization.settings || {};
-      const contactStaff =
-        pubProperty.organization.staff.find((staff: any) => staff.role === 'ADMIN')?.user ??
-        pubProperty.organization.staff[0]?.user;
+
+      const staffMembers = await this.prisma.orgStaff.findMany({
+        where: { organizationId: pubProperty.organization.id, deletedAt: null },
+        orderBy: [{ role: 'asc' }, { createdAt: 'asc' }],
+        take: 1,
+        include: {
+          user: {
+            select: { firstName: true, lastName: true, email: true, phone: true, countryCode: true }
+          }
+        }
+      });
+      const contactStaff = staffMembers[0]?.user;
+
       const profilePhone = contactStaff?.phone
         ? contactStaff.phone.startsWith('+') || !contactStaff.countryCode
           ? contactStaff.phone

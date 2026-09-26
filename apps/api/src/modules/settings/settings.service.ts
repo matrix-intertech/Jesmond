@@ -92,14 +92,16 @@ export class SettingsService {
   }
 
   async getSecurity(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { mfaEnabled: true }
-    });
-    const sessions = await this.prisma.session.findMany({
-      where: { userId, isRevoked: false },
-      orderBy: { createdAt: 'desc' }
-    });
+    const [user, sessions] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { mfaEnabled: true }
+      }),
+      this.prisma.session.findMany({
+        where: { userId, isRevoked: false },
+        orderBy: { createdAt: 'desc' }
+      })
+    ]);
     return { mfaEnabled: user?.mfaEnabled, sessions };
   }
 

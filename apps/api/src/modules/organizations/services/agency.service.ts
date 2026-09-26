@@ -251,21 +251,24 @@ export class AgencyService {
       { name: 'Team Member', description: 'Standard team member with basic access.', permissions: ['property.view', 'lead.view', 'enquiry.view', 'team.view'], isSystem: true }
     ];
 
-    for (const role of systemRoles) {
-      const exists = await this.prisma.agencyCustomRole.findFirst({
-        where: { organizationId, name: role.name, isSystem: true }
+    const existingSystemRoles = await this.prisma.agencyCustomRole.findMany({
+      where: { organizationId, isSystem: true, name: { in: systemRoles.map(r => r.name) } }
+    });
+    
+    const existingRoleNames = new Set(existingSystemRoles.map(r => r.name));
+    const missingRoles = systemRoles.filter(r => !existingRoleNames.has(r.name));
+
+    if (missingRoles.length > 0) {
+      await this.prisma.agencyCustomRole.createMany({
+        data: missingRoles.map(role => ({
+          organizationId,
+          name: role.name,
+          description: role.description,
+          permissions: role.permissions,
+          isSystem: true
+        })),
+        skipDuplicates: true
       });
-      if (!exists) {
-        await this.prisma.agencyCustomRole.create({
-          data: {
-            organizationId,
-            name: role.name,
-            description: role.description,
-            permissions: role.permissions,
-            isSystem: true
-          }
-        });
-      }
     }
 
     const roles = await this.prisma.agencyCustomRole.findMany({

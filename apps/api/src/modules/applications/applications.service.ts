@@ -428,49 +428,55 @@ export class ApplicationsService {
       }
     });
 
-    for (const app of apps) {
-      await this.prisma.$transaction(async (tx) => {
-        const txApp = await tx.application.findUnique({
-          where: { id: app.id },
-          include: { lease: true }
-        });
+    // Chunk the applications to prevent database connection exhaustion if there are hundreds of pending apps
+    const chunkSize = 10;
+    for (let i = 0; i < apps.length; i += chunkSize) {
+      const chunk = apps.slice(i, i + chunkSize);
 
-        if (!txApp) return;
-        if (isClosedStatus(txApp.status)) {
-          return; // Already closed
-        }
-
-        const updateResult = await tx.application.updateMany({
-          where: { id: txApp.id, status: txApp.status },
-          data: { status: 'CANCELLED' }
-        });
-        if (updateResult.count === 0) {
-          return; // Concurrently modified, safely abort
-        }
-
-        if (isAllocatedStatus(txApp.status)) {
-          await tx.roomType.update({
-            where: { id: txApp.roomTypeId },
-            data: { inventory: { increment: 1 } }
+      await Promise.all(chunk.map(async (app) => {
+        await this.prisma.$transaction(async (tx) => {
+          const txApp = await tx.application.findUnique({
+            where: { id: app.id },
+            include: { lease: true }
           });
 
-          if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
-            await tx.lease.update({
-              where: { id: txApp.lease.id },
-              data: { status: 'TERMINATED' }
-            });
+          if (!txApp) return;
+          if (isClosedStatus(txApp.status)) {
+            return; // Already closed
           }
-        }
-      });
 
-      this.emailService
-        .sendApplicationRemovalEmail({
-          studentEmail: app.student.email,
-          studentName: `${app.student.firstName} ${app.student.lastName}`,
-          propertyName: app.roomType.property.name,
-          reason: 'Property is no longer available',
-        })
-        .catch((err) => this.logger.error(`Failed to send property unpublish email for app ${app.id}`, err));
+          const updateResult = await tx.application.updateMany({
+            where: { id: txApp.id, status: txApp.status },
+            data: { status: 'CANCELLED' }
+          });
+          if (updateResult.count === 0) {
+            return; // Concurrently modified, safely abort
+          }
+
+          if (isAllocatedStatus(txApp.status)) {
+            await tx.roomType.update({
+              where: { id: txApp.roomTypeId },
+              data: { inventory: { increment: 1 } }
+            });
+
+            if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
+              await tx.lease.update({
+                where: { id: txApp.lease.id },
+                data: { status: 'TERMINATED' }
+              });
+            }
+          }
+        });
+
+        this.emailService
+          .sendApplicationRemovalEmail({
+            studentEmail: app.student.email,
+            studentName: `${app.student.firstName} ${app.student.lastName}`,
+            propertyName: app.roomType.property.name,
+            reason: 'Property is no longer available',
+          })
+          .catch((err) => this.logger.error(`Failed to send property unpublish email for app ${app.id}`, err));
+      }));
     }
   }
 
