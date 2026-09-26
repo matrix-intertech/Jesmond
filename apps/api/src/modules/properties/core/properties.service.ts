@@ -173,7 +173,14 @@ export class PropertiesService {
     const where: any = { organizationId: user.organizationId };
     
     if (user.orgRole !== 'ADMIN' && user.orgRole !== 'SUPER_ADMIN') {
-      where.managers = { some: { orgStaff: { userId: user.id } } };
+      const staff = await this.prisma.orgStaff.findUnique({
+        where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
+      });
+      const hasGlobalView = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('PROPERTIES_VIEW') || staff.permissions.includes('PROPERTIES_MANAGE')));
+      
+      if (!hasGlobalView) {
+        where.managers = { some: { orgStaff: { userId: user.id } } };
+      }
     }
 
     return this.prisma.property.findMany({
@@ -187,6 +194,15 @@ export class PropertiesService {
 
   async verifyPropertyAccess(propertyId: string, user: any, requireManage = false) {
     if (user.orgRole === 'ADMIN' || user.orgRole === 'SUPER_ADMIN') return;
+    const staff = await this.prisma.orgStaff.findUnique({
+      where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
+    });
+    const hasGlobalManage = staff?.agencyRole === 'AGENCY_ADMIN' || (staff?.permissions && (staff.permissions.includes('*') || staff.permissions.includes('PROPERTIES_MANAGE')));
+    if (hasGlobalManage) return;
+
+    const hasGlobalView = staff?.permissions?.includes('PROPERTIES_VIEW');
+    if (hasGlobalView && !requireManage) return;
+
     const manager = await this.prisma.propertyManager.findFirst({
       where: {
         propertyId,
@@ -242,15 +258,23 @@ export class PropertiesService {
     }
 
     if (user.orgRole !== 'ADMIN' && user.orgRole !== 'SUPER_ADMIN') {
-      const manager = await this.prisma.propertyManager.findFirst({
-        where: {
-          propertyId: id,
-          orgStaff: { userId: user.id, organizationId: user.organizationId }
-        }
+      const staff = await this.prisma.orgStaff.findUnique({
+        where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
       });
-      if (!manager) throw new ForbiddenException('You are not assigned to this property');
-      // For now, allowPending=false loosely implies MANAGE access required for mutating endpoints
-      if (!allowPending && manager.permission !== 'MANAGE') throw new ForbiddenException('You need MANAGE permission for this property');
+      const hasGlobalManage = staff?.agencyRole === 'AGENCY_ADMIN' || staff?.permissions.includes('*') || staff?.permissions.includes('PROPERTIES_MANAGE');
+      const hasGlobalView = staff?.permissions.includes('PROPERTIES_VIEW');
+
+      if (!hasGlobalManage && (!hasGlobalView || !allowPending)) {
+        const manager = await this.prisma.propertyManager.findFirst({
+          where: {
+            propertyId: id,
+            orgStaff: { userId: user.id, organizationId: user.organizationId }
+          }
+        });
+        if (!manager) throw new ForbiddenException('You are not assigned to this property');
+        // For now, allowPending=false loosely implies MANAGE access required for mutating endpoints
+        if (!allowPending && manager.permission !== 'MANAGE') throw new ForbiddenException('You need MANAGE permission for this property');
+      }
     }
 
 

@@ -128,6 +128,7 @@ model Organization {
   SalesOrder      SalesOrder[]
   PosSyncJob      PosSyncJob[]
   PosWebhookEvent PosWebhookEvent[]
+  agencyCustomRoles AgencyCustomRole[]
 
   @@index([abn])
 }
@@ -181,6 +182,9 @@ model OrgStaff {
   branches       OrgStaffBranch[]
   leadAssignments LeadAssignment[]
 
+  customRoleId   String?
+  customRole     AgencyCustomRole? @relation(fields: [customRoleId], references: [id])
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -188,6 +192,7 @@ model OrgStaff {
   @@unique([userId, organizationId])
   @@index([organizationId])
   @@index([retailBranchId])
+  @@index([customRoleId])
 }
 
 /// Agency-scoped role (only meaningful when org.type = AGENCY).
@@ -195,6 +200,25 @@ model OrgStaff {
 enum AgencyRole {
   AGENCY_ADMIN
   TEAM_MEMBER
+}
+
+model AgencyCustomRole {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  name           String
+  description    String?
+  permissions    String[]     // Array of permission strings
+  isSystem       Boolean      @default(false)
+
+  staff          OrgStaff[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
 }
 
 model Property {

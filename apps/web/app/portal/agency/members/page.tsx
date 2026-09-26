@@ -10,6 +10,7 @@ type PropertyPermission = 'VIEW' | 'MANAGE';
 interface Member {
   id: string;
   agencyRole: AgencyRole | null;
+  customRole: { id: string; name: string; isSystem: boolean } | null;
   role: string;
   user: { id: string; firstName: string; lastName: string; email: string; accountStatus: string };
   managedProperties: Array<{ propertyId: string; permission: PropertyPermission; property: { id: string; name: string } }>;
@@ -34,6 +35,7 @@ const ROLE_BADGE_CLASSES: Record<AgencyRole, string> = {
 export default function AgencyMembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [customRoles, setCustomRoles] = useState<Array<{ id: string; name: string; isSystem: boolean }>>([]);
   const [loading, setLoading] = useState(true);
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -44,6 +46,7 @@ export default function AgencyMembersPage() {
     lastName: '',
     email: '',
     agencyRole: 'TEAM_MEMBER' as AgencyRole,
+    customRoleId: '',
   });
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [propertyAssignments, setPropertyAssignments] = useState<{ propertyId: string; permission: PropertyPermission }[]>([]);
@@ -56,17 +59,21 @@ export default function AgencyMembersPage() {
     setLoading(true);
     try {
       const token = getAccessToken();
-      const [memRes, propRes] = await Promise.all([
+      const [memRes, propRes, rolesRes] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/members`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/properties/my`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/roles`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
 
       if (memRes.ok) setMembers(await memRes.json());
       if (propRes.ok) setProperties(await propRes.json());
+      if (rolesRes.ok) setCustomRoles(await rolesRes.json());
     } catch (e) {
       console.error(e);
     } finally {
@@ -85,7 +92,7 @@ export default function AgencyMembersPage() {
       });
       if (res.ok) {
         setIsInviteModalOpen(false);
-        setInviteData({ firstName: '', lastName: '', email: '', agencyRole: 'TEAM_MEMBER' });
+        setInviteData({ firstName: '', lastName: '', email: '', agencyRole: 'TEAM_MEMBER', customRoleId: '' });
         fetchData();
       } else {
         const err = await res.text();
@@ -96,7 +103,7 @@ export default function AgencyMembersPage() {
     }
   };
 
-  const handleChangeRole = async (member: Member, agencyRole: AgencyRole) => {
+  const handleChangeRole = async (member: Member, agencyRole: AgencyRole, customRoleId: string | null = null) => {
     try {
       const token = getAccessToken();
       const res = await fetch(
@@ -104,7 +111,7 @@ export default function AgencyMembersPage() {
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ agencyRole })
+          body: JSON.stringify({ agencyRole, customRoleId })
         }
       );
       if (res.ok) fetchData();
@@ -237,7 +244,11 @@ export default function AgencyMembersPage() {
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{member.user.email}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {roleKey ? (
+                    {member.customRole ? (
+                      <span className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-blue-50 text-blue-700 ring-blue-700/10">
+                        {member.customRole.name}
+                      </span>
+                    ) : roleKey ? (
                       <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${ROLE_BADGE_CLASSES[roleKey]}`}>
                         {roleKey === 'AGENCY_ADMIN' ? <Shield className="h-3 w-3" /> : <UserCheck className="h-3 w-3" />}
                         {ROLE_LABELS[roleKey]}
@@ -273,25 +284,26 @@ export default function AgencyMembersPage() {
                   </td>
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <div className="flex items-center justify-end gap-3">
-                      {/* Role toggle */}
-                      {roleKey !== 'AGENCY_ADMIN' && (
-                        <button
-                          onClick={() => handleChangeRole(member, 'AGENCY_ADMIN')}
-                          className="text-purple-600 hover:text-purple-800 text-xs font-medium"
-                          title="Promote to Agency Admin"
-                        >
-                          Make Admin
-                        </button>
-                      )}
-                      {roleKey === 'AGENCY_ADMIN' && (
-                        <button
-                          onClick={() => handleChangeRole(member, 'TEAM_MEMBER')}
-                          className="text-gray-500 hover:text-gray-700 text-xs font-medium"
-                          title="Demote to Team Member"
-                        >
-                          Make Member
-                        </button>
-                      )}
+                      {/* Role dropdown */}
+                      <select
+                        value={member.customRole?.id || member.agencyRole || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'AGENCY_ADMIN' || val === 'TEAM_MEMBER') {
+                            handleChangeRole(member, val as AgencyRole, null);
+                          } else {
+                            handleChangeRole(member, 'TEAM_MEMBER', val);
+                          }
+                        }}
+                        className="block w-32 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-900 focus:border-brand-orange focus:outline-none"
+                      >
+                        <option value="AGENCY_ADMIN">Agency Admin</option>
+                        <option value="TEAM_MEMBER">Team Member</option>
+                        {customRoles.map(r => (
+                          <option key={r.id} value={r.id}>{r.name}</option>
+                        ))}
+                      </select>
+
                       {/* Permissions */}
                       {roleKey !== 'AGENCY_ADMIN' && (
                         <button
@@ -366,17 +378,29 @@ export default function AgencyMembersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Agency Role</label>
+                    <label className="block text-sm font-medium text-gray-700">Role</label>
                     <select
                       className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-brand-orange focus:outline-none focus:ring-1 focus:ring-brand-orange"
-                      value={inviteData.agencyRole}
-                      onChange={e => setInviteData({ ...inviteData, agencyRole: e.target.value as AgencyRole })}
+                      value={inviteData.customRoleId || inviteData.agencyRole}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val === 'AGENCY_ADMIN' || val === 'TEAM_MEMBER') {
+                          setInviteData({ ...inviteData, agencyRole: val as AgencyRole, customRoleId: '' });
+                        } else {
+                          setInviteData({ ...inviteData, agencyRole: 'TEAM_MEMBER', customRoleId: val });
+                        }
+                      }}
                     >
                       <option value="TEAM_MEMBER">Team Member — access assigned properties only</option>
                       <option value="AGENCY_ADMIN">Agency Admin — full agency access</option>
+                      <optgroup label="Custom Roles">
+                        {customRoles.map(r => (
+                          <option key={r.id} value={r.id}>{r.name}</option>
+                        ))}
+                      </optgroup>
                     </select>
                     <p className="mt-1 text-xs text-gray-500">
-                      Team Members must have properties explicitly assigned with VIEW or MANAGE permission.
+                      Select a role to determine base permissions. Team Members without a custom role must have properties explicitly assigned.
                     </p>
                   </div>
                   <div className="mt-5 sm:grid sm:grid-flow-row-dense sm:grid-cols-2 sm:gap-3">

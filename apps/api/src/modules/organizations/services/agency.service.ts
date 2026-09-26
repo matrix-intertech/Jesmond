@@ -42,27 +42,9 @@ export class AgencyService {
     return agency;
   }
 
-  private async verifyAgencyAdmin(user: any) {
-    const { organizationId, id: userId, role } = user;
-    const staff = await this.prisma.orgStaff.findUnique({
-      where: { userId_organizationId: { userId, organizationId } }
-    });
 
-    const isGlobalAdmin = role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN;
-
-    if (!isGlobalAdmin && !staff) {
-      throw new ForbiddenException('Not associated with this organization.');
-    }
-
-    const isOrganizationOwner = staff?.role === UserRole.ADMIN;
-    const isAgencyAdmin = staff?.agencyRole === AgencyRole.AGENCY_ADMIN;
-
-    const isAdmin = isGlobalAdmin || isOrganizationOwner || isAgencyAdmin;
-    if (!isAdmin) throw new ForbiddenException('Only Agency Admin can perform this action.');
-  }
 
   async updateAgency(user: any, data: any) {
-    await this.verifyAgencyAdmin(user);
     const organizationId = user.organizationId;
     return this.prisma.organization.update({
       where: { id: organizationId },
@@ -79,6 +61,7 @@ export class AgencyService {
       where: { organizationId, deletedAt: null },
       include: {
         user: { select: { id: true, firstName: true, lastName: true, email: true, accountStatus: true } },
+        customRole: true,
         managedProperties: {
           include: { property: { select: { id: true, name: true } } }
         }
@@ -87,13 +70,23 @@ export class AgencyService {
   }
 
   async inviteTeamMember(user: any, data: any) {
-    await this.verifyAgencyAdmin(user);
     const organizationId = user.organizationId;
-    const { email, firstName, lastName, agencyRole, propertyAssignments } = data;
+    const { email, firstName, lastName, agencyRole, propertyAssignments, customRoleId } = data;
 
     // Validate agencyRole
     const resolvedAgencyRole: AgencyRole =
       agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
+
+    let permissionsToAssign: string[] = [];
+    if (customRoleId) {
+      const customRole = await this.prisma.agencyCustomRole.findUnique({
+        where: { id: customRoleId, organizationId }
+      });
+      if (!customRole) throw new NotFoundException('Custom role not found');
+      permissionsToAssign = customRole.permissions;
+    } else if (resolvedAgencyRole === AgencyRole.AGENCY_ADMIN) {
+      permissionsToAssign = ['*'];
+    }
 
     // Check if email already in use
     let existingUser = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
@@ -129,6 +122,8 @@ export class AgencyService {
           organizationId,
           role: UserRole.ORG_STAFF,
           agencyRole: resolvedAgencyRole,
+          customRoleId: customRoleId || null,
+          permissions: permissionsToAssign,
         }
       });
 
@@ -152,23 +147,39 @@ export class AgencyService {
     });
   }
 
-  async updateTeamMemberRole(user: any, staffId: string, agencyRole: string) {
-    await this.verifyAgencyAdmin(user);
+  async updateTeamMemberRole(user: any, staffId: string, data: { agencyRole?: string, customRoleId?: string | null }) {
     const organizationId = user.organizationId;
     const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
     if (!staff) throw new NotFoundException('Team member not found');
 
-    const resolvedAgencyRole: AgencyRole =
-      agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
+    const updateData: any = {};
+    if (data.agencyRole !== undefined) {
+      updateData.agencyRole = data.agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
+    }
+
+    if (data.customRoleId !== undefined) {
+      if (data.customRoleId === null) {
+         updateData.customRoleId = null;
+         updateData.permissions = updateData.agencyRole === AgencyRole.AGENCY_ADMIN ? ['*'] : [];
+      } else {
+         const customRole = await this.prisma.agencyCustomRole.findUnique({
+           where: { id: data.customRoleId, organizationId }
+         });
+         if (!customRole) throw new NotFoundException('Custom role not found');
+         updateData.customRoleId = customRole.id;
+         updateData.permissions = customRole.permissions;
+      }
+    } else if (updateData.agencyRole !== undefined && updateData.agencyRole === AgencyRole.AGENCY_ADMIN) {
+         updateData.permissions = ['*'];
+    }
 
     return this.prisma.orgStaff.update({
       where: { id: staffId },
-      data: { agencyRole: resolvedAgencyRole }
+      data: updateData
     });
   }
 
   async updateTeamMemberPermissions(user: any, staffId: string, propertyAssignments: any[]) {
-    await this.verifyAgencyAdmin(user);
     const organizationId = user.organizationId;
     // Verify staff belongs to org
     const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
@@ -197,7 +208,6 @@ export class AgencyService {
   }
 
   async removeTeamMember(user: any, staffId: string) {
-    await this.verifyAgencyAdmin(user);
     const organizationId = user.organizationId;
     const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
     if (!staff) throw new NotFoundException('Team member not found');
@@ -209,7 +219,6 @@ export class AgencyService {
   }
 
   async updatePropertyTeam(user: any, propertyId: string, assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[]) {
-    await this.verifyAgencyAdmin(user);
     const organizationId = user.organizationId;
     // Verify property belongs to org
     const prop = await this.prisma.property.findFirst({ where: { id: propertyId, organizationId } });
@@ -236,6 +245,86 @@ export class AgencyService {
       }
       return newAssignments;
     });
+  }
+
+  // --- Custom Roles ---
+  async getCustomRoles(organizationId: string) {
+    return this.prisma.agencyCustomRole.findMany({
+      where: { organizationId },
+      include: {
+        _count: { select: { staff: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async createCustomRole(user: any, data: { name: string, description?: string, permissions: string[] }) {
+    const organizationId = user.organizationId;
+
+    const existing = await this.prisma.agencyCustomRole.findFirst({
+      where: { organizationId, name: data.name }
+    });
+    if (existing) throw new ConflictException('A role with this name already exists');
+
+    return this.prisma.agencyCustomRole.create({
+      data: {
+        organizationId,
+        name: data.name,
+        description: data.description,
+        permissions: data.permissions || [],
+      }
+    });
+  }
+
+  async updateCustomRole(user: any, roleId: string, data: { name?: string, description?: string, permissions?: string[] }) {
+    const organizationId = user.organizationId;
+
+    const role = await this.prisma.agencyCustomRole.findFirst({ where: { id: roleId, organizationId } });
+    if (!role) throw new NotFoundException('Role not found');
+    if (role.isSystem) throw new ForbiddenException('Cannot modify system roles');
+
+    if (data.name && data.name !== role.name) {
+      const existing = await this.prisma.agencyCustomRole.findFirst({
+        where: { organizationId, name: data.name }
+      });
+      if (existing) throw new ConflictException('A role with this name already exists');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+       const updatedRole = await tx.agencyCustomRole.update({
+         where: { id: roleId },
+         data: {
+           name: data.name,
+           description: data.description,
+           permissions: data.permissions,
+         }
+       });
+
+       // Sync permissions to all staff members using this role
+       if (data.permissions) {
+         await tx.orgStaff.updateMany({
+           where: { customRoleId: roleId },
+           data: { permissions: data.permissions }
+         });
+       }
+       return updatedRole;
+    });
+  }
+
+  async deleteCustomRole(user: any, roleId: string) {
+    const organizationId = user.organizationId;
+
+    const role = await this.prisma.agencyCustomRole.findFirst({ 
+      where: { id: roleId, organizationId },
+      include: { _count: { select: { staff: true } } }
+    });
+    if (!role) throw new NotFoundException('Role not found');
+    if (role.isSystem) throw new ForbiddenException('Cannot delete system roles');
+    if (role._count.staff > 0) {
+      throw new ConflictException('Cannot delete role while it is assigned to team members');
+    }
+
+    return this.prisma.agencyCustomRole.delete({ where: { id: roleId } });
   }
 
   // --- Public Directory ---
