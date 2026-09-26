@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query, UseGuards, Request, BadRequestException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -53,5 +53,30 @@ export class AdminController {
     @Request() req: any
   ) {
     return this.adminService.updatePropertyVerificationStatus(id, body.status, req.user.id);
+  }
+
+  // ─── User Management ──────────────────────────────────────────────────────
+
+  @Get('users')
+  async getUsers(
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.adminService.getUsers(
+      search,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 30,
+    );
+  }
+
+  @Post('users/:id/disable')
+  async disableUser(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.disableUser(id, req.user.id);
+  }
+
+  @Post('users/:id/enable')
+  async enableUser(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.enableUser(id, req.user.id);
   }
 }

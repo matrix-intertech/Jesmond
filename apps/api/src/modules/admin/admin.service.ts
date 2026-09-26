@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApplicationsService } from '../applications/applications.service';
-import { OrgStatus } from '@prisma/client';
+import { AccountStatus, OrgStatus, UserRole } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
@@ -176,5 +176,180 @@ export class AdminService {
     });
 
     return updatedProperty;
+  }
+
+  // ─── User Management ──────────────────────────────────────────────────────
+
+  async getUsers(search?: string, page = 1, limit = 30) {
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          accountStatus: true,
+          createdAt: true,
+          orgStaffRoles: {
+            where: { deletedAt: null },
+            select: {
+              organization: {
+                select: { id: true, name: true, type: true, status: true },
+              },
+            },
+            take: 1,
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    const mapped = users.map((u) => {
+      const orgStaff = u.orgStaffRoles?.[0];
+      const org = orgStaff?.organization ?? null;
+      let profileType: string = u.role;
+      if (u.role === UserRole.ORG_STAFF && org) {
+        const orgTypeMap: Record<string, string> = {
+          PROVIDER: 'Host',
+          RETAIL: 'Retailer',
+          AGENCY: 'Agent',
+          UNIVERSITY: 'University Staff',
+        };
+        profileType = orgTypeMap[org.type] ?? 'Staff';
+      } else {
+        const roleMap: Record<string, string> = {
+          STUDENT: 'Student',
+          PARENT: 'Parent',
+          ADMIN: 'Admin',
+          SUPER_ADMIN: 'Super Admin',
+        };
+        profileType = roleMap[u.role] ?? u.role;
+      }
+      return {
+        id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+        role: u.role,
+        accountStatus: u.accountStatus,
+        profileType,
+        organization: org ? { id: org.id, name: org.name, type: org.type, status: org.status } : null,
+        createdAt: u.createdAt,
+      };
+    });
+
+    return {
+      data: mapped,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async disableUser(targetUserId: string, adminId: string) {
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      include: {
+        orgStaffRoles: {
+          where: { deletedAt: null },
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!target) throw new NotFoundException('User not found');
+
+    // Prevent disabling other admins
+    if (target.role === UserRole.ADMIN || target.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Cannot disable Admin or Super Admin accounts');
+    }
+
+    // Prevent self-disable
+    if (target.id === adminId) {
+      throw new ForbiddenException('Cannot disable your own account');
+    }
+
+    if (target.accountStatus === AccountStatus.DEACTIVATED) {
+      throw new BadRequestException('User is already disabled');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Deactivate the user
+      const updatedUser = await tx.user.update({
+        where: { id: targetUserId },
+        data: { accountStatus: AccountStatus.DEACTIVATED },
+      });
+
+      // For org staff (Hosts / Retailers): suspend the organization so it
+      // disappears from all public queries that gate on status=VERIFIED.
+      const orgStaff = target.orgStaffRoles?.[0];
+      if (orgStaff?.organization && orgStaff.organization.status === OrgStatus.VERIFIED) {
+        const orgType = orgStaff.organization.type;
+        if (orgType === 'PROVIDER' || orgType === 'RETAIL') {
+          await tx.organization.update({
+            where: { id: orgStaff.organization.id },
+            data: { status: OrgStatus.SUSPENDED },
+          });
+        }
+      }
+
+      return updatedUser;
+    });
+  }
+
+  async enableUser(targetUserId: string, adminId: string) {
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      include: {
+        orgStaffRoles: {
+          where: { deletedAt: null },
+          include: { organization: true },
+        },
+      },
+    });
+
+    if (!target) throw new NotFoundException('User not found');
+
+    if (target.accountStatus !== AccountStatus.DEACTIVATED) {
+      throw new BadRequestException('User is not currently disabled');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Reactivate the user
+      const updatedUser = await tx.user.update({
+        where: { id: targetUserId },
+        data: { accountStatus: AccountStatus.ACTIVE },
+      });
+
+      // Restore org visibility: only if the org is currently SUSPENDED
+      // (it may have been suspended for other reasons — only restore if we know
+      //  we put it into SUSPENDED state, i.e., still SUSPENDED).
+      const orgStaff = target.orgStaffRoles?.[0];
+      if (orgStaff?.organization && orgStaff.organization.status === OrgStatus.SUSPENDED) {
+        const orgType = orgStaff.organization.type;
+        if (orgType === 'PROVIDER' || orgType === 'RETAIL') {
+          await tx.organization.update({
+            where: { id: orgStaff.organization.id },
+            data: { status: OrgStatus.VERIFIED },
+          });
+        }
+      }
+
+      return updatedUser;
+    });
   }
 }
