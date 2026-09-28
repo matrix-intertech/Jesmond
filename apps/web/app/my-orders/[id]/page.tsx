@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAccessToken, getCurrentUser, setCurrentUser, clearAuth } from '@/utils/auth';
 import { GlobalNav } from '@/components/marketing/GlobalNav';
@@ -10,9 +10,9 @@ const formatCurrency = (amount: number, currency: string = 'USD') => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount / 100);
 };
 
-export default function MyOrderDetailPage({ params }: { params: { id: string } }) {
+export default function MyOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const { id } = params;
+  const { id } = use(params);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
