@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePushSubscription } from "@/hooks/usePushSubscription";
 import { isAuthenticated } from "@/utils/auth";
 
-export function PushNotificationInitializer() {
+export function PushNotificationInitializer(): null {
   const { isSupported, permission, subscribe } = usePushSubscription();
   const initAttempted = useRef(false);
 
