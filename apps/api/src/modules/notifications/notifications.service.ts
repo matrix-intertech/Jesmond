@@ -102,9 +102,9 @@ export class NotificationsService {
       const subscriptions = await this.prisma.pushSubscription.findMany({ where: { userId } });
       if (subscriptions.length === 0) return;
 
-      const vapidPublic = process.env.WEB_PUSH_VAPID_PUBLIC_KEY;
-      const vapidPrivate = process.env.WEB_PUSH_VAPID_PRIVATE_KEY;
-      const vapidSubject = process.env.WEB_PUSH_VAPID_SUBJECT;
+      const vapidPublic = process.env.VAPID_PUBLIC_KEY;
+      const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+      const vapidSubject = process.env.VAPID_SUBJECT;
 
       if (!vapidPublic || !vapidPrivate || !vapidSubject) {
         console.warn('VAPID keys not configured, skipping push notification');
