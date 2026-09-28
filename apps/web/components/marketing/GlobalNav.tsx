@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { isAuthenticated, getCurrentUser } from "@/utils/auth";
 import { CompactChatPanel } from "../chat/CompactChatPanel";
+import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 
 export function GlobalNav() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -16,6 +17,7 @@ export function GlobalNav() {
   const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string }>({ isAuth: false });
   const pathname = usePathname();
   const isMessagesActive = pathname === "/messages" || pathname.startsWith("/messages/");
+  const unreadChatCount = useUnreadChatCount();
 
   useEffect(() => {
     setAuthStatus({
@@ -127,7 +129,15 @@ export function GlobalNav() {
                     }`}
                     aria-current={isMessagesActive ? "page" : undefined}
                   >
-                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                    <div className="relative flex items-center justify-center">
+                      <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                      {unreadChatCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-orange"></span>
+                        </span>
+                      )}
+                    </div>
                     Messages
                   </button>
                   {isChatOpen && <CompactChatPanel onClose={() => { setIsChatOpen(false); setInitialConversationId(null); }} initialConversationId={initialConversationId} />}
@@ -236,7 +246,15 @@ export function GlobalNav() {
                       }`}
                       aria-current={isMessagesActive ? "page" : undefined}
                     >
-                      <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                      <div className="relative flex items-center justify-center">
+                        <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                        {unreadChatCount > 0 && (
+                          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-orange"></span>
+                          </span>
+                        )}
+                      </div>
                       Messages
                     </button>
                     <Link

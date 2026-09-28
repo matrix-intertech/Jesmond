@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { getCurrentUser, type User } from "@/utils/auth";
+import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 
 type UserRole = "ADMIN" | "SUPER_ADMIN" | "ORG_STAFF" | "STUDENT";
 
@@ -212,6 +213,7 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
   const pathname = usePathname();
   const [hash, setHash] = useState("");
   const [user, setUser] = useState<User | null>(null);
+  const unreadChatCount = useUnreadChatCount();
 
   useEffect(() => {
     setUser(getCurrentUser());
@@ -250,7 +252,15 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
                     : "text-slate-500 hover:bg-slate-50 hover:text-brand-navy"
                 }`}
               >
-                <Icon className="h-5 w-5" aria-hidden />
+                <div className="relative">
+                  <Icon className="h-5 w-5" aria-hidden />
+                  {(item.label === 'Chat' || item.label === 'Messages') && unreadChatCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-orange"></span>
+                    </span>
+                  )}
+                </div>
                 <span className="max-w-full truncate leading-none">{item.label}</span>
               </Link>
             </li>

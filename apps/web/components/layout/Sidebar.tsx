@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { clearAuth, getCurrentUser, User } from '@/utils/auth';
 import { useState, useEffect } from 'react';
+import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
 
 /**
  * Sidebar navigation for the dashboard.
@@ -419,6 +420,7 @@ export default function Sidebar({ role }: { role: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const unreadChatCount = useUnreadChatCount();
 
   useEffect(() => {
     setUser(getCurrentUser());
@@ -499,8 +501,14 @@ export default function Sidebar({ role }: { role: string }) {
                   onClick={() => setOpen(false)}
                   className={`flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-brand-orange/10 text-brand-orange font-semibold shadow-sm' : 'text-brand-navy/90 hover:bg-surface-muted hover:text-brand-navy'}`}
                 >
-                  <div className={`${isActive ? 'text-brand-orange' : 'text-gray-600'}`}>
+                  <div className={`relative ${isActive ? 'text-brand-orange' : 'text-gray-600'}`}>
                     {item.icon}
+                    {item.label === 'Messages' && unreadChatCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-orange"></span>
+                      </span>
+                    )}
                   </div>
                   <span>{item.label}</span>
                 </Link>
