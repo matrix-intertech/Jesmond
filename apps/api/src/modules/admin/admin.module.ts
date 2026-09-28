@@ -6,11 +6,12 @@ import { FeatureFlagService } from './feature-flag.service';
 import { AdminApplicationsController } from './admin-applications.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ApplicationsModule } from '../applications/applications.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { AdminSettingsController } from './admin-settings.controller';
 import { AdminSettingsService } from './admin-settings.service';
 
 @Module({
-  imports: [PrismaModule, ApplicationsModule],
+  imports: [PrismaModule, ApplicationsModule, NotificationsModule],
   controllers: [AdminController, AdminFeaturesController, AdminApplicationsController, AdminSettingsController],
   providers: [AdminService, FeatureFlagService, AdminSettingsService],
   exports: [AdminService, FeatureFlagService, AdminSettingsService],

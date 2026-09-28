@@ -1,10 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AccountStatus, PropertyStatus, PropertyVerificationStatus, UserRole } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) {}
 
   private assertId(value: string | undefined | null, label: string): string {
     if (!value || typeof value !== 'string' || value.trim().length === 0) {
@@ -262,6 +263,19 @@ export class ChatService {
         data: { lastReadAt: new Date() },
       }),
     ]);
+
+    // Async notify other participants
+    conversation.participants.forEach(p => {
+      if (p.userId !== userId) {
+        this.notificationsService.createNotification({
+          recipientId: p.userId,
+          type: 'NEW_MESSAGE',
+          title: 'New Message',
+          body: `You received a new message in conversation.`,
+          actionUrl: `/messages/${conversationId}`,
+        }).catch(err => console.error('Failed to dispatch message notification', err));
+      }
+    });
 
     return message;
   }

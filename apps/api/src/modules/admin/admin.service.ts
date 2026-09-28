@@ -2,13 +2,42 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { ApplicationsService } from '../applications/applications.service';
 import { AccountStatus, OrgStatus, UserRole } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly applicationsService: ApplicationsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
+
+  private async notifyOrgAdminsPropertyStatus(propertyId: string, propertyName: string, newStatus: string) {
+    try {
+      const property = await this.prisma.property.findUnique({
+        where: { id: propertyId },
+        select: { organizationId: true }
+      });
+      if (!property) return;
+
+      const admins = await this.prisma.orgStaff.findMany({
+        where: { organizationId: property.organizationId, role: 'ADMIN' },
+        select: { userId: true }
+      });
+
+      for (const admin of admins) {
+        this.notificationsService.createNotification({
+          recipientId: admin.userId,
+          type: 'PROPERTY_STATUS_CHANGED',
+          title: 'Property Status Update',
+          body: `Your property "${propertyName}" status has been updated to ${newStatus}.`,
+          actionUrl: `/dashboard/properties/${propertyId}`,
+        }).catch(err => console.error('Failed to dispatch property notification', err));
+      }
+    } catch (e) {
+      console.error('Error notifying org admins of property status', e);
+    }
+  }
 
   async getPendingProperties() {
     return this.prisma.property.findMany({
@@ -76,6 +105,8 @@ export class AdminService {
       }
     });
 
+    this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'PUBLISHED');
+
     return updated;
   }
 
@@ -100,6 +131,8 @@ export class AdminService {
         authorId: adminId,
       }
     });
+
+    this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'DRAFT (Rejected)');
 
     return updated;
   }
@@ -128,6 +161,8 @@ export class AdminService {
       }
     });
 
+    this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'UNLISTED');
+
     return updated;
   }
 
@@ -153,6 +188,8 @@ export class AdminService {
       }
     });
 
+    this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'PUBLISHED');
+
     return updated;
   }
 
@@ -174,6 +211,8 @@ export class AdminService {
       where: { id: propertyId },
       data: { verificationStatus: status }
     });
+
+    this.notifyOrgAdminsPropertyStatus(updatedProperty.id, updatedProperty.name, `Verification: ${status}`);
 
     return updatedProperty;
   }
