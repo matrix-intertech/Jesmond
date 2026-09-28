@@ -6,12 +6,14 @@ import { TyroConnector } from '../pos/providers/tyro.connector';
 import { SquareConnector } from '../pos/providers/square.connector';
 import { StripeConnector } from '../pos/providers/stripe.connector';
 import { ZellerConnector } from '../pos/providers/zeller.connector';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService,
-    private inventoryService: InventoryService
+    private inventoryService: InventoryService,
+    private notificationsService: NotificationsService
   ) {}
 
   private getConnector(provider: string) {
@@ -240,15 +242,28 @@ export class OrdersService {
       });
 
       // Reload order with items and payments to return complete object
-      return tx.salesOrder.findUnique({
+      const completeOrder = await tx.salesOrder.findUnique({
         where: { id: order.id },
         include: { items: true, payments: true }
       });
+
+      // Async Notification (Non-blocking)
+      if (customerId) {
+        this.notificationsService.createNotification({
+          recipientId: customerId,
+          type: 'RETAIL_ORDER_CREATED',
+          title: 'Order Created',
+          body: `Your order ${orderNumber} has been successfully created.`,
+          actionUrl: `/my-orders/${order.id}`,
+        }).catch(err => console.error('Failed to notify customer of order creation', err));
+      }
+
+      return completeOrder;
     });
   }
 
   async cancelSaleOrder(organizationId: string, orderId: string) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const order = await tx.salesOrder.findUnique({
         where: { id: orderId },
         include: { items: true },
@@ -316,6 +331,18 @@ export class OrdersService {
         include: { items: true, payments: true }
       });
     });
+
+    if (result && result.customerId) {
+      this.notificationsService.createNotification({
+        recipientId: result.customerId,
+        type: 'RETAIL_ORDER_STATUS_CHANGED',
+        title: 'Order Cancelled',
+        body: `Your order ${result.orderNumber} has been cancelled.`,
+        actionUrl: `/my-orders/${result.id}`,
+      }).catch(err => console.error('Failed to notify customer of order cancellation', err));
+    }
+
+    return result;
   }
 
   async getOrder(organizationId: string, orderId: string, branchId?: string) {
@@ -458,7 +485,7 @@ export class OrdersService {
   }
 
   async updateOrderStatus(organizationId: string, orderId: string, newStatus: OrderStatus) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const order = await tx.salesOrder.findUnique({
         where: { id: orderId }
       });
@@ -509,5 +536,17 @@ export class OrdersService {
 
       return updatedOrder;
     });
+
+    if (result.customerId) {
+      this.notificationsService.createNotification({
+        recipientId: result.customerId,
+        type: 'RETAIL_ORDER_STATUS_CHANGED',
+        title: 'Order Status Updated',
+        body: `Your order ${result.orderNumber} is now ${newStatus}.`,
+        actionUrl: `/my-orders/${result.id}`,
+      }).catch(err => console.error('Failed to notify customer of order cancellation', err));
+    }
+
+    return result;
   }
 }

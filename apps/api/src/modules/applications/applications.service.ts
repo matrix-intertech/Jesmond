@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, Logger } from '@nes
 import { ApplicationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../auth/services/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const ALLOCATED_STATUSES: readonly ApplicationStatus[] = [
   ApplicationStatus.APPROVED,
@@ -31,6 +32,7 @@ export class ApplicationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async createApplication(studentId: string, propertyId: string, roomTypeId: string, moveInDate: string, durationMonths: number) {
@@ -64,6 +66,22 @@ export class ApplicationsService {
         status: 'PENDING_REVIEW',
       }
     });
+
+    // Notify organization admins
+    this.prisma.orgStaff.findMany({
+      where: { organizationId: property.organizationId, role: 'ADMIN' },
+      select: { userId: true }
+    }).then(admins => {
+      admins.forEach(admin => {
+        this.notificationsService.createNotification({
+          recipientId: admin.userId,
+          type: 'APPLICATION_CREATED',
+          title: 'New Application',
+          body: `A new application has been submitted for ${property.name}`,
+          actionUrl: `/dashboard/applications/${application.id}`,
+        }).catch(err => this.logger.error('Failed to notify admin of new application', err));
+      });
+    }).catch(err => this.logger.error('Failed to fetch admins for application notification', err));
 
     return application;
   }
@@ -258,6 +276,14 @@ export class ApplicationsService {
         this.logger.error(`Failed to send approval email for application ${app.id}`, err),
       );
 
+    this.notificationsService.createNotification({
+      recipientId: app.studentId,
+      type: 'APPLICATION_STATUS_CHANGED',
+      title: 'Application Approved',
+      body: `Your application for ${property.name} has been approved.`,
+      actionUrl: `/dashboard/applications/${app.id}`,
+    }).catch(err => this.logger.error('Failed to notify student of application approval', err));
+
     return result;
   }
 
@@ -272,6 +298,14 @@ export class ApplicationsService {
       where: { id: app.id },
       data: { status: 'REJECTED' }
     });
+
+    this.notificationsService.createNotification({
+      recipientId: app.studentId,
+      type: 'APPLICATION_STATUS_CHANGED',
+      title: 'Application Update',
+      body: `Your application status has been updated.`,
+      actionUrl: `/dashboard/applications/${app.id}`,
+    }).catch(err => this.logger.error('Failed to notify student of application rejection', err));
 
     return updatedApp;
   }
