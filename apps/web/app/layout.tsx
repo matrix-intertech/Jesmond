@@ -26,6 +26,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+import { PushNotificationInitializer } from "@/components/notifications/PushNotificationInitializer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,6 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <PushNotificationInitializer />
         <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
         <StudentMobileBottomNavGate />
       </body>

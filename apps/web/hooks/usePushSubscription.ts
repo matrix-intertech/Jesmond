@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { getAccessToken } from '@/utils/auth';
+
+const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -50,11 +53,15 @@ export function usePushSubscription() {
           applicationServerKey: convertedVapidKey
         });
 
+        const token = getAccessToken();
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         // Send to backend
-        await fetch('/api/v1/notifications/push/subscribe', {
+        await fetch(`${apiBase}/api/v1/notifications/push/subscribe`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(subscription)
+          headers,
+          body: JSON.stringify({ endpoint: subscription.endpoint, keys: subscription.toJSON().keys })
         });
 
         setIsSubscribed(true);
@@ -70,9 +77,13 @@ export function usePushSubscription() {
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
         await subscription.unsubscribe();
-        await fetch('/api/v1/notifications/push/subscribe', {
+        const token = getAccessToken();
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        await fetch(`${apiBase}/api/v1/notifications/push/subscribe`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ endpoint: subscription.endpoint })
         });
         setIsSubscribed(false);
