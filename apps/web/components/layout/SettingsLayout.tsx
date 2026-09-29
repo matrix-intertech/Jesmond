@@ -25,8 +25,8 @@ export default function SettingsLayout({ title, description, links, children }: 
     <div className="mx-auto max-w-7xl px-0 py-2 sm:px-6 sm:py-8 lg:px-8">
       <PageHeader title={title} description={description} />
 
-      <div className="mt-6 flex min-w-0 flex-col gap-6 md:flex-row md:gap-8">
-        <aside className="min-w-0 flex-shrink-0 md:w-64">
+      <div className="mt-6 flex min-w-0 flex-col gap-6 md:flex-row md:gap-8 items-start">
+        <aside className="min-w-0 flex-shrink-0 md:w-64 md:sticky md:top-6">
           <nav className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:block md:space-y-1">
             {links.map((link) => {
               const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== '/settings' && link.href !== '/portal/settings' && link.href !== '/admin/settings');
