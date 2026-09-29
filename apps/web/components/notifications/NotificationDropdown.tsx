@@ -2,20 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getAccessToken } from '@/utils/auth';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 
 export function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { isSupported, permission, subscribe } = usePushSubscription();
 
   const fetchNotifications = async () => {
+    const token = getAccessToken();
+    if (!token) return;
+
     try {
-      const res = await fetch('/api/v1/notifications?limit=5');
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const res = await fetch('/api/v1/notifications?limit=5', { headers });
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.data || []);
       }
-      const countRes = await fetch('/api/v1/notifications/unread-count');
+      const countRes = await fetch('/api/v1/notifications/unread-count', { headers });
       if (countRes.ok) {
         const countData = await countRes.json();
         setUnreadCount(countData.count || 0);
@@ -32,8 +39,14 @@ export function NotificationDropdown() {
   }, []);
 
   const markAsRead = async (id: string) => {
+    const token = getAccessToken();
+    if (!token) return;
+
     try {
-      await fetch(`/api/v1/notifications/${id}/read`, { method: 'PATCH' });
+      await fetch(`/api/v1/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       fetchNotifications();
     } catch (e) {
       console.error(e);
@@ -58,9 +71,25 @@ export function NotificationDropdown() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 shadow-lg rounded-xl overflow-hidden z-50">
-          <div className="p-4 border-b border-slate-100 font-semibold text-slate-800">
-            Notifications ({unreadCount})
+          <div className="p-4 border-b border-slate-100 font-semibold text-slate-800 flex justify-between items-center">
+            <span>Notifications ({unreadCount})</span>
           </div>
+
+          {isSupported && permission === 'default' && (
+            <div className="p-3 bg-blue-50 border-b border-blue-100 flex flex-col gap-2">
+              <p className="text-xs text-blue-800">Enable push notifications to stay updated on new messages.</p>
+              <button
+                onClick={() => {
+                  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+                  if (vapidKey) subscribe(vapidKey);
+                }}
+                className="text-xs font-semibold bg-blue-600 text-white py-1 px-3 rounded w-max hover:bg-blue-700 transition"
+              >
+                Enable
+              </button>
+            </div>
+          )}
+
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-4 text-center text-slate-500">No notifications</div>
