@@ -496,11 +496,11 @@ function POSPageContent() {
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col md:flex-row gap-6 -m-2 p-2 bg-slate-50 relative">
       {/* Left Area: Product Selector / Catalog */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+      <div className="flex-1 bg-surface rounded-xl shadow-sm border border-border-strong overflow-hidden flex flex-col">
         {/* Header with Search and Branch Selection */}
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="p-4 border-b border-border-strong bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <h2 className="text-lg font-bold text-brand-navy whitespace-nowrap">Catalog POS</h2>
+            <h2 className="text-lg font-bold text-primary whitespace-nowrap">Catalog POS</h2>
             <select
               value={branchId}
               onChange={(e) => {
@@ -508,7 +508,7 @@ function POSPageContent() {
                 setBranchId(e.target.value);
                 setBranchName(selected?.name || '');
               }}
-              className="text-sm font-semibold text-brand-navy border border-slate-200 rounded-lg px-3 py-1.5 bg-white shadow-sm focus:ring-1 focus:ring-brand-orange focus:border-brand-orange cursor-pointer"
+              className="text-sm font-semibold text-primary border border-border-strong rounded-lg px-3 py-1.5 bg-surface shadow-sm focus:ring-1 focus:ring-accent focus:border-accent cursor-pointer"
             >
               {branches.length === 0 ? (
                 <option value="">Loading branches...</option>
@@ -525,9 +525,9 @@ function POSPageContent() {
               placeholder="Search by name, SKU, or barcode..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg shadow-sm focus:border-brand-orange focus:ring-brand-orange text-sm text-slate-800 bg-white"
+              className="w-full pl-9 pr-3 py-1.5 border border-border-strong rounded-lg shadow-sm focus:border-accent focus:ring-accent text-sm text-slate-800 bg-surface"
             />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -537,15 +537,15 @@ function POSPageContent() {
 
         {/* Category filtering tabs */}
         {products.length > 0 && (
-          <div className="px-4 py-2 border-b border-slate-100 flex gap-2 overflow-x-auto bg-white">
+          <div className="px-4 py-2 border-b border-border-subtle flex gap-2 overflow-x-auto bg-surface">
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
                   selectedCategory === cat
-                    ? 'bg-brand-navy text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-muted text-slate-600 hover:bg-secondary'
                 }`}
               >
                 {cat}
@@ -559,29 +559,29 @@ function POSPageContent() {
           {loading ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="animate-pulse bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 h-36">
-                  <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-slate-200 rounded w-1/4 pt-4"></div>
+                <div key={i} className="animate-pulse bg-slate-50 border border-border-strong rounded-xl p-4 space-y-3 h-36">
+                  <div className="h-4 bg-secondary rounded w-3/4"></div>
+                  <div className="h-3 bg-secondary rounded w-1/2"></div>
+                  <div className="h-4 bg-secondary rounded w-1/4 pt-4"></div>
                 </div>
               ))}
             </div>
           ) : !branchId ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+            <div className="flex flex-col items-center justify-center h-full text-text-secondary">
               <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
               <span>Select a branch to start selling.</span>
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+            <div className="flex flex-col items-center justify-center h-full text-text-secondary">
               <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
-              <h3 className="font-semibold text-brand-navy">No products available for this branch.</h3>
+              <h3 className="font-semibold text-primary">No products available for this branch.</h3>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+            <div className="flex flex-col items-center justify-center h-full text-text-secondary">
               <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -596,21 +596,21 @@ function POSPageContent() {
                   <div
                     key={product.id}
                     onClick={() => handleAddToCart(product)}
-                    className={`border rounded-xl p-4 flex flex-col justify-between h-36 transition shadow-sm cursor-pointer hover:border-brand-orange hover:shadow-md ${
-                      isOutOfStock ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-200'
+                    className={`border rounded-xl p-4 flex flex-col justify-between h-36 transition shadow-sm cursor-pointer hover:border-accent hover:shadow-md ${
+                      isOutOfStock ? 'bg-slate-50 border-border-strong opacity-60 cursor-not-allowed' : 'bg-surface border-border-strong'
                     }`}
                   >
                     <div>
                       <div className="flex justify-between items-start gap-2">
-                        <h4 className="font-bold text-brand-navy text-sm line-clamp-2" title={product.name}>
+                        <h4 className="font-bold text-primary text-sm line-clamp-2" title={product.name}>
                           {product.name}
                         </h4>
                       </div>
-                      <p className="text-slate-400 text-xs font-semibold mt-1">SKU: {product.sku}</p>
+                      <p className="text-text-muted text-xs font-semibold mt-1">SKU: {product.sku}</p>
                     </div>
 
                     <div className="flex justify-between items-center mt-3">
-                      <span className="font-bold text-brand-navy">${(product.sellingPrice / 100).toFixed(2)}</span>
+                      <span className="font-bold text-primary">${(product.sellingPrice / 100).toFixed(2)}</span>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                         isOutOfStock ? 'bg-rose-100 text-rose-800' :
                         isLowStock ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
@@ -628,27 +628,27 @@ function POSPageContent() {
       </div>
 
       {/* Right Area: Cart & Checkout Sidebar */}
-      <div className="w-full md:w-96 flex-shrink-0 bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col">
-        <div className="p-4 border-b border-slate-200 bg-brand-navy text-white rounded-t-xl">
+      <div className="w-full md:w-96 flex-shrink-0 bg-surface rounded-xl shadow-sm border border-border-strong flex flex-col">
+        <div className="p-4 border-b border-border-strong bg-primary text-white rounded-t-xl">
           <h2 className="text-lg font-bold">Current Sale</h2>
         </div>
         
         {/* Cart Item list */}
         <div className="flex-1 p-4 overflow-y-auto bg-slate-50">
           {cart.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+            <div className="h-full flex items-center justify-center text-text-muted text-sm">
               Cart is empty
             </div>
           ) : (
             <ul className="space-y-3">
               {cart.map((item) => (
-                <li key={item.productId} className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex justify-between items-center">
+                <li key={item.productId} className="bg-surface p-3 rounded-lg shadow-sm border border-border-strong flex justify-between items-center">
                   <div className="flex flex-col min-w-0 pr-2">
-                    <span className="font-semibold text-xs text-brand-navy truncate" title={item.productName}>
+                    <span className="font-semibold text-xs text-primary truncate" title={item.productName}>
                       {item.productName}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-semibold font-mono">SKU: {item.sku}</span>
-                    <span className="text-xs text-brand-navy font-bold mt-1">
+                    <span className="text-[10px] text-text-muted font-semibold font-mono">SKU: {item.sku}</span>
+                    <span className="text-xs text-primary font-bold mt-1">
                       ${((item.unitPrice * item.quantity) / 100).toFixed(2)}
                     </span>
                   </div>
@@ -656,14 +656,14 @@ function POSPageContent() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => handleUpdateQuantity(item.productId, -1)}
-                      className="w-6 h-6 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-200 font-bold"
+                      className="w-6 h-6 rounded bg-surface-muted border border-border-strong flex items-center justify-center text-slate-600 hover:bg-secondary font-bold"
                     >
                       -
                     </button>
-                    <span className="text-sm font-bold text-brand-navy min-w-[20px] text-center">{item.quantity}</span>
+                    <span className="text-sm font-bold text-primary min-w-[20px] text-center">{item.quantity}</span>
                     <button
                       onClick={() => handleUpdateQuantity(item.productId, 1)}
-                      className="w-6 h-6 rounded bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-200 font-bold"
+                      className="w-6 h-6 rounded bg-surface-muted border border-border-strong flex items-center justify-center text-slate-600 hover:bg-secondary font-bold"
                     >
                       +
                     </button>
@@ -675,8 +675,8 @@ function POSPageContent() {
         </div>
 
         {/* Total & Checkout trigger button */}
-        <div className="p-4 border-t border-slate-200 space-y-4">
-          <div className="flex justify-between items-center font-bold text-lg text-brand-navy">
+        <div className="p-4 border-t border-border-strong space-y-4">
+          <div className="flex justify-between items-center font-bold text-lg text-primary">
             <span>Total</span>
             <span>${(totalCents / 100).toFixed(2)}</span>
           </div>
@@ -686,7 +686,7 @@ function POSPageContent() {
           <button
             onClick={openCheckoutFlow}
             disabled={cart.length === 0}
-            className="w-full py-4 bg-brand-orange text-white font-bold rounded-lg hover:bg-orange-600 transition disabled:opacity-50 text-lg shadow-sm"
+            className="w-full py-4 bg-accent text-white font-bold rounded-lg hover:bg-accent transition disabled:opacity-50 text-lg shadow-sm"
           >
             Review & Pay
           </button>
@@ -696,9 +696,9 @@ function POSPageContent() {
       {/* Checkout Drawer / Modal Overlay */}
       {checkoutOpen && (
         <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-end">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col animate-slide-in">
+          <div className="w-full max-w-lg bg-surface h-full shadow-2xl flex flex-col animate-slide-in">
             {/* Header */}
-            <div className="p-6 bg-brand-navy text-white flex justify-between items-center">
+            <div className="p-6 bg-primary text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-bold">POS Checkout</h3>
                 <p className="text-xs text-slate-300">Authorize and complete the transaction</p>
@@ -714,23 +714,23 @@ function POSPageContent() {
             {/* Content Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Grand Total Banner */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center">
+              <div className="bg-slate-50 border border-border-strong rounded-xl p-4 flex justify-between items-center">
                 <span className="text-slate-600 font-semibold">Amount Due</span>
-                <span className="text-3xl font-black text-brand-navy">${(totalCents / 100).toFixed(2)}</span>
+                <span className="text-3xl font-black text-primary">${(totalCents / 100).toFixed(2)}</span>
               </div>
 
               {paymentStatus === "IDLE" && (
                 <>
                   {/* Select Payment Method */}
                   <div className="space-y-3">
-                    <label className="block text-sm font-bold text-brand-navy">Choose Payment Method</label>
+                    <label className="block text-sm font-bold text-primary">Choose Payment Method</label>
                     <div className="grid grid-cols-2 gap-4">
                       <button
                         onClick={() => setPaymentMethod("CASH")}
                         className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 transition ${
                           paymentMethod === "CASH"
-                            ? "border-brand-orange bg-orange-50/50 text-brand-orange font-bold shadow-sm"
-                            : "border-slate-200 hover:border-slate-300 text-slate-600"
+                            ? "border-accent bg-orange-50/50 text-accent font-bold shadow-sm"
+                            : "border-border-strong hover:border-border-strong text-slate-600"
                         }`}
                       >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -742,8 +742,8 @@ function POSPageContent() {
                         onClick={() => setPaymentMethod("CREDIT_CARD")}
                         className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 transition ${
                           paymentMethod === "CREDIT_CARD"
-                            ? "border-brand-orange bg-orange-50/50 text-brand-orange font-bold shadow-sm"
-                            : "border-slate-200 hover:border-slate-300 text-slate-600"
+                            ? "border-accent bg-orange-50/50 text-accent font-bold shadow-sm"
+                            : "border-border-strong hover:border-border-strong text-slate-600"
                         }`}
                       >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -756,16 +756,16 @@ function POSPageContent() {
 
                   {/* CASH Workflow Inputs */}
                   {paymentMethod === "CASH" && (
-                    <div className="space-y-4 border-t border-slate-100 pt-4">
+                    <div className="space-y-4 border-t border-border-subtle pt-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-brand-navy">Amount Received ($)</label>
+                        <label className="block text-sm font-bold text-primary">Amount Received ($)</label>
                         <input
                           type="number"
                           step="0.01"
                           min="0"
                           value={amountReceived}
                           onChange={(e) => setAmountReceived(e.target.value)}
-                          className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange text-lg font-bold"
+                          className="w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent text-lg font-bold"
                           placeholder="e.g. 50.00"
                         />
                       </div>
@@ -781,9 +781,9 @@ function POSPageContent() {
 
                   {/* CARD Workflow Inputs */}
                   {paymentMethod === "CREDIT_CARD" && (
-                    <div className="space-y-4 border-t border-slate-100 pt-4">
+                    <div className="space-y-4 border-t border-border-subtle pt-4">
                       <div className="space-y-2">
-                        <label className="block text-sm font-bold text-brand-navy">Select Terminal</label>
+                        <label className="block text-sm font-bold text-primary">Select Terminal</label>
                         {branchTerminals.length === 0 ? (
                           <div className="p-3 bg-amber-50 text-amber-800 text-xs font-semibold rounded-lg border border-amber-100">
                             No active POS terminals registered for this branch. Create a terminal under settings or choose cash.
@@ -792,7 +792,7 @@ function POSPageContent() {
                           <select
                             value={selectedTerminalId}
                             onChange={(e) => setSelectedTerminalId(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange text-sm cursor-pointer"
+                            className="w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent text-sm cursor-pointer"
                           >
                             {branchTerminals.map(term => (
                               <option key={term.id} value={term.id}>
@@ -814,14 +814,14 @@ function POSPageContent() {
               {paymentStatus === "WAITING" && currentOrder && (
                 <div className="space-y-6 text-center py-8">
                   <div className="inline-block relative w-16 h-16">
-                    <div className="absolute inset-0 rounded-full border-4 border-slate-200"></div>
-                    <div className="absolute inset-0 rounded-full border-4 border-brand-orange border-t-transparent animate-spin"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-border-strong"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-accent border-t-transparent animate-spin"></div>
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-lg font-bold text-brand-navy">Waiting for card payment...</h4>
-                    <p className="text-sm text-slate-500 font-mono text-xs">Order ID: {currentOrder.id}</p>
-                    <p className="text-xs text-slate-400">Terminal transaction initialized. Waiting for webhook confirmation.</p>
+                    <h4 className="text-lg font-bold text-primary">Waiting for card payment...</h4>
+                    <p className="text-sm text-text-secondary font-mono text-xs">Order ID: {currentOrder.id}</p>
+                    <p className="text-xs text-text-muted">Terminal transaction initialized. Waiting for webhook confirmation.</p>
                   </div>
 
                   {/* Sandbox Simulator Buttons */}
@@ -856,26 +856,26 @@ function POSPageContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="text-xl font-bold text-brand-navy">Payment Successful!</h4>
-                    <p className="text-xs text-slate-500 font-mono">Receipt: {currentOrder.orderNumber}</p>
+                    <h4 className="text-xl font-bold text-primary">Payment Successful!</h4>
+                    <p className="text-xs text-text-secondary font-mono">Receipt: {currentOrder.orderNumber}</p>
                   </div>
 
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-sm space-y-2 text-slate-700">
+                  <div className="bg-slate-50 border border-border-strong rounded-xl p-4 text-left text-sm space-y-2 text-text-primary">
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Method</span>
-                      <span className="font-bold text-brand-navy">{paymentMethod}</span>
+                      <span className="font-semibold text-text-secondary">Method</span>
+                      <span className="font-bold text-primary">{paymentMethod}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Total Paid</span>
-                      <span className="font-bold text-brand-navy">${(currentOrder.total / 100).toFixed(2)}</span>
+                      <span className="font-semibold text-text-secondary">Total Paid</span>
+                      <span className="font-bold text-primary">${(currentOrder.total / 100).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Branch</span>
-                      <span className="font-bold text-brand-navy">{branchName || 'Selected Branch'}</span>
+                      <span className="font-semibold text-text-secondary">Branch</span>
+                      <span className="font-bold text-primary">{branchName || 'Selected Branch'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500">Timestamp</span>
-                      <span className="font-bold text-brand-navy font-mono text-xs">{new Date(currentOrder.createdAt).toLocaleString()}</span>
+                      <span className="font-semibold text-text-secondary">Timestamp</span>
+                      <span className="font-bold text-primary font-mono text-xs">{new Date(currentOrder.createdAt).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -895,12 +895,12 @@ function POSPageContent() {
             </div>
 
             {/* Footer buttons */}
-            <div className="p-6 border-t border-slate-200 bg-slate-50">
+            <div className="p-6 border-t border-border-strong bg-slate-50">
               {paymentStatus === "IDLE" && (
                 <button
                   onClick={handleCheckoutSubmit}
                   disabled={checkoutLoading || (paymentMethod === "CASH" && changeDue < 0) || (paymentMethod === "CREDIT_CARD" && !selectedTerminalId)}
-                  className="w-full py-4 bg-brand-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-sm transition disabled:opacity-50 text-lg"
+                  className="w-full py-4 bg-accent hover:bg-accent text-white font-bold rounded-lg shadow-sm transition disabled:opacity-50 text-lg"
                 >
                   {checkoutLoading ? "Processing..." : "Confirm Payment"}
                 </button>
@@ -910,7 +910,7 @@ function POSPageContent() {
                 <div className="space-y-3">
                   <button
                     onClick={handleRetryPayment}
-                    className="w-full py-3 bg-brand-orange hover:bg-orange-600 text-white font-bold rounded-lg shadow-sm transition"
+                    className="w-full py-3 bg-accent hover:bg-accent text-white font-bold rounded-lg shadow-sm transition"
                   >
                     Retry Payment
                   </button>
@@ -919,7 +919,7 @@ function POSPageContent() {
                       setPaymentStatus("IDLE");
                       setCheckoutError("");
                     }}
-                    className="w-full py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg transition"
+                    className="w-full py-3 bg-secondary hover:bg-slate-300 text-text-primary font-bold rounded-lg transition"
                   >
                     Choose Different Method
                   </button>
@@ -929,7 +929,7 @@ function POSPageContent() {
               {paymentStatus === "PAID" && (
                 <button
                   onClick={() => setCheckoutOpen(false)}
-                  className="w-full py-4 bg-brand-navy hover:bg-slate-800 text-white font-bold rounded-lg shadow-sm transition text-lg"
+                  className="w-full py-4 bg-primary hover:bg-slate-800 text-white font-bold rounded-lg shadow-sm transition text-lg"
                 >
                   New Sale
                 </button>

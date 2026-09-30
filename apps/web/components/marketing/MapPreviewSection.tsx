@@ -51,12 +51,12 @@ export function MapPreviewSection() {
     >
       <div className="flex flex-col items-center text-center mb-16">
         <h2
-          className="text-3xl sm:text-[2.5rem] lg:text-[4rem] font-medium text-brand-navy tracking-[-0.04em] leading-[1.1] mb-6"
+          className="text-3xl sm:text-[2.5rem] lg:text-[4rem] font-medium text-primary tracking-[-0.04em] leading-[1.1] mb-6"
           style={{ fontFamily: 'var(--font-outfit)' }}
         >
           Where are you planning <br className="hidden sm:block" /> to study?
         </h2>
-        <p className="text-lg text-slate-500 max-w-2xl font-light">
+        <p className="text-lg text-text-secondary max-w-2xl font-light">
           Australia is home to some of the world's highest-ranking universities.
           Discover verified accommodation in the heart of the action.
         </p>
@@ -75,19 +75,19 @@ export function MapPreviewSection() {
                 onClick={() => setActiveHub(hub)}
                 className={`flex flex-col text-left p-6 rounded-[24px] transition-all duration-500 ${
                   isActive
-                    ? "bg-brand-navy text-white shadow-xl shadow-brand-navy/10 scale-100"
-                    : "bg-white text-slate-500 border border-slate-200 hover:border-slate-300 hover:shadow-md scale-[0.98]"
+                    ? "bg-primary text-white shadow-xl shadow-brand-navy/10 scale-100"
+                    : "bg-surface text-text-secondary border border-border-strong hover:border-border-strong hover:shadow-md scale-[0.98]"
                 }`}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className={`text-2xl font-semibold tracking-tight ${isActive ? "text-white" : "text-brand-navy"}`}>
+                  <h3 className={`text-2xl font-semibold tracking-tight ${isActive ? "text-white" : "text-primary"}`}>
                     {hub.name}
                   </h3>
                   {isActive && (
-                    <motion.div layoutId="active-indicator" className="w-2 h-2 rounded-full bg-brand-orange/100" />
+                    <motion.div layoutId="active-indicator" className="w-2 h-2 rounded-full bg-accent/100" />
                   )}
                 </div>
-                <p className={`text-sm ${isActive ? "text-slate-400" : "text-slate-500"}`}>
+                <p className={`text-sm ${isActive ? "text-text-muted" : "text-text-secondary"}`}>
                   {hub.tagline}
                 </p>
               </button>
@@ -96,7 +96,7 @@ export function MapPreviewSection() {
         </div>
 
         {/* Dynamic Data Panel (Col 5-12) */}
-        <div className="col-span-1 lg:col-span-8 relative rounded-[24px] overflow-hidden bg-white border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col">
+        <div className="col-span-1 lg:col-span-8 relative rounded-[24px] overflow-hidden bg-surface border border-border-strong shadow-xl shadow-slate-200/50 flex flex-col">
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -108,7 +108,7 @@ export function MapPreviewSection() {
               className="absolute inset-0 z-0"
             >
               {/* The map is now a subdued background element supporting the data */}
-              <div className="absolute inset-0 bg-brand-navy/5 z-10 pointer-events-none" />
+              <div className="absolute inset-0 bg-primary/5 z-10 pointer-events-none" />
               <Image
                 src="/assets/map_bg.png"
                 alt="Map Background"
@@ -132,19 +132,19 @@ export function MapPreviewSection() {
                 className="grid grid-cols-2 md:grid-cols-3 gap-8"
               >
                 {/* Stat Cards */}
-                <div className="bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm">
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Verified Rooms</p>
-                  <p className="text-3xl font-semibold text-brand-navy tracking-tight">{activeHub.props}</p>
+                <div className="bg-surface/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm">
+                  <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">Verified Rooms</p>
+                  <p className="text-3xl font-semibold text-primary tracking-tight">{activeHub.props}</p>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm">
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Avg Rent</p>
-                  <p className="text-3xl font-semibold text-brand-navy tracking-tight">{activeHub.avgRent} <span className="text-lg text-slate-500 font-normal">/wk</span></p>
+                <div className="bg-surface/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm">
+                  <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">Avg Rent</p>
+                  <p className="text-3xl font-semibold text-primary tracking-tight">{activeHub.avgRent} <span className="text-lg text-text-secondary font-normal">/wk</span></p>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm hidden md:block">
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">Student Pop.</p>
-                  <p className="text-3xl font-semibold text-brand-navy tracking-tight">{activeHub.students}</p>
+                <div className="bg-surface/80 backdrop-blur-xl border border-white/50 p-6 rounded-2xl shadow-sm hidden md:block">
+                  <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">Student Pop.</p>
+                  <p className="text-3xl font-semibold text-primary tracking-tight">{activeHub.students}</p>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -160,10 +160,10 @@ export function MapPreviewSection() {
               >
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div>
-                    <h4 className="text-sm font-bold text-brand-navy uppercase tracking-widest mb-4">Major Universities</h4>
+                    <h4 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">Major Universities</h4>
                     <div className="flex flex-wrap gap-2">
                       {activeHub.unis.map((uni) => (
-                        <span key={uni} className="px-4 py-2 bg-brand-navy/5 text-slate-700 rounded-lg text-sm font-medium border border-brand-navy/10 backdrop-blur-sm">
+                        <span key={uni} className="px-4 py-2 bg-primary/5 text-text-primary rounded-lg text-sm font-medium border border-brand-navy/10 backdrop-blur-sm">
                           {uni}
                         </span>
                       ))}
@@ -172,7 +172,7 @@ export function MapPreviewSection() {
 
                   <Link
                     href={`/cities/${activeHub.id}`}
-                    className="bg-brand-orange hover:bg-orange-600 text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0"
+                    className="bg-accent hover:bg-accent text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0"
                   >
                     Explore {activeHub.name}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

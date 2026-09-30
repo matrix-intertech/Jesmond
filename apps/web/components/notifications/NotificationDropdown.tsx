@@ -57,11 +57,11 @@ export function NotificationDropdown() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition"
+        className="relative p-2 text-text-muted hover:text-slate-600 hover:bg-surface-muted rounded-full transition"
         aria-label="Notifications"
       >
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-orange/100 rounded-full ring-2 ring-white"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent/100 rounded-full ring-2 ring-white"></span>
         )}
         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
@@ -70,8 +70,8 @@ export function NotificationDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 shadow-lg rounded-xl overflow-hidden z-50">
-          <div className="p-4 border-b border-slate-100 font-semibold text-slate-800 flex justify-between items-center">
+        <div className="absolute right-0 mt-2 w-80 bg-surface border border-border-strong shadow-lg rounded-xl overflow-hidden z-50">
+          <div className="p-4 border-b border-border-subtle font-semibold text-slate-800 flex justify-between items-center">
             <span>Notifications ({unreadCount})</span>
           </div>
 
@@ -92,14 +92,14 @@ export function NotificationDropdown() {
 
           <div className="max-h-96 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-slate-500">No notifications</div>
+              <div className="p-4 text-center text-text-secondary">No notifications</div>
             ) : (
               notifications.map((n) => (
                 <div key={n.id} onClick={() => markAsRead(n.id)} className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 ${n.isRead ? 'opacity-70' : 'bg-blue-50/20'}`}>
                   <p className="text-sm font-medium text-slate-900">{n.title}</p>
-                  <p className="text-xs text-slate-500 mt-1">{n.body}</p>
+                  <p className="text-xs text-text-secondary mt-1">{n.body}</p>
                   {n.actionUrl && (
-                    <Link href={n.actionUrl} className="text-xs text-brand-orange mt-2 inline-block">
+                    <Link href={n.actionUrl} className="text-xs text-accent mt-2 inline-block">
                       View
                     </Link>
                   )}

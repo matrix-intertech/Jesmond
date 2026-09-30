@@ -94,15 +94,15 @@ export default function ProviderEnquiriesPage() {
       <div className="max-w-7xl mx-auto py-8">
 
         {enquiries.length === 0 ? (
-          <div className="bg-white p-10 rounded-xl shadow-sm text-center border">
+          <div className="bg-surface p-10 rounded-xl shadow-sm text-center border">
             <h2 className="text-xl font-bold mb-2">No enquiries yet</h2>
-            <p className="text-slate-500 mb-6">When seekers contact you about your properties, they will appear here.</p>
+            <p className="text-text-secondary mb-6">When seekers contact you about your properties, they will appear here.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+          <div className="bg-surface rounded-xl shadow-sm border overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-muted border-b text-sm text-slate-500 uppercase tracking-wider">
+                <tr className="bg-surface-muted border-b text-sm text-text-secondary uppercase tracking-wider">
                   <th className="p-4 font-semibold">Seeker</th>
                   <th className="p-4 font-semibold">Contact</th>
                   <th className="p-4 font-semibold">Property</th>
@@ -120,21 +120,21 @@ export default function ProviderEnquiriesPage() {
                   return (
                     <tr key={enq.id} className="hover:bg-surface-muted transition align-top">
                       <td className="p-4">
-                        <div className="font-bold text-brand-navy">{name}</div>
-                        {!enq.student && <div className="text-[10px] uppercase font-bold text-slate-400 mt-1">Guest</div>}
+                        <div className="font-bold text-primary">{name}</div>
+                        {!enq.student && <div className="text-[10px] uppercase font-bold text-text-muted mt-1">Guest</div>}
                       </td>
                       <td className="p-4">
                         <div className="text-xs text-slate-600 mb-1">{email}</div>
-                        <div className="text-xs text-slate-500">{phone}</div>
+                        <div className="text-xs text-text-secondary">{phone}</div>
                       </td>
                       <td className="p-4 font-medium">
-                        <Link href={`/property/${enq.property.id}`} className="hover:text-brand-orange hover:underline" target="_blank">
+                        <Link href={`/property/${enq.property.id}`} className="hover:text-accent hover:underline" target="_blank">
                           {enq.property.name}
                         </Link>
                       </td>
                       <td className="p-4">
                         <div className="text-slate-600 whitespace-pre-wrap text-sm line-clamp-3" title={enq.message}>{enq.message}</div>
-                        <div className="text-xs text-slate-400 mt-2">{new Date(enq.createdAt).toLocaleString()}</div>
+                        <div className="text-xs text-text-muted mt-2">{new Date(enq.createdAt).toLocaleString()}</div>
                       </td>
                       <td className="p-4">
                         <select 
@@ -143,7 +143,7 @@ export default function ProviderEnquiriesPage() {
                           disabled={actionLoadingId === enq.id}
                           className={`text-xs font-bold uppercase tracking-wider border rounded px-2 py-1 outline-none ${
                             enq.status === 'RESPONDED' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                            enq.status === 'ARCHIVED' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                            enq.status === 'ARCHIVED' ? 'bg-secondary text-text-secondary border-border-strong' :
                             'bg-amber-100 text-amber-700 border-amber-200'
                           }`}
                         >
@@ -155,7 +155,7 @@ export default function ProviderEnquiriesPage() {
                       <td className="p-4">
                         <a 
                           href={`mailto:${email}`}
-                          className="px-3 py-1.5 text-xs font-semibold text-brand-navy bg-slate-100 hover:bg-slate-200 rounded-lg transition border border-slate-200 inline-block"
+                          className="px-3 py-1.5 text-xs font-semibold text-primary bg-surface-muted hover:bg-secondary rounded-lg transition border border-border-strong inline-block"
                         >
                           Reply
                         </a>

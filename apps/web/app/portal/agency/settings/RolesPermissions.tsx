@@ -149,41 +149,41 @@ export default function RolesPermissions() {
     }
   };
 
-  if (loading) return <div className="py-8 text-center text-gray-500">Loading roles...</div>;
+  if (loading) return <div className="py-8 text-center text-text-secondary">Loading roles...</div>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-lg font-medium leading-6 text-gray-900">Roles & Permissions</h3>
-          <p className="mt-1 text-sm text-gray-500">Manage your organization's roles and assign granular permissions.</p>
+          <p className="mt-1 text-sm text-text-secondary">Manage your organization's roles and assign granular permissions.</p>
         </div>
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center rounded-md bg-brand-orange px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500"
+          className="inline-flex items-center rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500"
         >
           <Plus className="-ml-0.5 mr-1.5 h-5 w-5" />
           Create Role
         </button>
       </div>
 
-      <div className="overflow-hidden bg-white shadow sm:rounded-md">
+      <div className="overflow-hidden bg-surface shadow sm:rounded-md">
         <ul role="list" className="divide-y divide-gray-200">
           {roles.length === 0 ? (
-            <li className="px-4 py-8 text-center text-sm text-gray-500">No roles found.</li>
+            <li className="px-4 py-8 text-center text-sm text-text-secondary">No roles found.</li>
           ) : (
             roles.map(role => (
               <li key={role.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors flex justify-between items-center">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">{role.name} {role.isSystem && <span className="ml-2 inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">System</span>}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{role.description || 'No description'}</p>
-                  <div className="mt-2 text-xs text-gray-500 flex gap-4">
+                  <h4 className="text-sm font-medium text-gray-900">{role.name} {role.isSystem && <span className="ml-2 inline-flex items-center rounded-md bg-surface-muted px-2 py-1 text-xs font-medium text-gray-600">System</span>}</h4>
+                  <p className="text-sm text-text-secondary mt-1">{role.description || 'No description'}</p>
+                  <div className="mt-2 text-xs text-text-secondary flex gap-4">
                     <span>{role._count.staff} members assigned</span>
                     <span>{role.permissions.length} permissions</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => openEditModal(role)} className="text-gray-400 hover:text-gray-500">
+                  <button onClick={() => openEditModal(role)} className="text-text-muted hover:text-text-secondary">
                     <Edit2 className="h-5 w-5" />
                   </button>
                   {!role.isSystem && role._count.staff === 0 && (
@@ -200,8 +200,8 @@ export default function RolesPermissions() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-500/75">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-border-strong">
               <h3 className="text-lg font-medium text-gray-900">{editingRole ? 'Edit Role' : 'Create Role'}</h3>
             </div>
             
@@ -212,7 +212,7 @@ export default function RolesPermissions() {
                   <input
                     required
                     disabled={editingRole?.isSystem}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
+                    className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm disabled:bg-surface-muted disabled:text-text-secondary"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -221,7 +221,7 @@ export default function RolesPermissions() {
                   <label className="block text-sm font-medium text-gray-900">Description</label>
                   <input
                     disabled={editingRole?.isSystem}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-gray-100 disabled:text-gray-500"
+                    className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm disabled:bg-surface-muted disabled:text-text-secondary"
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                   />
@@ -232,17 +232,17 @@ export default function RolesPermissions() {
                   <div className="space-y-6">
                     {PERMISSION_GROUPS.map(group => (
                       <div key={group.group}>
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">{group.group}</h4>
+                        <h4 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2">{group.group}</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {group.options.map(opt => (
                             <label key={opt.value} className="flex items-center space-x-3">
                               <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                                className="h-4 w-4 rounded border-border-strong text-accent focus:ring-accent"
                                 checked={formData.permissions.includes(opt.value)}
                                 onChange={() => togglePermission(opt.value)}
                               />
-                              <span className="text-sm text-gray-700">{opt.label}</span>
+                              <span className="text-sm text-text-primary">{opt.label}</span>
                             </label>
                           ))}
                         </div>
@@ -252,18 +252,18 @@ export default function RolesPermissions() {
                 </div>
               </div>
               
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50">
+              <div className="px-6 py-4 border-t border-border-strong flex justify-end gap-3 bg-gray-50">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="rounded-md bg-brand-orange px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
+                  className="rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Save Role'}
                 </button>

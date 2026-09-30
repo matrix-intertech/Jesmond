@@ -62,13 +62,13 @@ export default function FeaturesPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading features...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading features...</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-brand-navy">Feature Flags</h3>
-        <p className="mt-1 text-sm text-gray-500">Toggle experimental or restricted functionality.</p>
+    <div className="bg-surface shadow rounded-lg overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+        <h3 className="text-lg leading-6 font-medium text-primary">Feature Flags</h3>
+        <p className="mt-1 text-sm text-text-secondary">Toggle experimental or restricted functionality.</p>
       </div>
       {error ? (
         <div className="p-4 bg-rose-50 text-rose-700 m-4 rounded-md">
@@ -80,18 +80,18 @@ export default function FeaturesPage() {
           {features.map((f) => (
             <li key={f.key} className="px-4 py-4 sm:px-6 flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-brand-navy">{f.key}</p>
-                <p className="text-xs text-gray-500 mt-1">Status: {f.enabled ? 'Enabled' : 'Disabled'}</p>
+                <p className="text-sm font-medium text-primary">{f.key}</p>
+                <p className="text-xs text-text-secondary mt-1">Status: {f.enabled ? 'Enabled' : 'Disabled'}</p>
               </div>
               <button
                 onClick={() => toggleFeature(f.key, f.enabled)}
                 disabled={submitting === f.key}
                 className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                  f.enabled ? 'bg-brand-orange' : 'bg-gray-200'
+                  f.enabled ? 'bg-accent' : 'bg-secondary'
                 } ${submitting === f.key ? 'opacity-50' : ''}`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200 ${
+                  className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-surface shadow transform ring-0 transition ease-in-out duration-200 ${
                     f.enabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
@@ -99,7 +99,7 @@ export default function FeaturesPage() {
             </li>
           ))}
           {features.length === 0 && (
-            <li className="px-4 py-8 text-center text-gray-500 text-sm">No feature flags found.</li>
+            <li className="px-4 py-8 text-center text-text-secondary text-sm">No feature flags found.</li>
           )}
         </ul>
       )}

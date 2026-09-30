@@ -144,7 +144,7 @@ export default function PortalPropertiesPage() {
       />
 
       {loading ? (
-        <div className="p-12 text-center text-gray-500">Loading...</div>
+        <div className="p-12 text-center text-text-secondary">Loading...</div>
       ) : error ? (
         <div className="p-12 text-center text-red-600">{error}</div>
       ) : properties.length === 0 ? (
@@ -153,24 +153,24 @@ export default function PortalPropertiesPage() {
         <>
           <div className="space-y-3 md:hidden">
             {properties.map(p => (
-              <div key={p.id} className="rounded-xl border bg-white p-4 shadow-sm">
+              <div key={p.id} className="rounded-xl border bg-surface p-4 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <Link href={`/portal/properties/${p.id}`} className="font-semibold text-brand-orange hover:underline">
+                    <Link href={`/portal/properties/${p.id}`} className="font-semibold text-accent hover:underline">
                       {p.name}
                     </Link>
-                    <p className="mt-1 text-sm text-slate-500">{p.suburb?.name || 'N/A'}</p>
+                    <p className="mt-1 text-sm text-text-secondary">{p.suburb?.name || 'N/A'}</p>
                   </div>
                   <StatusBadge status={p.status} />
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Link href={`/portal/properties/${p.id}`} className="flex-1 inline-flex min-h-11 items-center justify-center rounded-lg border border-brand-orange px-4 py-2 text-sm font-semibold text-brand-orange">
+                  <Link href={`/portal/properties/${p.id}`} className="flex-1 inline-flex min-h-11 items-center justify-center rounded-lg border border-accent px-4 py-2 text-sm font-semibold text-accent">
                     Manage
                   </Link>
                   {isAdmin && (
                     <button 
                       onClick={() => openAssignModal(p)}
-                      className="flex-1 inline-flex min-h-11 items-center justify-center rounded-lg bg-gray-100 text-gray-700 px-4 py-2 text-sm font-semibold"
+                      className="flex-1 inline-flex min-h-11 items-center justify-center rounded-lg bg-secondary text-text-secondary px-4 py-2 text-sm font-semibold"
                     >
                       <Users className="mr-1 h-4 w-4" /> Team
                     </button>
@@ -180,25 +180,25 @@ export default function PortalPropertiesPage() {
             ))}
           </div>
 
-          <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border-strong bg-surface shadow-sm md:block">
             <table className="w-full text-left">
-              <thead className="bg-surface-muted border-b border-gray-200">
+              <thead className="bg-surface-muted border-b border-border-strong">
                 <tr>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Property</th>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Location</th>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Status</th>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy text-right">Action</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary">Property</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary">Location</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary">Status</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {properties.map(p => (
                   <tr key={p.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4">
-                      <Link href={`/portal/properties/${p.id}`} className="font-medium text-brand-orange hover:underline">
+                      <Link href={`/portal/properties/${p.id}`} className="font-medium text-accent hover:underline">
                         {p.name}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-sm text-brand-navy">{p.suburb?.name || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-primary">{p.suburb?.name || 'N/A'}</td>
                     <td className="px-6 py-4 text-sm">
                       <StatusBadge status={p.status} />
                     </td>
@@ -207,12 +207,12 @@ export default function PortalPropertiesPage() {
                         {isAdmin && (
                           <button 
                             onClick={() => openAssignModal(p)}
-                            className="text-sm font-medium text-gray-600 hover:text-brand-orange flex items-center"
+                            className="text-sm font-medium text-gray-600 hover:text-accent flex items-center"
                           >
                             <Users className="mr-1 h-4 w-4" /> Assign
                           </button>
                         )}
-                        <Link href={`/portal/properties/${p.id}`} className="text-sm font-medium text-brand-orange hover:underline">
+                        <Link href={`/portal/properties/${p.id}`} className="text-sm font-medium text-accent hover:underline">
                           Manage →
                         </Link>
                       </div>
@@ -231,11 +231,11 @@ export default function PortalPropertiesPage() {
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
           <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-              <div className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+              <div className="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
                 <h3 className="text-lg font-semibold leading-6 text-gray-900 mb-1" id="assign-modal-title">
                   Assign Team Members
                 </h3>
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-text-secondary mb-4">
                   Property: <span className="font-semibold text-gray-900">{selectedProperty.name}</span>
                 </p>
 
@@ -247,9 +247,9 @@ export default function PortalPropertiesPage() {
                 )}
 
                 {teamLoading ? (
-                  <div className="py-8 text-center text-gray-500">Loading team members...</div>
+                  <div className="py-8 text-center text-text-secondary">Loading team members...</div>
                 ) : teamMembers.length === 0 ? (
-                  <div className="py-8 text-center text-gray-500">No team members found in your agency.</div>
+                  <div className="py-8 text-center text-text-secondary">No team members found in your agency.</div>
                 ) : (
                   <div className="max-h-[50vh] overflow-y-auto border rounded-md divide-y">
                     {teamMembers.map(member => {
@@ -261,7 +261,7 @@ export default function PortalPropertiesPage() {
                         <div key={member.id} className="flex items-center justify-between p-4">
                           <div>
                             <p className="font-medium text-gray-900">{member.user.firstName} {member.user.lastName}</p>
-                            <p className="text-xs text-gray-500">{member.user.email}</p>
+                            <p className="text-xs text-text-secondary">{member.user.email}</p>
                             {isAgencyAdmin ? (
                               <span className="mt-1 inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
                                 Agency Admin (Full Access)
@@ -274,12 +274,12 @@ export default function PortalPropertiesPage() {
                           </div>
                           <div>
                             {isAgencyAdmin ? (
-                              <span className="text-sm font-medium text-gray-500">Always MANAGE</span>
+                              <span className="text-sm font-medium text-text-secondary">Always MANAGE</span>
                             ) : (
                               <select 
                                 value={permission}
                                 onChange={(e) => handleAssignmentChange(member.id, e.target.value as any)}
-                                className="block w-32 rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:border-brand-orange focus:outline-none focus:ring-1 focus:ring-brand-orange"
+                                className="block w-32 rounded-md border border-border-strong px-3 py-1.5 text-sm focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                               >
                                 <option value="NONE">Not Assigned</option>
                                 <option value="VIEW">VIEW</option>
@@ -298,7 +298,7 @@ export default function PortalPropertiesPage() {
                     type="button"
                     disabled={savingAssignments || teamLoading}
                     onClick={saveAssignments}
-                    className="inline-flex w-full justify-center rounded-md bg-brand-orange px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50 sm:col-start-2"
+                    className="inline-flex w-full justify-center rounded-md bg-accent px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 disabled:opacity-50 sm:col-start-2"
                   >
                     {savingAssignments ? 'Saving...' : 'Save Assignments'}
                   </button>
@@ -306,7 +306,7 @@ export default function PortalPropertiesPage() {
                     type="button"
                     disabled={savingAssignments}
                     onClick={() => setIsAssignModalOpen(false)}
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                    className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
                   >
                     Cancel
                   </button>

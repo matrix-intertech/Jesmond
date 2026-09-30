@@ -177,7 +177,7 @@ function EmployeesPageContent() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title="Retail Employees" description="Manage your staff and branch assignments." />
-        <button onClick={openCreateModal} className="bg-brand-navy hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={openCreateModal} className="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Add Employee
         </button>
       </div>
@@ -185,18 +185,18 @@ function EmployeesPageContent() {
       {error ? (
         <ErrorState title="Failed to load employees" description={error} onRetry={fetchData} />
       ) : loading ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[300px] animate-pulse" />
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong overflow-hidden min-h-[300px] animate-pulse" />
       ) : employees.length === 0 ? (
         <div className="text-center pb-8">
           <EmptyState title="No employees found" description="Get started by adding your first retail employee." />
-          <button onClick={openCreateModal} className="mt-4 px-4 py-2 rounded-md bg-brand-navy text-white hover:bg-brand-navy/90 transition">
+          <button onClick={openCreateModal} className="mt-4 px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition">
             Add Employee
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong overflow-hidden">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+            <thead className="bg-slate-50 border-b border-border-strong text-text-secondary">
               <tr>
                 <th className="px-6 py-4 font-medium">Employee Name</th>
                 <th className="px-6 py-4 font-medium">Role & Branch</th>
@@ -207,16 +207,16 @@ function EmployeesPageContent() {
             <tbody className="divide-y divide-slate-100">
               {employees.map(emp => (
                 <tr key={emp.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-brand-navy">
+                  <td className="px-6 py-4 font-medium text-primary">
                     <div className="flex flex-col">
                       <span>{emp.user.firstName} {emp.user.lastName}</span>
-                      <span className="text-xs text-slate-400 font-normal">{emp.user.email}</span>
+                      <span className="text-xs text-text-muted font-normal">{emp.user.email}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-slate-600">
                     <div className="flex flex-col">
-                      <span className="font-medium text-slate-700">{emp.role.replace('_', ' ')}</span>
-                      <span className="text-xs text-slate-400">
+                      <span className="font-medium text-text-primary">{emp.role.replace('_', ' ')}</span>
+                      <span className="text-xs text-text-muted">
                         {emp.branches && emp.branches.length > 0
                           ? emp.branches.map(b => b.branch.name).join(', ')
                           : (emp.retailBranch?.name || 'No branch assigned')}
@@ -225,15 +225,15 @@ function EmployeesPageContent() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      emp.user.accountStatus === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                      emp.user.accountStatus === 'ACTIVE' ? 'bg-success/10 text-success' :
                       emp.user.accountStatus === 'PENDING_VERIFICATION' ? 'bg-amber-100 text-amber-800' :
-                      'bg-slate-100 text-slate-800'
+                      'bg-surface-muted text-slate-800'
                     }`}>
                       {emp.user.accountStatus.replace('_', ' ')}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => openEditModal(emp)} className="text-brand-orange hover:text-orange-600 font-medium text-sm mr-4">Edit</button>
+                    <button onClick={() => openEditModal(emp)} className="text-accent hover:text-accent font-medium text-sm mr-4">Edit</button>
                     {emp.user.accountStatus !== 'DEACTIVATED' && (
                       <button onClick={() => deactivateEmployee(emp.id)} className="text-rose-500 hover:text-rose-700 font-medium text-sm">Deactivate</button>
                     )}
@@ -247,10 +247,10 @@ function EmployeesPageContent() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0">
-              <h3 className="font-semibold text-lg text-brand-navy">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">&times;</button>
+          <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center shrink-0">
+              <h3 className="font-semibold text-lg text-primary">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-slate-600">&times;</button>
             </div>
 
             <div className="overflow-y-auto p-6">
@@ -259,34 +259,34 @@ function EmployeesPageContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input disabled={!!editingEmployee} required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-slate-50 disabled:text-slate-500" />
+                    <label className="block text-sm font-medium text-text-primary mb-1">First Name</label>
+                    <input disabled={!!editingEmployee} required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm disabled:bg-slate-50 disabled:text-text-secondary" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input disabled={!!editingEmployee} type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-slate-50 disabled:text-slate-500" />
+                    <label className="block text-sm font-medium text-text-primary mb-1">Last Name</label>
+                    <input disabled={!!editingEmployee} type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm disabled:bg-slate-50 disabled:text-text-secondary" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email (Login ID)</label>
-                  <input disabled={!!editingEmployee} required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm disabled:bg-slate-50 disabled:text-slate-500" />
-                  {!editingEmployee && <p className="text-xs text-slate-500 mt-1">An email will be sent to them to set their password.</p>}
+                  <label className="block text-sm font-medium text-text-primary mb-1">Email (Login ID)</label>
+                  <input disabled={!!editingEmployee} required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm disabled:bg-slate-50 disabled:text-text-secondary" />
+                  {!editingEmployee && <p className="text-xs text-text-secondary mt-1">An email will be sent to them to set their password.</p>}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                    <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm">
+                    <label className="block text-sm font-medium text-text-primary mb-1">Role</label>
+                    <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm">
                       <option value="ORG_STAFF">Staff</option>
                       <option value="ADMIN">Admin</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Branches</label>
-                    <div className="space-y-2 max-h-32 overflow-y-auto p-2 border border-gray-300 rounded-md">
+                    <label className="block text-sm font-medium text-text-primary mb-1">Assigned Branches</label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto p-2 border border-border-strong rounded-md">
                       {branches.map(b => (
-                        <label key={b.id} className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer">
+                        <label key={b.id} className="flex items-center space-x-2 text-sm text-text-primary cursor-pointer">
                           <input
                             type="checkbox"
                             checked={formData.branchIds.includes(b.id)}
@@ -299,20 +299,20 @@ function EmployeesPageContent() {
                                   : prev.branchIds.filter(id => id !== b.id)
                               }));
                             }}
-                            className="rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                            className="rounded border-border-strong text-accent focus:ring-accent"
                           />
                           <span>{b.name}</span>
                         </label>
                       ))}
-                      {branches.length === 0 && <span className="text-xs text-slate-400">No branches available</span>}
+                      {branches.length === 0 && <span className="text-xs text-text-muted">No branches available</span>}
                     </div>
                   </div>
                 </div>
 
                 {editingEmployee && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Account Status</label>
-                    <select value={formData.accountStatus} onChange={e => setFormData({...formData, accountStatus: e.target.value})} className="w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm">
+                    <label className="block text-sm font-medium text-text-primary mb-1">Account Status</label>
+                    <select value={formData.accountStatus} onChange={e => setFormData({...formData, accountStatus: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm">
                       <option value="ACTIVE">Active</option>
                       <option value="PENDING_VERIFICATION">Pending Verification</option>
                       <option value="SUSPENDED">Suspended</option>
@@ -323,9 +323,9 @@ function EmployeesPageContent() {
               </form>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">
-              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md">Cancel</button>
-              <button form="employee-form" type="submit" disabled={formLoading} className="px-4 py-2 text-sm font-medium text-white bg-brand-orange hover:bg-orange-600 rounded-md disabled:opacity-50">
+            <div className="px-6 py-4 border-t border-border-subtle flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-muted rounded-md">Cancel</button>
+              <button form="employee-form" type="submit" disabled={formLoading} className="px-4 py-2 text-sm font-medium text-white bg-accent hover:bg-accent rounded-md disabled:opacity-50">
                 {formLoading ? 'Saving...' : 'Save'}
               </button>
             </div>

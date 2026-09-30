@@ -41,26 +41,26 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
 
   // Disambiguation UI
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface">
       <GlobalNav />
       <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-24 min-h-[70vh]">
-        <Link href="/states" className="text-sm font-semibold text-brand-orange hover:underline mb-8 inline-block">&larr; View all States</Link>
-        <h1 className="text-4xl md:text-5xl font-medium text-brand-navy mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+        <Link href="/states" className="text-sm font-semibold text-accent hover:underline mb-8 inline-block">&larr; View all States</Link>
+        <h1 className="text-4xl md:text-5xl font-medium text-primary mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
           Multiple locations found for "{resolvedParams.slug}"
         </h1>
-        <p className="text-lg text-slate-500 max-w-2xl mb-12">Please select the state you are looking for.</p>
+        <p className="text-lg text-text-secondary max-w-2xl mb-12">Please select the state you are looking for.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cities.map(city => {
             const stateSlug = (city.state.normalizedName || city.state.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
             const citySlug = (city.normalizedName || city.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
             return (
-              <Link key={city.id} href={`/states/${stateSlug}/${citySlug}`} className="group p-6 border border-slate-200 rounded-2xl hover:border-brand-orange transition-all flex flex-col items-start justify-between min-h-[140px]">
+              <Link key={city.id} href={`/states/${stateSlug}/${citySlug}`} className="group p-6 border border-border-strong rounded-2xl hover:border-accent transition-all flex flex-col items-start justify-between min-h-[140px]">
                 <div>
-                  <h3 className="text-xl font-bold text-brand-navy mb-1">{city.name}</h3>
-                  <p className="text-slate-500">{city.state.name}</p>
+                  <h3 className="text-xl font-bold text-primary mb-1">{city.name}</h3>
+                  <p className="text-text-secondary">{city.state.name}</p>
                 </div>
-                <span className="text-sm font-semibold text-brand-orange mt-4 group-hover:underline">View City &rarr;</span>
+                <span className="text-sm font-semibold text-accent mt-4 group-hover:underline">View City &rarr;</span>
               </Link>
             );
           })}

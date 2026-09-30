@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   },
   description:
     "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
+  icons: {
+    icon: "/assets/icon.png",
+    apple: "/assets/icon.png",
+  },
 };
 
 export const viewport: Viewport = {

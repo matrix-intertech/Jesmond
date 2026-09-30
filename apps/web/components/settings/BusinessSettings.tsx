@@ -69,13 +69,13 @@ export default function BusinessSettings() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading business profile...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading business profile...</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-brand-navy">Business Profile</h3>
-        <p className="mt-1 text-sm text-gray-500">Manage your organization details.</p>
+    <div className="bg-surface shadow rounded-lg overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+        <h3 className="text-lg leading-6 font-medium text-primary">Business Profile</h3>
+        <p className="mt-1 text-sm text-text-secondary">Manage your organization details.</p>
       </div>
 
       <div className="p-6">
@@ -85,26 +85,26 @@ export default function BusinessSettings() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Organization Name</label>
-              <input type="text" value={data.name || ''} onChange={e => setData({...data, name: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
+              <label className="block text-sm font-medium text-text-primary">Organization Name</label>
+              <input type="text" value={data.name || ''} onChange={e => setData({...data, name: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">ABN / Business ID</label>
-              <input type="text" value={data.abn || ''} onChange={e => setData({...data, abn: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" />
+              <label className="block text-sm font-medium text-text-primary">ABN / Business ID</label>
+              <input type="text" value={data.abn || ''} onChange={e => setData({...data, abn: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Timezone</label>
-              <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
+              <label className="block text-sm font-medium text-text-primary">Timezone</label>
+              <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" required />
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-gray-100">
+          <div className="flex justify-end pt-4 border-t border-border-subtle">
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Profile'}
             </button>

@@ -171,11 +171,11 @@ export function LocationAutocomplete({
   return (
     <div ref={wrapperRef} className={`relative w-full ${className}`}>
       <div className="relative flex items-center">
-        <MapPin className="absolute left-3 w-5 h-5 text-gray-400" />
+        <MapPin className="absolute left-3 w-5 h-5 text-text-muted" />
         <input
           ref={inputRef}
           type="text"
-          className="w-full pl-10 pr-10 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          className="w-full pl-10 pr-10 py-3 bg-surface border border-border-strong rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           placeholder={placeholder}
           value={query}
           onChange={e => {
@@ -200,7 +200,7 @@ export function LocationAutocomplete({
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-gray-600 transition-colors"
             aria-label="Clear location"
           >
             <X className="w-4 h-4" />
@@ -211,7 +211,7 @@ export function LocationAutocomplete({
       {isOpen && (query.length >= 3) && (
         <div
           id="location-suggestions"
-          className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg overflow-hidden"
+          className="absolute z-50 w-full mt-2 bg-surface border border-border-subtle rounded-xl shadow-lg overflow-hidden"
         >
           {results.length > 0 ? (
             <ul className="max-h-60 overflow-auto py-1">
@@ -225,16 +225,16 @@ export function LocationAutocomplete({
                   role="option"
                   aria-selected={index === selectedIndex}
                 >
-                  <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-blue-600' : 'text-gray-400'}`} />
+                  <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-blue-600' : 'text-text-muted'}`} />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900 line-clamp-1">{result.label}</span>
-                    <span className="text-xs text-gray-500 capitalize">{result.type.replace('_', ' ')} • {result.postcode || result.state || result.country}</span>
+                    <span className="text-xs text-text-secondary capitalize">{result.type.replace('_', ' ')} • {result.postcode || result.state || result.country}</span>
                   </div>
                 </li>
               ))}
             </ul>
           ) : !isLoading ? (
-            <div className="px-4 py-6 text-center text-gray-500 text-sm">
+            <div className="px-4 py-6 text-center text-text-secondary text-sm">
               No locations found matching "{query}"
             </div>
           ) : null}

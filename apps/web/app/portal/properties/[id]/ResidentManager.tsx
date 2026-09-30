@@ -115,40 +115,40 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
   };
 
   return (
-    <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-medium">Residents</h2>
-        <button onClick={handleOpenNew} className="text-sm bg-brand-orange text-white px-3 py-1.5 rounded hover:bg-orange-600 transition">
+        <button onClick={handleOpenNew} className="text-sm bg-accent text-white px-3 py-1.5 rounded hover:bg-accent transition">
           + Add Resident
         </button>
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm">{error}</div>}
+      {error && <div className="bg-error/10 text-error p-3 rounded mb-4 text-sm">{error}</div>}
       {toast && <div className="bg-green-50 text-green-600 p-3 rounded mb-4 text-sm">{toast}</div>}
 
       {initialResidents.length === 0 ? (
-        <p className="text-gray-500 text-sm">No residents added yet. Add residents to display them on your co-living listing.</p>
+        <p className="text-text-secondary text-sm">No residents added yet. Add residents to display them on your co-living listing.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {initialResidents.map((res: any) => (
-            <div key={res.id} className="border border-gray-200 rounded-lg p-4 flex flex-col relative">
+            <div key={res.id} className="border border-border-strong rounded-lg p-4 flex flex-col relative">
               <div className="flex items-center gap-3 mb-3">
                 {res.photoUrl ? (
                   <img src={res.photoUrl} alt={res.name} className="w-12 h-12 rounded-full object-cover" />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
+                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-text-secondary font-medium">
                     {res.name.charAt(0)}
                   </div>
                 )}
                 <div>
                   <h4 className="font-semibold text-gray-900">{res.name}</h4>
-                  <p className="text-xs text-gray-500">{res.occupation || 'No occupation listed'}</p>
+                  <p className="text-xs text-text-secondary">{res.occupation || 'No occupation listed'}</p>
                 </div>
               </div>
               <div className="text-sm text-gray-600 mb-4 flex-1">
                 {res.shortBio ? <p className="line-clamp-2">{res.shortBio}</p> : <p className="italic">No bio provided.</p>}
               </div>
-              <div className="flex gap-2 text-xs text-brand-orange justify-end mt-auto pt-2 border-t border-gray-100">
+              <div className="flex gap-2 text-xs text-accent justify-end mt-auto pt-2 border-t border-border-subtle">
                 <button onClick={() => handleOpenEdit(res)} className="hover:underline">Edit</button>
                 <button onClick={() => handleDelete(res.id)} className="hover:underline">Remove</button>
               </div>
@@ -158,8 +158,8 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
       )}
 
       {isEditing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-primary bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-surface rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold mb-4">{currentResident ? 'Edit Resident' : 'Add Resident'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               
@@ -202,7 +202,7 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
 
               <div className="mt-6 border-t pt-4">
                 <h4 className="font-semibold text-sm mb-3">Public Profile Visibility</h4>
-                <p className="text-xs text-gray-500 mb-4">Select which fields should be visible on the public property listing. (Name is always visible; Email and Phone are always private).</p>
+                <p className="text-xs text-text-secondary mb-4">Select which fields should be visible on the public property listing. (Name is always visible; Email and Phone are always private).</p>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={form.publicVisibility.age} onChange={e => setForm({...form, publicVisibility: {...form.publicVisibility, age: e.target.checked}})} /> Show Age
@@ -221,7 +221,7 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
 
               <div className="flex gap-4 justify-end mt-6">
                 <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-gray-600 hover:text-gray-900">Cancel</button>
-                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-brand-orange text-white rounded hover:bg-orange-600 disabled:opacity-50">
+                <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-accent text-white rounded hover:bg-accent disabled:opacity-50">
                   {isSubmitting ? 'Saving...' : 'Save Resident'}
                 </button>
               </div>

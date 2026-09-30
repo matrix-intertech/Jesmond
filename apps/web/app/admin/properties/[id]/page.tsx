@@ -168,15 +168,15 @@ export default function AdminPropertyReviewPage() {
       <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-medium text-brand-navy font-outfit mb-2">{property.name}</h1>
+            <h1 className="text-3xl font-medium text-primary font-outfit mb-2">{property.name}</h1>
             <p className="text-gray-600 mb-1">Provider: <strong>{property.organization.name}</strong></p>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-slate-700">Verification Status:</span>
+              <span className="text-sm font-medium text-text-primary">Verification Status:</span>
               <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                 property.verificationStatus === 'VERIFIED' ? 'bg-blue-100 text-blue-700' :
                 property.verificationStatus === 'REJECTED' ? 'bg-red-100 text-red-700' :
                 property.verificationStatus === 'SUSPENDED' ? 'bg-orange-100 text-orange-700' :
-                'bg-gray-100 text-gray-700'
+                'bg-secondary text-text-secondary'
               }`}>
                 {property.verificationStatus}
               </span>
@@ -196,7 +196,7 @@ export default function AdminPropertyReviewPage() {
                   Approve & Publish
                 </button>
                 {rejectPrompt && (
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border shadow-lg rounded-xl p-4 z-10">
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-surface border shadow-lg rounded-xl p-4 z-10">
                     <h3 className="font-semibold text-sm mb-2">Reason for rejection</h3>
                     <textarea 
                       className="w-full border rounded p-2 text-sm mb-3"
@@ -231,13 +231,13 @@ export default function AdminPropertyReviewPage() {
                   Change Verification
                 </button>
                 {verificationPrompt && (
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border shadow-lg rounded-xl p-2 z-10">
-                    <div className="text-xs font-semibold text-slate-500 uppercase px-2 py-1 mb-1">Status</div>
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-surface border shadow-lg rounded-xl p-2 z-10">
+                    <div className="text-xs font-semibold text-text-secondary uppercase px-2 py-1 mb-1">Status</div>
                     {['PENDING', 'VERIFIED', 'REJECTED', 'SUSPENDED'].map(st => (
                       <button
                         key={st}
                         onClick={() => handleVerificationStatusUpdate(st)}
-                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-700 hover:bg-surface-muted'}`}
+                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-text-primary hover:bg-surface-muted'}`}
                       >
                         {st}
                       </button>
@@ -253,27 +253,27 @@ export default function AdminPropertyReviewPage() {
         {error && <div className="bg-red-100 text-red-700 p-4 rounded-xl mb-6 font-semibold">{error}</div>}
 
         <div className="space-y-8">
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
             <h2 className="text-xl font-medium mb-4">Description</h2>
-            <p className="text-gray-700 whitespace-pre-wrap">{property.description}</p>
+            <p className="text-text-primary whitespace-pre-wrap">{property.description}</p>
           </section>
 
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
             <h2 className="text-xl font-medium mb-4">Images ({property.media.length})</h2>
             <div className="flex flex-wrap gap-4">
               {property.media.map((m: any) => (
-                <div key={m.id} className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden">
+                <div key={m.id} className="w-32 h-32 bg-surface-muted rounded-lg overflow-hidden">
                   <SafeImage src={m.url} alt="Property" className="object-cover w-full h-full" width={128} height={128} />
                 </div>
               ))}
             </div>
           </section>
 
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
             <h2 className="text-xl font-medium mb-4">Room Types ({property.roomTypes.length})</h2>
             <div className="space-y-4">
               {property.roomTypes.map((room: any) => (
-                <div key={room.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={room.id} className="border border-border-strong rounded-lg p-4">
                   <div className="flex justify-between">
                     <div>
                       <h3 className="font-medium">{room.name}</h3>

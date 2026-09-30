@@ -89,13 +89,13 @@ export default function PlatformSettingsPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading platform settings...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading platform settings...</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-brand-navy">Platform Settings</h3>
-        <p className="mt-1 text-sm text-gray-500">Manage global configuration for the Jesmond platform.</p>
+    <div className="bg-surface shadow rounded-lg overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+        <h3 className="text-lg leading-6 font-medium text-primary">Platform Settings</h3>
+        <p className="mt-1 text-sm text-text-secondary">Manage global configuration for the Jesmond platform.</p>
       </div>
 
       <div className="p-6">
@@ -105,28 +105,28 @@ export default function PlatformSettingsPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Site Name</label>
-              <input type="text" value={data.siteName || ''} onChange={e => setData({...data, siteName: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
+              <label className="block text-sm font-medium text-text-primary">Site Name</label>
+              <input type="text" value={data.siteName || ''} onChange={e => setData({...data, siteName: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Support Email</label>
-              <input type="email" value={data.supportEmail || ''} onChange={e => setData({...data, supportEmail: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
+              <label className="block text-sm font-medium text-text-primary">Support Email</label>
+              <input type="email" value={data.supportEmail || ''} onChange={e => setData({...data, supportEmail: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Support Phone</label>
-              <input type="text" value={data.supportPhone || ''} onChange={e => setData({...data, supportPhone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" />
+              <label className="block text-sm font-medium text-text-primary">Support Phone</label>
+              <input type="text" value={data.supportPhone || ''} onChange={e => setData({...data, supportPhone: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Default Timezone</label>
-              <input type="text" value={data.defaultTimezone || ''} onChange={e => setData({...data, defaultTimezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
+              <label className="block text-sm font-medium text-text-primary">Default Timezone</label>
+              <input type="text" value={data.defaultTimezone || ''} onChange={e => setData({...data, defaultTimezone: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Default Currency</label>
-              <input type="text" value={data.defaultCurrency || ''} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm" required />
+              <label className="block text-sm font-medium text-text-primary">Default Currency</label>
+              <input type="text" value={data.defaultCurrency || ''} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm" required />
             </div>
           </div>
 
@@ -136,13 +136,13 @@ export default function PlatformSettingsPage() {
               type="checkbox"
               checked={data.maintenanceMode || false}
               onChange={e => setData({...data, maintenanceMode: e.target.checked})}
-              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-accent focus:ring-indigo-500 border-border-strong rounded"
             />
-            <label htmlFor="maintenanceMode" className="ml-2 block text-sm text-brand-navy font-medium">
+            <label htmlFor="maintenanceMode" className="ml-2 block text-sm text-primary font-medium">
               Maintenance Mode
             </label>
           </div>
-          <p className="ml-6 text-xs text-gray-500 mt-1">If enabled, the platform will be unavailable to non-admin users.</p>
+          <p className="ml-6 text-xs text-text-secondary mt-1">If enabled, the platform will be unavailable to non-admin users.</p>
 
           <div className="flex items-center mt-4">
             <input
@@ -150,22 +150,22 @@ export default function PlatformSettingsPage() {
               type="checkbox"
               checked={data.propertyAutoApproval || false}
               onChange={e => setData({...data, propertyAutoApproval: e.target.checked})}
-              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-accent focus:ring-indigo-500 border-border-strong rounded"
             />
-            <label htmlFor="propertyAutoApproval" className="ml-2 block text-sm text-brand-navy font-medium">
+            <label htmlFor="propertyAutoApproval" className="ml-2 block text-sm text-primary font-medium">
               Property Auto Approval
             </label>
           </div>
-          <p className="ml-6 text-xs text-gray-500 mt-1">If enabled, newly submitted properties will bypass manual review and be published automatically.</p>
+          <p className="ml-6 text-xs text-text-secondary mt-1">If enabled, newly submitted properties will bypass manual review and be published automatically.</p>
 
-          <div className="mt-8 pt-8 border-t border-gray-200">
-            <h4 className="text-md leading-6 font-medium text-brand-navy mb-4">Homepage Featured Property</h4>
+          <div className="mt-8 pt-8 border-t border-border-strong">
+            <h4 className="text-md leading-6 font-medium text-primary mb-4">Homepage Featured Property</h4>
             <div className="max-w-xl">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Select Property</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">Select Property</label>
               <select
                 value={data.featuredPropertyId || ''}
                 onChange={e => setData({...data, featuredPropertyId: e.target.value || null})}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="">-- None (Default Hero) --</option>
                 <optgroup label="Available Properties">
@@ -176,17 +176,17 @@ export default function PlatformSettingsPage() {
                   ))}
                 </optgroup>
               </select>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-text-secondary">
                 This property will be displayed prominently on the homepage hero section. Only Published and Verified properties are eligible.
               </p>
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-gray-100">
+          <div className="flex justify-end pt-4 border-t border-border-subtle">
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Changes'}
             </button>

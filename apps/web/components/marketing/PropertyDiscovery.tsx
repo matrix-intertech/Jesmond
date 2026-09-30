@@ -107,7 +107,7 @@ export function PropertyDiscovery() {
       <div className="lg:hidden absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
         <button
           onClick={() => setShowMapMobile(!showMapMobile)}
-          className="bg-brand-navy text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-brand-navy/20 flex items-center gap-2"
+          className="bg-primary text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-brand-navy/20 flex items-center gap-2"
         >
           {showMapMobile ? (
             <>
@@ -130,34 +130,34 @@ export function PropertyDiscovery() {
             <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-8">
               <div className="max-w-xl">
                 <h2
-                  className="text-3xl lg:text-4xl font-medium text-brand-navy tracking-[-0.02em] leading-tight mb-4"
+                  className="text-3xl lg:text-4xl font-medium text-primary tracking-[-0.02em] leading-tight mb-4"
                   style={{ fontFamily: 'var(--font-outfit)' }}
                 >
                   Curated living spaces.
                 </h2>
-                <p className="text-base text-slate-500 font-light">
+                <p className="text-base text-text-secondary font-light">
                   We don't list everything. We only list the best.
                   Discover verified properties designed specifically for student success.
                 </p>
               </div>
 
               {/* Quick Discovery Tabs */}
-              <div className="flex gap-1.5 p-1 bg-slate-200/50 rounded-full border border-slate-200 w-full overflow-x-auto hide-scrollbar sm:w-fit shrink-0">
+              <div className="flex gap-1.5 p-1 bg-secondary/50 rounded-full border border-border-strong w-full overflow-x-auto hide-scrollbar sm:w-fit shrink-0">
                 <button
                   onClick={() => { setActiveTab('top_rated'); setAppliedBounds(null); }}
-                  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'top_rated' ? 'bg-white text-brand-navy font-semibold' : 'text-slate-500 hover:text-brand-navy font-medium'}`}
+                  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'top_rated' ? 'bg-surface text-primary font-semibold' : 'text-text-secondary hover:text-primary font-medium'}`}
                 >
                   Top Rated
                 </button>
                 <button
                   onClick={() => { setActiveTab('closest_to_campus'); setAppliedBounds(null); }}
-                  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'closest_to_campus' ? 'bg-white text-brand-navy font-semibold' : 'text-slate-500 hover:text-brand-navy font-medium'}`}
+                  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'closest_to_campus' ? 'bg-surface text-primary font-semibold' : 'text-text-secondary hover:text-primary font-medium'}`}
                 >
                   Closest to Campus
                 </button>
                 <button
                   onClick={() => { setActiveTab('available_now'); setAppliedBounds(null); }}
-                  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'available_now' ? 'bg-white text-brand-navy font-semibold' : 'text-slate-500 hover:text-brand-navy font-medium'}`}
+                  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'available_now' ? 'bg-surface text-primary font-semibold' : 'text-text-secondary hover:text-primary font-medium'}`}
                 >
                   Available Now
                 </button>
@@ -169,19 +169,19 @@ export function PropertyDiscovery() {
               {loading ? (
                 <div className="col-span-full flex justify-center items-center py-20">
                   <div className="flex flex-col items-center gap-3">
-                    <svg className="w-8 h-8 text-slate-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <svg className="w-8 h-8 text-text-muted animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p className="text-slate-500 font-medium">Loading properties...</p>
+                    <p className="text-text-secondary font-medium">Loading properties...</p>
                   </div>
                 </div>
               ) : properties.length === 0 ? (
-                <div className="col-span-full flex justify-center items-center py-20 bg-white rounded-2xl border border-slate-200">
+                <div className="col-span-full flex justify-center items-center py-20 bg-surface rounded-2xl border border-border-strong">
                   <div className="text-center">
                     <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                    <h3 className="text-lg font-medium text-brand-navy mb-1">No properties found</h3>
-                    <p className="text-slate-500 text-sm">Try adjusting your map area or filters.</p>
+                    <h3 className="text-lg font-medium text-primary mb-1">No properties found</h3>
+                    <p className="text-text-secondary text-sm">Try adjusting your map area or filters.</p>
                   </div>
                 </div>
               ) : properties.map((property: any) => {
@@ -194,10 +194,10 @@ export function PropertyDiscovery() {
                     id={`property-card-${property.id}`}
                     onMouseEnter={() => setHoveredPropertyId(property.id)}
                     onMouseLeave={() => setHoveredPropertyId(undefined)}
-                    className={`group relative flex flex-col rounded-[20px] bg-white border ${isHovered ? 'border-brand-navy shadow-xl' : 'border-slate-100 shadow-sm'} overflow-hidden hover:shadow-xl transition-all duration-300`}
+                    className={`group relative flex flex-col rounded-[20px] bg-surface border ${isHovered ? 'border-brand-navy shadow-xl' : 'border-border-subtle shadow-sm'} overflow-hidden hover:shadow-xl transition-all duration-300`}
                   >
 
-                    <div className="relative w-full h-48 overflow-hidden bg-slate-100">
+                    <div className="relative w-full h-48 overflow-hidden bg-surface-muted">
                       <SafeImage
                         src={property.media?.[0]?.url || "/assets/prop_1.png"}
                         alt={property.name}
@@ -215,7 +215,7 @@ export function PropertyDiscovery() {
                               Verified
                             </div>
                           )}
-                          <div className="flex items-center gap-1 bg-brand-navy/80 backdrop-blur-md text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-sm w-fit">
+                          <div className="flex items-center gap-1 bg-primary/80 backdrop-blur-md text-white px-2 py-1 rounded-md text-[10px] font-bold shadow-sm w-fit">
                             <svg className="w-3 h-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                             4.9
                           </div>
@@ -223,15 +223,15 @@ export function PropertyDiscovery() {
                       </div>
                     </div>
 
-                    <div className="p-4 flex flex-col flex-grow justify-between bg-white relative">
-                      <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-4">
+                    <div className="p-4 flex flex-col flex-grow justify-between bg-surface relative">
+                      <div className="flex justify-between items-start mb-4 border-b border-border-subtle pb-4">
                         <div>
-                          <h3 className="text-xl font-bold text-brand-navy tracking-tight mb-1 line-clamp-1">{property.name}</h3>
-                          <p className="text-xs text-slate-500">{property.suburb}</p>
+                          <h3 className="text-xl font-bold text-primary tracking-tight mb-1 line-clamp-1">{property.name}</h3>
+                          <p className="text-xs text-text-secondary">{property.suburb}</p>
                         </div>
                         <div className="text-right flex-shrink-0 ml-2">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">From</p>
-                          <p className="text-xl font-bold text-brand-orange tracking-tight leading-none">${property.lowestPricePerWeek}<span className="text-[12px] font-medium text-slate-500">/wk</span></p>
+                          <p className="text-[10px] font-bold text-text-secondary uppercase tracking-widest mb-0.5">From</p>
+                          <p className="text-xl font-bold text-accent tracking-tight leading-none">${property.lowestPricePerWeek}<span className="text-[12px] font-medium text-text-secondary">/wk</span></p>
                         </div>
                       </div>
 
@@ -244,7 +244,7 @@ export function PropertyDiscovery() {
                         if (!hasBed && !hasBath && !hasCar) return null;
 
                         return (
-                          <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
+                          <div className="flex items-center gap-4 text-sm text-text-secondary mb-4">
                             {hasBed && (
                               <span className="flex items-center gap-1.5" title="Bedrooms">
                                 <BedDouble className="h-4 w-4" />
@@ -273,13 +273,13 @@ export function PropertyDiscovery() {
                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded border ${isAvailableNow ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-amber-700 bg-amber-50 border-amber-100'}`}>
                            {isAvailableNow ? 'Available' : 'Waitlist'}
                          </span>
-                         <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-muted border border-slate-100">
+                         <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-surface-muted border border-border-subtle">
                            {property.roomTypes?.[0]?.name || 'Various'}
                          </span>
                       </div>
 
                       <Link href={`/property/${property.id}`} className="w-full mt-auto">
-                        <button className="w-full py-3 bg-white hover:bg-surface-muted text-brand-navy border border-slate-200 rounded-xl text-sm font-bold transition-colors">
+                        <button className="w-full py-3 bg-surface hover:bg-surface-muted text-primary border border-border-strong rounded-xl text-sm font-bold transition-colors">
                           View details
                         </button>
                       </Link>
@@ -292,7 +292,7 @@ export function PropertyDiscovery() {
         </div>
 
         {/* Right Map Pane */}
-        <div className={`w-full lg:w-[40%] bg-slate-200 relative border-l border-slate-200 ${!showMapMobile ? 'hidden lg:block' : 'block'}`}>
+        <div className={`w-full lg:w-[40%] bg-secondary relative border-l border-border-strong ${!showMapMobile ? 'hidden lg:block' : 'block'}`}>
           <PropertyMap
             properties={mapData}
             selectedPropertyId={hoveredPropertyId}
@@ -305,9 +305,9 @@ export function PropertyDiscovery() {
             <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[400]">
                <button
                   onClick={handleSearchThisArea}
-                  className="bg-white text-brand-navy px-5 py-2.5 rounded-full text-sm font-bold shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-slate-100 hover:scale-105 transition-transform flex items-center gap-2"
+                  className="bg-surface text-primary px-5 py-2.5 rounded-full text-sm font-bold shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-border-subtle hover:scale-105 transition-transform flex items-center gap-2"
                >
-                 <svg className="w-4 h-4 text-brand-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                 <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                  Search this area
                </button>
             </div>

@@ -51,27 +51,27 @@ export default async function StoreDetailPage({
 
   return (
     <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-8">
-      <Link href="/retail" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors font-medium mb-8">
+      <Link href="/retail" className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
         <ArrowLeft size={18} /> Back to Stores
       </Link>
 
       {!branch.isActive && (
-        <div className="mb-8 p-4 bg-slate-100 border border-slate-200 rounded-xl text-center text-slate-600 font-bold uppercase tracking-wider">
+        <div className="mb-8 p-4 bg-surface-muted border border-border-strong rounded-xl text-center text-slate-600 font-bold uppercase tracking-wider">
           Currently Unavailable
         </div>
       )}
 
-      <div className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200/60 shadow-sm mb-12 relative overflow-hidden">
+      <div className="bg-surface rounded-3xl p-8 lg:p-10 border border-border-strong/60 shadow-sm mb-12 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-60 pointer-events-none"></div>
 
         <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
-            <div className="w-20 h-20 bg-brand-navy rounded-2xl flex items-center justify-center text-white shadow-xl shadow-brand-navy/20 shrink-0">
+            <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-brand-navy/20 shrink-0">
               <Store size={36} strokeWidth={1.5} />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold text-brand-navy tracking-tight">{branch.name}</h1>
-              <p className="text-slate-500 font-medium mt-1">Jesmond Retail Partner</p>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">{branch.name}</h1>
+              <p className="text-text-secondary font-medium mt-1">Jesmond Retail Partner</p>
             </div>
           </div>
 
@@ -91,14 +91,14 @@ export default async function StoreDetailPage({
       </div>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-brand-navy">Store Catalog</h2>
-        <p className="text-slate-500 mt-1">Browse items and add available stock to your cart</p>
+        <h2 className="text-2xl font-bold text-primary">Store Catalog</h2>
+        <p className="text-text-secondary mt-1">Browse items and add available stock to your cart</p>
       </div>
 
       {catalog.length === 0 ? (
-        <div className="bg-slate-50 rounded-3xl p-12 text-center border border-slate-200/60">
-          <h3 className="text-xl font-bold text-brand-navy">Catalog empty</h3>
-          <p className="text-slate-500 mt-2">This store has no available products right now.</p>
+        <div className="bg-slate-50 rounded-3xl p-12 text-center border border-border-strong/60">
+          <h3 className="text-xl font-bold text-primary">Catalog empty</h3>
+          <p className="text-text-secondary mt-2">This store has no available products right now.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">

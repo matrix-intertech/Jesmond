@@ -54,10 +54,10 @@ export default function LocationPickerMap({ lat, lng, onChange, suburbLat, subur
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-sm font-medium text-gray-700">Property Location</div>
-      <div className="text-xs text-gray-500 mb-1">Click on the map or drag the marker to set the exact location.</div>
+      <div className="text-sm font-medium text-text-primary">Property Location</div>
+      <div className="text-xs text-text-secondary mb-1">Click on the map or drag the marker to set the exact location.</div>
       
-      <div className="h-[350px] w-full rounded-xl overflow-hidden border border-gray-300 relative z-0">
+      <div className="h-[350px] w-full rounded-xl overflow-hidden border border-border-strong relative z-0">
         <MapContainer 
           center={center} 
           zoom={zoom} 
@@ -91,8 +91,8 @@ export default function LocationPickerMap({ lat, lng, onChange, suburbLat, subur
       </div>
 
       {lat && lng && (
-        <div className="bg-surface-muted p-3 rounded-lg border border-gray-100 text-sm text-gray-600 mt-2">
-          <div className="font-medium text-brand-navy mb-1">Selected location:</div>
+        <div className="bg-surface-muted p-3 rounded-lg border border-border-subtle text-sm text-gray-600 mt-2">
+          <div className="font-medium text-primary mb-1">Selected location:</div>
           <div>Latitude: {Number(lat).toFixed(6)}</div>
           <div>Longitude: {Number(lng).toFixed(6)}</div>
         </div>

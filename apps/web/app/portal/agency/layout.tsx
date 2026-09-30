@@ -18,7 +18,7 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
     <div className="mx-auto max-w-7xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900">Agency Management</h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-text-secondary">
           Manage your team members, property access, and agency settings.
         </p>
       </div>
@@ -31,7 +31,7 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
           <select
             id="tabs"
             name="tabs"
-            className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
+            className="block w-full rounded-md border-border-strong py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500 sm:text-sm"
             defaultValue={tabs.find((tab) => (tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)))?.name}
             onChange={(e) => {
               window.location.href = tabs.find((t) => t.name === e.target.value)?.href || '/portal/agency';
@@ -43,7 +43,7 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
           </select>
         </div>
         <div className="hidden sm:block">
-          <div className="border-b border-gray-200">
+          <div className="border-b border-border-strong">
             <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               {tabs.map((tab) => {
                 const isActive = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
@@ -56,14 +56,14 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
                       ${
                         isActive
                           ? 'border-primary-500 text-primary-600'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                          : 'border-transparent text-text-secondary hover:border-border-strong hover:text-text-primary'
                       }
                     `}
                   >
                     <tab.icon
                       className={`
                         -ml-0.5 mr-2 h-5 w-5
-                        ${isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'}
+                        ${isActive ? 'text-primary-500' : 'text-text-muted group-hover:text-text-secondary'}
                       `}
                       aria-hidden="true"
                     />
@@ -76,7 +76,7 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
         </div>
       </div>
 
-      <div className="bg-white shadow sm:rounded-lg overflow-hidden">
+      <div className="bg-surface shadow sm:rounded-lg overflow-hidden">
         {children}
       </div>
     </div>

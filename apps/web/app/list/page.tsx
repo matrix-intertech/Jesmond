@@ -38,10 +38,10 @@ export default function ListPage() {
         Create a free provider account and start listing your properties today. Our team is available to help you through the onboarding process.
       </p>
       <p className="mt-4 flex flex-col sm:flex-row gap-4">
-        <Link href="/register" className="font-semibold px-6 py-3 bg-brand-orange text-white rounded-xl no-underline hover:bg-orange-600 transition-colors inline-block text-center">
+        <Link href="/register" className="font-semibold px-6 py-3 bg-accent text-white rounded-xl no-underline hover:bg-accent transition-colors inline-block text-center">
           Create Provider Account
         </Link>
-        <Link href="/contact" className="font-semibold px-6 py-3 bg-white text-brand-navy border border-slate-200 rounded-xl no-underline hover:bg-surface-muted transition-colors inline-block text-center">
+        <Link href="/contact" className="font-semibold px-6 py-3 bg-surface text-primary border border-border-strong rounded-xl no-underline hover:bg-surface-muted transition-colors inline-block text-center">
           Contact Sales
         </Link>
       </p>

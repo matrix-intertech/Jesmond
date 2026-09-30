@@ -35,7 +35,7 @@ const CATEGORIES = [
 
 export function QuickDiscoveryStrip() {
   return (
-    <section className="w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-16 border-t border-slate-200/60 relative z-10 bg-surface-muted">
+    <section className="w-full max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-16 border-t border-border-strong/60 relative z-10 bg-surface-muted">
       
       <div className="flex flex-col md:flex-row gap-12 lg:gap-24">
         {CATEGORIES.map((category, idx) => (
@@ -47,7 +47,7 @@ export function QuickDiscoveryStrip() {
             transition={{ duration: 0.5, delay: idx * 0.1 }}
             className="flex-1"
           >
-            <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">
+            <h4 className="text-[11px] font-bold text-text-muted uppercase tracking-widest mb-6">
               {category.title}
             </h4>
             
@@ -56,7 +56,7 @@ export function QuickDiscoveryStrip() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="group relative px-5 py-2.5 bg-white border border-slate-200 rounded-full text-[13px] font-medium text-slate-600 hover:text-brand-navy hover:border-slate-300 transition-all duration-300 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.08)]"
+                  className="group relative px-5 py-2.5 bg-surface border border-border-strong rounded-full text-[13px] font-medium text-slate-600 hover:text-primary hover:border-border-strong transition-all duration-300 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.08)]"
                 >
                   <span className="relative z-10">{item.label}</span>
                   {/* Subtle hover gradient background */}

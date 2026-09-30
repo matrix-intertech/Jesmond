@@ -133,11 +133,11 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
       return (
         <div className="space-y-3">
           {[0, 1, 2].map((item) => (
-            <div key={item} className="flex animate-pulse items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-              <div className="h-14 w-14 rounded-xl bg-slate-100" />
+            <div key={item} className="flex animate-pulse items-center gap-3 rounded-xl border border-border-strong bg-surface p-3">
+              <div className="h-14 w-14 rounded-xl bg-surface-muted" />
               <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-4 w-2/3 rounded bg-slate-100" />
-                <div className="h-3 w-4/5 rounded bg-slate-100" />
+                <div className="h-4 w-2/3 rounded bg-surface-muted" />
+                <div className="h-3 w-4/5 rounded bg-surface-muted" />
               </div>
             </div>
           ))}
@@ -147,10 +147,10 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
 
     if (conversations.length === 0) {
       return (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-5 py-8 text-center">
-          <h2 className="text-base font-bold text-brand-navy">Your messages will appear here.</h2>
-          <p className="mt-2 text-sm text-slate-500">Start from a property page when you are ready to contact a host.</p>
-          <Link href="/search" className="mt-5 inline-flex rounded-full bg-brand-orange px-5 py-2.5 text-sm font-bold text-white transition hover:bg-orange-600">
+        <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-5 py-8 text-center">
+          <h2 className="text-base font-bold text-primary">Your messages will appear here.</h2>
+          <p className="mt-2 text-sm text-text-secondary">Start from a property page when you are ready to contact a host.</p>
+          <Link href="/search" className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white transition hover:bg-accent">
             Browse properties
           </Link>
         </div>
@@ -159,7 +159,7 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
 
     if (filteredConversations.length === 0) {
       return (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-5 py-8 text-center text-sm text-slate-500">
+        <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-5 py-8 text-center text-sm text-text-secondary">
           No conversations match your search.
         </div>
       );
@@ -182,28 +182,28 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
             <button
               key={conv.id}
               type="button"
-              className={`group flex w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:border-brand-orange hover:bg-white hover:shadow-sm ${
+              className={`group flex w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:border-accent hover:bg-surface hover:shadow-sm ${
                 isActive
-                  ? "border-brand-orange bg-white shadow-sm ring-1 ring-brand-orange/20"
+                  ? "border-accent bg-surface shadow-sm ring-1 ring-accent/20"
                   : isUnread
-                    ? "border-brand-orange/60 bg-orange-50/40"
-                    : "border-slate-200 bg-white"
+                    ? "border-accent/60 bg-orange-50/40"
+                    : "border-border-strong bg-surface"
               }`}
               onClick={() => router.push(`/messages/${conv.id}`)}
             >
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-surface-muted">
                 <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className={`truncate text-sm font-bold group-hover:text-brand-orange ${isUnread || isActive ? "text-brand-navy" : "text-slate-800"}`}>
+                  <h3 className={`truncate text-sm font-bold group-hover:text-accent ${isUnread || isActive ? "text-primary" : "text-slate-800"}`}>
                     {conv.property?.name || "Unknown Property"}
                   </h3>
-                  {latestActivityAt && <span className="shrink-0 text-[11px] font-medium text-slate-400">{formatConversationTime(latestActivityAt)}</span>}
+                  {latestActivityAt && <span className="shrink-0 text-[11px] font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}
                 </div>
                 <div className="mt-1 flex items-center gap-2">
-                  {isUnread && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-orange" aria-label="Unread conversation" />}
-                  <p className={`truncate text-xs ${isUnread ? "font-semibold text-brand-navy" : "text-slate-500"}`}>{latestMessagePreview}</p>
+                  {isUnread && <span className="h-2 w-2 shrink-0 rounded-full bg-accent" aria-label="Unread conversation" />}
+                  <p className={`truncate text-xs ${isUnread ? "font-semibold text-primary" : "text-text-secondary"}`}>{latestMessagePreview}</p>
                 </div>
               </div>
             </button>
@@ -230,26 +230,26 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
   return (
     <div className={`mx-auto w-full max-w-7xl sm:px-6 lg:h-[calc(100vh-48px)] lg:min-h-0 lg:py-6 ${
       selectedConversationId 
-        ? "fixed inset-0 z-[150] h-[100dvh] max-h-[100dvh] bg-white sm:static sm:z-auto sm:h-auto sm:max-h-none sm:bg-transparent flex flex-col min-h-0" 
+        ? "fixed inset-0 z-[150] h-[100dvh] max-h-[100dvh] bg-surface sm:static sm:z-auto sm:h-auto sm:max-h-none sm:bg-transparent flex flex-col min-h-0" 
         : "min-h-[calc(100vh-72px)] px-4 py-6"
     }`}>
       {error && <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
-      <div className={`overflow-hidden bg-white lg:grid lg:h-full lg:grid-cols-[360px_minmax(0,1fr)] lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm xl:grid-cols-[400px_minmax(0,1fr)] ${
+      <div className={`overflow-hidden bg-surface lg:grid lg:h-full lg:grid-cols-[360px_minmax(0,1fr)] lg:rounded-2xl lg:border lg:border-border-strong lg:shadow-sm xl:grid-cols-[400px_minmax(0,1fr)] ${
         selectedConversationId ? "h-full flex flex-col min-h-0" : ""
       }`}>
-        <aside className={`${selectedConversationId ? "hidden lg:flex" : "flex"} min-h-0 flex-col bg-white lg:border-r lg:border-slate-200`}>
-          <div className="shrink-0 border-b border-slate-200 px-4 py-5 sm:px-5">
-            <h1 className="text-2xl font-bold text-brand-navy">Messages</h1>
-            <p className="mt-1 text-sm text-slate-500">Your conversations with property hosts</p>
+        <aside className={`${selectedConversationId ? "hidden lg:flex" : "flex"} min-h-0 flex-col bg-surface lg:border-r lg:border-border-strong`}>
+          <div className="shrink-0 border-b border-border-strong px-4 py-5 sm:px-5">
+            <h1 className="text-2xl font-bold text-primary">Messages</h1>
+            <p className="mt-1 text-sm text-text-secondary">Your conversations with property hosts</p>
             <div className="relative mt-4">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations"
-                className="h-11 w-full rounded-full border border-slate-300 bg-white pl-10 pr-4 text-sm text-brand-navy shadow-sm focus:border-brand-orange focus:outline-none focus:ring-2 focus:ring-brand-orange/20"
+                className="h-11 w-full rounded-full border border-border-strong bg-surface pl-10 pr-4 text-sm text-primary shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
             </div>
           </div>
@@ -258,14 +258,14 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
           </div>
         </aside>
 
-        <section className={`${selectedConversationId ? "flex flex-1" : "hidden lg:flex"} min-h-0 flex-col bg-white`}>
+        <section className={`${selectedConversationId ? "flex flex-1" : "hidden lg:flex"} min-h-0 flex-col bg-surface`}>
           {selectedConversationId ? (
             <ChatConversation conversationId={selectedConversationId} backHref="/messages" embedded onConversationUpdated={handleConversationUpdated} />
           ) : (
             <div className="flex h-full items-center justify-center bg-slate-50/70 p-8 text-center">
               <div className="max-w-sm">
-                <h2 className="text-xl font-bold text-brand-navy">Select a conversation</h2>
-                <p className="mt-2 text-sm text-slate-500">Choose a property conversation from the list to continue messaging.</p>
+                <h2 className="text-xl font-bold text-primary">Select a conversation</h2>
+                <p className="mt-2 text-sm text-text-secondary">Choose a property conversation from the list to continue messaging.</p>
               </div>
             </div>
           )}

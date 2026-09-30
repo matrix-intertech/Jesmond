@@ -42,7 +42,7 @@ export default function GuidePage() {
       </p>
 
       <p className="mt-8">
-        <Link href="/search" className="font-semibold px-6 py-3 bg-brand-orange text-white rounded-xl no-underline hover:bg-orange-600 transition-colors inline-block">
+        <Link href="/search" className="font-semibold px-6 py-3 bg-accent text-white rounded-xl no-underline hover:bg-accent transition-colors inline-block">
           Start Your Search
         </Link>
       </p>

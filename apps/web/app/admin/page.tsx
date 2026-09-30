@@ -106,11 +106,11 @@ export default function AdminDashboardPage() {
 
       {/* Needs Your Attention Section */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold text-brand-navy mb-4">Needs Your Attention</h2>
+        <h2 className="text-2xl font-bold text-primary mb-4">Needs Your Attention</h2>
         {pendingProperties.length === 0 ? (
-          <div className="bg-slate-100 p-6 rounded-xl text-center">
-            <p className="font-medium text-brand-navy">You're all caught up</p>
-            <p className="text-slate-500">No properties are currently waiting for review.</p>
+          <div className="bg-surface-muted p-6 rounded-xl text-center">
+            <p className="font-medium text-primary">You're all caught up</p>
+            <p className="text-text-secondary">No properties are currently waiting for review.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -118,22 +118,22 @@ export default function AdminDashboardPage() {
             <table className="min-w-full table-auto hidden md:table">
               <thead className="bg-surface-muted">
                 <tr>
-                  <th className="px-4 py-2 text-left font-medium text-brand-navy">Property</th>
-                  <th className="px-4 py-2 text-left font-medium text-brand-navy">Location</th>
-                  <th className="px-4 py-2 text-left font-medium text-brand-navy">Provider</th>
-                  <th className="px-4 py-2 text-left font-medium text-brand-navy">Status</th>
-                  <th className="px-4 py-2 text-left font-medium text-brand-navy">Action</th>
+                  <th className="px-4 py-2 text-left font-medium text-primary">Property</th>
+                  <th className="px-4 py-2 text-left font-medium text-primary">Location</th>
+                  <th className="px-4 py-2 text-left font-medium text-primary">Provider</th>
+                  <th className="px-4 py-2 text-left font-medium text-primary">Status</th>
+                  <th className="px-4 py-2 text-left font-medium text-primary">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingProperties.map((prop) => (
-                  <tr key={prop.id} className="border-b border-slate-200">
-                    <td className="px-4 py-2 text-brand-navy">{prop.name}</td>
-                    <td className="px-4 py-2 text-brand-navy">{prop.suburb?.name}, {prop.suburb?.city?.name}</td>
-                    <td className="px-4 py-2 text-brand-navy">{prop.organization?.name}</td>
+                  <tr key={prop.id} className="border-b border-border-strong">
+                    <td className="px-4 py-2 text-primary">{prop.name}</td>
+                    <td className="px-4 py-2 text-primary">{prop.suburb?.name}, {prop.suburb?.city?.name}</td>
+                    <td className="px-4 py-2 text-primary">{prop.organization?.name}</td>
                     <td className="px-4 py-2"><StatusBadge status="PENDING_APPROVAL" /></td>
-                    <td className="px-4 py-2 text-brand-navy">
-                      <Link href={`/admin/properties/${prop.id}`} className="text-brand-orange hover:underline">Review</Link>
+                    <td className="px-4 py-2 text-primary">
+                      <Link href={`/admin/properties/${prop.id}`} className="text-accent hover:underline">Review</Link>
                     </td>
                   </tr>
                 ))}
@@ -142,13 +142,13 @@ export default function AdminDashboardPage() {
             {/* Mobile Cards */}
             <div className="grid gap-4 md:hidden mt-4">
               {pendingProperties.map((prop) => (
-                <div key={prop.id} className="bg-white rounded-xl shadow-sm p-4 border">
-                  <h3 className="font-semibold text-brand-navy mb-1">{prop.name}</h3>
+                <div key={prop.id} className="bg-surface rounded-xl shadow-sm p-4 border">
+                  <h3 className="font-semibold text-primary mb-1">{prop.name}</h3>
                   <p className="text-sm text-slate-600 mb-1">{prop.suburb?.name}, {prop.suburb?.city?.name}</p>
                   <p className="text-sm text-slate-600 mb-1">Provider: {prop.organization?.name}</p>
                   <StatusBadge status="PENDING_APPROVAL" />
                   <div className="mt-2">
-                    <Link href={`/admin/properties/${prop.id}`} className="text-brand-orange hover:underline text-sm">Review</Link>
+                    <Link href={`/admin/properties/${prop.id}`} className="text-accent hover:underline text-sm">Review</Link>
                   </div>
                 </div>
               ))}
@@ -159,20 +159,20 @@ export default function AdminDashboardPage() {
 
       {/* Feature Controls – only for SUPER_ADMIN */}
       {user?.role === 'SUPER_ADMIN' && (
-        <section className="bg-white rounded-2xl shadow-sm border p-8">
-          <h2 className="text-2xl font-bold text-brand-navy mb-6 pb-4 border-b">Feature Controls</h2>
+        <section className="bg-surface rounded-2xl shadow-sm border p-8">
+          <h2 className="text-2xl font-bold text-primary mb-6 pb-4 border-b">Feature Controls</h2>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-surface-muted p-6 rounded-xl border">
             <div className="mb-4 md:mb-0 max-w-lg">
-              <h3 className="font-bold text-lg text-brand-navy mb-2">Payments &amp; Booking</h3>
+              <h3 className="font-bold text-lg text-primary mb-2">Payments &amp; Booking</h3>
               <p className="text-slate-600 mb-3">Allow students to make payments and activate accommodation bookings.</p>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-500">Status:</span>
+                <span className="text-sm font-semibold text-text-secondary">Status:</span>
                 {paymentsEnabled ? (
                   <span className="flex items-center gap-1 text-emerald-700 font-bold bg-emerald-100 px-2 py-1 rounded-md text-xs tracking-wider">
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span> ENABLED
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-slate-600 font-bold bg-slate-200 px-2 py-1 rounded-md text-xs tracking-wider">
+                  <span className="flex items-center gap-1 text-slate-600 font-bold bg-secondary px-2 py-1 rounded-md text-xs tracking-wider">
                     <span className="w-2 h-2 rounded-full border-2 border-slate-400"></span> DISABLED
                   </span>
                 )}

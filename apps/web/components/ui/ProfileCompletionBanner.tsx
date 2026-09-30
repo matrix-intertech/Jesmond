@@ -65,24 +65,24 @@ export default function ProfileCompletionBanner() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-primary/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface rounded-xl shadow-lg max-w-md w-full p-6">
         <div className="flex items-start justify-between mb-2">
-          <h2 className="text-xl font-bold text-brand-navy">Complete your profile</h2>
+          <h2 className="text-xl font-bold text-primary">Complete your profile</h2>
         </div>
-        <p className="mb-6 text-gray-700">
+        <p className="mb-6 text-text-primary">
           We've added a few new profile details. Please complete your profile to keep your account information up to date.
         </p>
         <div className="flex justify-end gap-3 mt-6">
           <button
             onClick={handleDismiss}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition font-medium"
+            className="px-4 py-2 bg-secondary text-text-secondary rounded-md hover:bg-secondary transition font-medium"
           >
             Maybe Later
           </button>
           <button
             onClick={handleComplete}
-            className="px-4 py-2 bg-brand-orange text-white rounded-md hover:bg-orange-600 transition font-medium"
+            className="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent transition font-medium"
           >
             Complete Profile
           </button>

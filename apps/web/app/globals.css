@@ -3,24 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc; /* light gray for whole page backgrounds */
-  --foreground: #07163D; /* dark slate/navy text */
+  /* Foundations */
+  --background: #f8fafc;
+  --foreground: #07163D;
+  
+  /* Brand Specific */
+  --brand-indigo: 47 26 168;   /* #2F1AA8 */
+  --brand-purple: 75 32 201;   /* #4B20C9 */
+  --brand-magenta: 217 27 181; /* #D91BB5 */
+  --brand-orange: 244 119 33;  /* #F47721 */
+  
+  /* Semantic Brand Mapping */
+  --primary: 47 26 168;
+  --primary-foreground: 255 255 255;
+  --secondary: 241 245 249;
+  --secondary-foreground: 15 23 42;
+  --accent: 217 27 181;
+  --accent-foreground: 255 255 255;
+  
+  /* Inputs */
   --input-bg: #ffffff;
   --input-fg: #0f172a;
   --input-placeholder: #94a3b8;
   --input-border: #e2e8f0;
 
-  /* Jesmond Brand Colors */
-  --brand-navy: 7 22 61; /* #07163D */
-  --brand-orange: 245 124 0; /* #F57C00 */
-  
   /* Semantic surfaces */
   --surface: #ffffff;
   --surface-muted: #f8fafc;
   
   /* Text */
-  --text-primary: #07163D;
+  --text-primary: #0f172a;
   --text-secondary: #64748b;
+  --text-muted: #94a3b8;
   
   /* Borders */
   --border-subtle: #f1f5f9;
@@ -37,6 +51,19 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --surface: #171717;
+    --surface-muted: #1f2937;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --border-subtle: #334155;
+    --border-strong: #475569;
+
+    --secondary: 31 41 55;
+    --secondary-foreground: 248 250 252;
+    
     /* Force light inputs in dark mode for form controls */
     --input-bg: #ffffff;
     --input-fg: #0f172a;

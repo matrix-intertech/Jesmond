@@ -45,29 +45,29 @@ export default function AdminApplicationDetailPage() {
   return (
     <>
       <PageHeader title="Application Detail" description={`Application ${application.id}`} />
-      <div className="grid grid-cols-2 gap-4 mt-6 bg-white p-6 rounded-xl shadow-sm">
-        <div className="col-span-2 text-lg font-semibold text-brand-navy mb-4">Student</div>
-        <div className="text-brand-navy">{application.student?.firstName} {application.student?.lastName}</div>
-        <div className="text-slate-500">{application.student?.email}</div>
+      <div className="grid grid-cols-2 gap-4 mt-6 bg-surface p-6 rounded-xl shadow-sm">
+        <div className="col-span-2 text-lg font-semibold text-primary mb-4">Student</div>
+        <div className="text-primary">{application.student?.firstName} {application.student?.lastName}</div>
+        <div className="text-text-secondary">{application.student?.email}</div>
 
-        <div className="col-span-2 text-lg font-semibold text-brand-navy mb-4 mt-4">Property</div>
-        <div className="text-brand-navy">{application.roomType?.property?.name}</div>
-        <div className="text-slate-500">
+        <div className="col-span-2 text-lg font-semibold text-primary mb-4 mt-4">Property</div>
+        <div className="text-primary">{application.roomType?.property?.name}</div>
+        <div className="text-text-secondary">
           {application.roomType?.property?.suburb?.name}, {application.roomType?.property?.suburb?.city?.name}
         </div>
 
-        <div className="col-span-2 text-lg font-semibold text-brand-navy mb-4 mt-4">Room Type</div>
-        <div className="text-brand-navy">{application.roomType?.name}</div>
+        <div className="col-span-2 text-lg font-semibold text-primary mb-4 mt-4">Room Type</div>
+        <div className="text-primary">{application.roomType?.name}</div>
 
-        <div className="col-span-2 text-lg font-semibold text-brand-navy mb-4 mt-4">Provider</div>
-        <div className="text-brand-navy">{application.roomType?.property?.organization?.name}</div>
+        <div className="col-span-2 text-lg font-semibold text-primary mb-4 mt-4">Provider</div>
+        <div className="text-primary">{application.roomType?.property?.organization?.name}</div>
 
-        <div className="col-span-2 text-lg font-semibold text-brand-navy mb-4 mt-4">Details</div>
-        <div className="text-brand-navy">Move‑In: {new Date(application.moveInDate).toLocaleDateString()}</div>
-        <div className="text-brand-navy">Duration: {application.durationMonths} months</div>
-        <div className="text-brand-navy">Locked Price: ${(application.lockedPrice / 100).toFixed(2)}</div>
-        <div className="text-brand-navy">Status: {application.status}</div>
-        <div className="text-brand-navy">Created At: {new Date(application.createdAt).toLocaleDateString()}</div>
+        <div className="col-span-2 text-lg font-semibold text-primary mb-4 mt-4">Details</div>
+        <div className="text-primary">Move‑In: {new Date(application.moveInDate).toLocaleDateString()}</div>
+        <div className="text-primary">Duration: {application.durationMonths} months</div>
+        <div className="text-primary">Locked Price: ${(application.lockedPrice / 100).toFixed(2)}</div>
+        <div className="text-primary">Status: {application.status}</div>
+        <div className="text-primary">Created At: {new Date(application.createdAt).toLocaleDateString()}</div>
       </div>
     </>
   );

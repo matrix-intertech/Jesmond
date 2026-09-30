@@ -77,12 +77,12 @@ function ResetPasswordForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+      <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-brand-navy font-outfit">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-primary font-outfit">
             Reset Password
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-500">
+          <p className="mt-2 text-center text-sm text-text-secondary">
             Enter the 6-digit OTP sent to your email and choose a new password.
           </p>
         </div>
@@ -93,7 +93,7 @@ function ResetPasswordForm() {
               {message}
             </div>
             <div className="text-center">
-              <Link href="/login" className="text-brand-orange hover:text-indigo-500 font-medium">
+              <Link href="/login" className="text-accent hover:text-indigo-500 font-medium">
                 Go to Login &rarr;
               </Link>
             </div>
@@ -101,7 +101,7 @@ function ResetPasswordForm() {
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {status === 'error' && (
-              <div className="bg-red-50 text-red-600 text-sm text-center p-3 rounded-lg border border-red-200">
+              <div className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
                 {message}
               </div>
             )}
@@ -114,21 +114,21 @@ function ResetPasswordForm() {
             
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email address</label>
+                <label htmlFor="email" className="block text-sm font-medium text-text-primary">Email address</label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   required
                   readOnly={!!initialEmail}
-                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-gray-300 bg-gray-50 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong bg-gray-50 focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
               <div>
-                <label htmlFor="otp" className="block text-sm font-medium text-gray-700">6-Digit OTP</label>
+                <label htmlFor="otp" className="block text-sm font-medium text-text-primary">6-Digit OTP</label>
                 <input
                   id="otp"
                   name="otp"
@@ -137,7 +137,7 @@ function ResetPasswordForm() {
                   maxLength={6}
                   pattern="[0-9]{6}"
                   inputMode="numeric"
-                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   placeholder="123456"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
@@ -145,28 +145,28 @@ function ResetPasswordForm() {
               </div>
               
               <div>
-                <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">New Password</label>
+                <label htmlFor="new-password" className="block text-sm font-medium text-text-primary">New Password</label>
                 <input
                   id="new-password"
                   name="new-password"
                   type="password"
                   required
                   minLength={8}
-                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
               </div>
 
               <div>
-                <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <label htmlFor="confirm-password" className="block text-sm font-medium text-text-primary">Confirm Password</label>
                 <input
                   id="confirm-password"
                   name="confirm-password"
                   type="password"
                   required
                   minLength={8}
-                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
@@ -177,7 +177,7 @@ function ResetPasswordForm() {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {status === 'loading' ? 'Resetting...' : 'Reset Password'}
               </button>
@@ -188,7 +188,7 @@ function ResetPasswordForm() {
                 type="button"
                 onClick={handleResend}
                 disabled={cooldown > 0}
-                className="text-sm font-medium text-brand-navy hover:text-brand-orange disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-sm font-medium text-primary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {cooldown > 0 ? `Resend OTP in ${cooldown}s` : 'Resend OTP'}
               </button>
@@ -204,7 +204,7 @@ export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-surface-muted">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
       </div>
     }>
       <ResetPasswordForm />

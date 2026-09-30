@@ -229,16 +229,16 @@ function RegisterForm() {
   if (showOtp) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100 text-center">
+        <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle text-center">
           <div>
-            <h2 className="mt-2 text-center text-3xl font-extrabold text-brand-navy font-outfit">Verify your email</h2>
-            <p className="mt-2 text-sm text-gray-500">
-              We've sent a 6-digit code to <span className="font-semibold text-brand-navy">{email}</span>
+            <h2 className="mt-2 text-center text-3xl font-extrabold text-primary font-outfit">Verify your email</h2>
+            <p className="mt-2 text-sm text-text-secondary">
+              We've sent a 6-digit code to <span className="font-semibold text-primary">{email}</span>
             </p>
           </div>
           <form className="space-y-6" onSubmit={handleVerifyOtp}>
             {error && (
-              <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-200">
+              <div className="bg-error/10 text-error text-sm p-3 rounded-lg border border-red-200">
                 {error}
               </div>
             )}
@@ -250,14 +250,14 @@ function RegisterForm() {
                 type="text"
                 maxLength={6}
                 required
-                className="appearance-none rounded relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-brand-navy focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-lg text-center tracking-widest font-mono"
+                className="appearance-none rounded relative block w-full px-3 py-3 border border-border-strong placeholder-gray-500 text-primary focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-lg text-center tracking-widest font-mono"
                 placeholder="000000"
                 value={otp}
                 onChange={(e) => handleOtpChange(e.target.value)}
               />
             </div>
             {loading && (
-              <p className="text-xs font-medium text-gray-500" role="status">
+              <p className="text-xs font-medium text-text-secondary" role="status">
                 Verifying code...
               </p>
             )}
@@ -265,7 +265,7 @@ function RegisterForm() {
               <button
                 type="submit"
                 disabled={loading || !/^\d{6}$/.test(otp)}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Verifying...' : 'Verify Email'}
               </button>
@@ -275,7 +275,7 @@ function RegisterForm() {
                 type="button"
                 onClick={handleResendOtp}
                 disabled={resendCooldown > 0}
-                className="text-brand-orange hover:text-indigo-500 disabled:text-gray-400 font-medium"
+                className="text-accent hover:text-indigo-500 disabled:text-text-muted font-medium"
               >
                 {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend verification code'}
               </button>
@@ -288,14 +288,14 @@ function RegisterForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg border border-gray-100">
+      <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle">
         <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-brand-navy font-outfit">
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-primary font-outfit">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-500">
+          <p className="mt-2 text-center text-sm text-text-secondary">
             Already have an account?{' '}
-            <Link href="/login" className="text-brand-orange hover:text-indigo-500 font-medium">
+            <Link href="/login" className="text-accent hover:text-indigo-500 font-medium">
               Sign in
             </Link>
           </p>
@@ -303,14 +303,14 @@ function RegisterForm() {
 
         
         {/* Account Type Selector */}
-        <div className="flex rounded-lg border border-gray-200 overflow-hidden mb-6">
+        <div className="flex rounded-lg border border-border-strong overflow-hidden mb-6">
           <button
             type="button"
             onClick={() => { setAccountType('student'); setOrganizationType('PROVIDER'); }}
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'student'
-                ? 'bg-brand-orange text-white'
-                : 'bg-white text-gray-600 hover:bg-surface-muted'
+                ? 'bg-accent text-white'
+                : 'bg-surface text-gray-600 hover:bg-surface-muted'
             }`}
           >
             Student
@@ -320,8 +320,8 @@ function RegisterForm() {
             onClick={() => { setAccountType('host'); setOrganizationType('PROVIDER'); }}
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'host'
-                ? 'bg-brand-orange text-white'
-                : 'bg-white text-gray-600 hover:bg-surface-muted'
+                ? 'bg-accent text-white'
+                : 'bg-surface text-gray-600 hover:bg-surface-muted'
             }`}
           >
             Host
@@ -331,8 +331,8 @@ function RegisterForm() {
             onClick={() => { setAccountType('retailer'); setOrganizationType('RETAIL'); }}
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'retailer'
-                ? 'bg-brand-orange text-white'
-                : 'bg-white text-gray-600 hover:bg-surface-muted'
+                ? 'bg-accent text-white'
+                : 'bg-surface text-gray-600 hover:bg-surface-muted'
             }`}
           >
             Retailer
@@ -340,14 +340,14 @@ function RegisterForm() {
         </div>
 <form className="space-y-5" onSubmit={handleRegister}>
           {error && (
-            <div className="bg-red-50 text-red-600 text-sm text-center p-3 rounded-lg border border-red-200">
+            <div className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
               {error}
             </div>
           )}
 
           
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-sm font-medium text-text-primary mb-1">
                 Name
               </label>
               <input
@@ -355,7 +355,7 @@ function RegisterForm() {
                 name="name"
                 type="text"
                 required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                 placeholder="Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -364,7 +364,7 @@ function RegisterForm() {
             
             {accountType === 'retailer' && (
               <div>
-                <label htmlFor="org-name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="org-name" className="block text-sm font-medium text-text-primary mb-1">
                   Retail Store Name
                 </label>
                 <input
@@ -372,7 +372,7 @@ function RegisterForm() {
                   name="organizationName"
                   type="text"
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   placeholder="Retail Store Name"
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
@@ -381,7 +381,7 @@ function RegisterForm() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
                 Email address
               </label>
               <input
@@ -390,7 +390,7 @@ function RegisterForm() {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -399,12 +399,12 @@ function RegisterForm() {
 
             <div className="flex space-x-2">
               <div className="w-1/3">
-                <label htmlFor="country-code" className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                <label htmlFor="country-code" className="block text-sm font-medium text-text-primary mb-1">Code</label>
                 <select
                   id="country-code"
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="block w-full rounded border border-gray-300 bg-white px-3 py-2 focus:border-brand-orange focus:outline-none sm:text-sm"
+                  className="block w-full rounded border border-border-strong bg-surface px-3 py-2 focus:border-accent focus:outline-none sm:text-sm"
                 >
                   <option value="+61">+61</option>
                   <option value="+1">+1</option>
@@ -414,13 +414,13 @@ function RegisterForm() {
                 </select>
               </div>
               <div className="flex-1">
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <label htmlFor="phone" className="block text-sm font-medium text-text-primary mb-1">Phone Number</label>
                 <input
                   id="phone"
                   name="phone"
                   type="tel"
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   placeholder="4XXXXXXXX"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -430,14 +430,14 @@ function RegisterForm() {
             
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="ethnicity" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="ethnicity" className="block text-sm font-medium text-text-primary mb-1">
                   Ethnicity (Optional)
                 </label>
                 <select
                   id="ethnicity"
                   value={ethnicity}
                   onChange={(e) => setEthnicity(e.target.value)}
-                  className="block w-full rounded border border-gray-300 bg-white px-3 py-2 focus:border-brand-orange focus:outline-none sm:text-sm"
+                  className="block w-full rounded border border-border-strong bg-surface px-3 py-2 focus:border-accent focus:outline-none sm:text-sm"
                 >
                   <option value="">Select...</option>
                   <option value="Asian">Asian</option>
@@ -448,7 +448,7 @@ function RegisterForm() {
                 </select>
               </div>
               <div>
-                <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="dob" className="block text-sm font-medium text-text-primary mb-1">
                   Date of Birth
                 </label>
                 <input
@@ -456,7 +456,7 @@ function RegisterForm() {
                   name="dob"
                   type="date"
                   required
-                  className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
                 />
@@ -464,7 +464,7 @@ function RegisterForm() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-text-primary mb-1">
                 Password
               </label>
               <input
@@ -473,7 +473,7 @@ function RegisterForm() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -481,7 +481,7 @@ function RegisterForm() {
             </div>
             
             <div>
-              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-text-primary mb-1">
                 Confirm Password
               </label>
               <input
@@ -489,7 +489,7 @@ function RegisterForm() {
                 name="confirm-password"
                 type="password"
                 required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm"
+                className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm"
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -506,7 +506,7 @@ function RegisterForm() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>

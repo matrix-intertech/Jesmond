@@ -13,7 +13,7 @@ import { NotificationDropdown } from '../notifications/NotificationDropdown';
  */
 export default function Header() {
   return (
-    <header className="flex items-center justify-end bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-6 h-[76px] sticky top-0 z-20">
+    <header className="flex items-center justify-end bg-surface/80 backdrop-blur-md border-b border-border-strong/60 px-6 h-[76px] sticky top-0 z-20">
       <div className="flex items-center gap-4">
         <NotificationDropdown />
       </div>

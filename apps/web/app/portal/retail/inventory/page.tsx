@@ -236,12 +236,12 @@ function InventoryWorkspaceContent() {
           description="Manage stock levels, track movements, and optimize retail operations."
         />
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-          <div className="flex w-full min-w-0 flex-col gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm sm:w-auto sm:flex-row sm:items-center sm:gap-2">
-            <span className="text-sm font-medium text-slate-500">Inventory for:</span>
+          <div className="flex w-full min-w-0 flex-col gap-1 rounded-lg border border-border-strong bg-surface px-3 py-2 shadow-sm sm:w-auto sm:flex-row sm:items-center sm:gap-2">
+            <span className="text-sm font-medium text-text-secondary">Inventory for:</span>
             <select
               value={branchId}
               onChange={(e) => setBranchId(e.target.value)}
-              className="min-w-0 text-sm font-semibold text-brand-navy border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
+              className="min-w-0 text-sm font-semibold text-primary border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
             >
               {branches.length === 0 ? (
                 <option value="">No branches found...</option>
@@ -252,7 +252,7 @@ function InventoryWorkspaceContent() {
               )}
             </select>
           </div>
-          <button onClick={() => fetchInventory(branchId)} className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 shadow-sm text-slate-600 transition" title="Refresh">
+          <button onClick={() => fetchInventory(branchId)} className="p-2 bg-surface border border-border-strong rounded-lg hover:bg-slate-50 shadow-sm text-slate-600 transition" title="Refresh">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -276,11 +276,11 @@ function InventoryWorkspaceContent() {
             <StatCard label="Healthy" value={loading ? "-" : `${healthyPercentage}%`} loading={loading} />
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-slate-200 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/50">
+          <div className="bg-surface rounded-xl shadow-sm border border-border-strong overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-border-strong flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/50">
               <div className="relative w-full md:w-96">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+                  <svg className="h-5 w-5 text-text-muted" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -289,7 +289,7 @@ function InventoryWorkspaceContent() {
                   placeholder="Search product, SKU or barcode..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm text-slate-800 bg-white"
+                  className="pl-10 w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm text-slate-800 bg-surface"
                 />
               </div>
               <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
@@ -299,8 +299,8 @@ function InventoryWorkspaceContent() {
                     onClick={() => setStockFilter(filter)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                       stockFilter === filter
-                        ? 'bg-brand-navy text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        ? 'bg-primary text-white'
+                        : 'bg-surface-muted text-slate-600 hover:bg-secondary'
                     }`}
                   >
                     {filter.replace(/_/g, ' ')}
@@ -314,23 +314,23 @@ function InventoryWorkspaceContent() {
                 <div className="p-8 space-y-4">
                   {[1,2,3,4,5].map(i => (
                     <div key={i} className="animate-pulse flex space-x-4">
-                      <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                      <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                      <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                      <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                      <div className="h-4 bg-secondary rounded w-1/4"></div>
+                      <div className="h-4 bg-secondary rounded w-1/4"></div>
+                      <div className="h-4 bg-secondary rounded w-1/4"></div>
+                      <div className="h-4 bg-secondary rounded w-1/4"></div>
                     </div>
                   ))}
                 </div>
               ) : filteredItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center h-full">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4 text-slate-400">
+                  <div className="w-16 h-16 rounded-full bg-surface-muted flex items-center justify-center mb-4 text-text-muted">
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-brand-navy mb-1">Your inventory is empty</h3>
-                  <p className="text-slate-500 max-w-sm mb-6">Create products in Catalog to begin tracking stock, or adjust your search filters.</p>
-                  <button onClick={() => router.push('/portal/retail/catalog')} className="px-4 py-2 bg-brand-navy text-white font-medium rounded-lg hover:bg-slate-800 transition">
+                  <h3 className="text-lg font-semibold text-primary mb-1">Your inventory is empty</h3>
+                  <p className="text-text-secondary max-w-sm mb-6">Create products in Catalog to begin tracking stock, or adjust your search filters.</p>
+                  <button onClick={() => router.push('/portal/retail/catalog')} className="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-slate-800 transition">
                     Go to Catalog
                   </button>
                 </div>
@@ -340,14 +340,14 @@ function InventoryWorkspaceContent() {
                   <table className="hidden md:table min-w-full divide-y divide-slate-200">
                     <thead className="bg-slate-50">
                       <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Product</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Stock Level</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Product</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Category</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Stock Level</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Status</th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-slate-100">
+                    <tbody className="bg-surface divide-y divide-slate-100">
                       {filteredItems.map((item) => {
                         const isOutOfStock = item.quantity <= 0;
                         const isLowStock = !isOutOfStock && item.quantity <= 10;
@@ -360,8 +360,8 @@ function InventoryWorkspaceContent() {
                           >
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex flex-col">
-                                <span className="font-semibold text-brand-navy">{item.product.name}</span>
-                                <span className="text-xs font-mono text-slate-500">{item.product.sku}</span>
+                                <span className="font-semibold text-primary">{item.product.name}</span>
+                                <span className="text-xs font-mono text-text-secondary">{item.product.sku}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
@@ -372,7 +372,7 @@ function InventoryWorkspaceContent() {
                                 <span className={`text-lg font-bold w-8 text-right ${isOutOfStock ? 'text-rose-600' : isLowStock ? 'text-amber-600' : 'text-emerald-600'}`}>
                                   {item.quantity}
                                 </span>
-                                <div className="w-24 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                <div className="w-24 h-1.5 rounded-full bg-secondary overflow-hidden">
                                   <div
                                     className={`h-full ${isOutOfStock ? 'bg-rose-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'}`}
                                     style={{ width: `${Math.min(100, (item.quantity / 50) * 100)}%` }}
@@ -392,7 +392,7 @@ function InventoryWorkspaceContent() {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setIsAdjusting(true); }}
-                                className="text-brand-orange hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition"
+                                className="text-accent hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition"
                               >
                                 Adjust
                               </button>
@@ -417,8 +417,8 @@ function InventoryWorkspaceContent() {
                         >
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex flex-col">
-                              <span className="font-semibold text-brand-navy">{item.product.name}</span>
-                              <span className="text-xs font-mono text-slate-500">{item.product.sku}</span>
+                              <span className="font-semibold text-primary">{item.product.name}</span>
+                              <span className="text-xs font-mono text-text-secondary">{item.product.sku}</span>
                             </div>
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
                               isOutOfStock ? 'bg-rose-100 text-rose-800' :
@@ -431,12 +431,12 @@ function InventoryWorkspaceContent() {
 
                           <div className="flex justify-between items-end mt-4">
                             <div className="flex flex-col">
-                              <span className="text-xs text-slate-500 mb-1">Stock Level</span>
+                              <span className="text-xs text-text-secondary mb-1">Stock Level</span>
                               <div className="flex items-center gap-2">
                                 <span className={`text-lg font-bold ${isOutOfStock ? 'text-rose-600' : isLowStock ? 'text-amber-600' : 'text-emerald-600'}`}>
                                   {item.quantity}
                                 </span>
-                                <div className="w-16 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                                <div className="w-16 h-1.5 rounded-full bg-secondary overflow-hidden">
                                   <div
                                     className={`h-full ${isOutOfStock ? 'bg-rose-500' : isLowStock ? 'bg-amber-500' : 'bg-emerald-500'}`}
                                     style={{ width: `${Math.min(100, (item.quantity / 50) * 100)}%` }}
@@ -446,7 +446,7 @@ function InventoryWorkspaceContent() {
                             </div>
                             <button
                               onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setIsAdjusting(true); }}
-                              className="text-brand-orange font-medium bg-orange-50 px-3 py-1.5 rounded-lg text-sm"
+                              className="text-accent font-medium bg-orange-50 px-3 py-1.5 rounded-lg text-sm"
                             >
                               Adjust
                             </button>
@@ -465,11 +465,11 @@ function InventoryWorkspaceContent() {
       {/* Detail / Adjust Drawer/Modal Overlay */}
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm transition-opacity">
-          <div className="bg-white w-full max-w-md h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-100 bg-slate-50 p-4 sm:p-6">
+          <div className="bg-surface w-full max-w-md h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="flex items-start justify-between gap-3 border-b border-border-subtle bg-slate-50 p-4 sm:p-6">
               <div>
-                <h2 className="text-xl font-bold text-brand-navy mb-1">{selectedItem.product.name}</h2>
-                <div className="flex items-center gap-2 text-sm text-slate-500 font-mono">
+                <h2 className="text-xl font-bold text-primary mb-1">{selectedItem.product.name}</h2>
+                <div className="flex items-center gap-2 text-sm text-text-secondary font-mono">
                   <span>{selectedItem.product.sku}</span>
                   {selectedItem.product.barcode && (
                     <>
@@ -481,7 +481,7 @@ function InventoryWorkspaceContent() {
               </div>
               <button
                 onClick={() => { setSelectedItem(null); setIsAdjusting(false); setAdjSuccess(""); setAdjError(""); }}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition"
+                className="p-2 text-text-muted hover:text-slate-600 hover:bg-secondary rounded-full transition"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -490,8 +490,8 @@ function InventoryWorkspaceContent() {
             </div>
 
             <div className="flex-1 space-y-6 overflow-y-auto p-4 sm:space-y-8 sm:p-6">
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-sm font-medium text-slate-500">Current Stock</span>
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-border-strong">
+                <span className="text-sm font-medium text-text-secondary">Current Stock</span>
                 <span className={`text-3xl font-black ${selectedItem.quantity <= 0 ? 'text-rose-600' : selectedItem.quantity <= 10 ? 'text-amber-600' : 'text-emerald-600'}`}>
                   {selectedItem.quantity}
                 </span>
@@ -500,29 +500,29 @@ function InventoryWorkspaceContent() {
               {!isAdjusting ? (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="text-sm font-semibold text-brand-navy mb-2 uppercase tracking-wider">Product Info</h4>
+                    <h4 className="text-sm font-semibold text-primary mb-2 uppercase tracking-wider">Product Info</h4>
                     <div className="space-y-3 text-sm">
-                      <div className="flex justify-between border-b border-slate-100 pb-2">
-                        <span className="text-slate-500">Category</span>
+                      <div className="flex justify-between border-b border-border-subtle pb-2">
+                        <span className="text-text-secondary">Category</span>
                         <span className="font-medium text-slate-800">{selectedItem.product.category?.name || 'Uncategorized'}</span>
                       </div>
-                      <div className="flex justify-between border-b border-slate-100 pb-2">
-                        <span className="text-slate-500">Selling Price</span>
+                      <div className="flex justify-between border-b border-border-subtle pb-2">
+                        <span className="text-text-secondary">Selling Price</span>
                         <span className="font-medium text-slate-800">${(selectedItem.product.sellingPrice / 100).toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between border-b border-slate-100 pb-2">
-                        <span className="text-slate-500">Last Updated</span>
+                      <div className="flex justify-between border-b border-border-subtle pb-2">
+                        <span className="text-text-secondary">Last Updated</span>
                         <span className="font-medium text-slate-800">{new Date(selectedItem.updatedAt).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
-                    <h4 className="text-sm font-semibold text-brand-orange mb-1">Need to modify stock?</h4>
+                    <h4 className="text-sm font-semibold text-accent mb-1">Need to modify stock?</h4>
                     <p className="text-xs text-orange-800 mb-3">Record a manual stock adjustment, return, or damage claim.</p>
                     <button
                       onClick={() => setIsAdjusting(true)}
-                      className="w-full py-2 bg-brand-orange text-white font-medium rounded-lg hover:bg-orange-600 transition shadow-sm"
+                      className="w-full py-2 bg-accent text-white font-medium rounded-lg hover:bg-accent transition shadow-sm"
                     >
                       Adjust Stock
                     </button>
@@ -530,23 +530,23 @@ function InventoryWorkspaceContent() {
 
                   {/* Stock Movement Ledger History */}
                   <div>
-                    <h4 className="text-sm font-semibold text-brand-navy mb-3 uppercase tracking-wider">Movement History</h4>
+                    <h4 className="text-sm font-semibold text-primary mb-3 uppercase tracking-wider">Movement History</h4>
                     {movementsLoading ? (
-                      <div className="p-4 text-xs text-slate-400 animate-pulse">Loading stock ledger history...</div>
+                      <div className="p-4 text-xs text-text-muted animate-pulse">Loading stock ledger history...</div>
                     ) : movements.length === 0 ? (
-                      <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-500 text-center border border-slate-100">
+                      <div className="p-4 bg-slate-50 rounded-xl text-xs text-text-secondary text-center border border-border-subtle">
                         No movement history recorded yet.
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                         {movements.map((m: any) => (
-                          <div key={m.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex justify-between items-center">
+                          <div key={m.id} className="p-3 bg-slate-50 rounded-xl border border-border-subtle text-xs flex justify-between items-center">
                             <div>
-                              <div className="font-bold text-slate-700 flex items-center gap-1.5">
+                              <div className="font-bold text-text-primary flex items-center gap-1.5">
                                 <span className={`w-2 h-2 rounded-full ${m.quantity > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
                                 {m.type} {m.reason ? `(${m.reason})` : ''}
                               </div>
-                              <p className="text-[10px] text-slate-400 mt-0.5">{new Date(m.createdAt).toLocaleString()}</p>
+                              <p className="text-[10px] text-text-muted mt-0.5">{new Date(m.createdAt).toLocaleString()}</p>
                             </div>
                             <span className={`font-mono font-bold text-sm ${m.quantity > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                               {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
@@ -579,19 +579,19 @@ function InventoryWorkspaceContent() {
 
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-2">Adjustment Type</label>
+                          <label className="block text-sm font-medium text-text-primary mb-2">Adjustment Type</label>
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
                               onClick={() => setAdjType("ADD")}
-                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "ADD" ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}`}
+                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "ADD" ? 'bg-primary text-white border-brand-navy' : 'bg-surface text-slate-600 border-border-strong hover:bg-slate-50'}`}
                             >
                               Add Stock
                             </button>
                             <button
                               type="button"
                               onClick={() => setAdjType("REMOVE")}
-                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "REMOVE" ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'}`}
+                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "REMOVE" ? 'bg-rose-600 text-white border-rose-600' : 'bg-surface text-slate-600 border-border-strong hover:bg-slate-50'}`}
                             >
                               Remove Stock
                             </button>
@@ -599,24 +599,24 @@ function InventoryWorkspaceContent() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Quantity to {adjType === "ADD" ? "Add" : "Remove"}</label>
+                          <label className="block text-sm font-medium text-text-primary mb-1">Quantity to {adjType === "ADD" ? "Add" : "Remove"}</label>
                           <input
                             required
                             type="number"
                             min="1"
                             value={adjQty}
                             onChange={e => setAdjQty(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm"
+                            className="w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
+                          <label className="block text-sm font-medium text-text-primary mb-1">Reason</label>
                           <select
                             required
                             value={adjReason}
                             onChange={e => setAdjReason(e.target.value)}
-                            className="w-full rounded-lg border-slate-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm"
+                            className="w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm"
                           >
                             <option value="">Select a reason...</option>
                             {adjType === "ADD" ? (
@@ -636,35 +636,35 @@ function InventoryWorkspaceContent() {
                         </div>
                       </div>
 
-                      <div className="bg-slate-100 rounded-lg p-4 border border-slate-200">
+                      <div className="bg-surface-muted rounded-lg p-4 border border-border-strong">
                         <div className="flex justify-between items-center text-sm mb-1">
-                          <span className="text-slate-500">Current</span>
+                          <span className="text-text-secondary">Current</span>
                           <span className="font-medium">{selectedItem.quantity}</span>
                         </div>
-                        <div className="flex justify-between items-center text-sm mb-1 text-slate-500">
+                        <div className="flex justify-between items-center text-sm mb-1 text-text-secondary">
                           <span>Adjustment</span>
                           <span>{adjType === "ADD" ? "+" : "-"}{parseInt(adjQty) || 0}</span>
                         </div>
-                        <div className="pt-2 mt-2 border-t border-slate-200 flex justify-between items-center font-bold">
+                        <div className="pt-2 mt-2 border-t border-border-strong flex justify-between items-center font-bold">
                           <span className="text-slate-800">Projected Stock</span>
-                          <span className={((selectedItem.quantity) + (adjType === "ADD" ? (parseInt(adjQty)||0) : -(parseInt(adjQty)||0))) < 0 ? 'text-rose-600' : 'text-brand-navy'}>
+                          <span className={((selectedItem.quantity) + (adjType === "ADD" ? (parseInt(adjQty)||0) : -(parseInt(adjQty)||0))) < 0 ? 'text-rose-600' : 'text-primary'}>
                             {(selectedItem.quantity) + (adjType === "ADD" ? (parseInt(adjQty)||0) : -(parseInt(adjQty)||0))}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row">
+                      <div className="flex flex-col gap-3 border-t border-border-subtle pt-4 sm:flex-row">
                         <button
                           type="button"
                           onClick={() => setIsAdjusting(false)}
-                          className="flex-1 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition"
+                          className="flex-1 py-2.5 bg-surface border border-border-strong text-text-primary font-medium rounded-lg hover:bg-slate-50 transition"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
                           disabled={adjLoading || ((selectedItem.quantity) + (adjType === "ADD" ? (parseInt(adjQty)||0) : -(parseInt(adjQty)||0))) < 0}
-                          className="flex-1 py-2.5 bg-brand-orange text-white font-medium rounded-lg hover:bg-orange-600 transition disabled:opacity-50 shadow-sm"
+                          className="flex-1 py-2.5 bg-accent text-white font-medium rounded-lg hover:bg-accent transition disabled:opacity-50 shadow-sm"
                         >
                           {adjLoading ? 'Applying...' : 'Apply Adjustment'}
                         </button>

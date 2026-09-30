@@ -51,7 +51,7 @@ export default function PageHeader({
     <header className="mb-8">
       {/* Breadcrumb */}
       {breadcrumb && breadcrumb.length > 0 && (
-        <nav className="mb-2 flex overflow-x-auto text-sm text-slate-500" aria-label="breadcrumb">
+        <nav className="mb-2 flex overflow-x-auto text-sm text-text-secondary" aria-label="breadcrumb">
           <ol className="inline-flex items-center space-x-2">
             {breadcrumb.map((item, idx) => (
               <li key={idx} className="flex items-center">
@@ -60,7 +60,7 @@ export default function PageHeader({
                 </Link>
                 {idx < breadcrumb.length - 1 && (
                   <svg
-                    className="w-3 h-3 mx-2 text-slate-400"
+                    className="w-3 h-3 mx-2 text-text-muted"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     aria-hidden="true"
@@ -78,9 +78,9 @@ export default function PageHeader({
       <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           {onBack && (
-            <button onClick={onBack} className="text-sm font-semibold text-brand-orange hover:underline mb-2 block">&larr; Back</button>
+            <button onClick={onBack} className="text-sm font-semibold text-accent hover:underline mb-2 block">&larr; Back</button>
           )}
-          <h1 className="break-words font-outfit text-2xl font-semibold text-brand-navy sm:text-3xl">
+          <h1 className="break-words font-outfit text-2xl font-semibold text-primary sm:text-3xl">
             {title}
           </h1>
           {description && (
@@ -97,7 +97,7 @@ export default function PageHeader({
               <Link
                 href={secondaryAction.href}
                 onClick={secondaryAction.onClick as any}
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-brand-navy transition hover:bg-surface-muted"
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-primary transition hover:bg-surface-muted"
               >
                 {secondaryAction.label}
               </Link>
@@ -106,7 +106,7 @@ export default function PageHeader({
               <Link
                 href={primaryAction.href}
                 onClick={primaryAction.onClick as any}
-                className="inline-flex min-h-11 items-center justify-center rounded-md bg-brand-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-navy/90"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
               >
                 {primaryAction.label}
               </Link>

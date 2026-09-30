@@ -13,7 +13,7 @@ import { BedDouble, Bath, CarFront } from "lucide-react";
 // Dynamically import Leaflet map to avoid window is not defined SSR error
 const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-slate-100 animate-pulse flex items-center justify-center text-slate-400 font-medium">Loading Map Engine...</div>
+  loading: () => <div className="w-full h-full bg-surface-muted animate-pulse flex items-center justify-center text-text-muted font-medium">Loading Map Engine...</div>
 });
 
 export function SearchClient({ initialParams }: { initialParams: any }) {
@@ -114,11 +114,11 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* Results Header */}
         <div className="sticky top-0 z-10 bg-surface-muted/90 px-4 pb-4 pt-5 backdrop-blur-md sm:px-10 sm:pt-8">
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">
+          <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">
             {!isLoading && `${meta.total} verified student homes`}
             {isLoading && `Searching properties...`}
           </p>
-          <h1 className="break-words text-2xl font-bold tracking-tight text-brand-navy sm:text-3xl">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl">
             {initialParams.locationLabel
               ? `Properties within ${initialParams.radiusKm || 10}km of ${initialParams.locationLabel}`
               : initialParams.university || initialParams.uni
@@ -132,13 +132,13 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
             {initialParams.locationLabel && (
-              <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })} className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-brand-navy text-white border-brand-navy">
+              <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })} className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy">
                 📍 {initialParams.locationLabel} ✕
               </button>
             )}
-            <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Under $200/wk</button>
-            <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'}`}>Studio</button>
-            <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-semibold text-slate-700 whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
+            <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-slate-400'}`}>Under $200/wk</button>
+            <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-slate-400'}`}>Studio</button>
+            <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
           </div>
         </div>
 
@@ -146,15 +146,15 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
         {isLoading && (
           <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col sm:flex-row bg-white border border-slate-200 rounded-[24px] overflow-hidden animate-pulse h-[320px] sm:h-[240px]">
-                <div className="w-full sm:w-[300px] h-[200px] sm:h-full bg-slate-200 shrink-0"></div>
+              <div key={i} className="flex flex-col sm:flex-row bg-surface border border-border-strong rounded-[24px] overflow-hidden animate-pulse h-[320px] sm:h-[240px]">
+                <div className="w-full sm:w-[300px] h-[200px] sm:h-full bg-secondary shrink-0"></div>
                 <div className="p-6 flex flex-col justify-between flex-grow w-full">
                   <div>
-                    <div className="w-3/4 h-6 bg-slate-200 rounded mb-2"></div>
-                    <div className="w-1/2 h-4 bg-slate-200 rounded"></div>
+                    <div className="w-3/4 h-6 bg-secondary rounded mb-2"></div>
+                    <div className="w-1/2 h-4 bg-secondary rounded"></div>
                   </div>
                   <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-                    <div className="w-24 h-8 bg-slate-200 rounded"></div>
+                    <div className="w-24 h-8 bg-secondary rounded"></div>
                   </div>
                 </div>
               </div>
@@ -174,13 +174,13 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* State Handling: Empty */}
         {!isLoading && !error && properties.length === 0 && (
-          <div className="m-4 bg-white p-6 sm:m-6 sm:p-10 border border-slate-200 rounded-2xl flex flex-col items-center justify-center text-center h-[400px]">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <div className="m-4 bg-surface p-6 sm:m-6 sm:p-10 border border-border-strong rounded-2xl flex flex-col items-center justify-center text-center h-[400px]">
+            <div className="w-16 h-16 bg-surface-muted rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-            <h3 className="text-xl font-bold text-brand-navy mb-2">No properties found</h3>
-            <p className="text-slate-500 mb-6 max-w-md">We couldn't find any student homes matching your current filters. Try adjusting your search criteria.</p>
-            <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-6 py-2 bg-brand-navy text-white rounded-full font-semibold hover:bg-brand-navy/90 transition-colors">Clear all filters</button>
+            <h3 className="text-xl font-bold text-primary mb-2">No properties found</h3>
+            <p className="text-text-secondary mb-6 max-w-md">We couldn't find any student homes matching your current filters. Try adjusting your search criteria.</p>
+            <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors">Clear all filters</button>
           </div>
         )}
 
@@ -198,12 +198,12 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   onClick={() => router.push(`/property/${prop.id}`)}
                   onMouseEnter={() => setHoveredPropertyId(prop.id)}
                   onMouseLeave={() => setHoveredPropertyId(null)}
-                  className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-white sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-slate-200 hover:border-brand-orange transition group relative cursor-pointer"
+                  className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-surface sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-border-strong hover:border-accent transition group relative cursor-pointer"
                 >
                   <div className="absolute top-4 right-4 z-20">
                     <SaveButton propertyId={prop.id} />
                   </div>
-                  <div className="relative w-full sm:w-[300px] h-[240px] sm:h-auto shrink-0 bg-slate-100">
+                  <div className="relative w-full sm:w-[300px] h-[240px] sm:h-auto shrink-0 bg-surface-muted">
                     <SafeImage src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
                     {verified && (
                       <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm">
@@ -213,10 +213,10 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                   </div>
                   <div className="flex flex-grow flex-col justify-between p-4 sm:p-6">
                     <div>
-                      <h3 className="text-xl font-bold text-brand-navy mb-1">{prop.name}</h3>
-                      <p className="text-sm font-medium text-slate-500 mb-1">{location}</p>
+                      <h3 className="text-xl font-bold text-primary mb-1">{prop.name}</h3>
+                      <p className="text-sm font-medium text-text-secondary mb-1">{location}</p>
                       {prop.distance !== undefined && (
-                        <p className="text-xs font-bold text-brand-orange mb-3">{prop.distance.toFixed(1)} km away</p>
+                        <p className="text-xs font-bold text-accent mb-3">{prop.distance.toFixed(1)} km away</p>
                       )}
                       {!prop.distance && <div className="mb-3" />}
                       {(() => {
@@ -254,7 +254,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                       })()}
                     </div>
                     <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-                      <p className="text-2xl font-bold text-brand-navy tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-slate-500">/wk</span></p>
+                      <p className="text-2xl font-bold text-primary tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-text-secondary">/wk</span></p>
                     </div>
                   </div>
                 </div>
@@ -265,21 +265,21 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
         {/* Pagination Controls */}
         {!isLoading && !error && meta.totalPages > 1 && (
-          <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-200 px-4 pb-8 pt-4 sm:px-10">
+          <div className="mt-auto flex items-center justify-between gap-3 border-t border-border-strong px-4 pb-8 pt-4 sm:px-10">
             <button
               disabled={meta.page <= 1}
               onClick={() => updateSearchState({ page: String(meta.page - 1) })}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Previous
             </button>
-            <span className="text-sm font-medium text-slate-500">
+            <span className="text-sm font-medium text-text-secondary">
               Page {meta.page} of {meta.totalPages}
             </span>
             <button
               disabled={meta.page >= meta.totalPages}
               onClick={() => updateSearchState({ page: String(meta.page + 1) })}
-              className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
             </button>
@@ -288,7 +288,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
       </div>
 
       {/* RIGHT: Interactive Map */}
-      <div className="hidden lg:block lg:w-[40%] xl:w-[50%] h-full relative border-l border-slate-300">
+      <div className="hidden lg:block lg:w-[40%] xl:w-[50%] h-full relative border-l border-border-strong">
         <MapExperience
           properties={properties}
           hoveredPropertyId={hoveredPropertyId}

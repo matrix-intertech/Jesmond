@@ -40,12 +40,12 @@ export default function SettingsLayout({ title, description, links, children }: 
                   className={clsx(
                     "flex min-h-11 min-w-0 items-center rounded-md px-3 py-2 text-sm font-medium",
                     isStrictActive
-                      ? "bg-brand-orange/10 text-brand-orange"
-                      : "text-brand-navy hover:bg-surface-muted hover:text-brand-navy"
+                      ? "bg-accent/10 text-accent"
+                      : "text-primary hover:bg-surface-muted hover:text-primary"
                   )}
                 >
                   {link.icon && (
-                    <span className={clsx("mr-3 h-5 w-5", isStrictActive ? "text-brand-orange" : "text-gray-400")}>
+                    <span className={clsx("mr-3 h-5 w-5", isStrictActive ? "text-accent" : "text-text-muted")}>
                       {link.icon}
                     </span>
                   )}

@@ -43,7 +43,7 @@ export default function InternationalPage() {
         Find verified accommodation near your university. Filter by city, budget, and room type.
       </p>
       <p className="mt-4">
-        <Link href="/search" className="font-semibold px-6 py-3 bg-brand-orange text-white rounded-xl no-underline hover:bg-orange-600 transition-colors inline-block">
+        <Link href="/search" className="font-semibold px-6 py-3 bg-accent text-white rounded-xl no-underline hover:bg-accent transition-colors inline-block">
           Find Accommodation
         </Link>
       </p>

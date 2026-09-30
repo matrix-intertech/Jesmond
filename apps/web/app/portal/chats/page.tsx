@@ -82,19 +82,19 @@ export default function HostChatsPage() {
       {loading ? (
         <div className="space-y-3">
           {[0, 1, 2].map((item) => (
-            <div key={item} className="flex animate-pulse items-center gap-4 rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="h-16 w-16 rounded-xl bg-slate-100" />
+            <div key={item} className="flex animate-pulse items-center gap-4 rounded-2xl border border-border-strong bg-surface p-4">
+              <div className="h-16 w-16 rounded-xl bg-surface-muted" />
               <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-4 w-1/2 rounded bg-slate-100" />
-                <div className="h-3 w-3/4 rounded bg-slate-100" />
+                <div className="h-4 w-1/2 rounded bg-surface-muted" />
+                <div className="h-3 w-3/4 rounded bg-surface-muted" />
               </div>
             </div>
           ))}
         </div>
       ) : conversations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center">
-          <h2 className="text-lg font-bold text-brand-navy">No chats yet.</h2>
-          <p className="mt-2 text-sm text-slate-500">New property conversations will appear here.</p>
+        <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-6 py-12 text-center">
+          <h2 className="text-lg font-bold text-primary">No chats yet.</h2>
+          <p className="mt-2 text-sm text-text-secondary">New property conversations will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -114,27 +114,27 @@ export default function HostChatsPage() {
               <button
                 key={conv.id}
                 type="button"
-                className={`group flex w-full items-center gap-4 rounded-2xl border bg-white p-3 text-left transition hover:border-brand-orange hover:shadow-md sm:p-4 ${
-                  isUnread ? "border-brand-orange shadow-sm ring-1 ring-brand-orange/20" : "border-slate-200"
+                className={`group flex w-full items-center gap-4 rounded-2xl border bg-surface p-3 text-left transition hover:border-accent hover:shadow-md sm:p-4 ${
+                  isUnread ? "border-accent shadow-sm ring-1 ring-accent/20" : "border-border-strong"
                 }`}
                 onClick={() => router.push(`/portal/chats/${conv.id}`)}
               >
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:h-20 sm:w-20">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-surface-muted sm:h-20 sm:w-20">
                   <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className={`truncate text-base font-bold group-hover:text-brand-orange ${isUnread ? "text-brand-navy" : "text-slate-800"}`}>
+                      <h3 className={`truncate text-base font-bold group-hover:text-accent ${isUnread ? "text-primary" : "text-slate-800"}`}>
                         {conv.property?.name || "Unknown Property"}
                       </h3>
-                      {participantName && <p className="mt-0.5 truncate text-xs font-medium text-slate-500">{participantName}</p>}
+                      {participantName && <p className="mt-0.5 truncate text-xs font-medium text-text-secondary">{participantName}</p>}
                     </div>
-                    {latestActivityAt && <span className="shrink-0 text-xs font-medium text-slate-400">{formatConversationTime(latestActivityAt)}</span>}
+                    {latestActivityAt && <span className="shrink-0 text-xs font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    {isUnread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand-orange" aria-label="Unread conversation" />}
-                    <p className={`truncate text-sm ${isUnread ? "font-semibold text-brand-navy" : "text-slate-500"}`}>{latestMessagePreview}</p>
+                    {isUnread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread conversation" />}
+                    <p className={`truncate text-sm ${isUnread ? "font-semibold text-primary" : "text-text-secondary"}`}>{latestMessagePreview}</p>
                   </div>
                 </div>
               </button>

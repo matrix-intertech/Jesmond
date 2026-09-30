@@ -143,15 +143,15 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
   return createPortal(
     <div 
       ref={panelRef}
-      className={`${mobileClasses} ${desktopClasses} bg-white shadow-2xl border-t sm:border border-slate-200 overflow-hidden flex flex-col min-h-0`}
+      className={`${mobileClasses} ${desktopClasses} bg-surface shadow-2xl border-t sm:border border-border-strong overflow-hidden flex flex-col min-h-0`}
       onClick={(e) => e.stopPropagation()}
     >
       {selectedConversationId ? (
-        <div className="flex flex-col flex-1 min-h-0 bg-white relative">
-          <div className="absolute top-0 left-0 right-0 h-14 bg-white/95 backdrop-blur z-20 border-b border-slate-100 flex items-center px-4">
+        <div className="flex flex-col flex-1 min-h-0 bg-surface relative">
+          <div className="absolute top-0 left-0 right-0 h-14 bg-surface/95 backdrop-blur z-20 border-b border-border-subtle flex items-center px-4">
             <button 
               onClick={() => setSelectedConversationId(null)}
-              className="p-2 -ml-2 mr-2 text-slate-500 hover:text-slate-800 rounded-full hover:bg-slate-100 transition-colors"
+              className="p-2 -ml-2 mr-2 text-text-secondary hover:text-slate-800 rounded-full hover:bg-surface-muted transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -160,7 +160,7 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
                 {conversations.find(c => c.id === selectedConversationId)?.property?.name || "Chat"}
               </p>
             </div>
-            <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+            <button onClick={onClose} className="p-2 -mr-2 text-text-muted hover:text-slate-600 rounded-full hover:bg-surface-muted transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -175,16 +175,16 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
         </div>
       ) : (
         <div className="flex flex-col h-full bg-slate-50">
-          <div className="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 shrink-0">
+          <div className="h-14 bg-surface border-b border-border-subtle flex items-center justify-between px-4 shrink-0">
             <h3 className="font-bold text-slate-800">Messages</h3>
-            <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors">
+            <button onClick={onClose} className="p-2 -mr-2 text-text-muted hover:text-slate-600 rounded-full hover:bg-surface-muted transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="flex justify-center p-8 text-slate-400">
+              <div className="flex justify-center p-8 text-text-muted">
                 <Loader2 className="w-6 h-6 animate-spin" />
               </div>
             ) : error ? (
@@ -193,7 +193,7 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
               <div className="flex flex-col items-center justify-center p-8 h-full text-center">
                 <MessageCircle className="w-10 h-10 text-slate-200 mb-3" />
                 <p className="text-sm font-medium text-slate-600">No conversations yet</p>
-                <Link href="/search" onClick={onClose} className="text-sm text-brand-orange hover:underline mt-2">
+                <Link href="/search" onClick={onClose} className="text-sm text-accent hover:underline mt-2">
                   Browse properties
                 </Link>
               </div>
@@ -210,36 +210,36 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
                     <button
                       key={conv.id}
                       onClick={() => setSelectedConversationId(conv.id)}
-                      className={`w-full text-left p-4 hover:bg-slate-100 transition-colors flex items-start gap-3 ${unread ? 'bg-orange-50/50' : 'bg-white'}`}
+                      className={`w-full text-left p-4 hover:bg-surface-muted transition-colors flex items-start gap-3 ${unread ? 'bg-orange-50/50' : 'bg-surface'}`}
                     >
-                      <div className="w-10 h-10 rounded-full bg-slate-200 shrink-0 overflow-hidden relative border border-slate-100">
+                      <div className="w-10 h-10 rounded-full bg-secondary shrink-0 overflow-hidden relative border border-border-subtle">
                         {conv.property?.thumbnailUrl ? (
                           <img src={conv.property.thumbnailUrl} alt="Property" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-50">
+                          <div className="w-full h-full flex items-center justify-center text-text-muted font-bold bg-slate-50">
                             {conv.property?.name?.charAt(0) || "P"}
                           </div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-0.5">
-                          <p className={`text-sm truncate pr-2 ${unread ? 'font-bold text-slate-900' : 'font-semibold text-slate-700'}`}>
+                          <p className={`text-sm truncate pr-2 ${unread ? 'font-bold text-slate-900' : 'font-semibold text-text-primary'}`}>
                             {conv.property?.name || "Property"}
                           </p>
                           {latestMessage && (
-                            <span className="text-[11px] text-slate-400 shrink-0">
+                            <span className="text-[11px] text-text-muted shrink-0">
                               {formatConversationTime(latestMessage.createdAt)}
                             </span>
                           )}
                         </div>
-                        <p className="text-[12px] text-slate-500 truncate mb-1">
+                        <p className="text-[12px] text-text-secondary truncate mb-1">
                           {participantNames}
                         </p>
-                        <p className={`text-[13px] truncate ${unread ? 'font-medium text-slate-800' : 'text-slate-500'}`}>
+                        <p className={`text-[13px] truncate ${unread ? 'font-medium text-slate-800' : 'text-text-secondary'}`}>
                           {latestMessage ? latestMessage.encryptedPayload || "Message sent" : "No messages yet"}
                         </p>
                       </div>
-                      {unread && <div className="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0" />}
+                      {unread && <div className="w-2 h-2 rounded-full bg-accent mt-1.5 shrink-0" />}
                     </button>
                   );
                 })}
@@ -247,11 +247,11 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
             )}
           </div>
           
-          <div className="p-3 bg-white border-t border-slate-100 text-center shrink-0">
+          <div className="p-3 bg-surface border-t border-border-subtle text-center shrink-0">
             <Link 
               href="/messages" 
               onClick={onClose}
-              className="text-sm font-semibold text-brand-orange hover:text-orange-600 transition-colors inline-block w-full py-1"
+              className="text-sm font-semibold text-accent hover:text-accent transition-colors inline-block w-full py-1"
             >
               Open full chat
             </Link>

@@ -75,33 +75,33 @@ export default function MyOrdersPage() {
       <GlobalNav />
       <main className="flex-1 max-w-[1200px] w-full mx-auto px-6 py-24 sm:py-32">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-brand-navy">My Orders</h1>
-          <p className="text-slate-500 mt-2">View your past orders and their status.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">My Orders</h1>
+          <p className="text-text-secondary mt-2">View your past orders and their status.</p>
         </div>
 
         {loading ? (
           <div className="animate-pulse space-y-4">
-            <div className="h-20 bg-slate-200 rounded-xl w-full"></div>
-            <div className="h-20 bg-slate-200 rounded-xl w-full"></div>
-            <div className="h-20 bg-slate-200 rounded-xl w-full"></div>
+            <div className="h-20 bg-secondary rounded-xl w-full"></div>
+            <div className="h-20 bg-secondary rounded-xl w-full"></div>
+            <div className="h-20 bg-secondary rounded-xl w-full"></div>
           </div>
         ) : error ? (
           <div className="p-6 bg-red-50 text-red-700 rounded-xl">
             <p>{error}</p>
           </div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-slate-100">
+          <div className="text-center py-20 bg-surface rounded-2xl shadow-sm border border-border-subtle">
             <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             <h3 className="text-lg font-medium text-slate-900 mb-2">No orders found</h3>
-            <p className="text-slate-500">You haven't placed any orders yet.</p>
+            <p className="text-text-secondary">You haven't placed any orders yet.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-border-strong overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-medium">
+                <thead className="bg-slate-50 border-b border-border-strong text-text-secondary font-medium">
                   <tr>
                     <th className="px-6 py-4">Order Number</th>
                     <th className="px-6 py-4">Date</th>
@@ -117,7 +117,7 @@ export default function MyOrdersPage() {
                       <td className="px-6 py-4 font-medium text-slate-900">
                         {order.orderNumber}
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-6 py-4 text-text-secondary">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-slate-600">
@@ -131,7 +131,7 @@ export default function MyOrdersPage() {
                           order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                           order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
                           order.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
-                          'bg-slate-100 text-slate-700'
+                          'bg-secondary text-text-secondary'
                         }`}>
                           {order.status}
                         </span>
@@ -139,7 +139,7 @@ export default function MyOrdersPage() {
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => router.push(`/my-orders/${order.id}`)}
-                          className="text-brand-orange hover:text-orange-700 font-medium text-sm transition-colors"
+                          className="text-accent hover:text-orange-700 font-medium text-sm transition-colors"
                         >
                           View Details
                         </button>

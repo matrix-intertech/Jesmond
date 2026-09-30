@@ -40,7 +40,7 @@ export default function MovingPage() {
       </ul>
 
       <p className="mt-8">
-        <Link href="/universities" className="font-semibold px-6 py-3 bg-brand-orange text-white rounded-xl no-underline hover:bg-orange-600 transition-colors inline-block">
+        <Link href="/universities" className="font-semibold px-6 py-3 bg-accent text-white rounded-xl no-underline hover:bg-accent transition-colors inline-block">
           Explore University Hubs
         </Link>
       </p>

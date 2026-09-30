@@ -35,13 +35,13 @@ export default function AuditLogsPage() {
     fetchLogs();
   }, [router]);
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading audit logs...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading audit logs...</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-brand-navy">Audit Logs</h3>
-        <p className="mt-1 text-sm text-gray-500">System activity and setting modifications.</p>
+    <div className="bg-surface shadow rounded-lg overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+        <h3 className="text-lg leading-6 font-medium text-primary">Audit Logs</h3>
+        <p className="mt-1 text-sm text-text-secondary">System activity and setting modifications.</p>
       </div>
 
       {error && <div className="p-4 bg-rose-50 text-rose-700 m-4 rounded-md text-sm">{error}</div>}
@@ -50,36 +50,36 @@ export default function AuditLogsPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-surface-muted">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actor</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resource</th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Changes</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Time</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Actor</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Action</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Resource</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Changes</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-surface divide-y divide-gray-200">
             {logs.map((log) => (
               <tr key={log.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                   {new Date(log.createdAt).toLocaleString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-navy font-medium">
-                  {log.actorId} <span className="text-xs text-gray-500 ml-1">({log.actorType})</span>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-primary font-medium">
+                  {log.actorId} <span className="text-xs text-text-secondary ml-1">({log.actorType})</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-brand-navy">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-primary">
                   {log.action}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                   {log.resourceType} : {log.resourceId}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                <td className="px-6 py-4 text-sm text-text-secondary max-w-xs truncate">
                   {JSON.stringify(log.changes)}
                 </td>
               </tr>
             ))}
             {logs.length === 0 && !error && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">No logs found.</td>
+                <td colSpan={5} className="px-6 py-8 text-center text-sm text-text-secondary">No logs found.</td>
               </tr>
             )}
           </tbody>

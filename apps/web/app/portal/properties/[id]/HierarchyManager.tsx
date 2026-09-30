@@ -146,19 +146,19 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
 
   if (property.listingMode === 'INDIVIDUAL') {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
         <h2 className="text-xl font-medium mb-2">Individual Property</h2>
-        <p className="text-gray-500 text-sm">Hierarchy management is not required for this property.</p>
+        <p className="text-text-secondary text-sm">Hierarchy management is not required for this property.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-medium">Accommodation Hierarchy</h2>
         {!isPending && (
-          <button onClick={() => setAddingBuilding(true)} className="bg-brand-orange/10 text-brand-orange px-3 py-1.5 rounded text-sm hover:bg-indigo-100">
+          <button onClick={() => setAddingBuilding(true)} className="bg-accent/10 text-accent px-3 py-1.5 rounded text-sm hover:bg-indigo-100">
             + Add Building
           </button>
         )}
@@ -169,18 +169,18 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
       {addingBuilding && (
         <div className="bg-surface-muted p-4 rounded border mb-4 flex gap-2 items-center">
           <input required disabled={!!submittingAction} placeholder="Building Name" value={newBuilding.name} onChange={e => setNewBuilding({name: e.target.value})} className="border rounded px-2 py-1 text-sm flex-1 disabled:opacity-50" />
-          <button disabled={!!submittingAction} onClick={handleAddBuilding} className="bg-brand-orange text-white px-3 py-1 text-sm rounded disabled:opacity-50">Save</button>
-          <button disabled={!!submittingAction} onClick={() => setAddingBuilding(false)} className="text-gray-500 text-sm px-2 disabled:opacity-50">Cancel</button>
+          <button disabled={!!submittingAction} onClick={handleAddBuilding} className="bg-accent text-white px-3 py-1 text-sm rounded disabled:opacity-50">Save</button>
+          <button disabled={!!submittingAction} onClick={() => setAddingBuilding(false)} className="text-text-secondary text-sm px-2 disabled:opacity-50">Cancel</button>
         </div>
       )}
 
       {/* Buildings List */}
       <div className="space-y-4">
         {property.buildings?.map((b: any) => (
-          <div key={b.id} className="border rounded bg-white overflow-hidden">
+          <div key={b.id} className="border rounded bg-surface overflow-hidden">
             <div className="flex justify-between items-center bg-surface-muted px-4 py-3 cursor-pointer select-none" onClick={() => toggleBuilding(b.id)}>
               <span className="font-medium flex items-center gap-2">
-                <span className="text-gray-400 text-xs">{expandedBuildings.includes(b.id) ? '▼' : '▶'}</span>
+                <span className="text-text-muted text-xs">{expandedBuildings.includes(b.id) ? '▼' : '▶'}</span>
                 {b.name}
               </span>
               {!isPending && (
@@ -189,7 +189,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                     e.stopPropagation();
                     setAddingFloorTo(b.id);
                     setExpandedBuildings(prev => prev.includes(b.id) ? prev : [...prev, b.id]);
-                  }} className="text-xs text-brand-orange hover:underline disabled:opacity-50">Add Floor</button>
+                  }} className="text-xs text-accent hover:underline disabled:opacity-50">Add Floor</button>
                   <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); handleDeleteBuilding(b.id); }} className="text-xs text-red-600 hover:underline disabled:opacity-50">
                     {submittingAction === `delete-building-${b.id}` ? 'Deleting...' : 'Delete'}
                   </button>
@@ -202,15 +202,15 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                   <div className="bg-surface-muted p-3 rounded border flex gap-2 items-center">
                     <input disabled={!!submittingAction} required type="number" placeholder="Level (e.g. 1)" value={newFloor.level} onChange={e => setNewFloor({...newFloor, level: e.target.value})} className="border rounded px-2 py-1 text-sm w-24 disabled:opacity-50" />
                     <input disabled={!!submittingAction} placeholder="Name (e.g. Ground Floor)" value={newFloor.name} onChange={e => setNewFloor({...newFloor, name: e.target.value})} className="border rounded px-2 py-1 text-sm flex-1 disabled:opacity-50" />
-                    <button disabled={!!submittingAction} onClick={() => handleAddFloor(b.id)} className="bg-brand-orange text-white px-3 py-1 text-sm rounded disabled:opacity-50">Save</button>
-                    <button disabled={!!submittingAction} onClick={() => setAddingFloorTo(null)} className="text-gray-500 text-sm px-2 disabled:opacity-50">Cancel</button>
+                    <button disabled={!!submittingAction} onClick={() => handleAddFloor(b.id)} className="bg-accent text-white px-3 py-1 text-sm rounded disabled:opacity-50">Save</button>
+                    <button disabled={!!submittingAction} onClick={() => setAddingFloorTo(null)} className="text-text-secondary text-sm px-2 disabled:opacity-50">Cancel</button>
                   </div>
                 )}
                 {/* Floors List */}
-                {b.floors?.length === 0 ? <p className="text-xs text-gray-500">No floors added.</p> : null}
+                {b.floors?.length === 0 ? <p className="text-xs text-text-secondary">No floors added.</p> : null}
                 {b.floors?.map((f: any) => (
                   <div key={f.id} className="border border-indigo-100 rounded ml-4">
-                    <div className="flex justify-between items-center bg-brand-orange/10/30 px-3 py-2 cursor-pointer select-none" onClick={() => toggleFloor(f.id)}>
+                    <div className="flex justify-between items-center bg-accent/10/30 px-3 py-2 cursor-pointer select-none" onClick={() => toggleFloor(f.id)}>
                       <span className="font-medium text-sm flex items-center gap-2">
                         <span className="text-indigo-300 text-[10px]">{expandedFloors.includes(f.id) ? '▼' : '▶'}</span>
                         Level {f.level} {f.name ? `- ${f.name}` : ''}
@@ -221,7 +221,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                             e.stopPropagation();
                             setAddingRoomTypeTo(f.id);
                             setExpandedFloors(prev => prev.includes(f.id) ? prev : [...prev, f.id]);
-                          }} className="text-xs text-brand-orange hover:underline disabled:opacity-50">Add Room Type</button>
+                          }} className="text-xs text-accent hover:underline disabled:opacity-50">Add Room Type</button>
                           <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); handleDeleteFloor(b.id, f.id); }} className="text-xs text-red-600 hover:underline disabled:opacity-50">
                             {submittingAction === `delete-floor-${f.id}` ? 'Deleting...' : 'Delete'}
                           </button>
@@ -240,13 +240,13 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                             </div>
                             <input disabled={!!submittingAction} placeholder="Description" value={newRoomType.description} onChange={e => setNewRoomType({...newRoomType, description: e.target.value})} className="border rounded px-2 py-1 text-sm w-full disabled:opacity-50" />
                             <div className="flex gap-2 justify-end">
-                              <button disabled={!!submittingAction} onClick={() => setAddingRoomTypeTo(null)} className="text-gray-500 text-xs px-2 disabled:opacity-50">Cancel</button>
-                              <button disabled={!!submittingAction} onClick={() => handleAddRoomType(f.id)} className="bg-brand-orange text-white px-3 py-1 text-xs rounded disabled:opacity-50">Save</button>
+                              <button disabled={!!submittingAction} onClick={() => setAddingRoomTypeTo(null)} className="text-text-secondary text-xs px-2 disabled:opacity-50">Cancel</button>
+                              <button disabled={!!submittingAction} onClick={() => handleAddRoomType(f.id)} className="bg-accent text-white px-3 py-1 text-xs rounded disabled:opacity-50">Save</button>
                             </div>
                           </div>
                         )}
                         {/* RoomTypes List */}
-                        {f.roomTypes?.length === 0 ? <p className="text-xs text-gray-500">No room types assigned.</p> : null}
+                        {f.roomTypes?.length === 0 ? <p className="text-xs text-text-secondary">No room types assigned.</p> : null}
                         {f.roomTypes?.map((rt: any) => (
                           <div key={rt.id} className="border border-purple-100 rounded ml-4">
                             <div className="flex justify-between items-center bg-purple-50/30 px-3 py-2 cursor-pointer select-none" onClick={() => toggleRoomType(rt.id)}>
@@ -254,7 +254,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                                 <span className="text-purple-300 text-[10px]">{expandedRoomTypes.includes(rt.id) ? '▼' : '▶'}</span>
                                 <span className="font-medium text-purple-900">{rt.name}</span>
                                 <span className="text-purple-600 text-xs">${rt.pricePerWeek / 100}/wk</span>
-                                <span className="text-gray-400 text-xs">Inv: {rt.inventory}</span>
+                                <span className="text-text-muted text-xs">Inv: {rt.inventory}</span>
                               </div>
                               {!isPending && (
                                 <div className="flex gap-2 items-center">
@@ -262,7 +262,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                                     e.stopPropagation();
                                     setAddingRoomTo(rt.id);
                                     setExpandedRoomTypes(prev => prev.includes(rt.id) ? prev : [...prev, rt.id]);
-                                  }} className="text-[11px] text-brand-orange hover:underline disabled:opacity-50">Add Room</button>
+                                  }} className="text-[11px] text-accent hover:underline disabled:opacity-50">Add Room</button>
                                   <button disabled={!!submittingAction} onClick={(e) => { e.stopPropagation(); handleDeleteRoomType(rt.id); }} className="text-[11px] text-red-600 hover:underline disabled:opacity-50">
                                     {submittingAction === `delete-room-type-${rt.id}` ? 'Deleting...' : 'Delete'}
                                   </button>
@@ -271,20 +271,20 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                             </div>
                             {expandedRoomTypes.includes(rt.id) && (
                               <div className="p-3 border-t border-purple-100">
-                                <p className="text-xs text-gray-500 mb-2">{rt.description}</p>
+                                <p className="text-xs text-text-secondary mb-2">{rt.description}</p>
 
                                 {addingRoomTo === rt.id && (
-                                  <div className="bg-white p-2 mb-2 rounded border flex gap-2 items-center">
+                                  <div className="bg-surface p-2 mb-2 rounded border flex gap-2 items-center">
                                     <input disabled={!!submittingAction} placeholder="Room Identifier (e.g. 101)" value={newRoom.identifier} onChange={e => setNewRoom({identifier: e.target.value})} className="border rounded px-2 py-1 text-xs flex-1 disabled:opacity-50" />
-                                    <button disabled={!!submittingAction} onClick={() => handleAddRoom(rt.id)} className="bg-brand-orange text-white px-2 py-1 text-xs rounded disabled:opacity-50">Save</button>
-                                    <button disabled={!!submittingAction} onClick={() => setAddingRoomTo(null)} className="text-gray-500 text-xs px-1 disabled:opacity-50">Cancel</button>
+                                    <button disabled={!!submittingAction} onClick={() => handleAddRoom(rt.id)} className="bg-accent text-white px-2 py-1 text-xs rounded disabled:opacity-50">Save</button>
+                                    <button disabled={!!submittingAction} onClick={() => setAddingRoomTo(null)} className="text-text-secondary text-xs px-1 disabled:opacity-50">Cancel</button>
                                   </div>
                                 )}
 
                                 <div className="flex flex-wrap gap-2 mt-2">
-                                  {rt.rooms?.length === 0 ? <span className="text-xs text-gray-400 italic">No specific rooms added yet.</span> : null}
+                                  {rt.rooms?.length === 0 ? <span className="text-xs text-text-muted italic">No specific rooms added yet.</span> : null}
                                   {rt.rooms?.map((r: any) => (
-                                    <div key={r.id} className="bg-white border border-gray-200 px-2 py-1 rounded text-xs flex items-center gap-2">
+                                    <div key={r.id} className="bg-surface border border-border-strong px-2 py-1 rounded text-xs flex items-center gap-2">
                                       <span className="font-medium">{r.identifier}</span>
                                       {!isPending && (
                                         <button disabled={!!submittingAction} onClick={() => handleDeleteRoom(rt.id, r.id)} className="text-red-400 hover:text-red-600 disabled:opacity-50">✕</button>
@@ -308,17 +308,17 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
 
       {/* Unassigned Room Types (for backward compatibility) */}
       {property.roomTypes?.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <h3 className="text-sm font-medium text-gray-700 mb-4 uppercase tracking-wider">Unassigned Room Types</h3>
+        <div className="mt-8 pt-6 border-t border-border-strong">
+          <h3 className="text-sm font-medium text-text-primary mb-4 uppercase tracking-wider">Unassigned Room Types</h3>
           <div className="space-y-3">
             {property.roomTypes.map((rt: any) => (
-              <div key={rt.id} className="border border-purple-100 rounded bg-white">
+              <div key={rt.id} className="border border-purple-100 rounded bg-surface">
                 <div className="flex justify-between items-center bg-purple-50/30 px-3 py-2 cursor-pointer select-none" onClick={() => toggleRoomType(rt.id)}>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-purple-300 text-[10px]">{expandedRoomTypes.includes(rt.id) ? '▼' : '▶'}</span>
                     <span className="font-medium text-purple-900">{rt.name}</span>
                     <span className="text-purple-600 text-xs">${rt.pricePerWeek / 100}/wk</span>
-                    <span className="text-gray-400 text-xs">Inv: {rt.inventory}</span>
+                    <span className="text-text-muted text-xs">Inv: {rt.inventory}</span>
                   </div>
                   {!isPending && (
                     <div className="flex gap-2 items-center">
@@ -330,11 +330,11 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                 </div>
                 {expandedRoomTypes.includes(rt.id) && (
                   <div className="p-3 border-t border-purple-100">
-                    <p className="text-xs text-gray-500 mb-2">{rt.description}</p>
+                    <p className="text-xs text-text-secondary mb-2">{rt.description}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {rt.rooms?.length === 0 ? <span className="text-xs text-gray-400 italic">No specific rooms added yet.</span> : null}
+                      {rt.rooms?.length === 0 ? <span className="text-xs text-text-muted italic">No specific rooms added yet.</span> : null}
                       {rt.rooms?.map((r: any) => (
-                        <div key={r.id} className="bg-white border border-gray-200 px-2 py-1 rounded text-xs flex items-center gap-2">
+                        <div key={r.id} className="bg-surface border border-border-strong px-2 py-1 rounded text-xs flex items-center gap-2">
                           <span className="font-medium">{r.identifier}</span>
                           {!isPending && (
                             <button disabled={!!submittingAction} onClick={() => handleDeleteRoom(rt.id, r.id)} className="text-red-400 hover:text-red-600 disabled:opacity-50">✕</button>

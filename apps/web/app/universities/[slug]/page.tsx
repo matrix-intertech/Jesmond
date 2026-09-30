@@ -44,21 +44,21 @@ export default async function UniversityDetailPage({ params }: { params: Promise
   if (!uni) return notFound();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface">
       <GlobalNav />
       <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-24 min-h-[70vh]">
-        <Link href="/universities" className="text-sm font-semibold text-brand-orange hover:underline mb-8 inline-block">&larr; Back to Universities</Link>
-        <h1 className="text-4xl md:text-5xl font-medium text-brand-navy mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+        <Link href="/universities" className="text-sm font-semibold text-accent hover:underline mb-8 inline-block">&larr; Back to Universities</Link>
+        <h1 className="text-4xl md:text-5xl font-medium text-primary mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
           {uni.name}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
           {uni.campuses.map((c: CampusWithLocation) => (
-            <div key={c.id} className="border border-slate-200 rounded-[24px] p-6 flex flex-col justify-between">
+            <div key={c.id} className="border border-border-strong rounded-[24px] p-6 flex flex-col justify-between">
               <div>
-                <h3 className="text-xl font-bold text-brand-navy">{c.name}</h3>
-                <p className="text-slate-500 mt-2">{formatLocation({ suburb: c.suburb, state: c.suburb.state, city: c.suburb.city })}</p>
+                <h3 className="text-xl font-bold text-primary">{c.name}</h3>
+                <p className="text-text-secondary mt-2">{formatLocation({ suburb: c.suburb, state: c.suburb.state, city: c.suburb.city })}</p>
               </div>
-              <Link href={`/search?city=${c.suburb?.city?.name || c.suburb?.name}`} className="mt-6 px-6 py-2 bg-brand-navy text-white rounded-full font-semibold text-center hover:bg-brand-navy/90 transition-colors">
+              <Link href={`/search?city=${c.suburb?.city?.name || c.suburb?.name}`} className="mt-6 px-6 py-2 bg-primary text-white rounded-full font-semibold text-center hover:bg-primary/90 transition-colors">
                 Find properties near campus
               </Link>
             </div>

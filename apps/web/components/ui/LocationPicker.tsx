@@ -11,9 +11,9 @@ const LocationPickerMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex flex-col gap-2">
-        <div className="text-sm font-medium text-gray-700">Property Location</div>
-        <div className="h-[350px] w-full rounded-xl bg-gray-100 animate-pulse border border-gray-300 flex items-center justify-center">
-          <span className="text-gray-400">Loading map...</span>
+        <div className="text-sm font-medium text-text-primary">Property Location</div>
+        <div className="h-[350px] w-full rounded-xl bg-surface-muted animate-pulse border border-border-strong flex items-center justify-center">
+          <span className="text-text-muted">Loading map...</span>
         </div>
       </div>
     )
@@ -41,7 +41,7 @@ export default function LocationPicker(props: LocationPickerProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Search Address (Optional)</label>
+        <label className="block text-sm font-medium text-text-primary mb-1">Search Address (Optional)</label>
         <LocationAutocomplete
           value={autocompleteValue}
           onChange={handleAutocompleteChange}

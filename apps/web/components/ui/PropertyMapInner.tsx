@@ -156,7 +156,7 @@ export default function PropertyMapInner({
               <Popup closeButton={false} className="custom-popup">
                 <Link href={`/property/${prop.id}`} className="block w-48 no-underline group hover:no-underline">
                   <div className="flex flex-col gap-2 rounded-lg overflow-hidden">
-                    <div className="relative w-full h-24 bg-slate-100">
+                    <div className="relative w-full h-24 bg-surface-muted">
                        <SafeImage
                           src={prop.thumbnailUrl || "/assets/property-placeholder.png"}
                           alt={prop.name}
@@ -165,9 +165,9 @@ export default function PropertyMapInner({
                        />
                     </div>
                     <div className="p-2">
-                      <h4 className="font-bold text-sm text-brand-navy leading-tight mb-1 line-clamp-1 group-hover:text-brand-orange transition-colors">{prop.name}</h4>
-                      {prop.suburb && <p className="text-xs text-slate-500 mb-1">{prop.suburb}</p>}
-                      {prop.lowestPricePerWeek && <p className="text-sm font-bold text-brand-orange">From ${prop.lowestPricePerWeek}/wk</p>}
+                      <h4 className="font-bold text-sm text-primary leading-tight mb-1 line-clamp-1 group-hover:text-accent transition-colors">{prop.name}</h4>
+                      {prop.suburb && <p className="text-xs text-text-secondary mb-1">{prop.suburb}</p>}
+                      {prop.lowestPricePerWeek && <p className="text-sm font-bold text-accent">From ${prop.lowestPricePerWeek}/wk</p>}
                     </div>
                   </div>
                 </Link>

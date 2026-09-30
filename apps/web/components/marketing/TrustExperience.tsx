@@ -7,28 +7,28 @@ const TRUST_PILLARS = [
     title: "100% Verified Providers.",
     description: "Every property on Jesmond is managed by a certified, legally vetted Australian accommodation provider. No scams, no fake listings.",
     icon: (
-      <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+      <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
     )
   },
   {
     title: "Zero Hidden Fees.",
     description: "Transparent pricing is our mandate. The weekly rent you see is exactly what you pay. We don't charge booking fees or student surcharges.",
     icon: (
-      <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     )
   },
   {
     title: "Secure Australian Payments.",
     description: "Your bonds and rent are processed securely via local bank gateways, ensuring full compliance with Australian tenancy laws.",
     icon: (
-      <svg className="w-8 h-8 text-brand-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+      <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
     )
   }
 ];
 
 export function TrustExperience() {
   return (
-    <section className="relative w-full py-24 lg:py-32 bg-white">
+    <section className="relative w-full py-24 lg:py-32 bg-surface">
       <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16">
 
         {/* Header */}
@@ -39,10 +39,10 @@ export function TrustExperience() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-brand-orange font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
+            <h2 className="text-accent font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
               Built for students
             </h2>
-            <h3 className="text-3xl sm:text-[2.5rem] lg:text-[3.5rem] font-bold text-brand-navy tracking-tight leading-[1.1] mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+            <h3 className="text-3xl sm:text-[2.5rem] lg:text-[3.5rem] font-bold text-primary tracking-tight leading-[1.1] mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
               Backed by certainty.
             </h3>
             <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
@@ -61,12 +61,12 @@ export function TrustExperience() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="bg-surface-muted border border-slate-100 rounded-[24px] p-8 hover:shadow-[0_20px_40px_-15px_rgba(7,22,61,0.05)] hover:-translate-y-1 transition-all duration-300 group"
+              className="bg-surface-muted border border-border-subtle rounded-[24px] p-8 hover:shadow-[0_20px_40px_-15px_rgba(7,22,61,0.05)] hover:-translate-y-1 transition-all duration-300 group"
             >
-              <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <div className="w-16 h-16 bg-surface rounded-2xl shadow-sm border border-border-subtle flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 {feature.icon}
               </div>
-              <h4 className="text-xl font-bold text-brand-navy mb-4 tracking-tight">{feature.title}</h4>
+              <h4 className="text-xl font-bold text-primary mb-4 tracking-tight">{feature.title}</h4>
               <p className="text-slate-600 leading-relaxed font-medium">
                 {feature.description}
               </p>
@@ -80,10 +80,10 @@ export function TrustExperience() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-20 bg-brand-navy rounded-[32px] p-12 relative overflow-hidden"
+          className="mt-20 bg-primary rounded-[32px] p-12 relative overflow-hidden"
         >
           {/* Subtle background decoration */}
-          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-white/5 blur-3xl sm:h-96 sm:w-96 sm:translate-x-1/3 sm:-translate-y-1/3" />
+          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-surface/5 blur-3xl sm:h-96 sm:w-96 sm:translate-x-1/3 sm:-translate-y-1/3" />
 
           <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center md:text-left divide-x divide-white/10">
             <div className="px-4">

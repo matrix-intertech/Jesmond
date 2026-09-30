@@ -65,7 +65,7 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
   const RuleDisplay = ({ label, value }: { label: string, value: string }) => {
     if (!value) return null;
     return (
-      <div className="flex justify-between py-2 border-b border-gray-100 last:border-0">
+      <div className="flex justify-between py-2 border-b border-border-subtle last:border-0">
         <span className="text-gray-600 font-medium">{label}</span>
         <span className="text-gray-900">{value.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</span>
       </div>
@@ -73,17 +73,17 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
   };
 
   return (
-    <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-medium">House Rules</h2>
         {!isEditing && (
-          <button onClick={handleOpenEdit} className="text-sm text-brand-orange hover:underline">
+          <button onClick={handleOpenEdit} className="text-sm text-accent hover:underline">
             Edit Rules
           </button>
         )}
       </div>
 
-      {error && <div className="bg-red-50 text-red-600 p-3 rounded mb-4 text-sm">{error}</div>}
+      {error && <div className="bg-error/10 text-error p-3 rounded mb-4 text-sm">{error}</div>}
       {toast && <div className="bg-green-50 text-green-600 p-3 rounded mb-4 text-sm">{toast}</div>}
 
       {isEditing ? (
@@ -142,7 +142,7 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
           </div>
           <div className="flex gap-4 justify-end mt-4">
             <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-gray-600 hover:text-gray-900">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-brand-orange text-white rounded hover:bg-orange-600 disabled:opacity-50">
+            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-accent text-white rounded hover:bg-accent disabled:opacity-50">
               {isSubmitting ? 'Saving...' : 'Save Rules'}
             </button>
           </div>
@@ -150,7 +150,7 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
       ) : (
         <>
           {!initialHouseRule ? (
-            <p className="text-gray-500 text-sm">No house rules configured. Click Edit Rules to add them.</p>
+            <p className="text-text-secondary text-sm">No house rules configured. Click Edit Rules to add them.</p>
           ) : (
             <div className="space-y-1">
               <RuleDisplay label="Smoking" value={initialHouseRule.smoking} />
@@ -161,7 +161,7 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
               <RuleDisplay label="Quiet Hours End" value={initialHouseRule.quietHoursEnd} />
               
               {initialHouseRule.additionalRules && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="mt-4 pt-4 border-t border-border-subtle">
                   <h4 className="text-sm font-medium text-gray-600 mb-2">Additional Rules</h4>
                   <p className="text-gray-900 text-sm whitespace-pre-line bg-gray-50 p-3 rounded">{initialHouseRule.additionalRules}</p>
                 </div>

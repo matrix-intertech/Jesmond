@@ -97,15 +97,15 @@ export default function ProviderApplicationsPage() {
       <div className="max-w-7xl mx-auto py-8">
 
         {applications.length === 0 ? (
-          <div className="bg-white p-10 rounded-xl shadow-sm text-center border">
+          <div className="bg-surface p-10 rounded-xl shadow-sm text-center border">
             <h2 className="text-xl font-bold mb-2">No applications yet</h2>
-            <p className="text-slate-500 mb-6">Applications for your properties will appear here.</p>
+            <p className="text-text-secondary mb-6">Applications for your properties will appear here.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+          <div className="bg-surface rounded-xl shadow-sm border overflow-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-muted border-b text-sm text-slate-500 uppercase tracking-wider">
+                <tr className="bg-surface-muted border-b text-sm text-text-secondary uppercase tracking-wider">
                   <th className="p-4 font-semibold">Student</th>
                   <th className="p-4 font-semibold">Property</th>
                   <th className="p-4 font-semibold">Room</th>
@@ -120,21 +120,21 @@ export default function ProviderApplicationsPage() {
                 {applications.map(app => (
                   <tr key={app.id} className="hover:bg-surface-muted transition">
                     <td className="p-4">
-                      <Link href={`/portal/applications/${app.id}`} className="block hover:text-brand-orange transition">
-                        <div className="font-bold text-brand-navy">{app.student.firstName} {app.student.lastName}</div>
-                        <div className="text-xs text-slate-500">{app.student.email}</div>
+                      <Link href={`/portal/applications/${app.id}`} className="block hover:text-accent transition">
+                        <div className="font-bold text-primary">{app.student.firstName} {app.student.lastName}</div>
+                        <div className="text-xs text-text-secondary">{app.student.email}</div>
                       </Link>
                     </td>
                     <td className="p-4 font-medium">{app.roomType.property.name}</td>
                     <td className="p-4">{app.roomType.name}</td>
                     <td className="p-4">{new Date(app.moveInDate).toLocaleDateString()}</td>
                     <td className="p-4">{app.durationMonths} months</td>
-                    <td className="p-4 font-medium text-brand-orange">${(app.lockedPrice / 100).toFixed(2)}/wk</td>
+                    <td className="p-4 font-medium text-accent">${(app.lockedPrice / 100).toFixed(2)}/wk</td>
                     <td className="p-4">
                       <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wider ${
                         app.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
                         app.status === 'REJECTED' ? 'bg-rose-100 text-rose-700' :
-                        app.status === 'WITHDRAWN' ? 'bg-slate-100 text-slate-700' :
+                        app.status === 'WITHDRAWN' ? 'bg-secondary text-text-secondary' :
                         app.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
                         'bg-amber-100 text-amber-700'
                       }`}>

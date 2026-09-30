@@ -50,8 +50,8 @@ export function ProductCard({ inventory, branchId, storeIsActive = true }: { inv
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
-      <div className="relative aspect-square w-full bg-slate-100 overflow-hidden">
+    <div className="bg-surface rounded-2xl border border-border-strong/60 shadow-sm overflow-hidden flex flex-col group hover:shadow-xl transition-all duration-300">
+      <div className="relative aspect-square w-full bg-surface-muted overflow-hidden">
         {/* Backend enforces imageUrl to not be null, but we defensively fall back if needed */}
         {product.imageUrl ? (
           <Image
@@ -61,7 +61,7 @@ export function ProductCard({ inventory, branchId, storeIsActive = true }: { inv
             className="object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-slate-400 flex-col gap-2">
+          <div className="absolute inset-0 flex items-center justify-center text-text-muted flex-col gap-2">
             <AlertCircle size={24} />
             <span className="text-xs font-medium uppercase tracking-wider">No Image</span>
           </div>
@@ -74,13 +74,13 @@ export function ProductCard({ inventory, branchId, storeIsActive = true }: { inv
         )}
 
         {!storeIsActive ? (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-surface/60 backdrop-blur-[2px] flex items-center justify-center z-10">
             <div className="px-4 py-1.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
               Currently Unavailable
             </div>
           </div>
         ) : availableQty <= 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+          <div className="absolute inset-0 bg-surface/60 backdrop-blur-[2px] flex items-center justify-center z-10">
             <div className="px-4 py-1.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
               Out of stock
             </div>
@@ -89,13 +89,13 @@ export function ProductCard({ inventory, branchId, storeIsActive = true }: { inv
       </div>
 
       <div className="p-5 flex-1 flex flex-col">
-        <h4 className="font-bold text-brand-navy text-lg leading-tight line-clamp-2 mb-1">
+        <h4 className="font-bold text-primary text-lg leading-tight line-clamp-2 mb-1">
           {product.name}
         </h4>
-        <p className="text-slate-400 text-xs font-medium mb-4">{product.sku}</p>
+        <p className="text-text-muted text-xs font-medium mb-4">{product.sku}</p>
 
         <div className="mt-auto flex items-center justify-between">
-          <span className="text-xl font-extrabold text-brand-orange">
+          <span className="text-xl font-extrabold text-accent">
             ${(product.sellingPrice / 100).toFixed(2)}
           </span>
 
@@ -106,8 +106,8 @@ export function ProductCard({ inventory, branchId, storeIsActive = true }: { inv
               added
                 ? "bg-green-500 text-white shadow-lg shadow-green-500/20"
                 : canAdd
-                  ? "bg-brand-navy text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/20 active:scale-95"
-                  : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                  ? "bg-primary text-white hover:bg-accent hover:shadow-lg hover:shadow-orange-500/20 active:scale-95"
+                  : "bg-surface-muted text-text-muted cursor-not-allowed"
             }`}
           >
             {added ? <Check size={18} /> : <Plus size={18} />}

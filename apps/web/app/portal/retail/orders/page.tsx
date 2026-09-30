@@ -164,18 +164,18 @@ function OrdersContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader title="Orders" description="Manage active online and operational orders." />
-        <button onClick={fetchOrders} className="min-h-11 w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 sm:w-auto">
+        <button onClick={fetchOrders} className="min-h-11 w-full rounded-lg border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-slate-50 sm:w-auto">
           Refresh
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-slate-200">
+      <div className="flex flex-col sm:flex-row gap-4 bg-surface p-4 rounded-xl border border-border-strong">
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Status</label>
+          <label className="block text-xs font-medium text-text-secondary mb-1">Status</label>
           <select 
             value={statusFilter}
             onChange={(e) => handleStatusFilterChange(e.target.value)}
-            className="w-full sm:w-48 text-sm rounded-lg border-slate-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange"
+            className="w-full sm:w-48 text-sm rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent"
           >
             <option value="ALL_ACTIVE">All Active</option>
             <option value="ALL">All Orders</option>
@@ -188,11 +188,11 @@ function OrdersContent() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Order Type</label>
+          <label className="block text-xs font-medium text-text-secondary mb-1">Order Type</label>
           <select 
             value={typeFilter}
             onChange={(e) => handleTypeFilterChange(e.target.value)}
-            className="w-full sm:w-48 text-sm rounded-lg border-slate-200 shadow-sm focus:border-brand-orange focus:ring-brand-orange"
+            className="w-full sm:w-48 text-sm rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent"
           >
             <option value="ALL">All Types</option>
             <option value="DELIVERY">Delivery</option>
@@ -206,15 +206,15 @@ function OrdersContent() {
           <span>{error}</span>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong overflow-hidden flex flex-col">
           <div className="overflow-x-auto min-h-[400px]">
             {loading ? (
               <div className="p-8 space-y-4">
                 {[1,2,3,4,5].map(i => (
                   <div key={i} className="animate-pulse flex space-x-4">
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-secondary rounded w-1/4"></div>
+                    <div className="h-4 bg-secondary rounded w-1/4"></div>
+                    <div className="h-4 bg-secondary rounded w-1/4"></div>
                   </div>
                 ))}
               </div>
@@ -231,13 +231,13 @@ function OrdersContent() {
                   {displayedOrders.map(order => {
                     const nextAction = getNextAction(order);
                     return (
-                      <div key={`mobile-${order.id}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div key={`mobile-${order.id}`} className="rounded-xl border border-border-strong bg-surface p-4 shadow-sm">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <Link href={`/portal/retail/orders/${order.id}`} className="font-semibold text-brand-orange hover:underline">
+                            <Link href={`/portal/retail/orders/${order.id}`} className="font-semibold text-accent hover:underline">
                               {order.orderNumber}
                             </Link>
-                            <p className="mt-1 text-xs text-slate-500">{new Date(order.createdAt).toLocaleString()}</p>
+                            <p className="mt-1 text-xs text-text-secondary">{new Date(order.createdAt).toLocaleString()}</p>
                           </div>
                           <span className={`shrink-0 px-2 py-1 text-xs font-medium rounded-full ${
                             order.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
@@ -245,27 +245,27 @@ function OrdersContent() {
                             order.status === 'PACKED' ? 'bg-indigo-100 text-indigo-800' :
                             order.status === 'DELIVERED' || order.status === 'TAKEN' ? 'bg-emerald-100 text-emerald-800' :
                             order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
-                            'bg-slate-100 text-slate-800'
+                            'bg-surface-muted text-slate-800'
                           }`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
                           </span>
                         </div>
                         <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                          <div><dt className="text-xs uppercase text-slate-400">Type</dt><dd className="font-medium text-slate-700">{order.fulfillmentType === 'DELIVERY' ? 'Delivery' : 'Take Away'}</dd></div>
-                          <div><dt className="text-xs uppercase text-slate-400">Items</dt><dd className="font-medium text-slate-700">{order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0}</dd></div>
-                          <div><dt className="text-xs uppercase text-slate-400">Amount</dt><dd className="font-bold text-brand-navy">${(order.total / 100).toFixed(2)}</dd></div>
+                          <div><dt className="text-xs uppercase text-text-muted">Type</dt><dd className="font-medium text-text-primary">{order.fulfillmentType === 'DELIVERY' ? 'Delivery' : 'Take Away'}</dd></div>
+                          <div><dt className="text-xs uppercase text-text-muted">Items</dt><dd className="font-medium text-text-primary">{order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0}</dd></div>
+                          <div><dt className="text-xs uppercase text-text-muted">Amount</dt><dd className="font-bold text-primary">${(order.total / 100).toFixed(2)}</dd></div>
                         </dl>
                         <div className="mt-4 flex flex-col gap-2">
                           {nextAction && (
                             <button
                               onClick={() => handleUpdateStatus(order.id, nextAction.status)}
                               disabled={updatingId === order.id}
-                              className="min-h-11 rounded-lg bg-brand-orange px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:opacity-50"
+                              className="min-h-11 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent disabled:opacity-50"
                             >
                               {updatingId === order.id ? 'Updating...' : nextAction.label}
                             </button>
                           )}
-                          <Link href={`/portal/retail/orders/${order.id}`} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 text-sm font-semibold text-slate-700">
+                          <Link href={`/portal/retail/orders/${order.id}`} className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border-strong text-sm font-semibold text-text-primary">
                             Details
                           </Link>
                         </div>
@@ -275,7 +275,7 @@ function OrdersContent() {
                 </div>
 
                 <table className="hidden w-full whitespace-nowrap text-left text-sm md:table">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+                <thead className="bg-slate-50 border-b border-border-strong text-text-secondary">
                   <tr>
                     <th className="px-6 py-4 font-medium">Order ID</th>
                     <th className="px-6 py-4 font-medium">Date</th>
@@ -291,21 +291,21 @@ function OrdersContent() {
                     const nextAction = getNextAction(order);
                     return (
                       <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-brand-navy">
-                          <Link href={`/portal/retail/orders/${order.id}`} className="hover:underline text-brand-orange">
+                        <td className="px-6 py-4 font-medium text-primary">
+                          <Link href={`/portal/retail/orders/${order.id}`} className="hover:underline text-accent">
                             {order.orderNumber}
                           </Link>
                         </td>
                         <td className="px-6 py-4 text-slate-600">{new Date(order.createdAt).toLocaleString()}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-info/10 text-info'}`}>
                             {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : 'Take Away'}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-slate-600">
                           {order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} items
                         </td>
-                        <td className="px-6 py-4 font-bold text-brand-navy">${(order.total / 100).toFixed(2)}</td>
+                        <td className="px-6 py-4 font-bold text-primary">${(order.total / 100).toFixed(2)}</td>
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                             order.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
@@ -313,7 +313,7 @@ function OrdersContent() {
                             order.status === 'PACKED' ? 'bg-indigo-100 text-indigo-800' :
                             order.status === 'DELIVERED' || order.status === 'TAKEN' ? 'bg-emerald-100 text-emerald-800' :
                             order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
-                            'bg-slate-100 text-slate-800'
+                            'bg-surface-muted text-slate-800'
                           }`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
                           </span>
@@ -323,14 +323,14 @@ function OrdersContent() {
                             <button 
                               onClick={() => handleUpdateStatus(order.id, nextAction.status)}
                               disabled={updatingId === order.id}
-                              className="px-3 py-1.5 bg-brand-orange text-white hover:bg-orange-600 rounded text-xs font-medium transition-colors disabled:opacity-50"
+                              className="px-3 py-1.5 bg-accent text-white hover:bg-accent rounded text-xs font-medium transition-colors disabled:opacity-50"
                             >
                               {updatingId === order.id ? '...' : nextAction.label}
                             </button>
                           )}
                           <Link 
                             href={`/portal/retail/orders/${order.id}`}
-                            className="text-slate-500 hover:text-brand-navy font-medium text-xs"
+                            className="text-text-secondary hover:text-primary font-medium text-xs"
                           >
                             Details
                           </Link>
@@ -346,7 +346,7 @@ function OrdersContent() {
 
           {/* Pagination Controls Footer */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+            <div className="p-4 border-t border-border-strong bg-slate-50 flex items-center justify-between text-xs text-slate-600">
               <div>
                 Showing Page <span className="font-bold text-slate-800">{page}</span> of <span className="font-bold text-slate-800">{totalPages}</span> ({total} total orders)
               </div>
@@ -354,14 +354,14 @@ function OrdersContent() {
                 <button
                   onClick={() => setPage(prev => Math.max(1, prev - 1))}
                   disabled={page <= 1}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-medium hover:bg-slate-100 disabled:opacity-50 flex items-center gap-1 transition"
+                  className="px-3 py-1.5 bg-surface border border-border-strong rounded-lg font-medium hover:bg-surface-muted disabled:opacity-50 flex items-center gap-1 transition"
                 >
                   <ChevronLeft size={14} /> Previous
                 </button>
                 <button
                   onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={page >= totalPages}
-                  className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-medium hover:bg-slate-100 disabled:opacity-50 flex items-center gap-1 transition"
+                  className="px-3 py-1.5 bg-surface border border-border-strong rounded-lg font-medium hover:bg-surface-muted disabled:opacity-50 flex items-center gap-1 transition"
                 >
                   Next <ChevronRight size={14} />
                 </button>

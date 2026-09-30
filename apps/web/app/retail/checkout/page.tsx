@@ -107,7 +107,7 @@ export default function CheckoutPage() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-brand-orange" size={48} />
+        <Loader2 className="animate-spin text-accent" size={48} />
       </div>
     );
   }
@@ -119,17 +119,17 @@ export default function CheckoutPage() {
 
   return (
     <div className="flex-1 max-w-[1000px] w-full mx-auto px-6 sm:px-12 py-12">
-      <Link href={`/retail/store/${branchId}`} className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors font-medium mb-8">
+      <Link href={`/retail/store/${branchId}`} className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
         <ArrowLeft size={18} /> Back to Catalog
       </Link>
 
       <div className="flex items-center gap-4 mb-10">
-        <div className="w-12 h-12 bg-orange-100 text-brand-orange rounded-xl flex items-center justify-center">
+        <div className="w-12 h-12 bg-orange-100 text-accent rounded-xl flex items-center justify-center">
           <CheckCircle size={24} />
         </div>
         <div>
-          <h1 className="text-3xl font-extrabold text-brand-navy">Secure Checkout</h1>
-          <p className="text-slate-500 font-medium">{branch.name}</p>
+          <h1 className="text-3xl font-extrabold text-primary">Secure Checkout</h1>
+          <p className="text-text-secondary font-medium">{branch.name}</p>
         </div>
       </div>
 
@@ -148,67 +148,67 @@ export default function CheckoutPage() {
         <div className="lg:col-span-2 space-y-10">
 
           <section>
-            <h2 className="text-xl font-bold text-brand-navy mb-4">How would you like your order?</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">How would you like your order?</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {branch.deliveryEnabled && (
-                <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${fulfillment === 'DELIVERY' ? 'border-brand-orange bg-orange-50' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
+                <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${fulfillment === 'DELIVERY' ? 'border-accent bg-orange-50' : 'border-border-strong hover:border-border-strong bg-surface'}`}>
                   <input type="radio" name="fulfillment" className="sr-only" checked={fulfillment === 'DELIVERY'} onChange={() => setFulfillment('DELIVERY')} />
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-brand-navy font-bold">
-                      <Navigation size={18} className={fulfillment === 'DELIVERY' ? 'text-brand-orange' : 'text-slate-400'} />
+                    <div className="flex items-center gap-2 text-primary font-bold">
+                      <Navigation size={18} className={fulfillment === 'DELIVERY' ? 'text-accent' : 'text-text-muted'} />
                       Delivery
                     </div>
-                    {fulfillment === 'DELIVERY' && <div className="w-5 h-5 rounded-full bg-brand-orange flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>}
+                    {fulfillment === 'DELIVERY' && <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>}
                   </div>
-                  <p className="text-sm text-slate-500 font-medium">Delivered to your room or flat</p>
+                  <p className="text-sm text-text-secondary font-medium">Delivered to your room or flat</p>
                 </label>
               )}
 
               {branch.takeawayEnabled && (
-                <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${fulfillment === 'TAKEAWAY' ? 'border-brand-orange bg-orange-50' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
+                <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${fulfillment === 'TAKEAWAY' ? 'border-accent bg-orange-50' : 'border-border-strong hover:border-border-strong bg-surface'}`}>
                   <input type="radio" name="fulfillment" className="sr-only" checked={fulfillment === 'TAKEAWAY'} onChange={() => setFulfillment('TAKEAWAY')} />
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-brand-navy font-bold">
-                      <Clock size={18} className={fulfillment === 'TAKEAWAY' ? 'text-brand-orange' : 'text-slate-400'} />
+                    <div className="flex items-center gap-2 text-primary font-bold">
+                      <Clock size={18} className={fulfillment === 'TAKEAWAY' ? 'text-accent' : 'text-text-muted'} />
                       Takeaway
                     </div>
-                    {fulfillment === 'TAKEAWAY' && <div className="w-5 h-5 rounded-full bg-brand-orange flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>}
+                    {fulfillment === 'TAKEAWAY' && <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>}
                   </div>
-                  <p className="text-sm text-slate-500 font-medium">Pick up from {branch.name}</p>
+                  <p className="text-sm text-text-secondary font-medium">Pick up from {branch.name}</p>
                 </label>
               )}
 
               {!branch.deliveryEnabled && !branch.takeawayEnabled && (
-                 <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all border-brand-orange bg-orange-50`}>
+                 <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all border-accent bg-orange-50`}>
                   <input type="radio" name="fulfillment" className="sr-only" checked={true} readOnly />
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 text-brand-navy font-bold">
-                      <Store size={18} className="text-brand-orange" />
+                    <div className="flex items-center gap-2 text-primary font-bold">
+                      <Store size={18} className="text-accent" />
                       In-Store Only
                     </div>
-                    <div className="w-5 h-5 rounded-full bg-brand-orange flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>
+                    <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>
                   </div>
-                  <p className="text-sm text-slate-500 font-medium">Purchase at {branch.name}</p>
+                  <p className="text-sm text-text-secondary font-medium">Purchase at {branch.name}</p>
                  </label>
               )}
             </div>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-brand-navy mb-4">Order Items</h2>
-            <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+            <h2 className="text-xl font-bold text-primary mb-4">Order Items</h2>
+            <div className="bg-surface rounded-3xl border border-border-strong overflow-hidden shadow-sm">
               <ul className="divide-y divide-slate-100">
                 {items.map((item) => (
                   <li key={item.productId} className="p-4 sm:p-6 flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden relative shrink-0">
+                    <div className="w-16 h-16 rounded-xl bg-surface-muted overflow-hidden relative shrink-0">
                       <Image src={item.imageUrl} alt={item.name} fill className="object-cover" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-brand-navy line-clamp-1">{item.name}</h4>
-                      <p className="text-sm text-slate-500">Qty: {item.quantity}</p>
+                      <h4 className="font-bold text-primary line-clamp-1">{item.name}</h4>
+                      <p className="text-sm text-text-secondary">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <span className="font-extrabold text-brand-navy">
+                      <span className="font-extrabold text-primary">
                         ${((item.unitPrice * item.quantity) / 100).toFixed(2)}
                       </span>
                     </div>
@@ -222,7 +222,7 @@ export default function CheckoutPage() {
 
         {/* Right Col: Summary */}
         <div>
-          <div className="bg-brand-navy text-white rounded-3xl p-6 sm:p-8 sticky top-[120px] shadow-2xl shadow-brand-navy/20">
+          <div className="bg-primary text-white rounded-3xl p-6 sm:p-8 sticky top-[120px] shadow-2xl shadow-brand-navy/20">
             <h3 className="text-xl font-bold mb-6">Order Summary</h3>
 
             <div className="space-y-4 mb-6 text-slate-300 font-medium">
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
 
             <div className="pt-6 border-t border-slate-700/50 mb-8 flex justify-between items-center">
               <span className="text-lg text-slate-300 font-medium">Total</span>
-              <span className="text-3xl font-extrabold text-brand-orange">
+              <span className="text-3xl font-extrabold text-accent">
                 ${(total / 100).toFixed(2)}
               </span>
             </div>
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
             <button
               onClick={handleCheckout}
               disabled={submitting || branch.isActive === false}
-              className="w-full py-4 bg-brand-orange hover:bg-orange-600 text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-500/25 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-accent hover:bg-accent text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-500/25 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <><Loader2 className="animate-spin" size={20} /> Processing...</>
@@ -256,7 +256,7 @@ export default function CheckoutPage() {
                 'Place Order securely'
               )}
             </button>
-            <p className="text-center text-xs text-slate-400 mt-4">
+            <p className="text-center text-xs text-text-muted mt-4">
               By placing this order, you agree to Jesmond's Terms of Sale.
             </p>
           </div>

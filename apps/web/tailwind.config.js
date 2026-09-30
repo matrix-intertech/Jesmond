@@ -10,8 +10,22 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        primary: {
+          DEFAULT: "rgb(var(--primary) / <alpha-value>)",
+          foreground: "rgb(var(--primary-foreground) / <alpha-value>)",
+        },
+        secondary: {
+          DEFAULT: "rgb(var(--secondary) / <alpha-value>)",
+          foreground: "rgb(var(--secondary-foreground) / <alpha-value>)",
+        },
+        accent: {
+          DEFAULT: "rgb(var(--accent) / <alpha-value>)",
+          foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
+        },
         brand: {
-          navy: "rgb(var(--brand-navy) / <alpha-value>)",
+          indigo: "rgb(var(--brand-indigo) / <alpha-value>)",
+          purple: "rgb(var(--brand-purple) / <alpha-value>)",
+          magenta: "rgb(var(--brand-magenta) / <alpha-value>)",
           orange: "rgb(var(--brand-orange) / <alpha-value>)",
         },
         surface: {
@@ -27,6 +41,11 @@ export default {
           warning: "var(--warning)",
           error: "var(--error)",
           info: "var(--info)",
+        },
+        text: {
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
         }
       }
     },

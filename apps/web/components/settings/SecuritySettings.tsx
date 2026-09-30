@@ -161,15 +161,15 @@ export default function SecuritySettings() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading security settings...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading security settings...</div>;
 
   return (
     <div className="space-y-6">
       {/* Password Security */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-brand-navy">Change Password</h3>
-          <p className="mt-1 text-sm text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
+      <div className="bg-surface shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+          <h3 className="text-lg leading-6 font-medium text-primary">Change Password</h3>
+          <p className="mt-1 text-sm text-text-secondary">Ensure your account is using a long, random password to stay secure.</p>
         </div>
         <div className="p-6">
           {passwordError && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{passwordError}</div>}
@@ -177,42 +177,42 @@ export default function SecuritySettings() {
 
           <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">Current Password</label>
               <input
                 type="password"
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">New Password</label>
               <input
                 type="password"
                 required
                 minLength={8}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+              <label className="block text-sm font-medium text-text-primary mb-1">Confirm New Password</label>
               <input
                 type="password"
                 required
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black"
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div>
               <button
                 type="submit"
                 disabled={passwordSubmitting}
-                className={`px-4 py-2 text-sm font-medium text-white bg-black rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black ${passwordSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${passwordSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 {passwordSubmitting ? 'Updating...' : 'Change Password'}
               </button>
@@ -221,17 +221,17 @@ export default function SecuritySettings() {
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-brand-navy">Two-Factor Authentication</h3>
-          <p className="mt-1 text-sm text-gray-500">Add an extra layer of security to your account.</p>
+      <div className="bg-surface shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+          <h3 className="text-lg leading-6 font-medium text-primary">Two-Factor Authentication</h3>
+          <p className="mt-1 text-sm text-text-secondary">Add an extra layer of security to your account.</p>
         </div>
         <div className="p-6">
           {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
           <div className="flex items-center justify-between p-4 bg-surface-muted rounded-lg border">
             <div>
               <h3 className="font-medium">Authenticator App</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-text-secondary">
                 {mfaEnabled ? "2FA is currently enabled." : "Secure your account with TOTP 2FA."}
               </p>
             </div>
@@ -240,16 +240,16 @@ export default function SecuritySettings() {
                 Disable
               </button>
             ) : (
-              <button onClick={handleSetupInitiate} className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800">
+              <button onClick={handleSetupInitiate} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
                 Set Up
               </button>
             )}
           </div>
 
           {setupMode && !mfaEnabled && (
-            <div className="p-4 mt-4 border rounded-lg bg-white space-y-4">
+            <div className="p-4 mt-4 border rounded-lg bg-surface space-y-4">
               <h3 className="font-medium">Complete 2FA Setup</h3>
-              <p className="text-sm text-gray-500">Scan this QR code with your authenticator app, then enter the 6-digit code below.</p>
+              <p className="text-sm text-text-secondary">Scan this QR code with your authenticator app, then enter the 6-digit code below.</p>
               {qrCodeUrl && <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48 border rounded" />}
               {error && <p className="text-sm text-red-500">{error}</p>}
               <div className="flex gap-2">
@@ -261,7 +261,7 @@ export default function SecuritySettings() {
                   className="px-3 py-2 border rounded w-32"
                   maxLength={6}
                 />
-                <button onClick={handleVerifySetup} className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800">
+                <button onClick={handleVerifySetup} className="px-4 py-2 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
                   Verify & Enable
                 </button>
                 <button onClick={() => setSetupMode(false)} className="px-4 py-2 text-sm border rounded hover:bg-surface-muted">
@@ -273,10 +273,10 @@ export default function SecuritySettings() {
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <h3 className="text-lg leading-6 font-medium text-brand-navy">Active Sessions</h3>
-          <p className="mt-1 text-sm text-gray-500">Devices that are currently logged in to your account.</p>
+      <div className="bg-surface shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+          <h3 className="text-lg leading-6 font-medium text-primary">Active Sessions</h3>
+          <p className="mt-1 text-sm text-text-secondary">Devices that are currently logged in to your account.</p>
         </div>
         <ul className="divide-y divide-gray-200">
           {sessions.map((session: any) => {
@@ -291,12 +291,12 @@ export default function SecuritySettings() {
             return (
               <li key={session.id} className="p-6 flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="flex-shrink-0 text-gray-500">
+                  <div className="flex-shrink-0 text-text-secondary">
                     {isDesktop ? <Monitor className="w-6 h-6" /> : isTablet ? <Tablet className="w-6 h-6" /> : isMobile ? <Smartphone className="w-6 h-6" /> : <Monitor className="w-6 h-6" />}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-brand-navy">{deviceName}</p>
-                    <p className="text-xs text-gray-500 mt-1">IP: {session.ipAddress || 'Unknown'} • Started: {new Date(session.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm font-medium text-primary">{deviceName}</p>
+                    <p className="text-xs text-text-secondary mt-1">IP: {session.ipAddress || 'Unknown'} • Started: {new Date(session.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <button onClick={() => revokeSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2 rounded-full hover:bg-rose-50" title="Log out session">
@@ -305,7 +305,7 @@ export default function SecuritySettings() {
               </li>
             );
           })}
-          {!sessions.length && <li className="p-6 text-sm text-gray-500 text-center">No active sessions found.</li>}
+          {!sessions.length && <li className="p-6 text-sm text-text-secondary text-center">No active sessions found.</li>}
         </ul>
       </div>
     </div>

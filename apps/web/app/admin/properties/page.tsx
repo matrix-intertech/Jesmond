@@ -46,16 +46,16 @@ export default function AdminPropertiesPage() {
     <>
       <PageHeader title="Properties" description="Manage property listings and submissions" />
 
-      <div className="mb-6 flex gap-2 border-b border-gray-200">
+      <div className="mb-6 flex gap-2 border-b border-border-strong">
         <button
           onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'pending' ? 'border-b-2 border-brand-orange text-brand-orange' : 'text-gray-500 hover:text-brand-navy/90'}`}
+          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'pending' ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-primary/90'}`}
         >
           For Review
         </button>
         <button
           onClick={() => setActiveTab('active')}
-          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'active' ? 'border-b-2 border-brand-orange text-brand-orange' : 'text-gray-500 hover:text-brand-navy/90'}`}
+          className={`px-4 py-2 font-medium text-sm transition ${activeTab === 'active' ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-primary/90'}`}
         >
           Active Listings
         </button>
@@ -69,23 +69,23 @@ export default function AdminPropertiesPage() {
         <>
           <div className="space-y-3 md:hidden">
             {properties.length === 0 ? (
-              <div className="rounded-xl border bg-white p-6 text-center text-slate-600">
+              <div className="rounded-xl border bg-surface p-6 text-center text-slate-600">
                 {activeTab === 'pending' ? 'No properties pending approval.' : 'No active properties.'}
               </div>
             ) : (
               properties.map(p => (
-                <div key={p.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                <div key={p.id} className="rounded-xl border bg-surface p-4 shadow-sm">
                   <div className="min-w-0">
-                    <p className="font-semibold text-brand-navy">{p.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">{p.organization.name}</p>
-                    <p className="mt-1 text-sm text-slate-500">{p.suburb.name}</p>
+                    <p className="font-semibold text-primary">{p.name}</p>
+                    <p className="mt-1 text-sm text-text-secondary">{p.organization.name}</p>
+                    <p className="mt-1 text-sm text-text-secondary">{p.suburb.name}</p>
                   </div>
                   {activeTab === 'active' && (
-                    <span className={`mt-3 inline-flex px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-gray-100 text-brand-navy/90'}`}>
+                    <span className={`mt-3 inline-flex px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-surface-muted text-primary/90'}`}>
                       {p.status}
                     </span>
                   )}
-                  <a href={`/admin/properties/${p.id}`} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-brand-orange px-4 py-2 text-sm font-semibold text-brand-orange">
+                  <a href={`/admin/properties/${p.id}`} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-accent px-4 py-2 text-sm font-semibold text-accent">
                     Review
                   </a>
                 </div>
@@ -93,17 +93,17 @@ export default function AdminPropertiesPage() {
             )}
           </div>
 
-          <div className="hidden overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border-strong bg-surface shadow-sm md:block">
             <table className="w-full text-left">
-              <thead className="bg-surface-muted border-b border-gray-200">
+              <thead className="bg-surface-muted border-b border-border-strong">
                 <tr>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Property</th>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Provider</th>
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy">Location</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary">Property</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary">Provider</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary">Location</th>
                   {activeTab === 'active' && (
-                    <th className="px-6 py-4 text-sm font-medium text-brand-navy">Status</th>
+                    <th className="px-6 py-4 text-sm font-medium text-primary">Status</th>
                   )}
-                  <th className="px-6 py-4 text-sm font-medium text-brand-navy text-right">Action</th>
+                  <th className="px-6 py-4 text-sm font-medium text-primary text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -116,18 +116,18 @@ export default function AdminPropertiesPage() {
                 ) : (
                   properties.map(p => (
                     <tr key={p.id}>
-                      <td className="px-6 py-4 font-medium text-brand-navy">{p.name}</td>
-                      <td className="px-6 py-4 text-sm text-brand-navy">{p.organization.name}</td>
-                      <td className="px-6 py-4 text-sm text-brand-navy">{p.suburb.name}</td>
+                      <td className="px-6 py-4 font-medium text-primary">{p.name}</td>
+                      <td className="px-6 py-4 text-sm text-primary">{p.organization.name}</td>
+                      <td className="px-6 py-4 text-sm text-primary">{p.suburb.name}</td>
                       {activeTab === 'active' && (
                         <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-gray-100 text-brand-navy/90'}`}>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${p.status === 'PUBLISHED' ? 'bg-emerald-50 text-semantic-success' : 'bg-surface-muted text-primary/90'}`}>
                             {p.status}
                           </span>
                         </td>
                       )}
                       <td className="px-6 py-4 text-right">
-                        <a href={`/admin/properties/${p.id}`} className="text-brand-orange font-medium text-sm hover:underline">
+                        <a href={`/admin/properties/${p.id}`} className="text-accent font-medium text-sm hover:underline">
                           Review →
                         </a>
                       </td>

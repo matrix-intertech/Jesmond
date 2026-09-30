@@ -52,27 +52,27 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   if (!property) return notFound();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-surface">
       <GlobalNav />
       {property.organizationId && (
         <LeadTracker organizationId={property.organizationId} propertyId={property.id} />
       )}
       <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 pt-32 pb-12 min-h-[70vh]">
-        <Link href="/search" className="text-sm font-semibold text-brand-orange hover:underline mb-8 inline-block">&larr; Back to Search</Link>
+        <Link href="/search" className="text-sm font-semibold text-accent hover:underline mb-8 inline-block">&larr; Back to Search</Link>
         <div className="flex justify-between items-start mb-8">
           <div>
             <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-4xl md:text-5xl font-medium text-brand-navy" style={{ fontFamily: 'var(--font-outfit)' }}>
+              <h1 className="text-4xl md:text-5xl font-medium text-primary" style={{ fontFamily: 'var(--font-outfit)' }}>
                 {property.name}
               </h1>
               <SaveButton propertyId={property.id} />
             </div>
-            <p className="text-lg text-slate-500">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
+            <p className="text-lg text-text-secondary">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
           </div>
-          <div className="bg-slate-100 px-4 py-2 rounded-xl text-sm font-semibold text-slate-700">Managed by {property.provider?.name || "Property Provider"}</div>
+          <div className="bg-surface-muted px-4 py-2 rounded-xl text-sm font-semibold text-text-primary">Managed by {property.provider?.name || "Property Provider"}</div>
         </div>
 
-        <div className="relative w-full h-[500px] rounded-[32px] overflow-hidden mb-16 bg-slate-100">
+        <div className="relative w-full h-[500px] rounded-[32px] overflow-hidden mb-16 bg-surface-muted">
           <SafeImage
             src={(property.media.length > 0) ? property.media[0].url : '/assets/property-placeholder.png'}
             alt={property.name}
@@ -84,55 +84,55 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold text-brand-navy mb-4">About this property</h2>
+            <h2 className="text-2xl font-bold text-primary mb-4">About this property</h2>
             <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{property.description}</p>
 
             {/* Property Overview */}
-            <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <h3 className="text-xl font-bold text-brand-navy mb-4">Property Overview</h3>
+            <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-border-strong">
+              <h3 className="text-xl font-bold text-primary mb-4">Property Overview</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                <div><span className="text-slate-500 block">Property Type</span><span className="font-semibold text-slate-700">{property.propertyType || 'Not specified'}</span></div>
-                <div><span className="text-slate-500 block">Offering</span><span className="font-semibold text-slate-700">{property.offeringType?.replace(/_/g, ' ') || 'Not specified'}</span></div>
-                <div><span className="text-slate-500 block">Furnishing</span><span className="font-semibold text-slate-700">{property.furnishingType?.replace(/_/g, ' ') || 'Not specified'}</span></div>
+                <div><span className="text-text-secondary block">Property Type</span><span className="font-semibold text-text-primary">{property.propertyType || 'Not specified'}</span></div>
+                <div><span className="text-text-secondary block">Offering</span><span className="font-semibold text-text-primary">{property.offeringType?.replace(/_/g, ' ') || 'Not specified'}</span></div>
+                <div><span className="text-text-secondary block">Furnishing</span><span className="font-semibold text-text-primary">{property.furnishingType?.replace(/_/g, ' ') || 'Not specified'}</span></div>
               </div>
             </div>
 
             {/* Property Configuration */}
             {(property.configuration?.bedrooms || property.configuration?.bathrooms || property.configuration?.parkingSpaces || property.configuration?.balconies || property.configuration?.livingAreas || property.configuration?.kitchens) && (
               <div className="mt-8">
-                <h3 className="text-xl font-bold text-brand-navy mb-4">Configuration</h3>
+                <h3 className="text-xl font-bold text-primary mb-4">Configuration</h3>
                 <div className="flex flex-wrap gap-4 text-sm">
-                  {property.configuration.bedrooms && <div className="bg-slate-100 px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.bedrooms}</span> Bedrooms</div>}
-                  {property.configuration.bathrooms && <div className="bg-slate-100 px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.bathrooms}</span> Bathrooms</div>}
-                  {property.configuration.parkingSpaces && <div className="bg-slate-100 px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.parkingSpaces}</span> Parking Spaces</div>}
-                  {property.configuration.balconies && <div className="bg-slate-100 px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.balconies}</span> Balconies</div>}
-                  {property.configuration.livingAreas && <div className="bg-slate-100 px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.livingAreas}</span> Living Areas</div>}
-                  {property.configuration.kitchens && <div className="bg-slate-100 px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.kitchens}</span> Kitchens</div>}
+                  {property.configuration.bedrooms && <div className="bg-surface-muted px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.bedrooms}</span> Bedrooms</div>}
+                  {property.configuration.bathrooms && <div className="bg-surface-muted px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.bathrooms}</span> Bathrooms</div>}
+                  {property.configuration.parkingSpaces && <div className="bg-surface-muted px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.parkingSpaces}</span> Parking Spaces</div>}
+                  {property.configuration.balconies && <div className="bg-surface-muted px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.balconies}</span> Balconies</div>}
+                  {property.configuration.livingAreas && <div className="bg-surface-muted px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.livingAreas}</span> Living Areas</div>}
+                  {property.configuration.kitchens && <div className="bg-surface-muted px-3 py-2 rounded-lg"><span className="font-semibold">{property.configuration.kitchens}</span> Kitchens</div>}
                 </div>
               </div>
             )}
 
             {/* Availability */}
-            <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <h3 className="text-xl font-bold text-brand-navy mb-4">Availability</h3>
+            <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-border-strong">
+              <h3 className="text-xl font-bold text-primary mb-4">Availability</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                <div><span className="text-slate-500 block">Available From</span><span className="font-semibold text-slate-700">{property.availableFrom ? new Date(property.availableFrom).toLocaleDateString() : 'Not specified'}</span></div>
-                <div><span className="text-slate-500 block">Minimum Stay</span><span className="font-semibold text-slate-700">{property.minimumStay ? `${property.minimumStay} ${property.minimumStayUnit}` : 'Not specified'}</span></div>
-                <div><span className="text-slate-500 block">Maximum Stay</span><span className="font-semibold text-slate-700">{property.maximumStay ? `${property.maximumStay} ${property.maximumStayUnit}` : 'No Maximum Stay'}</span></div>
-                {property.listingType === 'CO_LIVING' && <div><span className="text-slate-500 block">Maximum Occupancy</span><span className="font-semibold text-slate-700">{property.maximumOccupancy ? `${property.maximumOccupancy} people` : 'Not specified'}</span></div>}
+                <div><span className="text-text-secondary block">Available From</span><span className="font-semibold text-text-primary">{property.availableFrom ? new Date(property.availableFrom).toLocaleDateString() : 'Not specified'}</span></div>
+                <div><span className="text-text-secondary block">Minimum Stay</span><span className="font-semibold text-text-primary">{property.minimumStay ? `${property.minimumStay} ${property.minimumStayUnit}` : 'Not specified'}</span></div>
+                <div><span className="text-text-secondary block">Maximum Stay</span><span className="font-semibold text-text-primary">{property.maximumStay ? `${property.maximumStay} ${property.maximumStayUnit}` : 'No Maximum Stay'}</span></div>
+                {property.listingType === 'CO_LIVING' && <div><span className="text-text-secondary block">Maximum Occupancy</span><span className="font-semibold text-text-primary">{property.maximumOccupancy ? `${property.maximumOccupancy} people` : 'Not specified'}</span></div>}
               </div>
             </div>
 
             {/* House Rules */}
             {property.houseRule && (
-              <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-                <h3 className="text-xl font-bold text-brand-navy mb-4">House Rules</h3>
+              <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-border-strong">
+                <h3 className="text-xl font-bold text-primary mb-4">House Rules</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  {property.houseRule.smoking && <div><span className="text-slate-500 block">Smoking</span><span className="font-semibold text-slate-700">{property.houseRule.smoking.replace(/_/g, ' ')}</span></div>}
-                  {property.houseRule.pets && <div><span className="text-slate-500 block">Pets</span><span className="font-semibold text-slate-700">{property.houseRule.pets.replace(/_/g, ' ')}</span></div>}
-                  {property.houseRule.parties && <div><span className="text-slate-500 block">Parties</span><span className="font-semibold text-slate-700">{property.houseRule.parties.replace(/_/g, ' ')}</span></div>}
-                  {property.houseRule.guests && <div><span className="text-slate-500 block">Guests</span><span className="font-semibold text-slate-700">{property.houseRule.guests.replace(/_/g, ' ')}</span></div>}
-                  {(property.houseRule.quietHoursStart || property.houseRule.quietHoursEnd) && <div><span className="text-slate-500 block">Quiet Hours</span><span className="font-semibold text-slate-700">{property.houseRule.quietHoursStart} - {property.houseRule.quietHoursEnd}</span></div>}
+                  {property.houseRule.smoking && <div><span className="text-text-secondary block">Smoking</span><span className="font-semibold text-text-primary">{property.houseRule.smoking.replace(/_/g, ' ')}</span></div>}
+                  {property.houseRule.pets && <div><span className="text-text-secondary block">Pets</span><span className="font-semibold text-text-primary">{property.houseRule.pets.replace(/_/g, ' ')}</span></div>}
+                  {property.houseRule.parties && <div><span className="text-text-secondary block">Parties</span><span className="font-semibold text-text-primary">{property.houseRule.parties.replace(/_/g, ' ')}</span></div>}
+                  {property.houseRule.guests && <div><span className="text-text-secondary block">Guests</span><span className="font-semibold text-text-primary">{property.houseRule.guests.replace(/_/g, ' ')}</span></div>}
+                  {(property.houseRule.quietHoursStart || property.houseRule.quietHoursEnd) && <div><span className="text-text-secondary block">Quiet Hours</span><span className="font-semibold text-text-primary">{property.houseRule.quietHoursStart} - {property.houseRule.quietHoursEnd}</span></div>}
                 </div>
                 {property.houseRule.additionalRules && <p className="mt-4 text-sm text-slate-600 whitespace-pre-wrap">{property.houseRule.additionalRules}</p>}
               </div>
@@ -140,20 +140,20 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
             {property.listingType === 'CO_LIVING' && property.residents && property.residents.length > 0 && (
               <div className="mt-12">
-                <h3 className="text-2xl font-bold text-brand-navy mb-6">Current Residents</h3>
+                <h3 className="text-2xl font-bold text-primary mb-6">Current Residents</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {property.residents.map((resident: any) => (
-                    <div key={resident.id} className="flex gap-4 p-4 border border-slate-200 rounded-xl bg-white shadow-sm">
-                      <div className="relative w-16 h-16 rounded-full overflow-hidden bg-slate-200 shrink-0">
+                    <div key={resident.id} className="flex gap-4 p-4 border border-border-strong rounded-xl bg-surface shadow-sm">
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden bg-secondary shrink-0">
                         {resident.photoUrl ? (
                           <SafeImage src={resident.photoUrl} alt={resident.name} fill className="object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl">{resident.name.charAt(0)}</div>
+                          <div className="w-full h-full flex items-center justify-center text-text-muted font-bold text-xl">{resident.name.charAt(0)}</div>
                         )}
                       </div>
                       <div>
                         <h4 className="font-bold text-slate-800">{resident.name}</h4>
-                        <div className="text-sm text-slate-500 mt-1 flex flex-wrap gap-2">
+                        <div className="text-sm text-text-secondary mt-1 flex flex-wrap gap-2">
                           {resident.age && <span>{resident.age} yrs</span>}
                           {resident.occupation && <span>• {resident.occupation}</span>}
                           {resident.ethnicity && <span>• {resident.ethnicity}</span>}
@@ -167,10 +167,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             )}
 
             <div className="mt-16">
-              <h2 className="text-2xl font-bold text-brand-navy mb-4">Location</h2>
+              <h2 className="text-2xl font-bold text-primary mb-4">Location</h2>
               <p className="text-slate-600 mb-6">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
 
-              <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-slate-200">
+              <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-border-strong">
                 <PropertyMap
                   properties={[{
                     id: property.id,

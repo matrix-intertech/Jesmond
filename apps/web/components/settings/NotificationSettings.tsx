@@ -69,13 +69,13 @@ export default function NotificationSettings() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading preferences...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading preferences...</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-brand-navy">Notification Preferences</h3>
-        <p className="mt-1 text-sm text-gray-500">Decide how you want to be contacted by the platform.</p>
+    <div className="bg-surface shadow rounded-lg overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+        <h3 className="text-lg leading-6 font-medium text-primary">Notification Preferences</h3>
+        <p className="mt-1 text-sm text-text-secondary">Decide how you want to be contacted by the platform.</p>
       </div>
 
       <div className="p-6">
@@ -89,9 +89,9 @@ export default function NotificationSettings() {
               type="checkbox"
               checked={data.emailNotifications || false}
               onChange={e => setData({...data, emailNotifications: e.target.checked})}
-              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-accent focus:ring-indigo-500 border-border-strong rounded"
             />
-            <label htmlFor="emailNotifications" className="ml-3 block text-sm font-medium text-gray-700">Email Notifications</label>
+            <label htmlFor="emailNotifications" className="ml-3 block text-sm font-medium text-text-primary">Email Notifications</label>
           </div>
 
           <div className="flex items-center">
@@ -100,9 +100,9 @@ export default function NotificationSettings() {
               type="checkbox"
               checked={data.smsNotifications || false}
               onChange={e => setData({...data, smsNotifications: e.target.checked})}
-              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-accent focus:ring-indigo-500 border-border-strong rounded"
             />
-            <label htmlFor="smsNotifications" className="ml-3 block text-sm font-medium text-gray-700">SMS Notifications</label>
+            <label htmlFor="smsNotifications" className="ml-3 block text-sm font-medium text-text-primary">SMS Notifications</label>
           </div>
 
           <div className="flex items-center">
@@ -111,16 +111,16 @@ export default function NotificationSettings() {
               type="checkbox"
               checked={data.pushNotifications || false}
               onChange={e => setData({...data, pushNotifications: e.target.checked})}
-              className="h-4 w-4 text-brand-orange focus:ring-indigo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-accent focus:ring-indigo-500 border-border-strong rounded"
             />
-            <label htmlFor="pushNotifications" className="ml-3 block text-sm font-medium text-gray-700">Push Notifications</label>
+            <label htmlFor="pushNotifications" className="ml-3 block text-sm font-medium text-text-primary">Push Notifications</label>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-gray-100">
+          <div className="flex justify-end pt-4 border-t border-border-subtle">
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Preferences'}
             </button>

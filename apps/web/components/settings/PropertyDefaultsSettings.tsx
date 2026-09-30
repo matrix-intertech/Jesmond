@@ -71,13 +71,13 @@ export default function PropertyDefaultsSettings() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading property defaults...</div>;
+  if (loading) return <div className="p-8 text-center text-text-secondary">Loading property defaults...</div>;
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-brand-navy">Property Defaults</h3>
-        <p className="mt-1 text-sm text-gray-500">Default settings applied when creating new properties.</p>
+    <div className="bg-surface shadow rounded-lg overflow-hidden">
+      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+        <h3 className="text-lg leading-6 font-medium text-primary">Property Defaults</h3>
+        <p className="mt-1 text-sm text-text-secondary">Default settings applied when creating new properties.</p>
       </div>
 
       <div className="p-6">
@@ -87,8 +87,8 @@ export default function PropertyDefaultsSettings() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Default Currency</label>
-              <select value={data.defaultCurrency} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm rounded-md">
+              <label className="block text-sm font-medium text-text-primary">Default Currency</label>
+              <select value={data.defaultCurrency} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm rounded-md">
                 <option value="AUD">AUD ($)</option>
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
@@ -97,8 +97,8 @@ export default function PropertyDefaultsSettings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Pricing Unit</label>
-              <select value={data.defaultPricingUnit} onChange={e => setData({...data, defaultPricingUnit: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-brand-orange sm:text-sm rounded-md">
+              <label className="block text-sm font-medium text-text-primary">Pricing Unit</label>
+              <select value={data.defaultPricingUnit} onChange={e => setData({...data, defaultPricingUnit: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm rounded-md">
                 <option value="WEEK">Per Week</option>
                 <option value="MONTH">Per Month</option>
                 <option value="SEMESTER">Per Semester</option>
@@ -107,11 +107,11 @@ export default function PropertyDefaultsSettings() {
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-gray-100">
+          <div className="flex justify-end pt-4 border-t border-border-subtle">
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
               {submitting ? 'Saving...' : 'Save Defaults'}
             </button>

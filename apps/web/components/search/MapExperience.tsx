@@ -55,7 +55,7 @@ export function MapExperience({ properties, hoveredPropertyId, onMarkerHover }: 
           >
             <Popup>
               <div className="font-bold text-sm">{prop.name}</div>
-              <div className="text-xs text-slate-500">${prop.lowestPricePerWeek}/wk</div>
+              <div className="text-xs text-text-secondary">${prop.lowestPricePerWeek}/wk</div>
             </Popup>
           </Marker>
         ))}
@@ -63,7 +63,7 @@ export function MapExperience({ properties, hoveredPropertyId, onMarkerHover }: 
       
       {/* Dev Warning */}
       {process.env.NODE_ENV !== 'production' && (
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-[10px] font-bold uppercase tracking-widest text-slate-500 px-3 py-1.5 rounded shadow-sm z-[1000] border border-slate-200">
+        <div className="absolute top-4 right-4 bg-surface/90 backdrop-blur text-[10px] font-bold uppercase tracking-widest text-text-secondary px-3 py-1.5 rounded shadow-sm z-[1000] border border-border-strong">
           DEV MODE: OpenStreetMap Tiles
         </div>
       )}

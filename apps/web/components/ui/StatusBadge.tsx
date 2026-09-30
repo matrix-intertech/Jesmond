@@ -30,16 +30,16 @@ export interface StatusBadgeProps {
 }
 
 const statusStyles: Record<StatusBadgeProps["status"], { bg: string; text: string }> = {
-  DRAFT: { bg: "bg-gray-100", text: "text-gray-700 font-bold" },
+  DRAFT: { bg: "bg-surface-muted", text: "text-text-primary font-bold" },
   PENDING_APPROVAL: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
   PUBLISHED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
   PENDING_REVIEW: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
   APPROVED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
   REJECTED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
-  SOLD_OUT: { bg: "bg-gray-200", text: "text-gray-700 font-bold" },
+  SOLD_OUT: { bg: "bg-secondary", text: "text-text-primary font-bold" },
   ENABLED: { bg: "bg-blue-100", text: "text-blue-800 font-bold" },
-  DISABLED: { bg: "bg-gray-200", text: "text-gray-700 font-bold" },
-  WITHDRAWN: { bg: "bg-slate-100", text: "text-slate-700 font-bold" },
+  DISABLED: { bg: "bg-secondary", text: "text-text-primary font-bold" },
+  WITHDRAWN: { bg: "bg-surface-muted", text: "text-text-primary font-bold" },
   CANCELLED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
 };
 

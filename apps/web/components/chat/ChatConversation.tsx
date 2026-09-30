@@ -213,8 +213,8 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
 
   if (loading) {
     return (
-      <div className="flex min-h-[calc(100vh-80px)] items-center justify-center p-8 text-slate-500">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin text-brand-orange" />
+      <div className="flex min-h-[calc(100vh-80px)] items-center justify-center p-8 text-text-secondary">
+        <Loader2 className="mr-2 h-5 w-5 animate-spin text-accent" />
         Loading conversation...
       </div>
     );
@@ -223,24 +223,24 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
   let lastDateLabel = "";
 
   return (
-    <div className={`mx-auto flex w-full flex-col overflow-hidden bg-white ${embedded ? "flex-1 min-h-0 max-w-none" : "h-[calc(100vh-72px)] max-w-4xl sm:my-4 sm:h-[calc(100vh-104px)] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-sm"}`}>
-      <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
+    <div className={`mx-auto flex w-full flex-col overflow-hidden bg-surface ${embedded ? "flex-1 min-h-0 max-w-none" : "h-[calc(100vh-72px)] max-w-4xl sm:my-4 sm:h-[calc(100vh-104px)] sm:rounded-2xl sm:border sm:border-border-strong sm:shadow-sm"}`}>
+      <div className="flex shrink-0 items-center gap-3 border-b border-border-strong bg-surface px-4 py-3 sm:px-5">
         <Link
           href={backHref}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-brand-orange"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-surface-muted hover:text-accent"
           aria-label="Back to conversations"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-surface-muted">
           <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
         </div>
         <div className="min-w-0">
-          <h1 className="truncate text-base font-bold text-brand-navy sm:text-lg">
+          <h1 className="truncate text-base font-bold text-primary sm:text-lg">
             {conversation?.property?.name || "Conversation"}
           </h1>
-          <p className="text-xs font-medium text-slate-500">Private conversation</p>
-          {participantLabel && <p className="truncate text-xs text-slate-400">{participantLabel}</p>}
+          <p className="text-xs font-medium text-text-secondary">Private conversation</p>
+          {participantLabel && <p className="truncate text-xs text-text-muted">{participantLabel}</p>}
         </div>
       </div>
 
@@ -250,9 +250,9 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
         <>
           <div ref={scrollAreaRef} onScroll={handleMessagesScroll} className="flex-1 min-h-0 overflow-y-auto bg-slate-50/70 px-4 py-5 sm:px-6">
             {messages.length === 0 ? (
-              <div className="mx-auto mt-16 max-w-sm rounded-2xl border border-dashed border-slate-200 bg-white px-6 py-8 text-center">
-                <h2 className="text-lg font-bold text-brand-navy">Start the conversation</h2>
-                <p className="mt-2 text-sm text-slate-500">Send a message to begin your enquiry.</p>
+              <div className="mx-auto mt-16 max-w-sm rounded-2xl border border-dashed border-border-strong bg-surface px-6 py-8 text-center">
+                <h2 className="text-lg font-bold text-primary">Start the conversation</h2>
+                <p className="mt-2 text-sm text-text-secondary">Send a message to begin your enquiry.</p>
               </div>
             ) : (
               <div className="mx-auto flex max-w-3xl flex-col gap-3">
@@ -266,7 +266,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
                     <div key={msg.id} className="flex flex-col gap-3">
                       {showDate && (
                         <div className="flex justify-center py-2">
-                          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-slate-500 shadow-sm ring-1 ring-slate-200">
+                          <span className="rounded-full bg-surface px-3 py-1 text-[11px] font-semibold text-text-secondary shadow-sm ring-1 ring-slate-200">
                             {dateLabel}
                           </span>
                         </div>
@@ -275,13 +275,13 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
                         <div
                           className={`max-w-[88%] whitespace-pre-wrap break-words rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-sm sm:max-w-[72%] ${
                             isMe
-                              ? "rounded-br-md bg-brand-navy text-white"
-                              : "rounded-bl-md border border-slate-200 bg-white text-brand-navy"
+                              ? "rounded-br-md bg-primary text-white"
+                              : "rounded-bl-md border border-border-strong bg-surface text-primary"
                           }`}
                         >
                           {msg.encryptedPayload}
                         </div>
-                        <div className={`mt-1 text-[11px] text-slate-400 ${isMe ? "pr-1" : "pl-1"}`}>
+                        <div className={`mt-1 text-[11px] text-text-muted ${isMe ? "pr-1" : "pl-1"}`}>
                           {formatMessageTime(msg.createdAt)}
                         </div>
                       </div>
@@ -292,7 +292,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
             )}
           </div>
 
-          <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
+          <div className="shrink-0 border-t border-border-strong bg-surface px-4 py-3 sm:px-5">
             {sendError && <div className="mb-3 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{sendError}</div>}
 
             <form onSubmit={handleSendMessage} className="mx-auto flex max-w-3xl gap-2">
@@ -301,13 +301,13 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="min-h-11 flex-1 rounded-full border border-slate-300 px-4 text-sm text-brand-navy shadow-sm focus:border-brand-orange focus:outline-none focus:ring-2 focus:ring-brand-orange/20 disabled:bg-slate-100"
+                className="min-h-11 flex-1 rounded-full border border-border-strong px-4 text-sm text-primary shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:bg-surface-muted"
                 disabled={sending}
               />
               <button
                 type="submit"
                 disabled={!newMessage.trim() || sending}
-                className="flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-brand-orange px-4 text-sm font-bold text-white shadow-sm transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-accent px-4 text-sm font-bold text-white shadow-sm transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Send message"
               >
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

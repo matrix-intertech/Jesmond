@@ -95,28 +95,28 @@ function SalesHistoryContent() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title="Sales History" description="View completed sales transactions." />
-        <button onClick={fetchOrders} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={fetchOrders} className="bg-surface border border-border-strong hover:bg-slate-50 text-text-primary px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Refresh
         </button>
       </div>
 
-      <div className="flex gap-4 border-b border-slate-200">
+      <div className="flex gap-4 border-b border-border-strong">
         <button
           onClick={() => setActiveTab('IN_STORE')}
-          className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'IN_STORE' ? 'text-brand-navy' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'IN_STORE' ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
         >
           In-Store Sales
           {activeTab === 'IN_STORE' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-orange" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
           )}
         </button>
         <button
           onClick={() => setActiveTab('ONLINE')}
-          className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'ONLINE' ? 'text-brand-navy' : 'text-slate-500 hover:text-slate-700'}`}
+          className={`pb-3 px-1 text-sm font-medium transition-colors relative ${activeTab === 'ONLINE' ? 'text-primary' : 'text-text-secondary hover:text-text-primary'}`}
         >
           Online Orders
           {activeTab === 'ONLINE' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-orange" />
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
           )}
         </button>
       </div>
@@ -126,15 +126,15 @@ function SalesHistoryContent() {
           <span>{error}</span>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong overflow-hidden">
           <div className="overflow-x-auto min-h-[400px]">
             {loading ? (
               <div className="p-8 space-y-4">
                 {[1,2,3,4,5].map(i => (
                   <div key={i} className="animate-pulse flex space-x-4">
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
-                    <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+                    <div className="h-4 bg-secondary rounded w-1/4"></div>
+                    <div className="h-4 bg-secondary rounded w-1/4"></div>
+                    <div className="h-4 bg-secondary rounded w-1/4"></div>
                   </div>
                 ))}
               </div>
@@ -147,7 +147,7 @@ function SalesHistoryContent() {
               </div>
             ) : (
               <table className="w-full text-sm text-left whitespace-nowrap">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+                <thead className="bg-slate-50 border-b border-border-strong text-text-secondary">
                   <tr>
                     <th className="px-6 py-4 font-medium">Order ID</th>
                     <th className="px-6 py-4 font-medium">Date & Time</th>
@@ -162,11 +162,11 @@ function SalesHistoryContent() {
                 <tbody className="divide-y divide-slate-100">
                   {displayedOrders.map(order => (
                     <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-brand-navy">{order.orderNumber}</td>
+                      <td className="px-6 py-4 font-medium text-primary">{order.orderNumber}</td>
                       <td className="px-6 py-4 text-slate-600">{new Date(order.createdAt).toLocaleString()}</td>
                       {activeTab === 'ONLINE' && (
                         <td className="px-6 py-4 text-slate-600">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-info/10 text-info'}`}>
                             {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
                           </span>
                         </td>
@@ -174,7 +174,7 @@ function SalesHistoryContent() {
                       <td className="px-6 py-4 text-slate-600">
                         {order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} items
                       </td>
-                      <td className="px-6 py-4 font-bold text-brand-navy">${(order.total / 100).toFixed(2)}</td>
+                      <td className="px-6 py-4 font-bold text-primary">${(order.total / 100).toFixed(2)}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${['COMPLETED', 'DELIVERED', 'TAKEN'].includes(order.status) ? 'bg-emerald-100 text-emerald-800' : order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'}`}>
                           {order.status}

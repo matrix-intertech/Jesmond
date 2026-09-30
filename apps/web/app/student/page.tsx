@@ -108,14 +108,14 @@ export default function StudentDashboardPage() {
     <div className="mx-auto w-full max-w-7xl flex-1 py-4 sm:py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="font-outfit text-2xl font-bold text-brand-navy sm:text-3xl">Student Dashboard</h1>
-            <p className="text-slate-500 mt-1">Your accommodation journey at a glance</p>
+            <h1 className="font-outfit text-2xl font-bold text-primary sm:text-3xl">Student Dashboard</h1>
+            <p className="text-text-secondary mt-1">Your accommodation journey at a glance</p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <Link href="/student/saved" className="text-brand-orange hover:underline font-medium text-sm">
+            <Link href="/student/saved" className="text-accent hover:underline font-medium text-sm">
               Saved Properties
             </Link>
-            <Link href="/search" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-brand-orange px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600">
+            <Link href="/search" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent">
               Find Accommodation
             </Link>
           </div>
@@ -129,10 +129,10 @@ export default function StudentDashboardPage() {
           {rejectedCount > 0 && <StatCard label="Rejected" value={rejectedCount} />}
         </div>
 
-        <h2 id="applications" className="text-xl font-bold text-brand-navy mb-6 font-outfit scroll-mt-24">My Applications</h2>
+        <h2 id="applications" className="text-xl font-bold text-primary mb-6 font-outfit scroll-mt-24">My Applications</h2>
 
         {applications.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border p-8">
+          <div className="bg-surface rounded-xl shadow-sm border p-8">
             <EmptyState
               title="No applications yet"
               description="When you apply for a room, it will appear here."
@@ -143,25 +143,25 @@ export default function StudentDashboardPage() {
           <>
             <div className="space-y-3 md:hidden">
               {applications.map(app => (
-                <div key={app.id} className="rounded-xl border bg-white p-4 shadow-sm">
+                <div key={app.id} className="rounded-xl border bg-surface p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <Link href={`/property/${app.roomType.property.id}`} className="font-semibold text-brand-orange hover:underline">
+                      <Link href={`/property/${app.roomType.property.id}`} className="font-semibold text-accent hover:underline">
                         {app.roomType.property.name}
                       </Link>
-                      <p className="mt-1 text-sm text-slate-500">{app.roomType.name}</p>
+                      <p className="mt-1 text-sm text-text-secondary">{app.roomType.name}</p>
                     </div>
                     <StatusBadge status={app.status as any} />
                   </div>
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <div><dt className="text-xs uppercase text-slate-400">Move in</dt><dd className="font-medium text-slate-700">{new Date(app.moveInDate).toLocaleDateString()}</dd></div>
-                    <div><dt className="text-xs uppercase text-slate-400">Duration</dt><dd className="font-medium text-slate-700">{app.durationMonths} months</dd></div>
-                    <div><dt className="text-xs uppercase text-slate-400">Price</dt><dd className="font-medium text-slate-700">${(app.lockedPrice / 100).toFixed(2)}/wk</dd></div>
-                    <div><dt className="text-xs uppercase text-slate-400">Applied</dt><dd className="font-medium text-slate-700">{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}</dd></div>
+                    <div><dt className="text-xs uppercase text-text-muted">Move in</dt><dd className="font-medium text-text-primary">{new Date(app.moveInDate).toLocaleDateString()}</dd></div>
+                    <div><dt className="text-xs uppercase text-text-muted">Duration</dt><dd className="font-medium text-text-primary">{app.durationMonths} months</dd></div>
+                    <div><dt className="text-xs uppercase text-text-muted">Price</dt><dd className="font-medium text-text-primary">${(app.lockedPrice / 100).toFixed(2)}/wk</dd></div>
+                    <div><dt className="text-xs uppercase text-text-muted">Applied</dt><dd className="font-medium text-text-primary">{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}</dd></div>
                   </dl>
                   {app.status === 'APPROVED' && (
                     paymentsEnabled ? (
-                      <button className="mt-4 min-h-11 w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-bold text-white transition hover:bg-brand-navy/90">
+                      <button className="mt-4 min-h-11 w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition hover:bg-primary/90">
                         Proceed to Payment
                       </button>
                     ) : (
@@ -181,10 +181,10 @@ export default function StudentDashboardPage() {
               ))}
             </div>
 
-            <div className="hidden rounded-xl border bg-white shadow-sm md:block md:overflow-x-auto">
+            <div className="hidden rounded-xl border bg-surface shadow-sm md:block md:overflow-x-auto">
               <table className="w-full min-w-[700px] border-collapse text-left">
                 <thead>
-                  <tr className="bg-surface-muted border-b text-sm text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-surface-muted border-b text-sm text-text-secondary uppercase tracking-wider">
                     <th className="p-4 font-semibold">Property</th>
                     <th className="p-4 font-semibold">Room Type</th>
                     <th className="p-4 font-semibold">Move In</th>
@@ -199,7 +199,7 @@ export default function StudentDashboardPage() {
                   {applications.map(app => (
                     <tr key={app.id} className="hover:bg-surface-muted transition">
                       <td className="p-4 font-medium">
-                        <Link href={`/property/${app.roomType.property.id}`} className="text-brand-orange hover:underline">
+                        <Link href={`/property/${app.roomType.property.id}`} className="text-accent hover:underline">
                           {app.roomType.property.name}
                         </Link>
                       </td>
@@ -207,13 +207,13 @@ export default function StudentDashboardPage() {
                       <td className="p-4">{new Date(app.moveInDate).toLocaleDateString()}</td>
                       <td className="p-4">{app.durationMonths} months</td>
                       <td className="p-4">${(app.lockedPrice / 100).toFixed(2)}/wk</td>
-                      <td className="p-4 text-slate-400">{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}</td>
+                      <td className="p-4 text-text-muted">{app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}</td>
                       <td className="p-4">
                         {app.status === 'APPROVED' ? (
                           <div className="flex flex-col gap-2 items-start">
                             <StatusBadge status={app.status as any} />
                             {paymentsEnabled ? (
-                              <button className="text-xs font-bold bg-brand-navy text-white px-3 py-1.5 rounded-lg hover:bg-brand-navy/90 transition">
+                              <button className="text-xs font-bold bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition">
                                 Proceed to Payment
                               </button>
                             ) : (

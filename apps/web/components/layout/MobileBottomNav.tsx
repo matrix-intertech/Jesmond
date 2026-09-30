@@ -234,7 +234,7 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
   return (
     <nav
       aria-label="Primary mobile navigation"
-      className="student-mobile-bottom-nav fixed inset-x-0 bottom-0 z-[60] w-screen border-t border-slate-200/80 bg-white/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
+      className="student-mobile-bottom-nav fixed inset-x-0 bottom-0 z-[60] w-screen border-t border-border-strong/80 bg-surface/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
     >
       <ul className={`mx-auto grid max-w-md gap-1 ${items.length === 4 ? "grid-cols-4" : "grid-cols-5"}`}>
         {items.map((item) => {
@@ -248,16 +248,16 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
                 aria-current={active ? "page" : undefined}
                 className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-semibold transition-colors ${
                   active
-                    ? "bg-brand-orange/10 text-brand-orange"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-brand-navy"
+                    ? "bg-accent/10 text-accent"
+                    : "text-text-secondary hover:bg-slate-50 hover:text-primary"
                 }`}
               >
                 <div className="relative">
                   <Icon className="h-5 w-5" aria-hidden />
                   {(item.label === 'Chat' || item.label === 'Messages') && unreadChatCount > 0 && (
                     <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-orange"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
                     </span>
                   )}
                 </div>

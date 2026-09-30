@@ -34,9 +34,9 @@ function AccountStatusBadge({ status }: { status: string }) {
     PENDING_VERIFICATION: { bg: 'bg-amber-50',    text: 'text-amber-800',   dot: 'bg-amber-400',   label: 'Pending' },
     LOCKED:               { bg: 'bg-orange-50',   text: 'text-orange-800',  dot: 'bg-orange-500',  label: 'Locked' },
     SUSPENDED:            { bg: 'bg-red-50',       text: 'text-red-700',     dot: 'bg-red-500',     label: 'Suspended' },
-    DEACTIVATED:          { bg: 'bg-slate-100',   text: 'text-slate-600',   dot: 'bg-slate-400',   label: 'Disabled' },
+    DEACTIVATED:          { bg: 'bg-surface-muted',   text: 'text-slate-600',   dot: 'bg-slate-400',   label: 'Disabled' },
   };
-  const s = map[status] ?? { bg: 'bg-gray-100', text: 'text-gray-600', dot: 'bg-gray-400', label: status };
+  const s = map[status] ?? { bg: 'bg-surface-muted', text: 'text-gray-600', dot: 'bg-gray-400', label: status };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
@@ -56,7 +56,7 @@ function ProfileTypeBadge({ profileType }: { profileType: string }) {
     Admin:            'bg-orange-50 text-orange-800',
     'Super Admin':    'bg-rose-50 text-rose-800',
   };
-  const cls = colorMap[profileType] ?? 'bg-gray-100 text-gray-700';
+  const cls = colorMap[profileType] ?? 'bg-secondary text-text-secondary';
   return (
     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>
       {profileType}
@@ -206,11 +206,11 @@ export default function AdminUsersPage() {
           value={searchInput}
           onChange={e => setSearchInput(e.target.value)}
           placeholder="Search by name or email..."
-          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/40 bg-white"
+          className="flex-1 px-4 py-2.5 rounded-xl border border-border-strong text-sm focus:outline-none focus:ring-2 focus:ring-accent/40 bg-surface"
         />
         <button
           type="submit"
-          className="px-5 py-2.5 bg-brand-orange text-white rounded-xl text-sm font-semibold hover:bg-orange-600 transition"
+          className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent transition"
         >
           Search
         </button>
@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }}
-            className="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition"
+            className="px-4 py-2.5 bg-surface-muted text-slate-600 rounded-xl text-sm font-medium hover:bg-secondary transition"
           >
             Clear
           </button>
@@ -226,35 +226,35 @@ export default function AdminUsersPage() {
       </form>
 
       {meta && !loading && (
-        <p className="text-sm text-slate-500 mb-4">
+        <p className="text-sm text-text-secondary mb-4">
           Showing {users.length} of {meta.total} users
           {search ? ` matching "${search}"` : ''}
         </p>
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-slate-400">
+        <div className="flex items-center justify-center py-20 text-text-muted">
           <svg className="animate-spin w-6 h-6 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path d="M21 12a9 9 0 1 1-6.219-8.56" />
           </svg>
           Loading users...
         </div>
       ) : users.length === 0 ? (
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-12 text-center">
-          <p className="text-brand-navy font-semibold mb-1">No users found</p>
-          <p className="text-slate-500 text-sm">Try adjusting your search term.</p>
+        <div className="bg-slate-50 border border-border-strong rounded-2xl p-12 text-center">
+          <p className="text-primary font-semibold mb-1">No users found</p>
+          <p className="text-text-secondary text-sm">Try adjusting your search term.</p>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm hidden md:block">
+          <div className="overflow-x-auto rounded-2xl border border-border-strong bg-surface shadow-sm hidden md:block">
             <table className="min-w-full table-auto">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Profile Type</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Account Status</th>
-                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Action</th>
+                <tr className="bg-slate-50 border-b border-border-strong">
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-text-secondary uppercase tracking-wide">Name</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-text-secondary uppercase tracking-wide">Email</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-text-secondary uppercase tracking-wide">Profile Type</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-text-secondary uppercase tracking-wide">Account Status</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-semibold text-text-secondary uppercase tracking-wide">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -266,9 +266,9 @@ export default function AdminUsersPage() {
                           {u.firstName?.[0]?.toUpperCase() ?? '?'}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-brand-navy">{u.firstName} {u.lastName}</p>
+                          <p className="text-sm font-semibold text-primary">{u.firstName} {u.lastName}</p>
                           {u.organization && (
-                            <p className="text-xs text-slate-400 mt-0.5">{u.organization.name}</p>
+                            <p className="text-xs text-text-muted mt-0.5">{u.organization.name}</p>
                           )}
                         </div>
                       </div>
@@ -309,15 +309,15 @@ export default function AdminUsersPage() {
 
           <div className="grid gap-4 md:hidden">
             {users.map((u) => (
-              <div key={u.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+              <div key={u.id} className="bg-surface rounded-2xl border border-border-strong shadow-sm p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-orange to-orange-500 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                       {u.firstName?.[0]?.toUpperCase() ?? '?'}
                     </div>
                     <div>
-                      <p className="font-semibold text-brand-navy text-sm">{u.firstName} {u.lastName}</p>
-                      <p className="text-xs text-slate-500">{u.email}</p>
+                      <p className="font-semibold text-primary text-sm">{u.firstName} {u.lastName}</p>
+                      <p className="text-xs text-text-secondary">{u.email}</p>
                     </div>
                   </div>
                   <AccountStatusBadge status={u.accountStatus} />
@@ -325,7 +325,7 @@ export default function AdminUsersPage() {
                 <div className="flex items-center gap-2 mb-3">
                   <ProfileTypeBadge profileType={u.profileType} />
                   {u.organization && (
-                    <span className="text-xs text-slate-400">{u.organization.name}</span>
+                    <span className="text-xs text-text-muted">{u.organization.name}</span>
                   )}
                 </div>
                 <div className="flex justify-end">
@@ -357,17 +357,17 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 text-sm font-medium rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="px-4 py-2 text-sm font-medium rounded-xl bg-surface border border-border-strong text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
                 Previous
               </button>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-text-secondary">
                 Page {page} of {meta.totalPages}
               </span>
               <button
                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                 disabled={page === meta.totalPages}
-                className="px-4 py-2 text-sm font-medium rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="px-4 py-2 text-sm font-medium rounded-xl bg-surface border border-border-strong text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
                 Next
               </button>

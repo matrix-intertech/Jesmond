@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { MessageCircle } from 'lucide-react';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { clearAuth, getCurrentUser, User } from '@/utils/auth';
 import { useState, useEffect } from 'react';
@@ -457,7 +458,7 @@ export default function Sidebar({ role }: { role: string }) {
     <>
       {/* Mobile toggle button */}
       <button
-        className="fixed left-3 top-3 z-[70] flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-brand-navy shadow-sm transition hover:bg-slate-100 lg:hidden"
+        className="fixed left-3 top-3 z-[70] flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong bg-surface text-primary shadow-sm transition hover:bg-surface-muted lg:hidden"
         onClick={() => setOpen(!open)}
         aria-label="Toggle navigation"
       >
@@ -471,11 +472,13 @@ export default function Sidebar({ role }: { role: string }) {
 
       {/* Sidebar hidden on mobile unless open */}
       <nav
-        className={`fixed inset-y-0 left-0 z-[70] flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-slate-200/60 bg-white transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-[110%]'}` }
+        className={`fixed inset-y-0 left-0 z-[70] flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-border-strong/60 bg-surface transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? 'translate-x-0 shadow-2xl' : '-translate-x-[110%]'}` }
       >
         <div className="flex items-center justify-between px-6 py-6">
-          <span className="text-2xl font-bold text-brand-navy font-outfit tracking-tight">Jesmond</span>
-          <button className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition" onClick={() => setOpen(false)} aria-label="Close navigation">
+          <Link href="/">
+            <Image src="/assets/logo_navbar.png" alt="Jesmond" width={120} height={30} className="h-8 w-auto" priority />
+          </Link>
+          <button className="lg:hidden p-2 text-text-secondary hover:bg-surface-muted rounded-lg transition" onClick={() => setOpen(false)} aria-label="Close navigation">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -499,14 +502,14 @@ export default function Sidebar({ role }: { role: string }) {
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
-                  className={`flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-brand-orange/10 text-brand-orange font-semibold shadow-sm' : 'text-brand-navy/90 hover:bg-surface-muted hover:text-brand-navy'}`}
+                  className={`flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-accent/10 text-accent font-semibold shadow-sm' : 'text-primary/90 hover:bg-surface-muted hover:text-primary'}`}
                 >
-                  <div className={`relative ${isActive ? 'text-brand-orange' : 'text-gray-600'}`}>
+                  <div className={`relative ${isActive ? 'text-accent' : 'text-gray-600'}`}>
                     {item.icon}
                     {item.label === 'Messages' && unreadChatCount > 0 && (
                       <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-orange opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-orange"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent"></span>
                       </span>
                     )}
                   </div>
@@ -516,19 +519,19 @@ export default function Sidebar({ role }: { role: string }) {
             );
           })}
         </ul>
-        <div className="p-4 mx-4 mb-4 mt-auto bg-surface-muted rounded-2xl border border-slate-100">
+        <div className="p-4 mx-4 mb-4 mt-auto bg-surface-muted rounded-2xl border border-border-subtle">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-orange to-orange-500 flex items-center justify-center text-sm font-bold text-white shadow-sm">
               {user?.firstName?.[0] ?? 'U'}
             </div>
             <div className="flex-1 text-sm overflow-hidden">
-              <div className="font-semibold text-brand-navy truncate">{user?.firstName} {user?.lastName}</div>
-              <div className="text-gray-500 text-xs truncate">{user?.email}</div>
+              <div className="font-semibold text-primary truncate">{user?.firstName} {user?.lastName}</div>
+              <div className="text-text-secondary text-xs truncate">{user?.email}</div>
             </div>
           </div>
           <Link
             href="/"
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-2 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-slate-100 transition-all font-medium text-sm shadow-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-2 bg-surface border border-border-strong rounded-xl text-text-primary hover:bg-surface-muted transition-all font-medium text-sm shadow-sm"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" />
@@ -539,7 +542,7 @@ export default function Sidebar({ role }: { role: string }) {
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all font-medium text-sm shadow-sm"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-border-strong rounded-xl text-text-primary hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all font-medium text-sm shadow-sm"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

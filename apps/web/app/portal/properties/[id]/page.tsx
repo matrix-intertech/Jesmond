@@ -531,30 +531,30 @@ export default function AccommodationManagementPage() {
       <div className="max-w-5xl mx-auto py-6">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-medium text-brand-navy font-outfit">{property.name}</h1>
-            <p className="text-gray-500">{property.address}, {property.suburb.name}</p>
+            <h1 className="text-3xl font-medium text-primary font-outfit">{property.name}</h1>
+            <p className="text-text-secondary">{property.address}, {property.suburb.name}</p>
           </div>
           <div className="flex items-center gap-4">
             <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
               {property.status}
             </span>
             {property.status === 'DRAFT' && !isEditingProp && (
-              <button onClick={() => setIsEditingProp(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-surface-muted text-sm">
+              <button onClick={() => setIsEditingProp(true)} className="bg-surface border border-border-strong text-text-primary px-4 py-2 rounded-md hover:bg-surface-muted text-sm">
                 Edit Details
               </button>
             )}
             {property.status === 'DRAFT' && (
               <div className="relative">
-                <button disabled={isSubmitting} onClick={() => setSubmitConfirm(true)} className="bg-brand-orange text-white px-4 py-2 rounded-md hover:bg-orange-600 text-sm disabled:opacity-50">
+                <button disabled={isSubmitting} onClick={() => setSubmitConfirm(true)} className="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent text-sm disabled:opacity-50">
                   Submit for Review
                 </button>
                 {submitConfirm && (
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border shadow-lg rounded-xl p-4 z-10">
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-surface border shadow-lg rounded-xl p-4 z-10">
                     <h3 className="font-semibold text-sm mb-2">Submit for Review?</h3>
                     <p className="text-xs text-gray-600 mb-4">You will not be able to edit it while pending.</p>
                     <div className="flex gap-2 justify-end">
-                      <button disabled={isSubmitting} onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-gray-500 disabled:opacity-50">Cancel</button>
-                      <button disabled={isSubmitting} onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-brand-orange text-white rounded disabled:opacity-50">
+                      <button disabled={isSubmitting} onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-text-secondary disabled:opacity-50">Cancel</button>
+                      <button disabled={isSubmitting} onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-accent text-white rounded disabled:opacity-50">
                         {isSubmitting ? 'Submitting...' : 'Submit'}
                       </button>
                     </div>
@@ -563,7 +563,7 @@ export default function AccommodationManagementPage() {
               </div>
             )}
             {isPublished && (
-              <a href={`/property/${property.id}`} target="_blank" className="text-brand-orange text-sm hover:underline">
+              <a href={`/property/${property.id}`} target="_blank" className="text-accent text-sm hover:underline">
                 View Public Listing
               </a>
             )}
@@ -584,12 +584,12 @@ export default function AccommodationManagementPage() {
         )}
 
         {isEditingProp && (
-          <form onSubmit={handleUpdateProperty} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8 space-y-4">
+          <form onSubmit={handleUpdateProperty} className="bg-surface p-6 rounded-xl shadow-sm border border-border-strong mb-8 space-y-4">
             <h2 className="text-xl font-medium mb-4">Edit Details</h2>
-            <div><label className="block text-sm text-gray-700 mb-1">Name</label><input required type="text" value={editPropForm.name} onChange={e => setEditPropForm({...editPropForm, name: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            <div><label className="block text-sm text-text-primary mb-1">Name</label><input required type="text" value={editPropForm.name} onChange={e => setEditPropForm({...editPropForm, name: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" /></div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1 mt-4">Search New Address</label>
+              <label className="block text-sm text-text-primary mb-1 mt-4">Search New Address</label>
               <LocationAutocomplete
                 value={null}
                 onChange={(res) => {
@@ -603,50 +603,50 @@ export default function AccommodationManagementPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1 mt-4">Street Address</label>
-              <input required type="text" value={editPropForm.address} onChange={e => setEditPropForm({...editPropForm, address: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 bg-gray-50" />
+              <label className="block text-sm text-text-primary mb-1 mt-4">Street Address</label>
+              <input required type="text" value={editPropForm.address} onChange={e => setEditPropForm({...editPropForm, address: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2 bg-gray-50" />
             </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                <select value={selectedStateId} onChange={handleStateChange} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                <label className="block text-sm font-medium text-text-primary mb-1">State</label>
+                <select value={selectedStateId} onChange={handleStateChange} className="w-full border border-border-strong rounded-md px-3 py-2 bg-surface">
                   <option value="">{statesLoading ? 'Loading states...' : 'Select State'}</option>
                   {states.map((s: any) => (<option key={s.id} value={s.id}>{s.name} ({s.code})</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                <select value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId || citiesLoading} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                <label className="block text-sm font-medium text-text-primary mb-1">City</label>
+                <select value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId || citiesLoading} className="w-full border border-border-strong rounded-md px-3 py-2 bg-surface">
                   <option value="">Select City</option>
                   {cities.map((c: any) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
-                <select value={editPropForm.suburbId} onChange={handleSuburbChange} disabled={!selectedCityId || suburbsLoading} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                <label className="block text-sm font-medium text-text-primary mb-1">Suburb</label>
+                <select value={editPropForm.suburbId} onChange={handleSuburbChange} disabled={!selectedCityId || suburbsLoading} className="w-full border border-border-strong rounded-md px-3 py-2 bg-surface">
                   <option value="">Select Suburb</option>
                   {suburbs.map((s: any) => (<option key={s.id} value={s.id}>{s.name}</option>))}
                 </select>
               </div>
             </div>
 
-            <div><label className="block text-sm text-gray-700 mb-1">Postcode</label><input required type="text" value={editPropForm.postcode} onChange={e => setEditPropForm((prev:any)=>({...prev, postcode: e.target.value}))} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            <div><label className="block text-sm text-text-primary mb-1">Postcode</label><input required type="text" value={editPropForm.postcode} onChange={e => setEditPropForm((prev:any)=>({...prev, postcode: e.target.value}))} className="w-full border border-border-strong rounded px-3 py-2" /></div>
 
             <LocationPicker lat={editPropForm.lat} lng={editPropForm.lng} onChange={handleLocationChange} suburbLat={suburbs.find(s => s.id === editPropForm.suburbId)?.lat} suburbLng={suburbs.find(s => s.id === editPropForm.suburbId)?.lng} />
-            <div><label className="block text-sm text-gray-700 mb-1">Description</label><textarea required rows={4} value={editPropForm.description} onChange={e => setEditPropForm({...editPropForm, description: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+            <div><label className="block text-sm text-text-primary mb-1">Description</label><textarea required rows={4} value={editPropForm.description} onChange={e => setEditPropForm({...editPropForm, description: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" /></div>
 
             {(property.listingMode === 'INDIVIDUAL' || property.offeringType === 'ENTIRE_PLACE') && (
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Price per Week ($)</label>
-                <input type="number" step="0.01" min="0" value={editPropForm.pricePerWeek} onChange={e => setEditPropForm({...editPropForm, pricePerWeek: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" placeholder="e.g. 450" />
+                <label className="block text-sm text-text-primary mb-1">Price per Week ($)</label>
+                <input type="number" step="0.01" min="0" value={editPropForm.pricePerWeek} onChange={e => setEditPropForm({...editPropForm, pricePerWeek: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" placeholder="e.g. 450" />
               </div>
             )}
 
             <h3 className="font-semibold text-lg mt-6">Structured Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Property Type</label>
-                <select value={editPropForm.propertyType} onChange={e => setEditPropForm({...editPropForm, propertyType: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2">
+                <label className="block text-sm text-text-primary mb-1">Property Type</label>
+                <select value={editPropForm.propertyType} onChange={e => setEditPropForm({...editPropForm, propertyType: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2">
                   <option value="">Select Property Type</option>
                   <option value="HOUSE">House</option>
                   <option value="APARTMENT">Apartment</option>
@@ -656,43 +656,43 @@ export default function AccommodationManagementPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Offering Type</label>
-                <select value={editPropForm.offeringType} onChange={e => setEditPropForm({...editPropForm, offeringType: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2">
+                <label className="block text-sm text-text-primary mb-1">Offering Type</label>
+                <select value={editPropForm.offeringType} onChange={e => setEditPropForm({...editPropForm, offeringType: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2">
                   <option value="">Select Offering Type</option>
                   <option value="ENTIRE_PLACE">Entire Place</option>
                   <option value="ROOM_IN_SHARED_SPACE">Room in Shared Space</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Furnishing</label>
-                <select value={editPropForm.furnishingType} onChange={e => setEditPropForm({...editPropForm, furnishingType: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2">
+                <label className="block text-sm text-text-primary mb-1">Furnishing</label>
+                <select value={editPropForm.furnishingType} onChange={e => setEditPropForm({...editPropForm, furnishingType: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2">
                   <option value="">Select Furnishing</option>
                   <option value="FULLY_FURNISHED">Fully Furnished</option>
                   <option value="UNFURNISHED">Unfurnished</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Available From</label>
-                <input type="date" value={editPropForm.availableFrom} onChange={e => setEditPropForm({...editPropForm, availableFrom: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+                <label className="block text-sm text-text-primary mb-1">Available From</label>
+                <input type="date" value={editPropForm.availableFrom} onChange={e => setEditPropForm({...editPropForm, availableFrom: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" />
               </div>
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Minimum Stay (months)</label>
-                <input type="number" min="1" value={editPropForm.minimumStay} onChange={e => setEditPropForm({...editPropForm, minimumStay: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+                <label className="block text-sm text-text-primary mb-1">Minimum Stay (months)</label>
+                <input type="number" min="1" value={editPropForm.minimumStay} onChange={e => setEditPropForm({...editPropForm, minimumStay: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" />
               </div>
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Maximum Stay (months)</label>
-                <input type="number" min="1" value={editPropForm.maximumStay} onChange={e => setEditPropForm({...editPropForm, maximumStay: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+                <label className="block text-sm text-text-primary mb-1">Maximum Stay (months)</label>
+                <input type="number" min="1" value={editPropForm.maximumStay} onChange={e => setEditPropForm({...editPropForm, maximumStay: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" />
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div><label className="block text-sm text-gray-700 mb-1">Bedrooms</label><input type="number" min="0" value={editPropForm.bedrooms} onChange={e => setEditPropForm({...editPropForm, bedrooms: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">Bathrooms</label><input type="number" min="0" value={editPropForm.bathrooms} onChange={e => setEditPropForm({...editPropForm, bathrooms: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">Parking</label><input type="number" min="0" value={editPropForm.parkingSpaces} onChange={e => setEditPropForm({...editPropForm, parkingSpaces: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-text-primary mb-1">Bedrooms</label><input type="number" min="0" value={editPropForm.bedrooms} onChange={e => setEditPropForm({...editPropForm, bedrooms: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-text-primary mb-1">Bathrooms</label><input type="number" min="0" value={editPropForm.bathrooms} onChange={e => setEditPropForm({...editPropForm, bathrooms: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" /></div>
+              <div><label className="block text-sm text-text-primary mb-1">Parking</label><input type="number" min="0" value={editPropForm.parkingSpaces} onChange={e => setEditPropForm({...editPropForm, parkingSpaces: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" /></div>
               {property.listingType === 'CO_LIVING' && (
                 <div className="col-span-3">
-                  <label className="block text-sm text-gray-700 mb-1">Maximum Occupancy (Required)</label>
-                  <input type="number" min="1" value={editPropForm.maximumOccupancy} onChange={e => setEditPropForm({...editPropForm, maximumOccupancy: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2" />
+                  <label className="block text-sm text-text-primary mb-1">Maximum Occupancy (Required)</label>
+                  <input type="number" min="1" value={editPropForm.maximumOccupancy} onChange={e => setEditPropForm({...editPropForm, maximumOccupancy: e.target.value})} className="w-full border border-border-strong rounded px-3 py-2" />
                 </div>
               )}
             </div>
@@ -703,11 +703,11 @@ export default function AccommodationManagementPage() {
                   type="checkbox"
                   checked={editPropForm.showContactDetails}
                   onChange={(e) => setEditPropForm({...editPropForm, showContactDetails: e.target.checked})}
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange"
+                  className="mt-1 h-4 w-4 rounded border-border-strong text-accent"
                 />
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-text-secondary">
                     If checked, your approved public contact phone and email will be visible to seekers.
                   </span>
                 </div>
@@ -715,8 +715,8 @@ export default function AccommodationManagementPage() {
             </div>
 
             <div className="flex gap-4 justify-end">
-              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-brand-navy disabled:opacity-50">Cancel</button>
-              <button disabled={isSubmitting} type="submit" className="bg-brand-orange text-white px-4 py-2 rounded-md hover:bg-orange-600 disabled:opacity-50">
+              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-primary disabled:opacity-50">Cancel</button>
+              <button disabled={isSubmitting} type="submit" className="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent disabled:opacity-50">
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>
@@ -725,32 +725,32 @@ export default function AccommodationManagementPage() {
 
         <div className="space-y-8">
           {/* Images Section */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
             <h2 className="text-xl font-medium mb-4">Images</h2>
             <div className="flex flex-wrap gap-4 mb-4">
               {property.media.map((m: any) => (
-                <div key={m.id} className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                <div key={m.id} className="relative w-32 h-32 bg-surface-muted rounded-lg overflow-hidden border border-border-strong">
                   <SafeImage src={m.url} alt="Property" fill className="object-cover w-full h-full" />
                 </div>
               ))}
             </div>
             {!isPending && (
               <div>
-                <label className="bg-brand-orange/10 text-brand-orange px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
+                <label className="bg-accent/10 text-accent px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
                   <span>+ Upload Image</span>
                   <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isPending} />
                 </label>
-                <p className="text-xs text-gray-400 mt-2">Note: S3 storage must be configured to upload real images.</p>
+                <p className="text-xs text-text-muted mt-2">Note: S3 storage must be configured to upload real images.</p>
               </div>
             )}
           </section>
 
           {/* Amenities Section */}
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-medium">Amenities</h2>
               {!isPending && !isEditingAmenities && (
-                <button onClick={() => setIsEditingAmenities(true)} className="text-sm text-brand-orange hover:underline">Edit Amenities</button>
+                <button onClick={() => setIsEditingAmenities(true)} className="text-sm text-accent hover:underline">Edit Amenities</button>
               )}
             </div>
 
@@ -776,7 +776,7 @@ export default function AccommodationManagementPage() {
                     setSelectedAmenities(property.amenities?.map((a: any) => a.amenityId) || []);
                     setIsEditingAmenities(false);
                   }} className="text-sm text-gray-600 disabled:opacity-50">Cancel</button>
-                  <button disabled={isSubmitting} onClick={handleUpdateAmenities} className="text-sm bg-brand-orange text-white px-4 py-1.5 rounded hover:bg-orange-600 disabled:opacity-50">
+                  <button disabled={isSubmitting} onClick={handleUpdateAmenities} className="text-sm bg-accent text-white px-4 py-1.5 rounded hover:bg-accent disabled:opacity-50">
                     {isSubmitting ? 'Saving...' : 'Save'}
                   </button>
                 </div>
@@ -785,12 +785,12 @@ export default function AccommodationManagementPage() {
               <div className="flex flex-wrap gap-2">
                 {property.amenities?.length > 0 ? (
                   property.amenities.map((pa: any) => (
-                    <span key={pa.amenityId} className="bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full text-sm">
+                    <span key={pa.amenityId} className="bg-accent/10 text-accent px-3 py-1 rounded-full text-sm">
                       {pa.amenity.name}
                     </span>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500">No amenities selected.</p>
+                  <p className="text-sm text-text-secondary">No amenities selected.</p>
                 )}
               </div>
             )}

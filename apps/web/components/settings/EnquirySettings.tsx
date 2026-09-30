@@ -60,7 +60,7 @@ export default function EnquirySettings() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h2 className="text-xl font-semibold">Enquiry Preferences</h2>
-        <p className="text-sm text-gray-500">Manage how you receive student enquiries.</p>
+        <p className="text-sm text-text-secondary">Manage how you receive student enquiries.</p>
       </div>
 
       <div className="space-y-4">
@@ -89,7 +89,7 @@ export default function EnquirySettings() {
         <button
           onClick={savePreferences}
           disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-white bg-black rounded hover:bg-gray-800 disabled:opacity-50"
+          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded hover:bg-primary/90 disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save Preferences"}
         </button>

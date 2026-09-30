@@ -384,7 +384,7 @@ export default function CreatePropertyPage() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface-muted p-4">
-        <div className="w-full max-w-md rounded-xl bg-white p-5 text-center shadow sm:p-8">
+        <div className="w-full max-w-md rounded-xl bg-surface p-5 text-center shadow sm:p-8">
           <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -392,8 +392,8 @@ export default function CreatePropertyPage() {
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Property Created Successfully!</h2>
           <p className="text-gray-600 mb-6">Your property listing has been saved.</p>
-          {error && <div className="mt-4 mb-6 p-4 bg-red-50 text-red-600 rounded-md text-sm">{error}</div>}
-          <p className="text-sm text-gray-500">Redirecting to your properties...</p>
+          {error && <div className="mt-4 mb-6 p-4 bg-error/10 text-error rounded-md text-sm">{error}</div>}
+          <p className="text-sm text-text-secondary">Redirecting to your properties...</p>
         </div>
       </div>
     );
@@ -403,47 +403,47 @@ export default function CreatePropertyPage() {
     <>
       <PageHeader title="Create Property Listing" onBack={() => router.push('/portal')} />
       <div className="mx-auto max-w-[800px] py-4 sm:py-8 lg:py-12">
-        <div className="space-y-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+        <div className="space-y-6 rounded-xl border border-border-strong bg-surface p-4 shadow-sm sm:p-6 lg:p-8">
           <div className="mb-6 flex flex-col gap-3 border-b pb-4 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-lg font-bold text-brand-navy">Step {step} of 8</h3>
+            <h3 className="text-lg font-bold text-primary">Step {step} of 8</h3>
           </div>
 
-          {error && !success && <div className="bg-red-50 text-red-600 p-4 rounded-md text-sm">{error}</div>}
+          {error && !success && <div className="bg-error/10 text-error p-4 rounded-md text-sm">{error}</div>}
 
           {step === 1 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">1. Listing Type & Property Type</h4>
 
-              <div className="bg-surface-muted p-4 rounded-lg border border-gray-200">
-                <label className="block text-sm font-medium text-brand-navy mb-3">Listing Mode</label>
+              <div className="bg-surface-muted p-4 rounded-lg border border-border-strong">
+                <label className="block text-sm font-medium text-primary mb-3">Listing Mode</label>
                 <div className="flex flex-col space-y-3">
                   <label className="flex items-start space-x-3 cursor-pointer">
-                    <input type="radio" checked={formData.listingMode === 'MULTI_UNIT' && formData.listingType === 'NORMAL'} onChange={() => setFormData({...formData, listingMode: 'MULTI_UNIT', listingType: 'NORMAL'})} className="mt-1 h-4 w-4 border-gray-300 text-brand-orange" />
+                    <input type="radio" checked={formData.listingMode === 'MULTI_UNIT' && formData.listingType === 'NORMAL'} onChange={() => setFormData({...formData, listingMode: 'MULTI_UNIT', listingType: 'NORMAL'})} className="mt-1 h-4 w-4 border-border-strong text-accent" />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900">Multi-Unit Property</span>
-                      <span className="text-sm text-gray-500">Student accommodation building with multiple room types.</span>
+                      <span className="text-sm text-text-secondary">Student accommodation building with multiple room types.</span>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 cursor-pointer">
-                    <input type="radio" checked={formData.listingMode === 'INDIVIDUAL' && formData.listingType === 'NORMAL'} onChange={() => setFormData({...formData, listingMode: 'INDIVIDUAL', listingType: 'NORMAL'})} className="mt-1 h-4 w-4 border-gray-300 text-brand-orange" />
+                    <input type="radio" checked={formData.listingMode === 'INDIVIDUAL' && formData.listingType === 'NORMAL'} onChange={() => setFormData({...formData, listingMode: 'INDIVIDUAL', listingType: 'NORMAL'})} className="mt-1 h-4 w-4 border-border-strong text-accent" />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900">Individual Property</span>
-                      <span className="text-sm text-gray-500">A single house, apartment, or unit rented entirely.</span>
+                      <span className="text-sm text-text-secondary">A single house, apartment, or unit rented entirely.</span>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 cursor-pointer">
-                    <input type="radio" checked={formData.listingType === 'CO_LIVING'} onChange={() => setFormData({...formData, listingMode: 'INDIVIDUAL', listingType: 'CO_LIVING'})} className="mt-1 h-4 w-4 border-gray-300 text-brand-orange" />
+                    <input type="radio" checked={formData.listingType === 'CO_LIVING'} onChange={() => setFormData({...formData, listingMode: 'INDIVIDUAL', listingType: 'CO_LIVING'})} className="mt-1 h-4 w-4 border-border-strong text-accent" />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-900">Co-Living Space</span>
-                      <span className="text-sm text-gray-500">A property with shared spaces, house rules, and resident profiles.</span>
+                      <span className="text-sm text-text-secondary">A property with shared spaces, house rules, and resident profiles.</span>
                     </div>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
-                <select name="propertyType" value={formData.propertyType} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2">
+                <label className="block text-sm font-medium text-text-primary mb-1">Property Type</label>
+                <select name="propertyType" value={formData.propertyType} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2">
                   <option value="">Select Property Type</option>
                   <option value="HOUSE">House</option>
                   <option value="APARTMENT">Apartment</option>
@@ -465,28 +465,28 @@ export default function CreatePropertyPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {formData.listingType === 'CO_LIVING' && (
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Occupancy (Required)</label>
-                    <input type="number" name="maximumOccupancy" value={formData.maximumOccupancy} onChange={handleChange} placeholder="e.g. 6" min="1" className="w-full border border-gray-300 rounded-md px-3 py-2" />
-                    <p className="text-xs text-gray-500 mt-1">Total number of residents allowed to live at this property.</p>
+                    <label className="block text-sm font-medium text-text-primary mb-1">Maximum Occupancy (Required)</label>
+                    <input type="number" name="maximumOccupancy" value={formData.maximumOccupancy} onChange={handleChange} placeholder="e.g. 6" min="1" className="w-full border border-border-strong rounded-md px-3 py-2" />
+                    <p className="text-xs text-text-secondary mt-1">Total number of residents allowed to live at this property.</p>
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
-                  <input type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+                  <label className="block text-sm font-medium text-text-primary mb-1">Bedrooms</label>
+                  <input type="number" min="0" name="bedrooms" value={formData.bedrooms} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Bathrooms</label>
-                  <input type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+                  <label className="block text-sm font-medium text-text-primary mb-1">Bathrooms</label>
+                  <input type="number" min="0" name="bathrooms" value={formData.bathrooms} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Parking Spaces</label>
-                  <input type="number" min="0" name="parkingSpaces" value={formData.parkingSpaces} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+                  <label className="block text-sm font-medium text-text-primary mb-1">Parking Spaces</label>
+                  <input type="number" min="0" name="parkingSpaces" value={formData.parkingSpaces} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Offering Type</label>
-                <select name="offeringType" value={formData.offeringType} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2">
+                <label className="block text-sm font-medium text-text-primary mb-1">Offering Type</label>
+                <select name="offeringType" value={formData.offeringType} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2">
                   <option value="">Select Offering</option>
                   <option value="ROOM_IN_SHARED_SPACE">Room in Shared Space</option>
                   <option value="ENTIRE_PLACE">Entire Place</option>
@@ -500,8 +500,8 @@ export default function CreatePropertyPage() {
               <h4 className="text-md font-semibold">3. Furnishing & Availability</h4>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Furnishing</label>
-                <select name="furnishingType" value={formData.furnishingType} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2">
+                <label className="block text-sm font-medium text-text-primary mb-1">Furnishing</label>
+                <select name="furnishingType" value={formData.furnishingType} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2">
                   <option value="">Select Furnishing</option>
                   <option value="UNFURNISHED">Unfurnished</option>
                   <option value="FULLY_FURNISHED">Fully Furnished</option>
@@ -510,18 +510,18 @@ export default function CreatePropertyPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Available From</label>
-                <input type="date" name="availableFrom" value={formData.availableFrom} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+                <label className="block text-sm font-medium text-text-primary mb-1">Available From</label>
+                <input type="date" name="availableFrom" value={formData.availableFrom} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Minimum Stay (months)</label>
-                  <input type="number" min="1" name="minimumStay" value={formData.minimumStay} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+                  <label className="block text-sm font-medium text-text-primary mb-1">Minimum Stay (months)</label>
+                  <input type="number" min="1" name="minimumStay" value={formData.minimumStay} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Stay (months)</label>
-                  <input type="number" min="1" name="maximumStay" value={formData.maximumStay} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Leave blank for none" />
+                  <label className="block text-sm font-medium text-text-primary mb-1">Maximum Stay (months)</label>
+                  <input type="number" min="1" name="maximumStay" value={formData.maximumStay} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" placeholder="Leave blank for none" />
                 </div>
               </div>
             </div>
@@ -531,13 +531,13 @@ export default function CreatePropertyPage() {
             <div className="space-y-6">
               <h4 className="text-md font-semibold">4. Basic Details</h4>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Property Name</label>
-                <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., Unilodge Melbourne" />
+                <label className="block text-sm font-medium text-text-primary mb-1">Property Name</label>
+                <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" placeholder="e.g., Unilodge Melbourne" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea required name="description" value={formData.description} onChange={handleChange} rows={4} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Describe the property..."></textarea>
+                <label className="block text-sm font-medium text-text-primary mb-1">Description</label>
+                <textarea required name="description" value={formData.description} onChange={handleChange} rows={4} className="w-full border border-border-strong rounded-md px-3 py-2" placeholder="Describe the property..."></textarea>
               </div>
             </div>
           )}
@@ -555,8 +555,8 @@ export default function CreatePropertyPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price per Week ($)</label>
-                    <input type="number" min="0" step="0.01" name="pricePerWeek" value={formData.pricePerWeek} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g. 450" />
+                    <label className="block text-sm font-medium text-text-primary mb-1">Price per Week ($)</label>
+                    <input type="number" min="0" step="0.01" name="pricePerWeek" value={formData.pricePerWeek} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" placeholder="e.g. 450" />
                   </div>
                 </div>
               )}
@@ -570,12 +570,12 @@ export default function CreatePropertyPage() {
 
               <div className="mb-4 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-4">
                 {mediaFiles.map((file, i) => (
-                  <div key={i} className="relative aspect-square w-full sm:h-32 sm:w-32 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
+                  <div key={i} className="relative aspect-square w-full sm:h-32 sm:w-32 bg-surface-muted rounded-lg overflow-hidden border border-border-strong group">
                     <img src={URL.createObjectURL(file)} alt="Preview" className="object-cover w-full h-full" />
                     <button
                       type="button"
                       onClick={() => setMediaFiles(prev => prev.filter((_, idx) => idx !== i))}
-                      className="absolute top-1 right-1 bg-white rounded-full text-red-500 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm"
+                      className="absolute top-1 right-1 bg-surface rounded-full text-red-500 w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm"
                     >
                       &times;
                     </button>
@@ -583,7 +583,7 @@ export default function CreatePropertyPage() {
                 ))}
               </div>
 
-              <label className="bg-brand-orange/10 text-brand-orange px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
+              <label className="bg-accent/10 text-accent px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
                 <span>+ Select Images</span>
                 <input
                   type="file"
@@ -605,7 +605,7 @@ export default function CreatePropertyPage() {
               <h4 className="text-md font-semibold">7. Location</h4>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Search Address</label>
+                <label className="block text-sm font-medium text-text-primary mb-1">Search Address</label>
                 <LocationAutocomplete
                   value={null}
                   onChange={(res) => {
@@ -619,28 +619,28 @@ export default function CreatePropertyPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mt-4 mb-1">Street Address</label>
-                <input required type="text" name="address" value={formData.address} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50" placeholder="123 Example Street" />
+                <label className="block text-sm font-medium text-text-primary mt-4 mb-1">Street Address</label>
+                <input required type="text" name="address" value={formData.address} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2 bg-gray-50" placeholder="123 Example Street" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
-                  <select name="stateId" value={selectedStateId} onChange={handleStateChange} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <label className="block text-sm font-medium text-text-primary mb-1">State</label>
+                  <select name="stateId" value={selectedStateId} onChange={handleStateChange} className="w-full border border-border-strong rounded-md px-3 py-2 bg-surface">
                     <option value="">{statesLoading ? 'Loading states...' : 'Select State'}</option>
                     {states.map(s => (<option key={s.id} value={s.id}>{s.name} ({s.code})</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <select name="cityId" value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId || citiesLoading} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <label className="block text-sm font-medium text-text-primary mb-1">City</label>
+                  <select name="cityId" value={selectedCityId} onChange={handleCityChange} disabled={!selectedStateId || citiesLoading} className="w-full border border-border-strong rounded-md px-3 py-2 bg-surface">
                     <option value="">Select City</option>
                     {cities.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Suburb</label>
-                  <select name="suburbId" value={formData.suburbId} onChange={handleSuburbChange} disabled={!selectedCityId || suburbsLoading} className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white">
+                  <label className="block text-sm font-medium text-text-primary mb-1">Suburb</label>
+                  <select name="suburbId" value={formData.suburbId} onChange={handleSuburbChange} disabled={!selectedCityId || suburbsLoading} className="w-full border border-border-strong rounded-md px-3 py-2 bg-surface">
                     <option value="">Select Suburb</option>
                     {suburbs.map(s => (<option key={s.id} value={s.id}>{s.name}</option>))}
                   </select>
@@ -648,8 +648,8 @@ export default function CreatePropertyPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
-                <input required type="text" name="postcode" value={formData.postcode} onChange={handleChange} className="w-full border border-gray-300 rounded-md px-3 py-2" />
+                <label className="block text-sm font-medium text-text-primary mb-1">Postcode</label>
+                <input required type="text" name="postcode" value={formData.postcode} onChange={handleChange} className="w-full border border-border-strong rounded-md px-3 py-2" />
               </div>
 
               <LocationPicker lat={formData.lat} lng={formData.lng} onChange={handleLocationChange} suburbLat={suburbs.find(s => s.id === formData.suburbId)?.lat} suburbLng={suburbs.find(s => s.id === formData.suburbId)?.lng} />
@@ -661,17 +661,17 @@ export default function CreatePropertyPage() {
               <h4 className="text-md font-semibold">8. Contact & Enquiry Preferences</h4>
               <p className="text-sm text-gray-600">Choose how seekers can contact you about this property.</p>
 
-              <div className="bg-surface-muted p-4 rounded-lg border border-gray-200">
+              <div className="bg-surface-muted p-4 rounded-lg border border-border-strong">
                 <label className="flex items-start space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.showContactDetails}
                     onChange={(e) => setFormData({...formData, showContactDetails: e.target.checked})}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-brand-orange"
+                    className="mt-1 h-4 w-4 rounded border-border-strong text-accent"
                   />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-text-secondary">
                       If checked, your approved public contact phone and email will be visible to seekers. If unchecked, seekers must use the secure Enquiry Form.
                     </span>
                   </div>
@@ -686,9 +686,9 @@ export default function CreatePropertyPage() {
             ) : <div/>}
 
             {step < 8 ? (
-              <button type="button" onClick={() => setStep(step + 1)} className="min-h-11 rounded-md bg-brand-navy px-6 py-2 text-white hover:bg-opacity-90">Next Step</button>
+              <button type="button" onClick={() => setStep(step + 1)} className="min-h-11 rounded-md bg-primary px-6 py-2 text-white hover:bg-opacity-90">Next Step</button>
             ) : (
-              <button type="button" onClick={handleSubmit} disabled={loading} className="min-h-11 rounded-md bg-brand-orange px-6 py-2 text-white transition hover:bg-orange-600 disabled:opacity-50">
+              <button type="button" onClick={handleSubmit} disabled={loading} className="min-h-11 rounded-md bg-accent px-6 py-2 text-white transition hover:bg-accent disabled:opacity-50">
                 {loading ? 'Creating...' : 'Save Draft & Continue'}
               </button>
             )}

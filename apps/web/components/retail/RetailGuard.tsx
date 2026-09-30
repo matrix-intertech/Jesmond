@@ -82,7 +82,7 @@ export default function RetailGuard({ children, requirePermissions = [], require
   if (authorized === null && !forbidden) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="animate-spin text-brand-orange" size={48} />
+        <Loader2 className="animate-spin text-accent" size={48} />
       </div>
     );
   }
@@ -98,7 +98,7 @@ export default function RetailGuard({ children, requirePermissions = [], require
           </svg>
         </div>
         <h2 className="text-2xl font-bold text-slate-800">Access Denied</h2>
-        <p className="text-slate-500 mt-2 max-w-md mx-auto">
+        <p className="text-text-secondary mt-2 max-w-md mx-auto">
           You do not have permission to access this module. Please contact your Retail Business Admin if you believe this is a mistake.
         </p>
       </div>

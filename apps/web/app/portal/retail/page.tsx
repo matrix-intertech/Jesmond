@@ -119,26 +119,26 @@ function RetailOverviewContent() {
           value={loading ? "-" : metrics.customers.toString()}
           loading={loading}
         />
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center">
-          <h4 className="text-sm font-medium text-slate-500 mb-2">Inventory Alerts</h4>
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
+          <h4 className="text-sm font-medium text-text-secondary mb-2">Inventory Alerts</h4>
           <div className={`text-2xl font-bold ${metrics.lowStock > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
             {loading ? '-' : `${metrics.lowStock} items low/out`}
           </div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center">
-          <h4 className="text-sm font-medium text-slate-500 mb-2">Today's Revenue</h4>
-          <div className="text-2xl font-bold text-brand-navy">
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
+          <h4 className="text-sm font-medium text-text-secondary mb-2">Today's Revenue</h4>
+          <div className="text-2xl font-bold text-primary">
             {loading ? '-' : `$${(metrics.revenue / 100).toFixed(2)}`}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-lg font-semibold text-brand-navy mb-4">Quick Actions</h3>
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
+          <h3 className="text-lg font-semibold text-primary mb-4">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => router.push('/portal/retail/pos')} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center">
+            <button onClick={() => router.push('/portal/retail/pos')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                   <line x1="8" y1="21" x2="16" y2="21" />
@@ -146,11 +146,11 @@ function RetailOverviewContent() {
                 </svg>
               </div>
               <div>
-                <div className="font-medium text-brand-navy">Launch POS</div>
-                <div className="text-xs text-slate-500">Open register</div>
+                <div className="font-medium text-primary">Launch POS</div>
+                <div className="text-xs text-text-secondary">Open register</div>
               </div>
             </button>
-            <button onClick={() => router.push('/portal/retail/catalog')} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
+            <button onClick={() => router.push('/portal/retail/catalog')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
@@ -158,11 +158,11 @@ function RetailOverviewContent() {
                 </svg>
               </div>
               <div>
-                <div className="font-medium text-brand-navy">Add Product</div>
-                <div className="text-xs text-slate-500">Update catalog</div>
+                <div className="font-medium text-primary">Add Product</div>
+                <div className="text-xs text-text-secondary">Update catalog</div>
               </div>
             </button>
-            <button onClick={() => router.push('/portal/retail/orders')} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
+            <button onClick={() => router.push('/portal/retail/orders')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -173,11 +173,11 @@ function RetailOverviewContent() {
                 </svg>
               </div>
               <div>
-                <div className="font-medium text-brand-navy">Sales History</div>
-                <div className="text-xs text-slate-500">View recent orders</div>
+                <div className="font-medium text-primary">Sales History</div>
+                <div className="text-xs text-text-secondary">View recent orders</div>
               </div>
             </button>
-            <button onClick={() => router.push('/portal/retail/terminals')} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
+            <button onClick={() => router.push('/portal/retail/terminals')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
@@ -186,34 +186,34 @@ function RetailOverviewContent() {
                 </svg>
               </div>
               <div>
-                <div className="font-medium text-brand-navy">Manage POS</div>
-                <div className="text-xs text-slate-500">Terminal settings</div>
+                <div className="font-medium text-primary">Manage POS</div>
+                <div className="text-xs text-text-secondary">Terminal settings</div>
               </div>
             </button>
           </div>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
-          <h3 className="text-lg font-semibold text-brand-navy mb-4">Recent Activity</h3>
+        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col h-full">
+          <h3 className="text-lg font-semibold text-primary mb-4">Recent Activity</h3>
           {loading ? (
             <div className="animate-pulse flex flex-col gap-4 mt-4">
-              <div className="h-4 bg-slate-200 rounded w-full"></div>
-              <div className="h-4 bg-slate-200 rounded w-full"></div>
+              <div className="h-4 bg-secondary rounded w-full"></div>
+              <div className="h-4 bg-secondary rounded w-full"></div>
             </div>
           ) : recentOrders.length > 0 ? (
             <div className="flex-1 overflow-y-auto pr-2">
               <div className="space-y-3">
                 {recentOrders.map(order => (
-                  <div key={order.id} className="flex justify-between items-center p-3 border border-slate-100 rounded-lg bg-slate-50">
+                  <div key={order.id} className="flex justify-between items-center p-3 border border-border-subtle rounded-lg bg-slate-50">
                     <div>
-                      <div className="font-medium text-sm text-brand-navy">{order.orderNumber}</div>
-                      <div className="text-xs text-slate-500 mb-1">{new Date(order.createdAt).toLocaleString()}</div>
-                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-700' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-700'}`}>
+                      <div className="font-medium text-sm text-primary">{order.orderNumber}</div>
+                      <div className="text-xs text-text-secondary mb-1">{new Date(order.createdAt).toLocaleString()}</div>
+                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-700' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-blue-100 text-blue-700' : 'bg-secondary text-text-primary'}`}>
                         {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
                       </div>
                     </div>
                     <div className="text-right flex flex-col justify-between items-end h-full">
-                      <div className="font-semibold text-brand-navy">${(order.total / 100).toFixed(2)}</div>
+                      <div className="font-semibold text-primary">${(order.total / 100).toFixed(2)}</div>
                       <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-2 ${
                         ['COMPLETED', 'DELIVERED', 'TAKEN'].includes(order.status) ? 'bg-emerald-100 text-emerald-700' : 
                         order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' : 
@@ -227,7 +227,7 @@ function RetailOverviewContent() {
               </div>
               <button 
                 onClick={() => router.push('/portal/retail/orders')}
-                className="w-full mt-4 py-2 text-sm text-brand-orange hover:text-brand-orange/80 font-medium text-center"
+                className="w-full mt-4 py-2 text-sm text-accent hover:text-accent/80 font-medium text-center"
               >
                 View All Orders &rarr;
               </button>
@@ -239,7 +239,7 @@ function RetailOverviewContent() {
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 </svg>
               </div>
-              <p className="text-sm text-slate-500 mb-2">No recent orders found.</p>
+              <p className="text-sm text-text-secondary mb-2">No recent orders found.</p>
             </div>
           )}
         </div>

@@ -88,9 +88,9 @@ export default function BusinessProfilePage() {
       />
 
       {loading ? (
-        <div className="p-8 text-center text-slate-500 bg-white shadow rounded-lg animate-pulse">Loading profile...</div>
+        <div className="p-8 text-center text-text-secondary bg-surface shadow rounded-lg animate-pulse">Loading profile...</div>
       ) : (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-surface shadow rounded-lg overflow-hidden">
           <div className="p-6">
             {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
             {success && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded text-sm">{success}</div>}
@@ -98,26 +98,26 @@ export default function BusinessProfilePage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Business Name</label>
-                  <input type="text" value={data.name || ''} disabled className="mt-1 block w-full rounded-md border-gray-300 bg-surface-muted text-gray-500 shadow-sm sm:text-sm cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-text-primary">Business Name</label>
+                  <input type="text" value={data.name || ''} disabled className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Organization Type</label>
-                  <input type="text" value={data.type || ''} disabled className="mt-1 block w-full rounded-md border-gray-300 bg-surface-muted text-gray-500 shadow-sm sm:text-sm cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-text-primary">Organization Type</label>
+                  <input type="text" value={data.type || ''} disabled className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Timezone</label>
-                  <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-orange focus:ring-brand-orange sm:text-sm" placeholder="e.g. America/Los_Angeles" />
+                  <label className="block text-sm font-medium text-text-primary">Timezone</label>
+                  <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm" placeholder="e.g. America/Los_Angeles" />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-gray-100">
+              <div className="flex justify-end pt-4 border-t border-border-subtle">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange disabled:opacity-50"
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : 'Save Changes'}
                 </button>

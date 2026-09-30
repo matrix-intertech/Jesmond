@@ -64,7 +64,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
     <button 
       onClick={toggleSave} 
       disabled={loading}
-      className={`p-3 rounded-full shadow-sm hover:scale-110 transition ${isSaved ? 'bg-rose-50 text-rose-500' : 'bg-white text-slate-400'}`}
+      className={`p-3 rounded-full shadow-sm hover:scale-110 transition ${isSaved ? 'bg-rose-50 text-rose-500' : 'bg-surface text-text-muted'}`}
       title={isSaved ? "Unsave Property" : "Save Property"}
     >
       <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">

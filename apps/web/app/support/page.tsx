@@ -24,7 +24,7 @@ export default function SupportPage() {
       <main className="pb-24">
 
         {/* Support Hero with Search Mockup */}
-        <section className="bg-brand-navy pt-32 pb-24 px-6 relative overflow-hidden">
+        <section className="bg-primary pt-32 pb-24 px-6 relative overflow-hidden">
           <div className="absolute inset-0 opacity-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-400 via-slate-900 to-slate-900 pointer-events-none"></div>
           <div className="max-w-[800px] mx-auto text-center relative z-10">
             <h1 className="text-4xl md:text-5xl font-medium text-white mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
@@ -36,17 +36,17 @@ export default function SupportPage() {
 
             <div className="relative max-w-2xl mx-auto">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <input
                 type="text"
-                className="block w-full pl-12 pr-4 py-4 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:text-brand-navy transition-all shadow-lg backdrop-blur-md"
+                className="block w-full pl-12 pr-4 py-4 rounded-2xl bg-surface/10 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-surface focus:text-primary transition-all shadow-lg backdrop-blur-md"
                 placeholder="Search for articles, guides, or help topics..."
               />
               <div className="absolute inset-y-0 right-2 flex items-center">
-                <button className="px-4 py-2 bg-brand-orange hover:bg-brand-orange/100 text-white rounded-xl text-sm font-medium transition-colors shadow-sm">
+                <button className="px-4 py-2 bg-accent hover:bg-accent/100 text-white rounded-xl text-sm font-medium transition-colors shadow-sm">
                   Search
                 </button>
               </div>
@@ -58,9 +58,9 @@ export default function SupportPage() {
         <section className="max-w-[1000px] mx-auto px-6 -mt-8 relative z-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {faqCategories.map((cat, idx) => (
-              <div key={idx} className="bg-white rounded-[24px] p-8 border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg hover:border-indigo-100 transition-all cursor-pointer group">
+              <div key={idx} className="bg-surface rounded-[24px] p-8 border border-border-strong shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg hover:border-indigo-100 transition-all cursor-pointer group">
                 <div className="flex items-start gap-5">
-                  <div className="w-12 h-12 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center flex-shrink-0 group-hover:bg-brand-orange group-hover:text-white transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 text-accent flex items-center justify-center flex-shrink-0 group-hover:bg-accent group-hover:text-white transition-colors">
                     {/* Simplified icon representation for aesthetic */}
                     {cat.icon === "home" && <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>}
                     {cat.icon === "user" && <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
@@ -70,8 +70,8 @@ export default function SupportPage() {
                     {cat.icon === "credit-card" && <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-brand-navy mb-2 group-hover:text-brand-orange transition-colors">{cat.title}</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed">{cat.desc}</p>
+                    <h3 className="text-lg font-semibold text-primary mb-2 group-hover:text-accent transition-colors">{cat.title}</h3>
+                    <p className="text-text-secondary text-sm leading-relaxed">{cat.desc}</p>
                   </div>
                 </div>
               </div>
@@ -81,12 +81,12 @@ export default function SupportPage() {
 
         {/* Contact Support CTA */}
         <section className="mt-24 max-w-[800px] mx-auto px-6">
-          <div className="bg-brand-orange/10 rounded-[32px] p-10 md:p-14 text-center border border-indigo-100">
-            <h2 className="text-3xl font-semibold text-brand-navy mb-4" style={{ fontFamily: 'var(--font-outfit)' }}>Can't find what you're looking for?</h2>
+          <div className="bg-accent/10 rounded-[32px] p-10 md:p-14 text-center border border-indigo-100">
+            <h2 className="text-3xl font-semibold text-primary mb-4" style={{ fontFamily: 'var(--font-outfit)' }}>Can't find what you're looking for?</h2>
             <p className="text-lg text-slate-600 mb-8 max-w-lg mx-auto">
               Our support team is here to help. Reach out to us directly and we'll get back to you as soon as possible.
             </p>
-            <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-xl text-white bg-brand-orange hover:bg-orange-600 shadow-md transition-colors">
+            <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-xl text-white bg-accent hover:bg-accent shadow-md transition-colors">
               Contact Support
             </Link>
           </div>

@@ -30,7 +30,7 @@ export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedP
       </div>
 
       {/* 2. SUBTLE OVERLAY FOR READABILITY */}
-      <div className="absolute inset-0 z-10 bg-brand-navy/40 bg-gradient-to-b from-[#07163D]/70 via-transparent to-[#07163D]/80" />
+      <div className="absolute inset-0 z-10 bg-primary/40 bg-gradient-to-b from-[#07163D]/70 via-transparent to-[#07163D]/80" />
 
       {/* 3. CONTENT OVERLAY */}
       <div className="relative z-20 w-full max-w-[1440px] mx-auto px-4 sm:px-12 lg:px-16 pt-8 pb-16">
@@ -43,7 +43,7 @@ export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedP
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             >
-              <h2 className="text-brand-orange font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
+              <h2 className="text-accent font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
                 Australia's Premium Network
               </h2>
             </motion.div>
@@ -72,13 +72,13 @@ export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedP
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.4 }}
-              className="flex max-w-full justify-start gap-6 sm:gap-12 items-center mt-2 bg-brand-navy/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/10 shadow-xl"
+              className="flex max-w-full justify-start gap-6 sm:gap-12 items-center mt-2 bg-primary/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/10 shadow-xl"
             >
               <div className="text-left">
                 <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">12k+</p>
                 <p className="text-[10px] sm:text-xs text-white/70 font-semibold tracking-widest uppercase mt-1">Verified Rooms</p>
               </div>
-              <div className="w-px h-12 bg-white/20" />
+              <div className="w-px h-12 bg-surface/20" />
               <div className="text-left">
                 <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center justify-start gap-1">
                   4.9
@@ -97,15 +97,15 @@ export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedP
               transition={{ duration: 0.8 }}
               className="flex flex-col gap-4 w-full sm:w-auto items-start lg:items-end"
             >
-              <div className="max-w-full bg-white/10 backdrop-blur-md rounded-full px-4 sm:px-5 py-2 border border-white/20 shadow-lg flex items-center gap-2 font-medium text-white text-sm whitespace-nowrap">
+              <div className="max-w-full bg-surface/10 backdrop-blur-md rounded-full px-4 sm:px-5 py-2 border border-white/20 shadow-lg flex items-center gap-2 font-medium text-white text-sm whitespace-nowrap">
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
                 Verified Listings
               </div>
               
               {featuredProperty && (
                 <Link href={`/property/${featuredProperty.id}`} className="block w-full max-w-[260px]">
-                  <div className="bg-brand-navy/60 backdrop-blur-md hover:bg-brand-navy/80 transition-colors text-white rounded-xl p-4 border border-white/10 shadow-lg flex items-center gap-4 w-full cursor-pointer">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex flex-shrink-0 items-center justify-center overflow-hidden relative">
+                  <div className="bg-primary/60 backdrop-blur-md hover:bg-primary/80 transition-colors text-white rounded-xl p-4 border border-white/10 shadow-lg flex items-center gap-4 w-full cursor-pointer">
+                    <div className="w-10 h-10 bg-surface/20 rounded-full flex flex-shrink-0 items-center justify-center overflow-hidden relative">
                       {featuredProperty.imageUrl ? (
                         <Image src={featuredProperty.imageUrl} alt={featuredProperty.name} fill className="object-cover" />
                       ) : (
@@ -113,7 +113,7 @@ export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedP
                       )}
                     </div>
                     <div className="overflow-hidden">
-                      <p className="text-xs text-brand-orange font-semibold uppercase tracking-wider mb-0.5">Featured Property</p>
+                      <p className="text-xs text-accent font-semibold uppercase tracking-wider mb-0.5">Featured Property</p>
                       <p className="text-sm font-medium truncate" title={featuredProperty.name}>{featuredProperty.name}</p>
                       <p className="text-xs text-white/70 truncate" title={featuredProperty.location}>{featuredProperty.location}</p>
                     </div>

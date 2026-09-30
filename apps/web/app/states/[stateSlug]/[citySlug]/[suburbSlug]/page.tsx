@@ -137,60 +137,60 @@ export default async function SuburbPage({ params }: { params: Promise<{ stateSl
 
         {/* Breadcrumb */}
         <nav className="mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm text-slate-500">
+          <ol className="flex items-center space-x-2 text-sm text-text-secondary">
             <li>
-              <Link href="/" className="hover:text-brand-orange transition-colors">Home</Link>
+              <Link href="/" className="hover:text-accent transition-colors">Home</Link>
             </li>
             <li><span className="mx-2 text-slate-300">/</span></li>
             <li>
-              <Link href="/states" className="hover:text-brand-orange transition-colors">States</Link>
+              <Link href="/states" className="hover:text-accent transition-colors">States</Link>
             </li>
             <li><span className="mx-2 text-slate-300">/</span></li>
             <li>
-              <Link href={`/states/${stateSlug}`} className="hover:text-brand-orange transition-colors">{suburb?.state.name}</Link>
+              <Link href={`/states/${stateSlug}`} className="hover:text-accent transition-colors">{suburb?.state.name}</Link>
             </li>
             {suburb?.city && (
               <>
                 <li><span className="mx-2 text-slate-300">/</span></li>
                 <li>
-                  <Link href={`/states/${stateSlug}/${citySlug}`} className="hover:text-brand-orange transition-colors">{suburb.city.name}</Link>
+                  <Link href={`/states/${stateSlug}/${citySlug}`} className="hover:text-accent transition-colors">{suburb.city.name}</Link>
                 </li>
               </>
             )}
             <li><span className="mx-2 text-slate-300">/</span></li>
-            <li className="text-brand-navy font-medium" aria-current="page">
+            <li className="text-primary font-medium" aria-current="page">
               {suburb?.name}
             </li>
           </ol>
         </nav>
 
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="inline-block px-3 py-1 mb-6 text-[11px] font-bold tracking-[0.2em] uppercase text-brand-orange bg-brand-orange/10 border border-indigo-100 rounded-full">
+          <span className="inline-block px-3 py-1 mb-6 text-[11px] font-bold tracking-[0.2em] uppercase text-accent bg-accent/10 border border-indigo-100 rounded-full">
             {suburb?.city ? `${suburb.city.name}, ${suburb.state.name}` : suburb?.state.name}
           </span>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-brand-navy mb-6 tracking-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-primary mb-6 tracking-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
             Properties in {suburb?.name}
           </h1>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className="text-lg text-text-secondary max-w-2xl mx-auto">
             Discover student homes in {suburb?.name}.
           </p>
         </div>
 
         {error ? (
-          <div className="bg-white border border-red-100 rounded-[24px] p-12 text-center max-w-2xl mx-auto shadow-sm">
+          <div className="bg-surface border border-red-100 rounded-[24px] p-12 text-center max-w-2xl mx-auto shadow-sm">
             <svg className="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
               <circle cx="12" cy="16" r="1" />
             </svg>
-            <h2 className="text-2xl font-semibold text-brand-navy mb-2">Service Temporarily Unavailable</h2>
-            <p className="text-slate-500 mb-6">We're currently experiencing issues loading our locations. Please check back shortly.</p>
-            <Link href="/" className="inline-block px-6 py-3 bg-brand-navy text-white rounded-xl hover:bg-brand-navy/90 transition-colors">
+            <h2 className="text-2xl font-semibold text-primary mb-2">Service Temporarily Unavailable</h2>
+            <p className="text-text-secondary mb-6">We're currently experiencing issues loading our locations. Please check back shortly.</p>
+            <Link href="/" className="inline-block px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors">
               Return Home
             </Link>
           </div>
         ) : properties.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-[24px] p-12 max-w-2xl mx-auto shadow-sm">
+          <div className="bg-surface border border-border-strong rounded-[24px] p-12 max-w-2xl mx-auto shadow-sm">
             <EmptyState
               title={`No properties found in ${suburb!.name}`}
               description="We're currently expanding our network. Check back soon for new properties."
@@ -215,9 +215,9 @@ export default async function SuburbPage({ params }: { params: Promise<{ stateSl
                 <Link
                   key={prop.id}
                   href={`/property/${prop.id}`}
-                  className="flex flex-col bg-white rounded-[24px] overflow-hidden border border-slate-200 hover:border-brand-orange transition group relative cursor-pointer shadow-sm hover:shadow-md"
+                  className="flex flex-col bg-surface rounded-[24px] overflow-hidden border border-border-strong hover:border-accent transition group relative cursor-pointer shadow-sm hover:shadow-md"
                 >
-                  <div className="relative w-full h-[240px] shrink-0 bg-slate-100">
+                  <div className="relative w-full h-[240px] shrink-0 bg-surface-muted">
                     <SafeImage src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
                     {verified && (
                       <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm">
@@ -227,14 +227,14 @@ export default async function SuburbPage({ params }: { params: Promise<{ stateSl
                   </div>
                   <div className="p-6 flex flex-col justify-between flex-grow">
                     <div>
-                      <h3 className="text-xl font-bold text-brand-navy mb-1 group-hover:text-brand-orange transition-colors">{prop.name}</h3>
-                      <p className="text-sm font-medium text-slate-500 mb-4">{locationStr}</p>
+                      <h3 className="text-xl font-bold text-primary mb-1 group-hover:text-accent transition-colors">{prop.name}</h3>
+                      <p className="text-sm font-medium text-text-secondary mb-4">{locationStr}</p>
                     </div>
                     <div className="mt-4 flex justify-between items-end">
                       {minPrice ? (
-                        <p className="text-2xl font-bold text-brand-navy tracking-tight">${minPrice}<span className="text-sm font-medium text-slate-500">/wk</span></p>
+                        <p className="text-2xl font-bold text-primary tracking-tight">${minPrice}<span className="text-sm font-medium text-text-secondary">/wk</span></p>
                       ) : (
-                        <p className="text-lg font-bold text-brand-navy tracking-tight">Price on request</p>
+                        <p className="text-lg font-bold text-primary tracking-tight">Price on request</p>
                       )}
                     </div>
                   </div>

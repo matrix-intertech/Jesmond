@@ -87,25 +87,25 @@ export default function EmployeePermissionsPage() {
   };
 
   if (loading) {
-    return <div className="animate-pulse space-y-4 max-w-4xl"><div className="h-8 bg-slate-200 rounded w-1/4"></div><div className="h-64 bg-slate-100 rounded-xl"></div></div>;
+    return <div className="animate-pulse space-y-4 max-w-4xl"><div className="h-8 bg-secondary rounded w-1/4"></div><div className="h-64 bg-surface-muted rounded-xl"></div></div>;
   }
 
   return (
     <div className="max-w-4xl space-y-6">
       <PageHeader title="Employee Permissions" description="Manage access control for your retail staff." />
       
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-surface border border-border-strong rounded-xl overflow-hidden shadow-sm">
         <ul className="divide-y divide-slate-100">
           {employees.map(employee => (
             <li key={employee.id} className="p-6">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-border-subtle">
                 <div>
-                  <h3 className="text-lg font-semibold text-brand-navy">{employee.user.firstName} {employee.user.lastName}</h3>
-                  <p className="text-sm text-slate-500">{employee.user.email}</p>
+                  <h3 className="text-lg font-semibold text-primary">{employee.user.firstName} {employee.user.lastName}</h3>
+                  <p className="text-sm text-text-secondary">{employee.user.email}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  {saving === employee.id && <span className="text-xs text-slate-400">Saving...</span>}
-                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                  {saving === employee.id && <span className="text-xs text-text-muted">Saving...</span>}
+                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 'bg-secondary text-text-secondary'}`}>
                     {employee.role}
                   </span>
                 </div>
@@ -118,15 +118,15 @@ export default function EmployeePermissionsPage() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {ALL_PERMISSIONS.map(perm => (
-                    <label key={perm} className={`flex items-start gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${employee.permissions?.includes(perm) ? 'bg-orange-50 border-orange-200' : 'hover:bg-slate-50 border-slate-200'}`}>
+                    <label key={perm} className={`flex items-start gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${employee.permissions?.includes(perm) ? 'bg-orange-50 border-orange-200' : 'hover:bg-slate-50 border-border-strong'}`}>
                       <input 
                         type="checkbox" 
-                        className="mt-1 rounded text-brand-orange focus:ring-brand-orange border-slate-300"
+                        className="mt-1 rounded text-accent focus:ring-accent border-border-strong"
                         checked={employee.permissions?.includes(perm) || false}
                         onChange={() => togglePermission(employee, perm)}
                         disabled={saving === employee.id}
                       />
-                      <span className={`text-xs font-medium ${employee.permissions?.includes(perm) ? 'text-brand-orange' : 'text-slate-600'}`}>
+                      <span className={`text-xs font-medium ${employee.permissions?.includes(perm) ? 'text-accent' : 'text-slate-600'}`}>
                         {perm.replace('RETAIL_', '').replace(/_/g, ' ')}
                       </span>
                     </label>
@@ -137,7 +137,7 @@ export default function EmployeePermissionsPage() {
           ))}
           
           {employees.length === 0 && (
-            <li className="p-6 text-center text-slate-500 text-sm">No employees found.</li>
+            <li className="p-6 text-center text-text-secondary text-sm">No employees found.</li>
           )}
         </ul>
       </div>
