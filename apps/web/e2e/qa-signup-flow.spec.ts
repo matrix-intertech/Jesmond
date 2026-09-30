@@ -44,7 +44,7 @@ test.describe('Signup & Email OTP UI Verification', () => {
 
   test('1. BRAND NEW EMAIL: Signup succeeds and shows OTP screen', async ({ page }) => {
     await page.goto('http://localhost:3000/register');
-    
+
     await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible({ timeout: 15000 });
 
     // Fill the form
@@ -52,14 +52,14 @@ test.describe('Signup & Email OTP UI Verification', () => {
     await page.locator('#last-name').fill('User');
     await page.locator('#email-address').fill(NEW_EMAIL);
     await page.locator('#password').fill('Jesmond@Demo2026!');
-    
+
     // Submit
     await expect(page.getByRole('button', { name: 'Create account' })).toBeEnabled();
     await page.getByRole('button', { name: 'Create account' }).click();
 
     // Verify UI transitions to OTP screen without error
     await expect(page.getByText('Email already in use')).toBeHidden();
-    
+
     // Should see Verify your email
     await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeVisible({ timeout: 10000 });
     await expect(page.locator('#otp')).toBeVisible();
@@ -77,7 +77,7 @@ test.describe('Signup & Email OTP UI Verification', () => {
     await page.locator('#password').fill('Jesmond@Demo2026!');
     await page.getByRole('button', { name: 'Create account' }).click();
     await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeVisible({ timeout: 10000 });
-    
+
     // Now simulate user leaving and coming back later to sign up again
     await page.goto('http://localhost:3000/register');
     await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible({ timeout: 15000 });
@@ -85,7 +85,7 @@ test.describe('Signup & Email OTP UI Verification', () => {
     await page.locator('#last-name').fill('User2');
     await page.locator('#email-address').fill(EXISTING_UNVERIFIED_EMAIL);
     await page.locator('#password').fill('Jesmond@Demo2026!');
-    
+
     // Submit again
     await page.getByRole('button', { name: 'Create account' }).click();
 
@@ -102,18 +102,18 @@ test.describe('Signup & Email OTP UI Verification', () => {
     // The QA seed typically has student@jesmond.demo verified. Let's use that.
     await page.goto('http://localhost:3000/register');
     await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible({ timeout: 15000 });
-    
+
     await page.locator('#first-name').fill('Hacker');
     await page.locator('#last-name').fill('Man');
     await page.locator('#email-address').fill('student@jesmond.demo');
     await page.locator('#password').fill('Jesmond@Demo2026!');
-    
+
     // Submit
     await page.getByRole('button', { name: 'Create account' }).click();
 
     // It MUST show the conflict error
     await expect(page.getByText('Email already in use', { exact: false })).toBeVisible({ timeout: 10000 });
-    
+
     // MUST NOT transition to OTP screen
     await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeHidden();
   });
@@ -134,12 +134,12 @@ test.describe('Signup & Email OTP UI Verification', () => {
     // Enter wrong OTP
     const otpInput = page.locator('#otp');
     await otpInput.fill('000000');
-    
+
     await page.getByRole('button', { name: 'Verify Email' }).click();
 
     // Verify error message for invalid OTP
     await expect(page.getByText('Invalid verification code')).toBeVisible({ timeout: 10000 });
-    
+
     // Verify it didn't redirect us to dashboard (still on verification screen)
     await expect(page.getByRole('heading', { name: 'Verify your email' })).toBeVisible();
   });

@@ -6,118 +6,118 @@ import { getAccessToken, clearAuth } from "@/utils/auth";
 import { handleApiError } from "@/utils/api";
 
 export default function PropertyDefaultsSettings() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [data, setData] = useState({
-    defaultCurrency: "AUD",
-    defaultPricingUnit: "WEEK",
-  });
+ const router = useRouter();
+ const [loading, setLoading] = useState(true);
+ const [submitting, setSubmitting] = useState(false);
+ const [error, setError] = useState("");
+ const [success, setSuccess] = useState("");
+ const [data, setData] = useState({
+ defaultCurrency: "AUD",
+ defaultPricingUnit: "WEEK",
+ });
 
-  useEffect(() => {
-    const fetchDefaults = async () => {
-      const token = getAccessToken();
-      if (!token) return;
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/property-defaults`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
-        if (status === 'ok') {
-          const json = await res.json();
-          if (json && Object.keys(json).length > 0) {
-            setData({
-              defaultCurrency: json.defaultCurrency || "AUD",
-              defaultPricingUnit: json.defaultPricingUnit || "WEEK",
-            });
-          }
-        }
-      } catch (e: any) {
-        setError(e.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDefaults();
-  }, [router]);
+ useEffect(() => {
+ const fetchDefaults = async () => {
+ const token = getAccessToken();
+ if (!token) return;
+ try {
+ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/property-defaults`, {
+ headers: { Authorization: `Bearer ${token}` },
+ });
+ const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
+ if (status === 'ok') {
+ const json = await res.json();
+ if (json && Object.keys(json).length > 0) {
+ setData({
+ defaultCurrency: json.defaultCurrency || "AUD",
+ defaultPricingUnit: json.defaultPricingUnit || "WEEK",
+ });
+ }
+ }
+ } catch (e: any) {
+ setError(e.message);
+ } finally {
+ setLoading(false);
+ }
+ };
+ fetchDefaults();
+ }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError("");
-    setSuccess("");
-    try {
-      const token = getAccessToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/property-defaults`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-      if (res.ok) {
-        setSuccess("Property defaults updated");
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        setError(errJson.message || 'Failed to update property defaults');
-      }
-    } catch (e: any) {
-      setError(e.message || 'Network error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+ e.preventDefault();
+ setSubmitting(true);
+ setError("");
+ setSuccess("");
+ try {
+ const token = getAccessToken();
+ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/property-defaults`, {
+ method: 'PATCH',
+ headers: {
+ 'Authorization': `Bearer ${token}`,
+ 'Content-Type': 'application/json'
+ },
+ body: JSON.stringify(data)
+ });
+ if (res.ok) {
+ setSuccess("Property defaults updated");
+ } else {
+ const errJson = await res.json().catch(() => ({}));
+ setError(errJson.message || 'Failed to update property defaults');
+ }
+ } catch (e: any) {
+ setError(e.message || 'Network error');
+ } finally {
+ setSubmitting(false);
+ }
+ };
 
-  if (loading) return <div className="p-8 text-center text-text-secondary">Loading property defaults...</div>;
+ if (loading) return <div className="p-8 text-center text-text-secondary">Loading property defaults...</div>;
 
-  return (
-    <div className="bg-surface shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
-        <h3 className="text-lg leading-6 font-medium text-primary">Property Defaults</h3>
-        <p className="mt-1 text-sm text-text-secondary">Default settings applied when creating new properties.</p>
-      </div>
+ return (
+ <div className="bg-surface shadow rounded-lg overflow-hidden">
+ <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+ <h3 className="text-lg leading-6 font-medium text-primary">Property Defaults</h3>
+ <p className="mt-1 text-sm text-text-secondary">Default settings applied when creating new properties.</p>
+ </div>
 
-      <div className="p-6">
-        {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
-        {success && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded text-sm">{success}</div>}
+ <div className="p-6">
+ {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
+ {success && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded text-sm">{success}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-text-primary">Default Currency</label>
-              <select value={data.defaultCurrency} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm rounded-md">
-                <option value="AUD">AUD ($)</option>
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
-            </div>
+ <form onSubmit={handleSubmit} className="space-y-6">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div>
+ <label className="block text-sm font-medium text-text-primary">Default Currency</label>
+ <select value={data.defaultCurrency} onChange={e => setData({...data, defaultCurrency: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm rounded-md">
+ <option value="AUD">AUD ($)</option>
+ <option value="USD">USD ($)</option>
+ <option value="EUR">EUR (€)</option>
+ <option value="GBP">GBP (£)</option>
+ </select>
+ </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-primary">Pricing Unit</label>
-              <select value={data.defaultPricingUnit} onChange={e => setData({...data, defaultPricingUnit: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent sm:text-sm rounded-md">
-                <option value="WEEK">Per Week</option>
-                <option value="MONTH">Per Month</option>
-                <option value="SEMESTER">Per Semester</option>
-                <option value="YEAR">Per Year</option>
-              </select>
-            </div>
-          </div>
+ <div>
+ <label className="block text-sm font-medium text-text-primary">Pricing Unit</label>
+ <select value={data.defaultPricingUnit} onChange={e => setData({...data, defaultPricingUnit: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm rounded-md">
+ <option value="WEEK">Per Week</option>
+ <option value="MONTH">Per Month</option>
+ <option value="SEMESTER">Per Semester</option>
+ <option value="YEAR">Per Year</option>
+ </select>
+ </div>
+ </div>
 
-          <div className="flex justify-end pt-4 border-t border-border-subtle">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {submitting ? 'Saving...' : 'Save Defaults'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+ <div className="flex justify-end pt-4 border-t border-border-subtle">
+ <button
+ type="submit"
+ disabled={submitting}
+ className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple disabled:opacity-50"
+ >
+ {submitting ? 'Saving...' : 'Save Defaults'}
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ );
 }

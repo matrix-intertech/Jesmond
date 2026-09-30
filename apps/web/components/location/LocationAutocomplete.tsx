@@ -4,247 +4,247 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, X, Loader2 } from 'lucide-react';
 
 export interface LocationResult {
-  id: string;
-  label: string;
-  latitude: number;
-  longitude: number;
-  country: string;
-  state: string;
-  city: string;
-  suburb: string;
-  postcode: string;
-  type: string;
-  source: string;
+ id: string;
+ label: string;
+ latitude: number;
+ longitude: number;
+ country: string;
+ state: string;
+ city: string;
+ suburb: string;
+ postcode: string;
+ type: string;
+ source: string;
 }
 
 interface LocationAutocompleteProps {
-  value?: LocationResult | null;
-  onChange: (location: LocationResult | null) => void;
-  placeholder?: string;
-  className?: string;
-  autoFocus?: boolean;
+ value?: LocationResult | null;
+ onChange: (location: LocationResult | null) => void;
+ placeholder?: string;
+ className?: string;
+ autoFocus?: boolean;
 }
 
 export function LocationAutocomplete({
-  value,
-  onChange,
-  placeholder = 'Search suburb, address or postcode',
-  className = '',
-  autoFocus = false
+ value,
+ onChange,
+ placeholder = 'Search suburb, address or postcode',
+ className = '',
+ autoFocus = false
 }: LocationAutocompleteProps) {
-  const [query, setQuery] = useState(value?.label || '');
-  const [results, setResults] = useState<LocationResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [error, setError] = useState<string | null>(null);
+ const [query, setQuery] = useState(value?.label || '');
+ const [results, setResults] = useState<LocationResult[]>([]);
+ const [isLoading, setIsLoading] = useState(false);
+ const [isOpen, setIsOpen] = useState(false);
+ const [selectedIndex, setSelectedIndex] = useState(-1);
+ const [error, setError] = useState<string | null>(null);
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+ const wrapperRef = useRef<HTMLDivElement>(null);
+ const inputRef = useRef<HTMLInputElement>(null);
 
-  const [debouncedQuery, setDebouncedQuery] = useState(query);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query), 200);
-    return () => clearTimeout(timer);
-  }, [query]);
+ const [debouncedQuery, setDebouncedQuery] = useState(query);
+ useEffect(() => {
+ const timer = setTimeout(() => setDebouncedQuery(query), 200);
+ return () => clearTimeout(timer);
+ }, [query]);
 
-  // Client-side cache for recent queries
-  const queryCache = useRef<Record<string, LocationResult[]>>({});
+ // Client-side cache for recent queries
+ const queryCache = useRef<Record<string, LocationResult[]>>({});
 
-  // Click outside to close
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+ // Click outside to close
+ useEffect(() => {
+ function handleClickOutside(event: MouseEvent) {
+ if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+ setIsOpen(false);
+ }
+ }
+ document.addEventListener('mousedown', handleClickOutside);
+ return () => document.removeEventListener('mousedown', handleClickOutside);
+ }, []);
 
-  // Sync value prop changes if it changes externally
-  useEffect(() => {
-    if (value && value.label !== query) {
-      setQuery(value.label);
-    } else if (!value && query && !isOpen) {
-      // Don't clear query if user is currently typing
-    }
-  }, [value]);
+ // Sync value prop changes if it changes externally
+ useEffect(() => {
+ if (value && value.label !== query) {
+ setQuery(value.label);
+ } else if (!value && query && !isOpen) {
+ // Don't clear query if user is currently typing
+ }
+ }, [value]);
 
-  // Fetch results
-  useEffect(() => {
-    const controller = new AbortController();
-    const fetchResults = async () => {
-      const trimmedQuery = debouncedQuery.trim();
-      if (trimmedQuery.length < 3) {
-        setResults([]);
-        setIsOpen(false);
-        return;
-      }
+ // Fetch results
+ useEffect(() => {
+ const controller = new AbortController();
+ const fetchResults = async () => {
+ const trimmedQuery = debouncedQuery.trim();
+ if (trimmedQuery.length < 3) {
+ setResults([]);
+ setIsOpen(false);
+ return;
+ }
 
-      // If the query perfectly matches the selected value, we don't need to search again
-      if (value && trimmedQuery === value.label.trim()) {
-        return;
-      }
+ // If the query perfectly matches the selected value, we don't need to search again
+ if (value && trimmedQuery === value.label.trim()) {
+ return;
+ }
 
-      const cacheKey = trimmedQuery.toLowerCase();
-      if (queryCache.current[cacheKey]) {
-        setResults(queryCache.current[cacheKey]);
-        setIsOpen(true);
-        setSelectedIndex(-1);
-        return;
-      }
+ const cacheKey = trimmedQuery.toLowerCase();
+ if (queryCache.current[cacheKey]) {
+ setResults(queryCache.current[cacheKey]);
+ setIsOpen(true);
+ setSelectedIndex(-1);
+ return;
+ }
 
-      setIsLoading(true);
-      setError(null);
+ setIsLoading(true);
+ setError(null);
 
-      try {
-        const response = await fetch(`/api/v1/locations/search?q=${encodeURIComponent(trimmedQuery)}&limit=5`, {
-          signal: controller.signal
-        });
-        if (!response.ok) throw new Error('Failed to fetch');
+ try {
+ const response = await fetch(`/api/v1/locations/search?q=${encodeURIComponent(trimmedQuery)}&limit=5`, {
+ signal: controller.signal
+ });
+ if (!response.ok) throw new Error('Failed to fetch');
 
-        const data = await response.json();
-        
-        // Cache the result to avoid duplicate requests later
-        queryCache.current[cacheKey] = data;
-        
-        setResults(data);
-        setIsOpen(true);
-        setSelectedIndex(-1);
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          // Request was cancelled due to a newer query, ignore
-          return;
-        }
-        console.error('Location search error:', err);
-        setError('Failed to load suggestions');
-      } finally {
-        // Only set loading false if this isn't an aborted request
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
-      }
-    };
+ const data = await response.json();
 
-    fetchResults();
-    
-    return () => {
-      controller.abort();
-    };
-  }, [debouncedQuery, value]);
+ // Cache the result to avoid duplicate requests later
+ queryCache.current[cacheKey] = data;
 
-  const handleSelect = (location: LocationResult) => {
-    setQuery(location.label);
-    setResults([]);
-    setIsOpen(false);
-    onChange(location);
-  };
+ setResults(data);
+ setIsOpen(true);
+ setSelectedIndex(-1);
+ } catch (err: any) {
+ if (err.name === 'AbortError') {
+ // Request was cancelled due to a newer query, ignore
+ return;
+ }
+ console.error('Location search error:', err);
+ setError('Failed to load suggestions');
+ } finally {
+ // Only set loading false if this isn't an aborted request
+ if (!controller.signal.aborted) {
+ setIsLoading(false);
+ }
+ }
+ };
 
-  const handleClear = () => {
-    setQuery('');
-    setResults([]);
-    setIsOpen(false);
-    onChange(null);
-    inputRef.current?.focus();
-  };
+ fetchResults();
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen) return;
+ return () => {
+ controller.abort();
+ };
+ }, [debouncedQuery, value]);
 
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (selectedIndex >= 0 && selectedIndex < results.length) {
-        handleSelect(results[selectedIndex]);
-      }
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
+ const handleSelect = (location: LocationResult) => {
+ setQuery(location.label);
+ setResults([]);
+ setIsOpen(false);
+ onChange(location);
+ };
 
-  return (
-    <div ref={wrapperRef} className={`relative w-full ${className}`}>
-      <div className="relative flex items-center">
-        <MapPin className="absolute left-3 w-5 h-5 text-text-muted" />
-        <input
-          ref={inputRef}
-          type="text"
-          className="w-full pl-10 pr-10 py-3 bg-surface border border-border-strong rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          placeholder={placeholder}
-          value={query}
-          onChange={e => {
-            setQuery(e.target.value);
-            if (value && e.target.value !== value.label) {
-              onChange(null); // Clear actual selection if user modifies the text
-            }
-          }}
-          onFocus={() => {
-            if (results.length > 0) setIsOpen(true);
-          }}
-          onKeyDown={handleKeyDown}
-          autoFocus={autoFocus}
-          autoComplete="off"
-          role="combobox"
-          aria-expanded={isOpen}
-          aria-controls="location-suggestions"
-        />
-        {isLoading ? (
-          <Loader2 className="absolute right-3 w-5 h-5 text-primary animate-spin" />
-        ) : query ? (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-secondary transition-colors"
-            aria-label="Clear location"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        ) : null}
-      </div>
+ const handleClear = () => {
+ setQuery('');
+ setResults([]);
+ setIsOpen(false);
+ onChange(null);
+ inputRef.current?.focus();
+ };
 
-      {isOpen && (query.length >= 3) && (
-        <div
-          id="location-suggestions"
-          className="absolute z-50 w-full mt-2 bg-surface border border-border-subtle rounded-xl shadow-lg overflow-hidden"
-        >
-          {results.length > 0 ? (
-            <ul className="max-h-60 overflow-auto py-1">
-              {results.map((result, index) => (
-                <li
-                  key={result.id}
-                  onClick={() => handleSelect(result)}
-                  className={`px-4 py-3 flex items-start cursor-pointer transition-colors ${
-                    index === selectedIndex ? 'bg-blue-50' : 'hover:bg-gray-50'
-                  }`}
-                  role="option"
-                  aria-selected={index === selectedIndex}
-                >
-                  <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-text-muted'}`} />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-text-primary line-clamp-1">{result.label}</span>
-                    <span className="text-xs text-text-secondary capitalize">{result.type.replace('_', ' ')} • {result.postcode || result.state || result.country}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : !isLoading ? (
-            <div className="px-4 py-6 text-center text-text-secondary text-sm">
-              No locations found matching "{query}"
-            </div>
-          ) : null}
-          {error && !isLoading && (
-            <div className="px-4 py-3 text-sm text-red-500 bg-red-50">
-              {error}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+ const handleKeyDown = (e: React.KeyboardEvent) => {
+ if (!isOpen) return;
+
+ if (e.key === 'ArrowDown') {
+ e.preventDefault();
+ setSelectedIndex(prev => (prev < results.length - 1 ? prev + 1 : prev));
+ } else if (e.key === 'ArrowUp') {
+ e.preventDefault();
+ setSelectedIndex(prev => (prev > 0 ? prev - 1 : 0));
+ } else if (e.key === 'Enter') {
+ e.preventDefault();
+ if (selectedIndex >= 0 && selectedIndex < results.length) {
+ handleSelect(results[selectedIndex]);
+ }
+ } else if (e.key === 'Escape') {
+ setIsOpen(false);
+ }
+ };
+
+ return (
+ <div ref={wrapperRef} className={`relative w-full ${className}`}>
+ <div className="relative flex items-center">
+ <MapPin className="absolute left-3 w-5 h-5 text-text-muted" />
+ <input
+ ref={inputRef}
+ type="text"
+ className="w-full pl-10 pr-10 py-3 bg-surface border border-border-strong rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all"
+ placeholder={placeholder}
+ value={query}
+ onChange={e => {
+ setQuery(e.target.value);
+ if (value && e.target.value !== value.label) {
+ onChange(null); // Clear actual selection if user modifies the text
+ }
+ }}
+ onFocus={() => {
+ if (results.length > 0) setIsOpen(true);
+ }}
+ onKeyDown={handleKeyDown}
+ autoFocus={autoFocus}
+ autoComplete="off"
+ role="combobox"
+ aria-expanded={isOpen}
+ aria-controls="location-suggestions"
+ />
+ {isLoading ? (
+ <Loader2 className="absolute right-3 w-5 h-5 text-primary animate-spin" />
+ ) : query ? (
+ <button
+ type="button"
+ onClick={handleClear}
+ className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-secondary transition-colors"
+ aria-label="Clear location"
+ >
+ <X className="w-4 h-4" />
+ </button>
+ ) : null}
+ </div>
+
+ {isOpen && (query.length >= 3) && (
+ <div
+ id="location-suggestions"
+ className="absolute z-50 w-full mt-2 bg-surface border border-border-subtle rounded-xl shadow-lg overflow-hidden"
+ >
+ {results.length > 0 ? (
+ <ul className="max-h-60 overflow-auto py-1">
+ {results.map((result, index) => (
+ <li
+ key={result.id}
+ onClick={() => handleSelect(result)}
+ className={`px-4 py-3 flex items-start cursor-pointer transition-colors ${
+ index === selectedIndex ? 'bg-info-bg' : 'hover:bg-surface-lavender'
+ }`}
+ role="option"
+ aria-selected={index === selectedIndex}
+ >
+ <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-text-muted'}`} />
+ <div className="flex flex-col">
+ <span className="text-sm font-medium text-text-primary line-clamp-1">{result.label}</span>
+ <span className="text-xs text-text-secondary capitalize">{result.type.replace('_', ' ')} • {result.postcode || result.state || result.country}</span>
+ </div>
+ </li>
+ ))}
+ </ul>
+ ) : !isLoading ? (
+ <div className="px-4 py-6 text-center text-text-secondary text-sm">
+ No locations found matching "{query}"
+ </div>
+ ) : null}
+ {error && !isLoading && (
+ <div className="px-4 py-3 text-sm text-red-500 bg-red-50">
+ {error}
+ </div>
+ )}
+ </div>
+ )}
+ </div>
+ );
 }

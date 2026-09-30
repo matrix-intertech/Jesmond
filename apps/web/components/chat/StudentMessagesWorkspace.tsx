@@ -11,266 +11,266 @@ const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const placeholderImage = "/assets/property-placeholder.png";
 
 const getPropertyImage = (property: any) =>
-  property?.thumbnailUrl ||
-  property?.imageUrl ||
-  property?.coverImage ||
-  property?.media?.[0]?.url ||
-  property?.photos?.[0]?.url ||
-  property?.images?.[0]?.url ||
-  "";
+ property?.thumbnailUrl ||
+ property?.imageUrl ||
+ property?.coverImage ||
+ property?.media?.[0]?.url ||
+ property?.photos?.[0]?.url ||
+ property?.images?.[0]?.url ||
+ "";
 
 const getUserIdFromToken = () => {
-  const token = getAccessToken();
-  if (!token) return null;
+ const token = getAccessToken();
+ if (!token) return null;
 
-  try {
-    const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-    return tokenPayload.sub || null;
-  } catch {
-    return null;
-  }
+ try {
+ const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+ return tokenPayload.sub || null;
+ } catch {
+ return null;
+ }
 };
 
 const formatConversationTime = (dateValue: string) => {
-  const date = new Date(dateValue);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
+ const date = new Date(dateValue);
+ const today = new Date();
+ const yesterday = new Date();
+ yesterday.setDate(today.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+ if (date.toDateString() === today.toDateString()) {
+ return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+ }
+ if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
 
-  return date.toLocaleDateString([], { day: "numeric", month: "short" });
+ return date.toLocaleDateString([], { day: "numeric", month: "short" });
 };
 
 type StudentMessagesWorkspaceProps = {
-  selectedConversationId?: string;
+ selectedConversationId?: string;
 };
 
 export default function StudentMessagesWorkspace({ selectedConversationId }: StudentMessagesWorkspaceProps) {
-  const router = useRouter();
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+ const router = useRouter();
+ const [conversations, setConversations] = useState<any[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [userId, setUserId] = useState<string | null>(null);
+ const [error, setError] = useState("");
+ const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      const token = getAccessToken();
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-      try {
-        const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setConversations(data);
-          setError("");
+ useEffect(() => {
+ const fetchConversations = async () => {
+ const token = getAccessToken();
+ if (!token) {
+ router.push("/login");
+ return;
+ }
+ try {
+ const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
+ headers: { Authorization: `Bearer ${token}` },
+ });
+ if (res.ok) {
+ const data = await res.json();
+ setConversations(data);
+ setError("");
 
-          try {
-            const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-            setUserId(tokenPayload.sub);
-          } catch {}
-        } else if (res.status === 401) {
-          clearAuth();
-          router.push("/login");
-        } else {
-          setError("Failed to load messages.");
-        }
-      } catch {
-        setError("Failed to load messages.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchConversations();
-  }, [router]);
+ try {
+ const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+ setUserId(tokenPayload.sub);
+ } catch {}
+ } else if (res.status === 401) {
+ clearAuth();
+ router.push("/login");
+ } else {
+ setError("Failed to load messages.");
+ }
+ } catch {
+ setError("Failed to load messages.");
+ } finally {
+ setLoading(false);
+ }
+ };
+ fetchConversations();
+ }, [router]);
 
-  const filteredConversations = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) return conversations;
+ const filteredConversations = useMemo(() => {
+ const query = searchQuery.trim().toLowerCase();
+ if (!query) return conversations;
 
-    return conversations.filter((conv) => {
-      const latestMessage = conv.messages?.[0]?.encryptedPayload || "";
-      const propertyName = conv.property?.name || "";
-      return `${propertyName} ${latestMessage}`.toLowerCase().includes(query);
-    });
-  }, [conversations, searchQuery]);
+ return conversations.filter((conv) => {
+ const latestMessage = conv.messages?.[0]?.encryptedPayload || "";
+ const propertyName = conv.property?.name || "";
+ return `${propertyName} ${latestMessage}`.toLowerCase().includes(query);
+ });
+ }, [conversations, searchQuery]);
 
-  const handleConversationUpdated = useCallback((update: { conversationId: string; conversation?: any; readAt?: string }) => {
-    setConversations((currentConversations) =>
-      currentConversations.map((conv) => {
-        if (conv.id !== update.conversationId) return conv;
+ const handleConversationUpdated = useCallback((update: { conversationId: string; conversation?: any; readAt?: string }) => {
+ setConversations((currentConversations) =>
+ currentConversations.map((conv) => {
+ if (conv.id !== update.conversationId) return conv;
 
-        const latestMessage = update.conversation?.messages?.[update.conversation.messages.length - 1];
-        const currentUserId = userId || getUserIdFromToken();
-        const nextParticipants = update.readAt && currentUserId
-          ? (update.conversation?.participants || conv.participants)?.map((participant: any) =>
-              participant.userId === currentUserId ? { ...participant, lastReadAt: update.readAt } : participant,
-            )
-          : update.conversation?.participants || conv.participants;
+ const latestMessage = update.conversation?.messages?.[update.conversation.messages.length - 1];
+ const currentUserId = userId || getUserIdFromToken();
+ const nextParticipants = update.readAt && currentUserId
+ ? (update.conversation?.participants || conv.participants)?.map((participant: any) =>
+ participant.userId === currentUserId ? { ...participant, lastReadAt: update.readAt } : participant,
+ )
+ : update.conversation?.participants || conv.participants;
 
-        return {
-          ...conv,
-          ...(update.conversation || {}),
-          property: update.conversation?.property || conv.property,
-          participants: nextParticipants,
-          messages: latestMessage ? [latestMessage] : update.conversation?.messages || conv.messages,
-          updatedAt: update.conversation?.updatedAt || latestMessage?.createdAt || conv.updatedAt,
-        };
-      }),
-    );
-  }, [userId]);
+ return {
+ ...conv,
+ ...(update.conversation || {}),
+ property: update.conversation?.property || conv.property,
+ participants: nextParticipants,
+ messages: latestMessage ? [latestMessage] : update.conversation?.messages || conv.messages,
+ updatedAt: update.conversation?.updatedAt || latestMessage?.createdAt || conv.updatedAt,
+ };
+ }),
+ );
+ }, [userId]);
 
-  const renderConversationList = () => {
-    if (loading) {
-      return (
-        <div className="space-y-3">
-          {[0, 1, 2].map((item) => (
-            <div key={item} className="flex animate-pulse items-center gap-3 rounded-xl border border-border-strong bg-surface p-3">
-              <div className="h-14 w-14 rounded-xl bg-surface-muted" />
-              <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-4 w-2/3 rounded bg-surface-muted" />
-                <div className="h-3 w-4/5 rounded bg-surface-muted" />
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
+ const renderConversationList = () => {
+ if (loading) {
+ return (
+ <div className="space-y-3">
+ {[0, 1, 2].map((item) => (
+ <div key={item} className="flex animate-pulse items-center gap-3 rounded-xl border border-border-strong bg-surface p-3">
+ <div className="h-14 w-14 rounded-xl bg-surface-muted" />
+ <div className="min-w-0 flex-1 space-y-3">
+ <div className="h-4 w-2/3 rounded bg-surface-muted" />
+ <div className="h-3 w-4/5 rounded bg-surface-muted" />
+ </div>
+ </div>
+ ))}
+ </div>
+ );
+ }
 
-    if (conversations.length === 0) {
-      return (
-        <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-5 py-8 text-center">
-          <h2 className="text-base font-bold text-primary">Your messages will appear here.</h2>
-          <p className="mt-2 text-sm text-text-secondary">Start from a property page when you are ready to contact a host.</p>
-          <Link href="/search" className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white transition hover:bg-accent">
-            Browse properties
-          </Link>
-        </div>
-      );
-    }
+ if (conversations.length === 0) {
+ return (
+ <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-5 py-8 text-center">
+ <h2 className="text-base font-bold text-primary">Your messages will appear here.</h2>
+ <p className="mt-2 text-sm text-text-secondary">Start from a property page when you are ready to contact a host.</p>
+ <Link href="/search" className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white transition hover:bg-accent">
+ Browse properties
+ </Link>
+ </div>
+ );
+ }
 
-    if (filteredConversations.length === 0) {
-      return (
-        <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-5 py-8 text-center text-sm text-text-secondary">
-          No conversations match your search.
-        </div>
-      );
-    }
+ if (filteredConversations.length === 0) {
+ return (
+ <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-5 py-8 text-center text-sm text-text-secondary">
+ No conversations match your search.
+ </div>
+ );
+ }
 
-    return (
-      <div className="space-y-2">
-        {filteredConversations.map((conv) => {
-          const myParticipant = conv.participants?.find((p: any) => p.userId === userId);
-          const latestMessage = conv.messages?.[0];
-          const latestMessagePreview = typeof latestMessage?.encryptedPayload === "string" && latestMessage.encryptedPayload.trim()
-            ? latestMessage.encryptedPayload
-            : "No messages yet";
-          const latestActivityAt = latestMessage?.createdAt || conv.updatedAt;
-          const isUnread = myParticipant && latestActivityAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(latestActivityAt));
-          const propertyImage = getPropertyImage(conv.property);
-          const isActive = conv.id === selectedConversationId;
+ return (
+ <div className="space-y-2">
+ {filteredConversations.map((conv) => {
+ const myParticipant = conv.participants?.find((p: any) => p.userId === userId);
+ const latestMessage = conv.messages?.[0];
+ const latestMessagePreview = typeof latestMessage?.encryptedPayload === "string" && latestMessage.encryptedPayload.trim()
+ ? latestMessage.encryptedPayload
+ : "No messages yet";
+ const latestActivityAt = latestMessage?.createdAt || conv.updatedAt;
+ const isUnread = myParticipant && latestActivityAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(latestActivityAt));
+ const propertyImage = getPropertyImage(conv.property);
+ const isActive = conv.id === selectedConversationId;
 
-          return (
-            <button
-              key={conv.id}
-              type="button"
-              className={`group flex w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:border-accent hover:bg-surface hover:shadow-sm ${
-                isActive
-                  ? "border-accent bg-surface shadow-sm ring-1 ring-accent/20"
-                  : isUnread
-                    ? "border-accent/60 bg-orange-50/40"
-                    : "border-border-strong bg-surface"
-              }`}
-              onClick={() => router.push(`/messages/${conv.id}`)}
-            >
-              <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-surface-muted">
-                <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className={`truncate text-sm font-bold group-hover:text-accent ${isUnread || isActive ? "text-primary" : "text-text-primary"}`}>
-                    {conv.property?.name || "Unknown Property"}
-                  </h3>
-                  {latestActivityAt && <span className="shrink-0 text-[11px] font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}
-                </div>
-                <div className="mt-1 flex items-center gap-2">
-                  {isUnread && <span className="h-2 w-2 shrink-0 rounded-full bg-accent" aria-label="Unread conversation" />}
-                  <p className={`truncate text-xs ${isUnread ? "font-semibold text-primary" : "text-text-secondary"}`}>{latestMessagePreview}</p>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  };
+ return (
+ <button
+ key={conv.id}
+ type="button"
+ className={`group flex w-full items-center gap-3 rounded-xl border p-3 text-left transition hover:border-accent hover:bg-surface hover:shadow-sm ${
+ isActive
+ ? "border-accent bg-surface shadow-sm ring-1 ring-accent/20"
+ : isUnread
+ ? "border-accent/60 bg-surface-orange/40"
+ : "border-border-strong bg-surface"
+ }`}
+ onClick={() => router.push(`/messages/${conv.id}`)}
+ >
+ <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-surface-muted">
+ <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
+ </div>
+ <div className="min-w-0 flex-1">
+ <div className="flex items-start justify-between gap-2">
+ <h3 className={`truncate text-sm font-bold group-hover:text-accent ${isUnread || isActive ? "text-primary" : "text-text-primary"}`}>
+ {conv.property?.name || "Unknown Property"}
+ </h3>
+ {latestActivityAt && <span className="shrink-0 text-[11px] font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}
+ </div>
+ <div className="mt-1 flex items-center gap-2">
+ {isUnread && <span className="h-2 w-2 shrink-0 rounded-full bg-accent" aria-label="Unread conversation" />}
+ <p className={`truncate text-xs ${isUnread ? "font-semibold text-primary" : "text-text-secondary"}`}>{latestMessagePreview}</p>
+ </div>
+ </div>
+ </button>
+ );
+ })}
+ </div>
+ );
+ };
 
-  useEffect(() => {
-    if (selectedConversationId) {
-      const isMobile = window.innerWidth < 640;
-      if (isMobile) {
-        document.body.style.overflow = 'hidden';
-      }
-      return () => {
-        if (isMobile) {
-          document.body.style.overflow = 'unset';
-        }
-      };
-    }
-  }, [selectedConversationId]);
+ useEffect(() => {
+ if (selectedConversationId) {
+ const isMobile = window.innerWidth < 640;
+ if (isMobile) {
+ document.body.style.overflow = 'hidden';
+ }
+ return () => {
+ if (isMobile) {
+ document.body.style.overflow = 'unset';
+ }
+ };
+ }
+ }, [selectedConversationId]);
 
-  return (
-    <div className={`mx-auto w-full max-w-7xl sm:px-6 lg:h-[calc(100vh-48px)] lg:min-h-0 lg:py-6 ${
-      selectedConversationId 
-        ? "fixed inset-0 z-[150] h-[100dvh] max-h-[100dvh] bg-surface sm:static sm:z-auto sm:h-auto sm:max-h-none sm:bg-transparent flex flex-col min-h-0" 
-        : "min-h-[calc(100vh-72px)] px-4 py-6"
-    }`}>
-      {error && <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+ return (
+ <div className={`mx-auto w-full max-w-7xl sm:px-6 lg:h-[calc(100vh-48px)] lg:min-h-0 lg:py-6 ${
+ selectedConversationId
+ ? "fixed inset-0 z-[150] h-[100dvh] max-h-[100dvh] bg-surface sm:static sm:z-auto sm:h-auto sm:max-h-none sm:bg-transparent flex flex-col min-h-0"
+ : "min-h-[calc(100vh-72px)] px-4 py-6"
+ }`}>
+ {error && <div className="mb-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
-      <div className={`overflow-hidden bg-surface lg:grid lg:h-full lg:grid-cols-[360px_minmax(0,1fr)] lg:rounded-2xl lg:border lg:border-border-strong lg:shadow-sm xl:grid-cols-[400px_minmax(0,1fr)] ${
-        selectedConversationId ? "h-full flex flex-col min-h-0" : ""
-      }`}>
-        <aside className={`${selectedConversationId ? "hidden lg:flex" : "flex"} min-h-0 flex-col bg-surface lg:border-r lg:border-border-strong`}>
-          <div className="shrink-0 border-b border-border-strong px-4 py-5 sm:px-5">
-            <h1 className="text-2xl font-bold text-primary">Messages</h1>
-            <p className="mt-1 text-sm text-text-secondary">Your conversations with property hosts</p>
-            <div className="relative mt-4">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search conversations"
-                className="h-11 w-full rounded-full border border-border-strong bg-surface pl-10 pr-4 text-sm text-primary shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-          </div>
-          <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/60 p-3 sm:p-4">
-            {renderConversationList()}
-          </div>
-        </aside>
+ <div className={`overflow-hidden bg-surface lg:grid lg:h-full lg:grid-cols-[360px_minmax(0,1fr)] lg:rounded-2xl lg:border lg:border-border-strong lg:shadow-sm xl:grid-cols-[400px_minmax(0,1fr)] ${
+ selectedConversationId ? "h-full flex flex-col min-h-0" : ""
+ }`}>
+ <aside className={`${selectedConversationId ? "hidden lg:flex" : "flex"} min-h-0 flex-col bg-surface lg:border-r lg:border-border-strong`}>
+ <div className="shrink-0 border-b border-border-strong px-4 py-5 sm:px-5">
+ <h1 className="text-2xl font-bold text-primary">Messages</h1>
+ <p className="mt-1 text-sm text-text-secondary">Your conversations with property hosts</p>
+ <div className="relative mt-4">
+ <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+ <input
+ type="search"
+ value={searchQuery}
+ onChange={(e) => setSearchQuery(e.target.value)}
+ placeholder="Search conversations"
+ className="h-11 w-full rounded-full border border-border-strong bg-surface pl-10 pr-4 text-sm text-primary shadow-sm focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+ />
+ </div>
+ </div>
+ <div className="min-h-0 flex-1 overflow-y-auto bg-surface-lavender/60 p-3 sm:p-4">
+ {renderConversationList()}
+ </div>
+ </aside>
 
-        <section className={`${selectedConversationId ? "flex flex-1" : "hidden lg:flex"} min-h-0 flex-col bg-surface`}>
-          {selectedConversationId ? (
-            <ChatConversation conversationId={selectedConversationId} backHref="/messages" embedded onConversationUpdated={handleConversationUpdated} />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-slate-50/70 p-8 text-center">
-              <div className="max-w-sm">
-                <h2 className="text-xl font-bold text-primary">Select a conversation</h2>
-                <p className="mt-2 text-sm text-text-secondary">Choose a property conversation from the list to continue messaging.</p>
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
-    </div>
-  );
+ <section className={`${selectedConversationId ? "flex flex-1" : "hidden lg:flex"} min-h-0 flex-col bg-surface`}>
+ {selectedConversationId ? (
+ <ChatConversation conversationId={selectedConversationId} backHref="/messages" embedded onConversationUpdated={handleConversationUpdated} />
+ ) : (
+ <div className="flex h-full items-center justify-center bg-surface-lavender/70 p-8 text-center">
+ <div className="max-w-sm">
+ <h2 className="text-xl font-bold text-primary">Select a conversation</h2>
+ <p className="mt-2 text-sm text-text-secondary">Choose a property conversation from the list to continue messaging.</p>
+ </div>
+ </div>
+ )}
+ </section>
+ </div>
+ </div>
+ );
 }

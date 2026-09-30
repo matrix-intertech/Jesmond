@@ -58,7 +58,7 @@ test.describe('Search Map Experience', () => {
 
     // 12. Verify results/markers update.
     await expect(markers.first()).toBeVisible({ timeout: 10000 });
-    
+
     // Ensure "Search this area" disappears
     await expect(searchAreaBtn).not.toBeVisible();
 

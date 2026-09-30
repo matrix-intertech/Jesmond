@@ -5,7 +5,7 @@ test.describe('Phase 2: Authentication & Boundaries', () => {
 
   test('Guest access to protected routes', async ({ page }) => {
     const protectedRoutes = ['/student', '/portal', '/admin'];
-    
+
     for (const route of protectedRoutes) {
       await page.goto(`http://localhost:3000${route}`, { waitUntil: 'networkidle' });
       // Should redirect to login
@@ -25,7 +25,7 @@ test.describe('Phase 2: Authentication & Boundaries', () => {
     await page.goto('http://localhost:3000/portal');
     // Depending on 403 handling, might redirect to /student or /
     await expect(page).not.toHaveURL(/.*\/portal/);
-    
+
     // Try accessing admin
     await page.goto('http://localhost:3000/admin');
     await expect(page).not.toHaveURL(/.*\/admin/);

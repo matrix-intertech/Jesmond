@@ -12,290 +12,290 @@ import { BedDouble, Bath, CarFront } from "lucide-react";
 
 // Dynamically import Leaflet map to avoid window is not defined SSR error
 const MapExperience = dynamic(() => import('./MapExperience').then(m => m.MapExperience), {
-  ssr: false,
-  loading: () => <div className="w-full h-full bg-surface-muted animate-pulse flex items-center justify-center text-text-muted font-medium">Loading Map Engine...</div>
+ ssr: false,
+ loading: () => <div className="w-full h-full bg-surface-muted animate-pulse flex items-center justify-center text-text-muted font-medium">Loading Map Engine...</div>
 });
 
 export function SearchClient({ initialParams }: { initialParams: any }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const onAuthError = () => { clearAuth(); };
-  const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
+ const router = useRouter();
+ const pathname = usePathname();
+ const onAuthError = () => { clearAuth(); };
+ const [hoveredPropertyId, setHoveredPropertyId] = useState<string | null>(null);
 
-  // API State
-  const [properties, setProperties] = useState<any[]>([]);
-  const [meta, setMeta] = useState<any>({ total: 0, page: 1, limit: 20, totalPages: 1 });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+ // API State
+ const [properties, setProperties] = useState<any[]>([]);
+ const [meta, setMeta] = useState<any>({ total: 0, page: 1, limit: 20, totalPages: 1 });
+ const [isLoading, setIsLoading] = useState(true);
+ const [error, setError] = useState<string | null>(null);
 
-  // Utility to update URL state seamlessly
-  const updateSearchState = (updates: Record<string, string | null>) => {
-    const current = new URLSearchParams(window.location.search);
-    let changed = false;
+ // Utility to update URL state seamlessly
+ const updateSearchState = (updates: Record<string, string | null>) => {
+ const current = new URLSearchParams(window.location.search);
+ let changed = false;
 
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '') {
-        if (current.has(key)) {
-          current.delete(key);
-          changed = true;
-        }
-      } else {
-        if (current.get(key) !== value) {
-          current.set(key, value);
-          changed = true;
-        }
-      }
-    });
+ Object.entries(updates).forEach(([key, value]) => {
+ if (value === null || value === '') {
+ if (current.has(key)) {
+ current.delete(key);
+ changed = true;
+ }
+ } else {
+ if (current.get(key) !== value) {
+ current.set(key, value);
+ changed = true;
+ }
+ }
+ });
 
-    // If changing filters (not just pagination), reset to page 1
-    if (changed && !updates.page && current.has('page')) {
-      current.delete('page');
-    }
+ // If changing filters (not just pagination), reset to page 1
+ if (changed && !updates.page && current.has('page')) {
+ current.delete('page');
+ }
 
-    if (changed) {
-      router.push(`${pathname}?${current.toString()}`, { scroll: false });
-    }
-  };
+ if (changed) {
+ router.push(`${pathname}?${current.toString()}`, { scroll: false });
+ }
+ };
 
-  // Fetch properties whenever initialParams change
-  useEffect(() => {
-    const controller = new AbortController();
+ // Fetch properties whenever initialParams change
+ useEffect(() => {
+ const controller = new AbortController();
 
-    const fetchProperties = async () => {
-      setIsLoading(true);
-      setError(null);
+ const fetchProperties = async () => {
+ setIsLoading(true);
+ setError(null);
 
-      try {
-        // Construct query string
-        const searchParams = new URLSearchParams();
-        Object.entries(initialParams).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            searchParams.append(key, String(value));
-          }
-        });
+ try {
+ // Construct query string
+ const searchParams = new URLSearchParams();
+ Object.entries(initialParams).forEach(([key, value]) => {
+ if (value !== undefined && value !== null && value !== '') {
+ searchParams.append(key, String(value));
+ }
+ });
 
-        const apiUrl = getApiUrl();
-        const token = getAccessToken();
-        const onAuthError = () => { clearAuth(); };
-        const res = await fetch(`${apiUrl}/api/v1/properties/search?${searchParams.toString()}`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-          signal: controller.signal
-        });
-        const status = await handleApiError(res, onAuthError);
-        if (status !== 'ok') {
-          // Non-success statuses (including forbidden, notfound, error) are handled without logout
-          setError('Failed to fetch properties');
-          return;
-        }
-        const json = await res.json();
-        setProperties(json.data || []);
-        setMeta(json.meta || { total: 0, page: 1, limit: 20, totalPages: 1 });
-      } catch (err: any) {
-        if (err.name !== 'AbortError') {
-          setError(err.message || 'An error occurred while fetching properties');
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
+ const apiUrl = getApiUrl();
+ const token = getAccessToken();
+ const onAuthError = () => { clearAuth(); };
+ const res = await fetch(`${apiUrl}/api/v1/properties/search?${searchParams.toString()}`, {
+ headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+ signal: controller.signal
+ });
+ const status = await handleApiError(res, onAuthError);
+ if (status !== 'ok') {
+ // Non-success statuses (including forbidden, notfound, error) are handled without logout
+ setError('Failed to fetch properties');
+ return;
+ }
+ const json = await res.json();
+ setProperties(json.data || []);
+ setMeta(json.meta || { total: 0, page: 1, limit: 20, totalPages: 1 });
+ } catch (err: any) {
+ if (err.name !== 'AbortError') {
+ setError(err.message || 'An error occurred while fetching properties');
+ }
+ } finally {
+ setIsLoading(false);
+ }
+ };
 
-    fetchProperties();
+ fetchProperties();
 
-    return () => {
-      controller.abort();
-    };
-  }, [initialParams]);
+ return () => {
+ controller.abort();
+ };
+ }, [initialParams]);
 
-  return (
-    <div className="relative flex min-h-[calc(100vh-72px)] flex-1 overflow-hidden lg:h-[calc(100vh-80px)]">
+ return (
+ <div className="relative flex min-h-[calc(100vh-72px)] flex-1 overflow-hidden lg:h-[calc(100vh-80px)]">
 
-      {/* LEFT: Scrollable Results */}
-      <div className="w-full lg:w-[60%] xl:w-[50%] h-full overflow-y-auto bg-surface-muted flex flex-col custom-scrollbar relative">
+ {/* LEFT: Scrollable Results */}
+ <div className="w-full lg:w-[60%] xl:w-[50%] h-full overflow-y-auto bg-surface-muted flex flex-col custom-scrollbar relative">
 
-        {/* Results Header */}
-        <div className="sticky top-0 z-10 bg-surface-muted/90 px-4 pb-4 pt-5 backdrop-blur-md sm:px-10 sm:pt-8">
-          <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">
-            {!isLoading && `${meta.total} verified student homes`}
-            {isLoading && `Searching properties...`}
-          </p>
-          <h1 className="break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl">
-            {initialParams.locationLabel
-              ? `Properties within ${initialParams.radiusKm || 10}km of ${initialParams.locationLabel}`
-              : initialParams.university || initialParams.uni
-              ? `Accommodation near ${initialParams.university || initialParams.uni}`
-              : initialParams.city
-              ? `Student Accommodation in ${initialParams.city}`
-              : initialParams.roomType || initialParams.type
-              ? `${(initialParams.roomType || initialParams.type).charAt(0).toUpperCase() + (initialParams.roomType || initialParams.type).slice(1)} Student Housing`
-              : 'Discover Student Living'}
-          </h1>
+ {/* Results Header */}
+ <div className="sticky top-0 z-10 bg-surface-muted/90 px-4 pb-4 pt-5 backdrop-blur-md sm:px-10 sm:pt-8">
+ <p className="text-sm font-bold text-text-secondary uppercase tracking-widest mb-2">
+ {!isLoading && `${meta.total} verified student homes`}
+ {isLoading && `Searching properties...`}
+ </p>
+ <h1 className="break-words text-2xl font-bold tracking-tight text-primary sm:text-3xl">
+ {initialParams.locationLabel
+ ? `Properties within ${initialParams.radiusKm || 10}km of ${initialParams.locationLabel}`
+ : initialParams.university || initialParams.uni
+ ? `Accommodation near ${initialParams.university || initialParams.uni}`
+ : initialParams.city
+ ? `Student Accommodation in ${initialParams.city}`
+ : initialParams.roomType || initialParams.type
+ ? `${(initialParams.roomType || initialParams.type).charAt(0).toUpperCase() + (initialParams.roomType || initialParams.type).slice(1)} Student Housing`
+ : 'Discover Student Living'}
+ </h1>
 
-          <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
-            {initialParams.locationLabel && (
-              <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })} className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy">
-                📍 {initialParams.locationLabel} ✕
-              </button>
-            )}
-            <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-slate-400'}`}>Under $200/wk</button>
-            <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-slate-400'}`}>Studio</button>
-            <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-slate-400 transition-colors">Clear</button>
-          </div>
-        </div>
+ <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
+ {initialParams.locationLabel && (
+ <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })} className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy">
+ 📍 {initialParams.locationLabel} ✕
+ </button>
+ )}
+ <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}>Under $200/wk</button>
+ <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}>Studio</button>
+ <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-brand-purple transition-colors">Clear</button>
+ </div>
+ </div>
 
-        {/* State Handling: Loading */}
-        {isLoading && (
-          <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col sm:flex-row bg-surface border border-border-strong rounded-[24px] overflow-hidden animate-pulse h-[320px] sm:h-[240px]">
-                <div className="w-full sm:w-[300px] h-[200px] sm:h-full bg-secondary shrink-0"></div>
-                <div className="p-6 flex flex-col justify-between flex-grow w-full">
-                  <div>
-                    <div className="w-3/4 h-6 bg-secondary rounded mb-2"></div>
-                    <div className="w-1/2 h-4 bg-secondary rounded"></div>
-                  </div>
-                  <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-                    <div className="w-24 h-8 bg-secondary rounded"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+ {/* State Handling: Loading */}
+ {isLoading && (
+ <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
+ {[1, 2, 3].map((i) => (
+ <div key={i} className="flex flex-col sm:flex-row bg-surface border border-border-strong rounded-[24px] overflow-hidden animate-pulse h-[320px] sm:h-[240px]">
+ <div className="w-full sm:w-[300px] h-[200px] sm:h-full bg-secondary shrink-0"></div>
+ <div className="p-6 flex flex-col justify-between flex-grow w-full">
+ <div>
+ <div className="w-3/4 h-6 bg-secondary rounded mb-2"></div>
+ <div className="w-1/2 h-4 bg-secondary rounded"></div>
+ </div>
+ <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+ <div className="w-24 h-8 bg-secondary rounded"></div>
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ )}
 
-        {/* State Handling: Error */}
-        {!isLoading && error && (
-          <div className="m-4 bg-red-50 p-6 sm:m-6 sm:p-10 border border-red-200 rounded-2xl flex flex-col items-center justify-center text-center">
-            <svg className="w-12 h-12 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            <h3 className="text-lg font-bold text-red-900 mb-2">Failed to load properties</h3>
-            <p className="text-red-700 mb-4">{error}</p>
-            <button onClick={() => updateSearchState({})} className="px-6 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition-colors">Retry</button>
-          </div>
-        )}
+ {/* State Handling: Error */}
+ {!isLoading && error && (
+ <div className="m-4 bg-red-50 p-6 sm:m-6 sm:p-10 border border-red-200 rounded-2xl flex flex-col items-center justify-center text-center">
+ <svg className="w-12 h-12 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+ <h3 className="text-lg font-bold text-red-900 mb-2">Failed to load properties</h3>
+ <p className="text-red-700 mb-4">{error}</p>
+ <button onClick={() => updateSearchState({})} className="px-6 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition-colors">Retry</button>
+ </div>
+ )}
 
-        {/* State Handling: Empty */}
-        {!isLoading && !error && properties.length === 0 && (
-          <div className="m-4 bg-surface p-6 sm:m-6 sm:p-10 border border-border-strong rounded-2xl flex flex-col items-center justify-center text-center h-[400px]">
-            <div className="w-16 h-16 bg-surface-muted rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </div>
-            <h3 className="text-xl font-bold text-primary mb-2">No properties found</h3>
-            <p className="text-text-secondary mb-6 max-w-md">We couldn't find any student homes matching your current filters. Try adjusting your search criteria.</p>
-            <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors">Clear all filters</button>
-          </div>
-        )}
+ {/* State Handling: Empty */}
+ {!isLoading && !error && properties.length === 0 && (
+ <div className="m-4 bg-surface p-6 sm:m-6 sm:p-10 border border-border-strong rounded-2xl flex flex-col items-center justify-center text-center h-[400px]">
+ <div className="w-16 h-16 bg-surface-muted rounded-full flex items-center justify-center mb-4">
+ <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+ </div>
+ <h3 className="text-xl font-bold text-primary mb-2">No properties found</h3>
+ <p className="text-text-secondary mb-6 max-w-md">We couldn't find any student homes matching your current filters. Try adjusting your search criteria.</p>
+ <button onClick={() => updateSearchState({ maxPrice: null, roomType: null, city: null, page: null })} className="px-6 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors">Clear all filters</button>
+ </div>
+ )}
 
-        {/* Property Grid */}
-        {!isLoading && !error && properties.length > 0 && (
-          <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
-            {properties.map((prop) => {
-              const image = (prop.media && prop.media.length > 0) ? prop.media[0].url : '/assets/property-placeholder.png';
-              const location = `${prop.suburb}, ${prop.city}`;
-              const verified = prop.provider?.verified;
+ {/* Property Grid */}
+ {!isLoading && !error && properties.length > 0 && (
+ <div className="grid grid-cols-1 gap-4 px-4 py-5 sm:px-10 md:grid-cols-2 md:gap-6 lg:grid-cols-1">
+ {properties.map((prop) => {
+ const image = (prop.media && prop.media.length > 0) ? prop.media[0].url : '/assets/property-placeholder.png';
+ const location = `${prop.suburb}, ${prop.city}`;
+ const verified = prop.provider?.verified;
 
-              return (
-                <div
-                  key={prop.id}
-                  onClick={() => router.push(`/property/${prop.id}`)}
-                  onMouseEnter={() => setHoveredPropertyId(prop.id)}
-                  onMouseLeave={() => setHoveredPropertyId(null)}
-                  className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-surface sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-border-strong hover:border-accent transition group relative cursor-pointer"
-                >
-                  <div className="absolute top-4 right-4 z-20">
-                    <SaveButton propertyId={prop.id} />
-                  </div>
-                  <div className="relative w-full sm:w-[300px] h-[240px] sm:h-auto shrink-0 bg-surface-muted">
-                    <SafeImage src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
-                    {verified && (
-                      <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm">
-                        Verified
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-grow flex-col justify-between p-4 sm:p-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-primary mb-1">{prop.name}</h3>
-                      <p className="text-sm font-medium text-text-secondary mb-1">{location}</p>
-                      {prop.distance !== undefined && (
-                        <p className="text-xs font-bold text-accent mb-3">{prop.distance.toFixed(1)} km away</p>
-                      )}
-                      {!prop.distance && <div className="mb-3" />}
-                      {(() => {
-                        const c = prop.configuration || {};
-                        const hasBed = !!c.bedrooms;
-                        const hasBath = !!c.bathrooms;
-                        const hasCar = !!c.parkingSpaces;
+ return (
+ <div
+ key={prop.id}
+ onClick={() => router.push(`/property/${prop.id}`)}
+ onMouseEnter={() => setHoveredPropertyId(prop.id)}
+ onMouseLeave={() => setHoveredPropertyId(null)}
+ className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-surface sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-border-strong hover:border-accent transition group relative cursor-pointer"
+ >
+ <div className="absolute top-4 right-4 z-20">
+ <SaveButton propertyId={prop.id} />
+ </div>
+ <div className="relative w-full sm:w-[300px] h-[240px] sm:h-auto shrink-0 bg-surface-muted">
+ <SafeImage src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
+ {verified && (
+ <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm">
+ Verified
+ </div>
+ )}
+ </div>
+ <div className="flex flex-grow flex-col justify-between p-4 sm:p-6">
+ <div>
+ <h3 className="text-xl font-bold text-primary mb-1">{prop.name}</h3>
+ <p className="text-sm font-medium text-text-secondary mb-1">{location}</p>
+ {prop.distance !== undefined && (
+ <p className="text-xs font-bold text-accent mb-3">{prop.distance.toFixed(1)} km away</p>
+ )}
+ {!prop.distance && <div className="mb-3" />}
+ {(() => {
+ const c = prop.configuration || {};
+ const hasBed = !!c.bedrooms;
+ const hasBath = !!c.bathrooms;
+ const hasCar = !!c.parkingSpaces;
 
-                        if (!hasBed && !hasBath && !hasCar) return null;
+ if (!hasBed && !hasBath && !hasCar) return null;
 
-                        return (
-                          <div className="flex items-center gap-4 text-sm text-text-secondary font-medium">
-                            {hasBed && (
-                              <span className="flex items-center gap-1.5" title="Bedrooms">
-                                <BedDouble className="h-4 w-4" />
-                                <span>{c.bedrooms}</span>
-                              </span>
-                            )}
+ return (
+ <div className="flex items-center gap-4 text-sm text-text-secondary font-medium">
+ {hasBed && (
+ <span className="flex items-center gap-1.5" title="Bedrooms">
+ <BedDouble className="h-4 w-4" />
+ <span>{c.bedrooms}</span>
+ </span>
+ )}
 
-                            {hasBath && (
-                              <span className="flex items-center gap-1.5" title="Bathrooms">
-                                <Bath className="h-4 w-4" />
-                                <span>{c.bathrooms}</span>
-                              </span>
-                            )}
+ {hasBath && (
+ <span className="flex items-center gap-1.5" title="Bathrooms">
+ <Bath className="h-4 w-4" />
+ <span>{c.bathrooms}</span>
+ </span>
+ )}
 
-                            {hasCar && (
-                              <span className="flex items-center gap-1.5" title="Parking Spaces">
-                                <CarFront className="h-4 w-4" />
-                                <span>{c.parkingSpaces}</span>
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
-                      <p className="text-2xl font-bold text-primary tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-text-secondary">/wk</span></p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+ {hasCar && (
+ <span className="flex items-center gap-1.5" title="Parking Spaces">
+ <CarFront className="h-4 w-4" />
+ <span>{c.parkingSpaces}</span>
+ </span>
+ )}
+ </div>
+ );
+ })()}
+ </div>
+ <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+ <p className="text-2xl font-bold text-primary tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-text-secondary">/wk</span></p>
+ </div>
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ )}
 
-        {/* Pagination Controls */}
-        {!isLoading && !error && meta.totalPages > 1 && (
-          <div className="mt-auto flex items-center justify-between gap-3 border-t border-border-strong px-4 pb-8 pt-4 sm:px-10">
-            <button
-              disabled={meta.page <= 1}
-              onClick={() => updateSearchState({ page: String(meta.page - 1) })}
-              className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <span className="text-sm font-medium text-text-secondary">
-              Page {meta.page} of {meta.totalPages}
-            </span>
-            <button
-              disabled={meta.page >= meta.totalPages}
-              onClick={() => updateSearchState({ page: String(meta.page + 1) })}
-              className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </div>
+ {/* Pagination Controls */}
+ {!isLoading && !error && meta.totalPages > 1 && (
+ <div className="mt-auto flex items-center justify-between gap-3 border-t border-border-strong px-4 pb-8 pt-4 sm:px-10">
+ <button
+ disabled={meta.page <= 1}
+ onClick={() => updateSearchState({ page: String(meta.page - 1) })}
+ className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+ >
+ Previous
+ </button>
+ <span className="text-sm font-medium text-text-secondary">
+ Page {meta.page} of {meta.totalPages}
+ </span>
+ <button
+ disabled={meta.page >= meta.totalPages}
+ onClick={() => updateSearchState({ page: String(meta.page + 1) })}
+ className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+ >
+ Next
+ </button>
+ </div>
+ )}
+ </div>
 
-      {/* RIGHT: Interactive Map */}
-      <div className="hidden lg:block lg:w-[40%] xl:w-[50%] h-full relative border-l border-border-strong">
-        <MapExperience
-          properties={properties}
-          hoveredPropertyId={hoveredPropertyId}
-          onMarkerHover={setHoveredPropertyId}
-        />
-      </div>
+ {/* RIGHT: Interactive Map */}
+ <div className="hidden lg:block lg:w-[40%] xl:w-[50%] h-full relative border-l border-border-strong">
+ <MapExperience
+ properties={properties}
+ hoveredPropertyId={hoveredPropertyId}
+ onMarkerHover={setHoveredPropertyId}
+ />
+ </div>
 
-    </div>
-  );
+ </div>
+ );
 }

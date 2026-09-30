@@ -34,10 +34,10 @@ test.describe('Hero Search', () => {
 
     // 5. Enter/select a valid location.
     await whereInput.fill('Melbourne');
-    
+
     // Select room type
     await roomSelect.selectOption('Studio');
-    
+
     // Select budget
     await budgetSelect.selectOption('450');
 
@@ -49,7 +49,7 @@ test.describe('Hero Search', () => {
     // 7. Verify navigation to the existing property search/discovery flow.
     // 8. Verify the selected search parameter is present.
     await expect(page).toHaveURL(/.*\/search\?city=Melbourne&roomType=Studio&maxPrice=450/);
-    
+
     // 9. Verify property results load or the existing empty-state appears correctly.
     // In the search page, either "Discover Student Living" or "Student Accommodation in Melbourne" is present
     const heading = page.locator('h1');

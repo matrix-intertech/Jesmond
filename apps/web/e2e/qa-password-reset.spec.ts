@@ -26,7 +26,7 @@ test.describe('Forgot Password Flow & Security', () => {
     const data = await res.json();
     expect(data.message).toBe('If an account exists with this email, an OTP has been sent.');
   });
-  
+
   test('3. Forgot-password rate limiting / cooldown works', async ({ request }) => {
     // Repeated request immediately after the first one
     const res = await request.post('/api/v1/auth/forgot-password', { data: { email: testEmail } });
@@ -51,10 +51,10 @@ test.describe('Forgot Password Flow & Security', () => {
     const knownOtpHash = '$2b$10$QVOaKb7MQDNFv5sEL9jN6OLKP0G4.UDsxsRO49ch3oxFra0Xd7PdS'; // Bcrypt of '123456'
 
     await prisma.$executeRawUnsafe(`
-      UPDATE "User" 
-      SET "passwordResetToken" = '${knownOtpHash}', 
-          "passwordResetExpiresAt" = NOW() + interval '15 minutes', 
-          "passwordResetOtpAttempts" = 0 
+      UPDATE "User"
+      SET "passwordResetToken" = '${knownOtpHash}',
+          "passwordResetExpiresAt" = NOW() + interval '15 minutes',
+          "passwordResetOtpAttempts" = 0
       WHERE email = '${adminEmail}'
     `);
 
@@ -82,13 +82,13 @@ test.describe('Forgot Password Flow & Security', () => {
       data: { email: adminEmail, password: newPassword }
     });
     expect(newLoginRes.ok()).toBeTruthy();
-    
+
     // Cleanup: Reset password back for other tests
     await prisma.$executeRawUnsafe(`
-      UPDATE "User" 
-      SET "passwordResetToken" = '${knownOtpHash}', 
-          "passwordResetExpiresAt" = NOW() + interval '15 minutes', 
-          "passwordResetOtpAttempts" = 0 
+      UPDATE "User"
+      SET "passwordResetToken" = '${knownOtpHash}',
+          "passwordResetExpiresAt" = NOW() + interval '15 minutes',
+          "passwordResetOtpAttempts" = 0
       WHERE email = '${adminEmail}'
     `);
     await request.post('/api/v1/auth/reset-password', {

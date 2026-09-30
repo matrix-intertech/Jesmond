@@ -12,11 +12,11 @@ import { NotificationDropdown } from '../notifications/NotificationDropdown';
  * - Relies solely on the existing inline SVG icons (the logout icon) and the auth utilities.
  */
 export default function Header() {
-  return (
-    <header className="flex items-center justify-end bg-surface/80 backdrop-blur-md border-b border-border-strong/60 px-6 h-[76px] sticky top-0 z-20">
-      <div className="flex items-center gap-4">
-        <NotificationDropdown />
-      </div>
-    </header>
-  );
+ return (
+ <header className="flex items-center justify-end bg-surface/80 backdrop-blur-md border-b border-border-strong/60 px-6 h-[76px] sticky top-0 z-20">
+ <div className="flex items-center gap-4">
+ <NotificationDropdown />
+ </div>
+ </header>
+ );
 }

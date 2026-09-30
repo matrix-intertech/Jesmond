@@ -24,29 +24,29 @@ test.describe('Retail Marketplace Phase 1 (e2e)', () => {
   test('Store Catalog: full page load and display assertions', async ({ page }) => {
     // 1. Open /retail
     await page.goto('/retail');
-    
+
     // If stores are available, click the first one
     const storeCards = page.locator('a[href^="/retail/store/"]');
     const storeCount = await storeCards.count();
-    
+
     if (storeCount > 0) {
       // 2. Click a store
       await storeCards.first().click();
-      
+
       // 3. Store detail page loads successfully
       await expect(page.getByRole('heading', { name: 'Available Products' })).toBeVisible();
-      
+
       // Check if catalog is empty
       const emptyState = page.getByText('This store has no available products right now');
       if (!(await emptyState.isVisible())) {
         // 4. Products are displayed
         const products = page.locator('h4'); // Product titles
         expect(await products.count()).toBeGreaterThan(0);
-        
+
         // 5. Product images are displayed (at least one image should be visible)
         const images = page.locator('img');
         expect(await images.count()).toBeGreaterThan(0);
-        
+
         // 6. Available quantity is respected
         // We look for the "Out of stock" overlay or the "Only X left" badge, or the add button state
         const addToCartButtons = page.locator('button', { hasText: '+' });

@@ -86,7 +86,7 @@ test.describe('Homepage Redesign Verification', () => {
 
     // The original hero search bar uses an input placeholder "Search university or city" or "Where" label
     const whereInput = page.getByPlaceholder('Search university or city');
-    
+
     // We need to click the search bar first to open the modal
     const searchModalTrigger = page.locator('text=Where to?').first();
     if (await searchModalTrigger.isVisible()) {
@@ -95,17 +95,17 @@ test.describe('Homepage Redesign Verification', () => {
         // Desktop pill
         await page.locator('text=Where').first().click();
     }
-    
+
     await expect(whereInput).toBeVisible();
     await whereInput.fill('Sydney');
-    
+
     // Click Search Properties button
     const searchBtn = page.getByRole('button', { name: 'Search' });
     await searchBtn.click();
 
     // Verify it navigated to /search and query param is in URL
     await page.waitForURL(url => url.pathname.includes('/search') && url.searchParams.get('city') === 'Sydney');
-    
+
     // Ensure no errors on search page either
     const hasReactLoop = consoleErrors.some(err => err.includes('Maximum update depth exceeded'));
     expect(hasReactLoop).toBe(false);

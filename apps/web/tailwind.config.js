@@ -25,12 +25,18 @@ export default {
         brand: {
           indigo: "rgb(var(--brand-indigo) / <alpha-value>)",
           purple: "rgb(var(--brand-purple) / <alpha-value>)",
+          "bright-purple": "rgb(var(--brand-bright-purple) / <alpha-value>)",
           magenta: "rgb(var(--brand-magenta) / <alpha-value>)",
+          "hot-pink": "rgb(var(--brand-hot-pink) / <alpha-value>)",
           orange: "rgb(var(--brand-orange) / <alpha-value>)",
+          "orange-light": "rgb(var(--brand-orange-light) / <alpha-value>)",
         },
         surface: {
           DEFAULT: "var(--surface)",
           muted: "var(--surface-muted)",
+          lavender: "var(--surface-lavender)",
+          pink: "var(--surface-pink)",
+          orange: "var(--surface-orange)",
         },
         border: {
           subtle: "var(--border-subtle)",
@@ -38,9 +44,13 @@ export default {
         },
         semantic: {
           success: "var(--success)",
+          "success-bg": "var(--success-bg)",
           warning: "var(--warning)",
+          "warning-bg": "var(--warning-bg)",
           error: "var(--error)",
+          "error-bg": "var(--error-bg)",
           info: "var(--info)",
+          "info-bg": "var(--info-bg)",
         },
         text: {
           primary: "var(--text-primary)",

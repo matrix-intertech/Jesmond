@@ -39,7 +39,7 @@ export function usePushSubscription() {
 
   const subscribe = async (vapidPublicKey: string) => {
     if (!isSupported) return;
-    
+
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
@@ -47,7 +47,7 @@ export function usePushSubscription() {
       if (result === 'granted') {
         const registration = await navigator.serviceWorker.ready;
         const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
-        
+
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: convertedVapidKey

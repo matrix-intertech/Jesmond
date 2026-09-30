@@ -32,7 +32,7 @@ export function useUnreadChatCount() {
           // Sort messages to get the latest one just in case
           const messages = conv.messages || [];
           if (messages.length === 0) continue;
-          
+
           const sortedMessages = [...messages].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           const latestMessage = sortedMessages[0];
 
@@ -53,10 +53,10 @@ export function useUnreadChatCount() {
   useEffect(() => {
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 60000); // poll every minute
-    
+
     // Listen for custom event to update immediately
     window.addEventListener("chatUpdated", fetchUnreadCount);
-    
+
     return () => {
       clearInterval(interval);
       window.removeEventListener("chatUpdated", fetchUnreadCount);

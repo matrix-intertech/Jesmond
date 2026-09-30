@@ -4,47 +4,57 @@
 
 :root {
   /* Foundations */
-  --background: #f8fafc;
-  --foreground: #07163D;
-  
-  /* Brand Specific */
+  --background: #F8FAFC;
+  --foreground: #17124D;
+
+  /* Brand Specific (RGB for alpha support in tailwind) */
   --brand-indigo: 47 26 168;   /* #2F1AA8 */
-  --brand-purple: 75 32 201;   /* #4B20C9 */
+  --brand-purple: 81 56 200;   /* #5138C8 */
+  --brand-bright-purple: 109 63 234; /* #6D3FEA */
   --brand-magenta: 217 27 181; /* #D91BB5 */
-  --brand-orange: 244 119 33;  /* #F47721 */
-  
+  --brand-hot-pink: 227 41 184; /* #E329B8 */
+  --brand-orange: 244 123 32;  /* #F47B20 */
+  --brand-orange-light: 255 154 61; /* #FF9A3D */
+
   /* Semantic Brand Mapping */
-  --primary: 47 26 168;
+  --primary: 47 26 168; /* Deep Indigo */
   --primary-foreground: 255 255 255;
-  --secondary: 241 245 249;
-  --secondary-foreground: 15 23 42;
-  --accent: 217 27 181;
+  --secondary: 245 242 255; /* Light Lavender #F5F2FF */
+  --secondary-foreground: 23 18 77; /* #17124D */
+  --accent: 217 27 181; /* Magenta */
   --accent-foreground: 255 255 255;
-  
+
   /* Inputs */
-  --input-bg: #ffffff;
-  --input-fg: #0f172a;
-  --input-placeholder: #94a3b8;
-  --input-border: #e2e8f0;
+  --input-bg: #FFFFFF;
+  --input-fg: #17124D;
+  --input-placeholder: #5F5A78;
+  --input-border: #DCD7EC;
 
   /* Semantic surfaces */
-  --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  
+  --surface: #FFFFFF;
+  --surface-muted: #F8FAFC;
+  --surface-lavender: #F5F2FF;
+  --surface-pink: #FFF2FB;
+  --surface-orange: #FFF5EA;
+
   /* Text */
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
-  
+  --text-primary: #17124D;
+  --text-secondary: #5F5A78;
+  --text-muted: #8E8A9F;
+
   /* Borders */
-  --border-subtle: #f1f5f9;
-  --border-strong: #e2e8f0;
+  --border-subtle: #F1F5F9;
+  --border-strong: #E6E1F2;
 
   /* Status Colors */
-  --success: #10b981;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --info: #3b82f6;
+  --success: #10B981;
+  --success-bg: #F0FDF4;
+  --warning: #F59E0B;
+  --warning-bg: #FFFBEB;
+  --error: #EF4444;
+  --error-bg: #FEF2F2;
+  --info: #3B82F6;
+  --info-bg: #EFF6FF;
 }
 
 
@@ -78,8 +88,8 @@ a {
 
 
 @layer base {
-  input:not([type="checkbox"]):not([type="radio"]), 
-  textarea, 
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,
   select {
     color-scheme: light;
     background-color: var(--input-bg);
@@ -93,8 +103,8 @@ a {
   }
 
   input:-webkit-autofill,
-  input:-webkit-autofill:hover, 
-  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
   input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
     -webkit-text-fill-color: var(--input-fg) !important;

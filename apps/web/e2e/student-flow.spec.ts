@@ -8,17 +8,17 @@ test.describe('Student Marketplace Flow', () => {
 
   test('Guest -> property detail -> Apply -> login', async ({ page }) => {
     await page.goto('http://localhost:3000/search');
-    
+
     // Wait for the search results to load
     const firstPropertyCard = page.locator('h3').first();
     await expect(firstPropertyCard).toBeVisible({ timeout: 15000 });
-    
+
     // Click the card
     await firstPropertyCard.click();
-    
+
     // Wait for URL to change to /property
     await page.waitForURL(/\/property\/.*/, { timeout: 15000 });
-    
+
     // Check if the property page loaded
     await expect(page.locator('h1').first()).toBeVisible();
 
@@ -26,7 +26,7 @@ test.describe('Student Marketplace Flow', () => {
     const reserveLink = page.getByRole('link', { name: /sign up to reserve/i }).first();
     await expect(reserveLink).toBeVisible();
     await reserveLink.click();
-    
+
     await expect(page).toHaveURL(/.*\/register/);
   });
 
@@ -43,11 +43,11 @@ test.describe('Student Marketplace Flow', () => {
     // 2. Search
     await page.getByRole('link', { name: 'Find Accommodation' }).first().click();
     await expect(page).toHaveURL(/.*\/search/);
-    
+
     // Wait for results
     const firstPropertyCard = page.locator('h3').first();
     await expect(firstPropertyCard).toBeVisible({ timeout: 15000 });
-    
+
     // 3. Open real property
     await firstPropertyCard.click();
     await page.waitForURL(/\/property\/.*/, { timeout: 15000 });
@@ -64,7 +64,7 @@ test.describe('Student Marketplace Flow', () => {
 
     // Fill application form (Move in Date and Duration)
     await expect(page.getByRole('heading', { name: 'Reserve Room' })).toBeVisible();
-    
+
     const dateInput = page.locator('input[type="date"]');
     await dateInput.fill('2026-10-01');
 
@@ -80,7 +80,7 @@ test.describe('Student Marketplace Flow', () => {
     // 6. Application tracking
     await page.getByRole('link', { name: 'View My Applications' }).click();
     await expect(page).toHaveURL(/.*\/student/);
-    
+
     await expect(page.locator('table')).toBeVisible();
     await expect(page.locator('td', { hasText: 'Pending Review' }).first()).toBeVisible();
 
@@ -88,10 +88,10 @@ test.describe('Student Marketplace Flow', () => {
     await page.getByRole('link', { name: 'Saved Properties' }).first().click();
     await expect(page).toHaveURL(/.*\/student\/saved/);
     await expect(page.locator('h1', { hasText: 'Saved Properties' })).toBeVisible();
-    
+
     // 8. Logout
     await page.goto('http://localhost:3000/');
-    const userMenu = page.locator('button:has-text("S")').first(); 
+    const userMenu = page.locator('button:has-text("S")').first();
     if (await userMenu.isVisible()) {
         await userMenu.click();
         const logout = page.getByRole('menuitem', { name: 'Sign out' });

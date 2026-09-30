@@ -4,46 +4,46 @@ import "./globals.css";
 import StudentMobileBottomNavGate from "@/components/layout/StudentMobileBottomNavGate";
 
 const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
+ src: "./fonts/GeistVF.woff",
+ variable: "--font-geist-sans",
 });
 const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+ src: "./fonts/GeistMonoVF.woff",
+ variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Jesmond | Student Accommodation, Retail & Local Services",
-    template: "%s | Jesmond",
-  },
-  description:
-    "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
-  icons: {
-    icon: "/assets/icon.png",
-    apple: "/assets/icon.png",
-  },
+ title: {
+ default: "Jesmond | Student Accommodation, Retail & Local Services",
+ template: "%s | Jesmond",
+ },
+ description:
+ "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
+ icons: {
+ icon: "/assets/icon.png",
+ apple: "/assets/icon.png",
+ },
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
+ width: "device-width",
+ initialScale: 1,
 };
 
 import { PushNotificationInitializer } from "@/components/notifications/PushNotificationInitializer";
 
 export default function RootLayout({
-  children,
+ children,
 }: Readonly<{
-  children: React.ReactNode;
+ children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <PushNotificationInitializer />
-        <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
-        <StudentMobileBottomNavGate />
-      </body>
-    </html>
-  );
+ return (
+ <html lang="en">
+ <body className={`${geistSans.variable} ${geistMono.variable}`}>
+ <PushNotificationInitializer />
+ <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+ <StudentMobileBottomNavGate />
+ </body>
+ </html>
+ );
 }

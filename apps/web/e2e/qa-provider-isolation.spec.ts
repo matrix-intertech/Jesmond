@@ -24,11 +24,11 @@ test.describe('Provider Type Isolation', () => {
     });
 
     const password = await bcrypt.hash('Password123!', 10);
-    
+
     // Create Accommodation Provider via RAW SQL to bypass Prisma Client Enum cache issues
     const accOrgResult: any[] = await prisma.$queryRaw`
-      INSERT INTO "Organization" (id, name, type, status, "updatedAt") 
-      VALUES (gen_random_uuid(), 'QA Acc Org', 'PROVIDER'::"OrgType", 'VERIFIED', now()) 
+      INSERT INTO "Organization" (id, name, type, status, "updatedAt")
+      VALUES (gen_random_uuid(), 'QA Acc Org', 'PROVIDER'::"OrgType", 'VERIFIED', now())
       RETURNING id
     `;
     const accOrgId = accOrgResult[0].id;
@@ -50,8 +50,8 @@ test.describe('Provider Type Isolation', () => {
 
     // Create Retail Provider via RAW SQL
     const retOrgResult: any[] = await prisma.$queryRaw`
-      INSERT INTO "Organization" (id, name, type, status, "updatedAt") 
-      VALUES (gen_random_uuid(), 'QA Ret Org', 'RETAIL'::"OrgType", 'VERIFIED', now()) 
+      INSERT INTO "Organization" (id, name, type, status, "updatedAt")
+      VALUES (gen_random_uuid(), 'QA Ret Org', 'RETAIL'::"OrgType", 'VERIFIED', now())
       RETURNING id
     `;
     const retOrgId = retOrgResult[0].id;
@@ -110,13 +110,13 @@ test.describe('Provider Type Isolation', () => {
     await page.fill('input[name="email"]', 'qa_acc_prov@jesmond.com');
     await page.fill('input[name="password"]', 'Password123!');
     await page.click('button[type="submit"]');
-    
+
     await expect(page).toHaveURL('http://localhost:3000/portal');
-    
+
     // Should see My Properties, Applications, Settings
     await expect(page.locator('nav').locator('text=My Properties')).toBeVisible();
     await expect(page.locator('nav').locator('text=Applications')).toBeVisible();
-    
+
     // Should NOT see Retail links
     await expect(page.locator('nav').locator('text=Retail Overview')).toBeHidden();
     await expect(page.locator('nav').locator('text=Inventory')).toBeHidden();
@@ -130,8 +130,8 @@ test.describe('Provider Type Isolation', () => {
     const apiCheck = await page.evaluate(async () => {
       const token = window.localStorage.getItem('access_token');
       const authHeader = token ? `Bearer ${token}` : '';
-      const res = await fetch('http://localhost:3001/api/v1/retail/businesses/profile', { 
-        headers: { Authorization: authHeader } 
+      const res = await fetch('http://localhost:3001/api/v1/retail/businesses/profile', {
+        headers: { Authorization: authHeader }
       });
       return res.status;
     });
@@ -143,15 +143,15 @@ test.describe('Provider Type Isolation', () => {
     await page.fill('input[name="email"]', 'qa_ret_prov@jesmond.com');
     await page.fill('input[name="password"]', 'Password123!');
     await page.click('button[type="submit"]');
-    
+
     // Should be redirected to /portal/retail
     await expect(page).toHaveURL('http://localhost:3000/portal/retail');
-    
+
     // Should see Retail links
     await expect(page.locator('nav').locator('text=Retail Overview')).toBeVisible();
     await expect(page.locator('nav').locator('text=Inventory')).toBeVisible();
     await expect(page.locator('nav').locator('text=POS')).toBeVisible();
-    
+
     // Should NOT see My Properties or Accommodation Applications
     await expect(page.locator('nav').locator('text=My Properties')).toBeHidden();
     await expect(page.locator('nav').locator('text=Applications')).toBeHidden();
@@ -164,8 +164,8 @@ test.describe('Provider Type Isolation', () => {
     const apiCheck = await page.evaluate(async () => {
       const token = window.localStorage.getItem('access_token');
       const authHeader = token ? `Bearer ${token}` : '';
-      const res = await fetch('http://localhost:3001/api/v1/properties/my', { 
-        headers: { Authorization: authHeader } 
+      const res = await fetch('http://localhost:3001/api/v1/properties/my', {
+        headers: { Authorization: authHeader }
       });
       return res.status;
     });
@@ -175,7 +175,7 @@ test.describe('Provider Type Isolation', () => {
   test('Retail Provider self-registration succeeds and creates OrgType.RETAIL', async ({ page }) => {
     await page.goto('http://localhost:3000/login');
     const apiCheck = await page.evaluate(async () => {
-      const res = await fetch('http://localhost:3001/api/v1/auth/register', { 
+      const res = await fetch('http://localhost:3001/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -196,7 +196,7 @@ test.describe('Provider Type Isolation', () => {
   test('Signup form shows both Accommodation Provider and Retail Provider options', async ({ page }) => {
     await page.goto('http://localhost:3000/register');
     await page.click('text=I\'m a Provider');
-    
+
     // Check that the dropdown exists and has both options
     const orgTypeSelect = page.locator('select[name="organizationType"]');
     await expect(orgTypeSelect).toBeVisible();

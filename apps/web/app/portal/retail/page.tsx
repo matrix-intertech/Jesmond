@@ -10,248 +10,248 @@ import StatCard from "@/components/ui/StatCard";
 import RetailGuard from "@/components/retail/RetailGuard";
 
 interface Order {
-  id: string;
-  orderNumber: string;
-  total: number;
-  status: string;
-  createdAt: string;
-  fulfillmentType: string;
+ id: string;
+ orderNumber: string;
+ total: number;
+ status: string;
+ createdAt: string;
+ fulfillmentType: string;
 }
 
 function RetailOverviewContent() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState({
-    terminals: 0,
-    customers: 0,
-    revenue: 0,
-    lowStock: 0,
-  });
-  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+ const router = useRouter();
+ const [loading, setLoading] = useState(true);
+ const [metrics, setMetrics] = useState({
+ terminals: 0,
+ customers: 0,
+ revenue: 0,
+ lowStock: 0,
+ });
+ const [recentOrders, setRecentOrders] = useState<Order[]>([]);
 
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      const token = getAccessToken();
-      if (!token) return;
-      
-      try {
-        const headers = { Authorization: `Bearer ${token}` };
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+ useEffect(() => {
+ const fetchMetrics = async () => {
+ const token = getAccessToken();
+ if (!token) return;
 
-        // Fetch parallel
-        const [termRes, custRes, statsRes, recentOrdersRes, branchRes] = await Promise.all([
-          fetch(`${apiUrl}/api/v1/retail/terminals`, { headers }),
-          fetch(`${apiUrl}/api/v1/retail/customers`, { headers }),
-          fetch(`${apiUrl}/api/v1/retail/orders/stats`, { headers }),
-          fetch(`${apiUrl}/api/v1/retail/orders?page=1&limit=3`, { headers }),
-          fetch(`${apiUrl}/api/v1/retail/branches`, { headers }),
-        ]);
+ try {
+ const headers = { Authorization: `Bearer ${token}` };
+ const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-        let terminalsCount = 0;
-        let customersCount = 0;
-        let todayRevenue = 0;
-        let lowStockCount = 0;
-        let latestOrders: Order[] = [];
+ // Fetch parallel
+ const [termRes, custRes, statsRes, recentOrdersRes, branchRes] = await Promise.all([
+ fetch(`${apiUrl}/api/v1/retail/terminals`, { headers }),
+ fetch(`${apiUrl}/api/v1/retail/customers`, { headers }),
+ fetch(`${apiUrl}/api/v1/retail/orders/stats`, { headers }),
+ fetch(`${apiUrl}/api/v1/retail/orders?page=1&limit=3`, { headers }),
+ fetch(`${apiUrl}/api/v1/retail/branches`, { headers }),
+ ]);
 
-        if (termRes.ok) terminalsCount = (await termRes.json()).length || 0;
-        if (custRes.ok) customersCount = (await custRes.json()).length || 0;
+ let terminalsCount = 0;
+ let customersCount = 0;
+ let todayRevenue = 0;
+ let lowStockCount = 0;
+ let latestOrders: Order[] = [];
 
-        if (statsRes.ok) {
-          const stats = await statsRes.json();
-          todayRevenue = stats.todayRevenue || 0;
-        }
+ if (termRes.ok) terminalsCount = (await termRes.json()).length || 0;
+ if (custRes.ok) customersCount = (await custRes.json()).length || 0;
 
-        if (recentOrdersRes.ok) {
-          const resData = await recentOrdersRes.json();
-          latestOrders = Array.isArray(resData) ? resData.slice(0, 3) : (resData.data || []).slice(0, 3);
-        }
+ if (statsRes.ok) {
+ const stats = await statsRes.json();
+ todayRevenue = stats.todayRevenue || 0;
+ }
 
-        if (branchRes.ok) {
-          const branches = await branchRes.json();
-          const invPromises = branches.map((b: any) => fetch(`${apiUrl}/api/v1/retail/inventory/${b.id}`, { headers }));
-          const invResponses = await Promise.all(invPromises);
-          
-          for (const res of invResponses) {
-            if (res.ok) {
-              const inv = await res.json();
-              lowStockCount += inv.filter((item: any) => item.quantity <= 5).length;
-            }
-          }
-        }
+ if (recentOrdersRes.ok) {
+ const resData = await recentOrdersRes.json();
+ latestOrders = Array.isArray(resData) ? resData.slice(0, 3) : (resData.data || []).slice(0, 3);
+ }
 
-        setMetrics({
-          terminals: terminalsCount,
-          customers: customersCount,
-          revenue: todayRevenue,
-          lowStock: lowStockCount,
-        });
-        setRecentOrders(latestOrders);
+ if (branchRes.ok) {
+ const branches = await branchRes.json();
+ const invPromises = branches.map((b: any) => fetch(`${apiUrl}/api/v1/retail/inventory/${b.id}`, { headers }));
+ const invResponses = await Promise.all(invPromises);
 
-        if (termRes.status === 401 || custRes.status === 401 || statsRes.status === 401 || recentOrdersRes.status === 401) {
-          clearAuth();
-          router.replace('/login');
-        }
-      } catch (e) {
-        console.error("Failed to fetch retail metrics", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchMetrics();
-  }, [router]);
+ for (const res of invResponses) {
+ if (res.ok) {
+ const inv = await res.json();
+ lowStockCount += inv.filter((item: any) => item.quantity <= 5).length;
+ }
+ }
+ }
 
-  return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Retail Overview" 
-        description="Monitor your retail operations, customers, and points of sale." 
-      />
+ setMetrics({
+ terminals: terminalsCount,
+ customers: customersCount,
+ revenue: todayRevenue,
+ lowStock: lowStockCount,
+ });
+ setRecentOrders(latestOrders);
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Terminals"
-          value={loading ? "-" : metrics.terminals.toString()}
-          loading={loading}
-        />
-        <StatCard
-          label="Total Customers"
-          value={loading ? "-" : metrics.customers.toString()}
-          loading={loading}
-        />
-        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
-          <h4 className="text-sm font-medium text-text-secondary mb-2">Inventory Alerts</h4>
-          <div className={`text-2xl font-bold ${metrics.lowStock > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-            {loading ? '-' : `${metrics.lowStock} items low/out`}
-          </div>
-        </div>
-        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
-          <h4 className="text-sm font-medium text-text-secondary mb-2">Today's Revenue</h4>
-          <div className="text-2xl font-bold text-primary">
-            {loading ? '-' : `$${(metrics.revenue / 100).toFixed(2)}`}
-          </div>
-        </div>
-      </div>
+ if (termRes.status === 401 || custRes.status === 401 || statsRes.status === 401 || recentOrdersRes.status === 401) {
+ clearAuth();
+ router.replace('/login');
+ }
+ } catch (e) {
+ console.error("Failed to fetch retail metrics", e);
+ } finally {
+ setLoading(false);
+ }
+ };
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
-          <h3 className="text-lg font-semibold text-primary mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => router.push('/portal/retail/pos')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                </svg>
-              </div>
-              <div>
-                <div className="font-medium text-primary">Launch POS</div>
-                <div className="text-xs text-text-secondary">Open register</div>
-              </div>
-            </button>
-            <button onClick={() => router.push('/portal/retail/catalog')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                  <line x1="7" y1="7" x2="7.01" y2="7" />
-                </svg>
-              </div>
-              <div>
-                <div className="font-medium text-primary">Add Product</div>
-                <div className="text-xs text-text-secondary">Update catalog</div>
-              </div>
-            </button>
-            <button onClick={() => router.push('/portal/retail/orders')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-primary flex items-center justify-center">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <polyline points="10 9 9 9 8 9" />
-                </svg>
-              </div>
-              <div>
-                <div className="font-medium text-primary">Sales History</div>
-                <div className="text-xs text-text-secondary">View recent orders</div>
-              </div>
-            </button>
-            <button onClick={() => router.push('/portal/retail/terminals')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-50 text-primary flex items-center justify-center">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-                  <line x1="9" y1="1" x2="9" y2="4" />
-                  <line x1="15" y1="1" x2="15" y2="4" />
-                </svg>
-              </div>
-              <div>
-                <div className="font-medium text-primary">Manage POS</div>
-                <div className="text-xs text-text-secondary">Terminal settings</div>
-              </div>
-            </button>
-          </div>
-        </div>
-        
-        <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col h-full">
-          <h3 className="text-lg font-semibold text-primary mb-4">Recent Activity</h3>
-          {loading ? (
-            <div className="animate-pulse flex flex-col gap-4 mt-4">
-              <div className="h-4 bg-secondary rounded w-full"></div>
-              <div className="h-4 bg-secondary rounded w-full"></div>
-            </div>
-          ) : recentOrders.length > 0 ? (
-            <div className="flex-1 overflow-y-auto pr-2">
-              <div className="space-y-3">
-                {recentOrders.map(order => (
-                  <div key={order.id} className="flex justify-between items-center p-3 border border-border-subtle rounded-lg bg-slate-50">
-                    <div>
-                      <div className="font-medium text-sm text-primary">{order.orderNumber}</div>
-                      <div className="text-xs text-text-secondary mb-1">{new Date(order.createdAt).toLocaleString()}</div>
-                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-surface-muted text-brand-purple' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-blue-100 text-brand-purple' : 'bg-secondary text-text-primary'}`}>
-                        {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
-                      </div>
-                    </div>
-                    <div className="text-right flex flex-col justify-between items-end h-full">
-                      <div className="font-semibold text-primary">${(order.total / 100).toFixed(2)}</div>
-                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-2 ${
-                        ['COMPLETED', 'DELIVERED', 'TAKEN'].includes(order.status) ? 'bg-emerald-100 text-emerald-700' : 
-                        order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' : 
-                        'bg-amber-100 text-amber-700'
-                      }`}>
-                        {order.status}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button 
-                onClick={() => router.push('/portal/retail/orders')}
-                className="w-full mt-4 py-2 text-sm text-accent hover:text-accent/80 font-medium text-center"
-              >
-                View All Orders &rarr;
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center flex-1 text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-3 text-text-muted">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-                </svg>
-              </div>
-              <p className="text-sm text-text-secondary mb-2">No recent orders found.</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+ fetchMetrics();
+ }, [router]);
+
+ return (
+ <div className="space-y-6">
+ <PageHeader
+ title="Retail Overview"
+ description="Monitor your retail operations, customers, and points of sale."
+ />
+
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+ <StatCard
+ label="Total Terminals"
+ value={loading ? "-" : metrics.terminals.toString()}
+ loading={loading}
+ />
+ <StatCard
+ label="Total Customers"
+ value={loading ? "-" : metrics.customers.toString()}
+ loading={loading}
+ />
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
+ <h4 className="text-sm font-medium text-text-secondary mb-2">Inventory Alerts</h4>
+ <div className={`text-2xl font-bold ${metrics.lowStock > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+ {loading ? '-' : `${metrics.lowStock} items low/out`}
+ </div>
+ </div>
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
+ <h4 className="text-sm font-medium text-text-secondary mb-2">Today's Revenue</h4>
+ <div className="text-2xl font-bold text-primary">
+ {loading ? '-' : `$${(metrics.revenue / 100).toFixed(2)}`}
+ </div>
+ </div>
+ </div>
+
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
+ <h3 className="text-lg font-semibold text-primary mb-4">Quick Actions</h3>
+ <div className="grid grid-cols-2 gap-4">
+ <button onClick={() => router.push('/portal/retail/pos')} className="p-4 border border-border-strong rounded-lg hover:bg-surface-lavender text-left transition-colors flex items-center gap-3">
+ <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center">
+ <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+ <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+ <line x1="8" y1="21" x2="16" y2="21" />
+ <line x1="12" y1="17" x2="12" y2="21" />
+ </svg>
+ </div>
+ <div>
+ <div className="font-medium text-primary">Launch POS</div>
+ <div className="text-xs text-text-secondary">Open register</div>
+ </div>
+ </button>
+ <button onClick={() => router.push('/portal/retail/catalog')} className="p-4 border border-border-strong rounded-lg hover:bg-surface-lavender text-left transition-colors flex items-center gap-3">
+ <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+ <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+ <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+ <line x1="7" y1="7" x2="7.01" y2="7" />
+ </svg>
+ </div>
+ <div>
+ <div className="font-medium text-primary">Add Product</div>
+ <div className="text-xs text-text-secondary">Update catalog</div>
+ </div>
+ </button>
+ <button onClick={() => router.push('/portal/retail/orders')} className="p-4 border border-border-strong rounded-lg hover:bg-surface-lavender text-left transition-colors flex items-center gap-3">
+ <div className="w-10 h-10 rounded-full bg-info-bg text-primary flex items-center justify-center">
+ <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+ <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+ <polyline points="14 2 14 8 20 8" />
+ <line x1="16" y1="13" x2="8" y2="13" />
+ <line x1="16" y1="17" x2="8" y2="17" />
+ <polyline points="10 9 9 9 8 9" />
+ </svg>
+ </div>
+ <div>
+ <div className="font-medium text-primary">Sales History</div>
+ <div className="text-xs text-text-secondary">View recent orders</div>
+ </div>
+ </button>
+ <button onClick={() => router.push('/portal/retail/terminals')} className="p-4 border border-border-strong rounded-lg hover:bg-surface-lavender text-left transition-colors flex items-center gap-3">
+ <div className="w-10 h-10 rounded-full bg-surface-pink text-primary flex items-center justify-center">
+ <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+ <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+ <line x1="9" y1="1" x2="9" y2="4" />
+ <line x1="15" y1="1" x2="15" y2="4" />
+ </svg>
+ </div>
+ <div>
+ <div className="font-medium text-primary">Manage POS</div>
+ <div className="text-xs text-text-secondary">Terminal settings</div>
+ </div>
+ </button>
+ </div>
+ </div>
+
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col h-full">
+ <h3 className="text-lg font-semibold text-primary mb-4">Recent Activity</h3>
+ {loading ? (
+ <div className="animate-pulse flex flex-col gap-4 mt-4">
+ <div className="h-4 bg-secondary rounded w-full"></div>
+ <div className="h-4 bg-secondary rounded w-full"></div>
+ </div>
+ ) : recentOrders.length > 0 ? (
+ <div className="flex-1 overflow-y-auto pr-2">
+ <div className="space-y-3">
+ {recentOrders.map(order => (
+ <div key={order.id} className="flex justify-between items-center p-3 border border-border-subtle rounded-lg bg-surface-lavender">
+ <div>
+ <div className="font-medium text-sm text-primary">{order.orderNumber}</div>
+ <div className="text-xs text-text-secondary mb-1">{new Date(order.createdAt).toLocaleString()}</div>
+ <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-surface-muted text-brand-purple' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-info-bg text-brand-purple' : 'bg-secondary text-text-primary'}`}>
+ {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
+ </div>
+ </div>
+ <div className="text-right flex flex-col justify-between items-end h-full">
+ <div className="font-semibold text-primary">${(order.total / 100).toFixed(2)}</div>
+ <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-2 ${
+ ['COMPLETED', 'DELIVERED', 'TAKEN'].includes(order.status) ? 'bg-emerald-100 text-emerald-700' :
+ order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-700' :
+ 'bg-amber-100 text-amber-700'
+ }`}>
+ {order.status}
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ <button
+ onClick={() => router.push('/portal/retail/orders')}
+ className="w-full mt-4 py-2 text-sm text-accent hover:text-accent/80 font-medium text-center"
+ >
+ View All Orders &rarr;
+ </button>
+ </div>
+ ) : (
+ <div className="flex flex-col items-center justify-center flex-1 text-center py-6">
+ <div className="w-12 h-12 rounded-full bg-surface-lavender flex items-center justify-center mb-3 text-text-muted">
+ <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+ <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+ </svg>
+ </div>
+ <p className="text-sm text-text-secondary mb-2">No recent orders found.</p>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+ );
 }
 
 export default function RetailOverviewPage() {
-  return (
-    <RetailGuard requirePermissions={['RETAIL_DASHBOARD_VIEW']}>
-      <RetailOverviewContent />
-    </RetailGuard>
-  );
+ return (
+ <RetailGuard requirePermissions={['RETAIL_DASHBOARD_VIEW']}>
+ <RetailOverviewContent />
+ </RetailGuard>
+ );
 }

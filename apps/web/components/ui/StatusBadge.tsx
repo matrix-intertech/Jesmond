@@ -7,50 +7,50 @@ import { ReactNode } from "react";
  * StatusBadge – displays a compact, accessible badge for item status.
  *
  * Supported status values (exact strings):
- *   DRAFT, PENDING_APPROVAL, PUBLISHED, PENDING_REVIEW,
- *   APPROVED, REJECTED, SOLD_OUT, ENABLED, DISABLED
+ * DRAFT, PENDING_APPROVAL, PUBLISHED, PENDING_REVIEW,
+ * APPROVED, REJECTED, SOLD_OUT, ENABLED, DISABLED
  *
  * The component maps each status to a restrained color palette that matches the
  * existing Jesmond design system (using Tailwind gray/blue/green/red shades).
  * It renders a <span> with appropriate aria-label for screen readers.
  */
 export interface StatusBadgeProps {
-  status:
-    | "DRAFT"
-    | "PENDING_APPROVAL"
-    | "PUBLISHED"
-    | "PENDING_REVIEW"
-    | "APPROVED"
-    | "REJECTED"
-    | "SOLD_OUT"
-    | "ENABLED"
-    | "DISABLED"
-    | "WITHDRAWN"
-    | "CANCELLED";
+ status:
+ | "DRAFT"
+ | "PENDING_APPROVAL"
+ | "PUBLISHED"
+ | "PENDING_REVIEW"
+ | "APPROVED"
+ | "REJECTED"
+ | "SOLD_OUT"
+ | "ENABLED"
+ | "DISABLED"
+ | "WITHDRAWN"
+ | "CANCELLED";
 }
 
 const statusStyles: Record<StatusBadgeProps["status"], { bg: string; text: string }> = {
-  DRAFT: { bg: "bg-surface-muted", text: "text-text-primary font-bold" },
-  PENDING_APPROVAL: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
-  PUBLISHED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
-  PENDING_REVIEW: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
-  APPROVED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
-  REJECTED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
-  SOLD_OUT: { bg: "bg-secondary", text: "text-text-primary font-bold" },
-  ENABLED: { bg: "bg-blue-100", text: "text-blue-800 font-bold" },
-  DISABLED: { bg: "bg-secondary", text: "text-text-primary font-bold" },
-  WITHDRAWN: { bg: "bg-surface-muted", text: "text-text-primary font-bold" },
-  CANCELLED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
+ DRAFT: { bg: "bg-surface-muted", text: "text-text-primary font-bold" },
+ PENDING_APPROVAL: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
+ PUBLISHED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
+ PENDING_REVIEW: { bg: "bg-amber-100", text: "text-amber-800 font-bold" },
+ APPROVED: { bg: "bg-emerald-100", text: "text-emerald-800 font-bold" },
+ REJECTED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
+ SOLD_OUT: { bg: "bg-secondary", text: "text-text-primary font-bold" },
+ ENABLED: { bg: "bg-info-bg", text: "text-brand-indigo font-bold" },
+ DISABLED: { bg: "bg-secondary", text: "text-text-primary font-bold" },
+ WITHDRAWN: { bg: "bg-surface-muted", text: "text-text-primary font-bold" },
+ CANCELLED: { bg: "bg-rose-100", text: "text-rose-800 font-bold" },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
-  const style = statusStyles[status] || statusStyles["DRAFT"];
-  return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}
-      aria-label={`status ${status}`}
-    >
-      {status.replace("_", " ")}
-    </span>
-  );
+ const style = statusStyles[status] || statusStyles["DRAFT"];
+ return (
+ <span
+ className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}
+ aria-label={`status ${status}`}
+ >
+ {status.replace("_", " ")}
+ </span>
+ );
 }

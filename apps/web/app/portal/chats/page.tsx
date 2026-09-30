@@ -9,139 +9,139 @@ const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const placeholderImage = "/assets/property-placeholder.png";
 
 const getPropertyImage = (property: any) =>
-  property?.thumbnailUrl ||
-  property?.imageUrl ||
-  property?.coverImage ||
-  property?.media?.[0]?.url ||
-  property?.photos?.[0]?.url ||
-  property?.images?.[0]?.url ||
-  "";
+ property?.thumbnailUrl ||
+ property?.imageUrl ||
+ property?.coverImage ||
+ property?.media?.[0]?.url ||
+ property?.photos?.[0]?.url ||
+ property?.images?.[0]?.url ||
+ "";
 
 const formatConversationTime = (dateValue: string) => {
-  const date = new Date(dateValue);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
+ const date = new Date(dateValue);
+ const today = new Date();
+ const yesterday = new Date();
+ yesterday.setDate(today.getDate() - 1);
 
-  if (date.toDateString() === today.toDateString()) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  }
-  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+ if (date.toDateString() === today.toDateString()) {
+ return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+ }
+ if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
 
-  return date.toLocaleDateString([], { day: "numeric", month: "short" });
+ return date.toLocaleDateString([], { day: "numeric", month: "short" });
 };
 
 export default function HostChatsPage() {
-  const router = useRouter();
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+ const router = useRouter();
+ const [conversations, setConversations] = useState<any[]>([]);
+ const [loading, setLoading] = useState(true);
+ const [userId, setUserId] = useState<string | null>(null);
+ const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      const token = getAccessToken();
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-      try {
-        const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setConversations(data);
-          setError("");
+ useEffect(() => {
+ const fetchConversations = async () => {
+ const token = getAccessToken();
+ if (!token) {
+ router.push("/login");
+ return;
+ }
+ try {
+ const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
+ headers: { Authorization: `Bearer ${token}` },
+ });
+ if (res.ok) {
+ const data = await res.json();
+ setConversations(data);
+ setError("");
 
-          try {
-            const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-            setUserId(tokenPayload.sub);
-          } catch {}
-        } else if (res.status === 401) {
-          clearAuth();
-          router.push("/login");
-        } else {
-          setError("Failed to load chats.");
-        }
-      } catch {
-        setError("Failed to load chats.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchConversations();
-  }, [router]);
+ try {
+ const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+ setUserId(tokenPayload.sub);
+ } catch {}
+ } else if (res.status === 401) {
+ clearAuth();
+ router.push("/login");
+ } else {
+ setError("Failed to load chats.");
+ }
+ } catch {
+ setError("Failed to load chats.");
+ } finally {
+ setLoading(false);
+ }
+ };
+ fetchConversations();
+ }, [router]);
 
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <PageHeader title="Chats" description="Private conversations with interested seekers" />
+ return (
+ <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+ <PageHeader title="Chats" description="Private conversations with interested seekers" />
 
-      {error && <div className="mb-6 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+ {error && <div className="mb-6 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
-      {loading ? (
-        <div className="space-y-3">
-          {[0, 1, 2].map((item) => (
-            <div key={item} className="flex animate-pulse items-center gap-4 rounded-2xl border border-border-strong bg-surface p-4">
-              <div className="h-16 w-16 rounded-xl bg-surface-muted" />
-              <div className="min-w-0 flex-1 space-y-3">
-                <div className="h-4 w-1/2 rounded bg-surface-muted" />
-                <div className="h-3 w-3/4 rounded bg-surface-muted" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : conversations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-6 py-12 text-center">
-          <h2 className="text-lg font-bold text-primary">No chats yet.</h2>
-          <p className="mt-2 text-sm text-text-secondary">New property conversations will appear here.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {conversations.map((conv) => {
-            const myParticipant = conv.participants?.find((p: any) => p.userId === userId);
-            const otherParticipant = conv.participants?.find((p: any) => p.userId !== userId);
-            const participantName = [otherParticipant?.user?.firstName, otherParticipant?.user?.lastName].filter(Boolean).join(" ");
-            const latestMessage = conv.messages?.[0];
-            const latestMessagePreview = typeof latestMessage?.encryptedPayload === "string" && latestMessage.encryptedPayload.trim()
-              ? latestMessage.encryptedPayload
-              : "No messages yet";
-            const latestActivityAt = latestMessage?.createdAt || conv.updatedAt;
-            const isUnread = myParticipant && latestActivityAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(latestActivityAt));
-            const propertyImage = getPropertyImage(conv.property);
+ {loading ? (
+ <div className="space-y-3">
+ {[0, 1, 2].map((item) => (
+ <div key={item} className="flex animate-pulse items-center gap-4 rounded-2xl border border-border-strong bg-surface p-4">
+ <div className="h-16 w-16 rounded-xl bg-surface-muted" />
+ <div className="min-w-0 flex-1 space-y-3">
+ <div className="h-4 w-1/2 rounded bg-surface-muted" />
+ <div className="h-3 w-3/4 rounded bg-surface-muted" />
+ </div>
+ </div>
+ ))}
+ </div>
+ ) : conversations.length === 0 ? (
+ <div className="rounded-2xl border border-dashed border-border-strong bg-surface px-6 py-12 text-center">
+ <h2 className="text-lg font-bold text-primary">No chats yet.</h2>
+ <p className="mt-2 text-sm text-text-secondary">New property conversations will appear here.</p>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ {conversations.map((conv) => {
+ const myParticipant = conv.participants?.find((p: any) => p.userId === userId);
+ const otherParticipant = conv.participants?.find((p: any) => p.userId !== userId);
+ const participantName = [otherParticipant?.user?.firstName, otherParticipant?.user?.lastName].filter(Boolean).join(" ");
+ const latestMessage = conv.messages?.[0];
+ const latestMessagePreview = typeof latestMessage?.encryptedPayload === "string" && latestMessage.encryptedPayload.trim()
+ ? latestMessage.encryptedPayload
+ : "No messages yet";
+ const latestActivityAt = latestMessage?.createdAt || conv.updatedAt;
+ const isUnread = myParticipant && latestActivityAt && (!myParticipant.lastReadAt || new Date(myParticipant.lastReadAt) < new Date(latestActivityAt));
+ const propertyImage = getPropertyImage(conv.property);
 
-            return (
-              <button
-                key={conv.id}
-                type="button"
-                className={`group flex w-full items-center gap-4 rounded-2xl border bg-surface p-3 text-left transition hover:border-accent hover:shadow-md sm:p-4 ${
-                  isUnread ? "border-accent shadow-sm ring-1 ring-accent/20" : "border-border-strong"
-                }`}
-                onClick={() => router.push(`/portal/chats/${conv.id}`)}
-              >
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-surface-muted sm:h-20 sm:w-20">
-                  <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className={`truncate text-base font-bold group-hover:text-accent ${isUnread ? "text-primary" : "text-text-primary"}`}>
-                        {conv.property?.name || "Unknown Property"}
-                      </h3>
-                      {participantName && <p className="mt-0.5 truncate text-xs font-medium text-text-secondary">{participantName}</p>}
-                    </div>
-                    {latestActivityAt && <span className="shrink-0 text-xs font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}
-                  </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    {isUnread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread conversation" />}
-                    <p className={`truncate text-sm ${isUnread ? "font-semibold text-primary" : "text-text-secondary"}`}>{latestMessagePreview}</p>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
+ return (
+ <button
+ key={conv.id}
+ type="button"
+ className={`group flex w-full items-center gap-4 rounded-2xl border bg-surface p-3 text-left transition hover:border-accent hover:shadow-md sm:p-4 ${
+ isUnread ? "border-accent shadow-sm ring-1 ring-accent/20" : "border-border-strong"
+ }`}
+ onClick={() => router.push(`/portal/chats/${conv.id}`)}
+ >
+ <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-surface-muted sm:h-20 sm:w-20">
+ <img src={propertyImage || placeholderImage} alt="" className="h-full w-full object-cover" />
+ </div>
+ <div className="min-w-0 flex-1">
+ <div className="flex items-start justify-between gap-3">
+ <div className="min-w-0">
+ <h3 className={`truncate text-base font-bold group-hover:text-accent ${isUnread ? "text-primary" : "text-text-primary"}`}>
+ {conv.property?.name || "Unknown Property"}
+ </h3>
+ {participantName && <p className="mt-0.5 truncate text-xs font-medium text-text-secondary">{participantName}</p>}
+ </div>
+ {latestActivityAt && <span className="shrink-0 text-xs font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}
+ </div>
+ <div className="mt-2 flex items-center gap-2">
+ {isUnread && <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-accent" aria-label="Unread conversation" />}
+ <p className={`truncate text-sm ${isUnread ? "font-semibold text-primary" : "text-text-secondary"}`}>{latestMessagePreview}</p>
+ </div>
+ </div>
+ </button>
+ );
+ })}
+ </div>
+ )}
+ </div>
+ );
 }

@@ -6,140 +6,140 @@ import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
 
 function LoginContent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-  const searchParams = useSearchParams();
+ const [email, setEmail] = useState('');
+ const [password, setPassword] = useState('');
+ const [error, setError] = useState('');
+ const [loading, setLoading] = useState(false);
+ const router = useRouter();
+ const searchParams = useSearchParams();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+ const handleLogin = async (e: React.FormEvent) => {
+ e.preventDefault();
+ setError('');
+ setLoading(true);
 
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.code === 'EMAIL_NOT_VERIFIED') {
-          // Push to register page or show specific error, ideally we would pass email to OTP view
-          router.push(`/register?email=${encodeURIComponent(email)}&verify=true`);
-          return;
-        }
-        throw new Error(data.message || 'Login failed');
-      }
+ try {
+ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/login`, {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ email, password }),
+ });
 
-      setAccessToken(data.access_token);
-      setCurrentUser(data.user);
+ const data = await res.json();
+ if (!res.ok) {
+ if (data.code === 'EMAIL_NOT_VERIFIED') {
+ // Push to register page or show specific error, ideally we would pass email to OTP view
+ router.push(`/register?email=${encodeURIComponent(email)}&verify=true`);
+ return;
+ }
+ throw new Error(data.message || 'Login failed');
+ }
 
-      // Role-based redirect
-      const returnUrl = searchParams.get('returnUrl');
-      switch (data.user.role) {
-        case 'STUDENT':
-          router.push(returnUrl || '/');
-          break;
-        case 'SUPER_ADMIN':
-        case 'ADMIN':
-          router.push(returnUrl || '/admin');
-          break;
-        case 'ORG_STAFF':
-        default:
-          router.push(returnUrl || '/portal');
-          break;
-      }
-    } catch (err: any) {
-      if (err.message === 'Failed to fetch') {
-        setError('Unable to connect. Please try again later.');
-      } else {
-        setError(err.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+ setAccessToken(data.access_token);
+ setCurrentUser(data.user);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-primary font-outfit">
-            Sign in to Jesmond
-          </h2>
-          <p className="mt-2 text-center text-sm text-text-secondary">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-accent hover:text-primary font-medium">
-              Sign up
-            </Link>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          {error && (
-            <div className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
-              {error}
-            </div>
-          )}
-          <div className="rounded-md shadow-sm space-y-4">
-            <div>
-              <label htmlFor="email-address" className="sr-only">Email address</label>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-indigo-500 focus:border-accent focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
+ // Role-based redirect
+ const returnUrl = searchParams.get('returnUrl');
+ switch (data.user.role) {
+ case 'STUDENT':
+ router.push(returnUrl || '/');
+ break;
+ case 'SUPER_ADMIN':
+ case 'ADMIN':
+ router.push(returnUrl || '/admin');
+ break;
+ case 'ORG_STAFF':
+ default:
+ router.push(returnUrl || '/portal');
+ break;
+ }
+ } catch (err: any) {
+ if (err.message === 'Failed to fetch') {
+ setError('Unable to connect. Please try again later.');
+ } else {
+ setError(err.message);
+ }
+ } finally {
+ setLoading(false);
+ }
+ };
 
-          <div className="flex items-center justify-end">
-            <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-accent hover:text-primary">
-                Forgot your password?
-              </Link>
-            </div>
-          </div>
+ return (
+ <div className="min-h-screen flex items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
+ <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle">
+ <div>
+ <h2 className="mt-6 text-center text-3xl font-extrabold text-primary font-outfit">
+ Sign in to Jesmond
+ </h2>
+ <p className="mt-2 text-center text-sm text-text-secondary">
+ Don&apos;t have an account?{' '}
+ <Link href="/register" className="text-accent hover:text-primary font-medium">
+ Sign up
+ </Link>
+ </p>
+ </div>
+ <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+ {error && (
+ <div className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
+ {error}
+ </div>
+ )}
+ <div className="rounded-md shadow-sm space-y-4">
+ <div>
+ <label htmlFor="email-address" className="sr-only">Email address</label>
+ <input
+ id="email-address"
+ name="email"
+ type="email"
+ required
+ className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent focus:z-10 sm:text-sm"
+ placeholder="Email address"
+ value={email}
+ onChange={(e) => setEmail(e.target.value)}
+ />
+ </div>
+ <div>
+ <label htmlFor="password" className="sr-only">Password</label>
+ <input
+ id="password"
+ name="password"
+ type="password"
+ required
+ className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent focus:z-10 sm:text-sm"
+ placeholder="Password"
+ value={password}
+ onChange={(e) => setPassword(e.target.value)}
+ />
+ </div>
+ </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
+ <div className="flex items-center justify-end">
+ <div className="text-sm">
+ <Link href="/forgot-password" className="font-medium text-accent hover:text-primary">
+ Forgot your password?
+ </Link>
+ </div>
+ </div>
+
+ <div>
+ <button
+ type="submit"
+ disabled={loading}
+ className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
+ >
+ {loading ? 'Signing in...' : 'Sign in'}
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ );
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><p>Loading...</p></div>}>
-      <LoginContent />
-    </Suspense>
-  );
+ return (
+ <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-surface-lavender"><p>Loading...</p></div>}>
+ <LoginContent />
+ </Suspense>
+ );
 }

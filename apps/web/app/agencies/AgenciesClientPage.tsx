@@ -5,244 +5,244 @@ import Link from 'next/link';
 import { Search, Building2, Users, Home, MapPin, ChevronRight } from 'lucide-react';
 
 interface Agency {
-  id: string;
-  name: string;
-  branding: any;
-  _count: {
-    staff: number;
-    properties: number;
-  };
+ id: string;
+ name: string;
+ branding: any;
+ _count: {
+ staff: number;
+ properties: number;
+ };
 }
 
 interface Meta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+ total: number;
+ page: number;
+ limit: number;
+ totalPages: number;
 }
 
 import { GlobalNav } from '@/components/marketing/GlobalNav';
 
 export default function AgenciesClientPage() {
-  const [agencies, setAgencies] = useState<Agency[]>([]);
-  const [meta, setMeta] = useState<Meta | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+ const [agencies, setAgencies] = useState<Agency[]>([]);
+ const [meta, setMeta] = useState<Meta | null>(null);
+ const [loading, setLoading] = useState(true);
+ const [search, setSearch] = useState('');
+ const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    fetchAgencies();
-  }, [search, page]);
+ useEffect(() => {
+ fetchAgencies();
+ }, [search, page]);
 
-  const fetchAgencies = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ page: String(page), limit: '12' });
-      if (search) params.set('search', search);
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/public?${params}`
-      );
-      if (res.ok) {
-        const json = await res.json();
-        setAgencies(json.data ?? []);
-        setMeta(json.meta ?? null);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchAgencies = async () => {
+ setLoading(true);
+ try {
+ const params = new URLSearchParams({ page: String(page), limit: '12' });
+ if (search) params.set('search', search);
+ const res = await fetch(
+ `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/public?${params}`
+ );
+ if (res.ok) {
+ const json = await res.json();
+ setAgencies(json.data ?? []);
+ setMeta(json.meta ?? null);
+ }
+ } catch (e) {
+ console.error(e);
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-    fetchAgencies();
-  };
+ const handleSearch = (e: React.FormEvent) => {
+ e.preventDefault();
+ setPage(1);
+ fetchAgencies();
+ };
 
-  const getBrandingColor = (branding: any) =>
-    branding?.primaryColor || '#EA580C';
+ const getBrandingColor = (branding: any) =>
+ branding?.primaryColor || '#EA580C';
 
-  const getLogo = (branding: any) => branding?.logoUrl || null;
+ const getLogo = (branding: any) => branding?.logoUrl || null;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <GlobalNav />
-      {/* Hero */}
-      <section className="bg-surface border-b border-border-strong pt-[104px]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <div className="text-center">
-            <span className="inline-block mb-3 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase bg-surface-muted text-brand-orange">
-              Verified Agencies
-            </span>
-            <h1 className="text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
-              Student Accommodation Agencies
-            </h1>
-            <p className="mt-4 text-lg text-text-secondary max-w-2xl mx-auto">
-              Browse trusted agencies managing student accommodation across Australia. Each agency is verified and maintains a portfolio of quality properties.
-            </p>
+ return (
+ <div className="min-h-screen bg-surface-lavender">
+ <GlobalNav />
+ {/* Hero */}
+ <section className="bg-surface border-b border-border-strong pt-[104px]">
+ <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+ <div className="text-center">
+ <span className="inline-block mb-3 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase bg-surface-muted text-brand-orange">
+ Verified Agencies
+ </span>
+ <h1 className="text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
+ Student Accommodation Agencies
+ </h1>
+ <p className="mt-4 text-lg text-text-secondary max-w-2xl mx-auto">
+ Browse trusted agencies managing student accommodation across Australia. Each agency is verified and maintains a portfolio of quality properties.
+ </p>
 
-            {/* Search */}
-            <form onSubmit={handleSearch} className="mt-8 max-w-xl mx-auto flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="Search agencies…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-border-strong bg-surface text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-                />
-              </div>
-              <button
-                type="submit"
-                className="px-6 py-3 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-orange-500 transition-colors shadow-sm"
-              >
-                Search
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
+ {/* Search */}
+ <form onSubmit={handleSearch} className="mt-8 max-w-xl mx-auto flex gap-3">
+ <div className="relative flex-1">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-text-muted pointer-events-none" />
+ <input
+ type="text"
+ placeholder="Search agencies…"
+ value={search}
+ onChange={(e) => setSearch(e.target.value)}
+ className="w-full pl-10 pr-4 py-3 rounded-xl border border-border-strong bg-surface text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+ />
+ </div>
+ <button
+ type="submit"
+ className="px-6 py-3 rounded-xl bg-accent text-white text-sm font-semibold hover:bg-brand-orange transition-colors shadow-sm"
+ >
+ Search
+ </button>
+ </form>
+ </div>
+ </div>
+ </section>
 
-      {/* Agency Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {meta && (
-          <p className="text-sm text-text-secondary mb-6">
-            Showing {agencies.length} of {meta.total} agencies
-          </p>
-        )}
+ {/* Agency Grid */}
+ <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+ {meta && (
+ <p className="text-sm text-text-secondary mb-6">
+ Showing {agencies.length} of {meta.total} agencies
+ </p>
+ )}
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-2xl bg-surface shadow-sm border border-border-subtle overflow-hidden animate-pulse"
-              >
-                <div className="h-28 bg-surface-muted" />
-                <div className="p-5 space-y-3">
-                  <div className="h-4 bg-secondary rounded w-3/4" />
-                  <div className="h-3 bg-surface-muted rounded w-1/2" />
-                  <div className="h-3 bg-surface-muted rounded w-2/3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : agencies.length === 0 ? (
-          <div className="text-center py-24">
-            <Building2 className="mx-auto h-12 w-12 text-text-muted" />
-            <h3 className="mt-4 text-lg font-semibold text-text-primary">No agencies found</h3>
-            <p className="mt-2 text-sm text-text-secondary">
-              {search ? `No results for "${search}". Try a different search.` : 'No verified agencies are listed yet.'}
-            </p>
-            {search && (
-              <button
-                onClick={() => { setSearch(''); setPage(1); }}
-                className="mt-4 text-sm font-medium text-accent hover:underline"
-              >
-                Clear search
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {agencies.map((agency) => {
-              const logo = getLogo(agency.branding);
-              const color = getBrandingColor(agency.branding);
-              const initials = agency.name
-                .split(' ')
-                .slice(0, 2)
-                .map((w) => w[0])
-                .join('')
-                .toUpperCase();
+ {loading ? (
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+ {Array.from({ length: 8 }).map((_, i) => (
+ <div
+ key={i}
+ className="rounded-2xl bg-surface shadow-sm border border-border-subtle overflow-hidden animate-pulse"
+ >
+ <div className="h-28 bg-surface-muted" />
+ <div className="p-5 space-y-3">
+ <div className="h-4 bg-secondary rounded w-3/4" />
+ <div className="h-3 bg-surface-muted rounded w-1/2" />
+ <div className="h-3 bg-surface-muted rounded w-2/3" />
+ </div>
+ </div>
+ ))}
+ </div>
+ ) : agencies.length === 0 ? (
+ <div className="text-center py-24">
+ <Building2 className="mx-auto h-12 w-12 text-text-muted" />
+ <h3 className="mt-4 text-lg font-semibold text-text-primary">No agencies found</h3>
+ <p className="mt-2 text-sm text-text-secondary">
+ {search ? `No results for "${search}". Try a different search.` : 'No verified agencies are listed yet.'}
+ </p>
+ {search && (
+ <button
+ onClick={() => { setSearch(''); setPage(1); }}
+ className="mt-4 text-sm font-medium text-accent hover:underline"
+ >
+ Clear search
+ </button>
+ )}
+ </div>
+ ) : (
+ <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+ {agencies.map((agency) => {
+ const logo = getLogo(agency.branding);
+ const color = getBrandingColor(agency.branding);
+ const initials = agency.name
+ .split(' ')
+ .slice(0, 2)
+ .map((w) => w[0])
+ .join('')
+ .toUpperCase();
 
-              return (
-                <Link
-                  key={agency.id}
-                  href={`/agencies/${agency.id}`}
-                  className="group rounded-2xl bg-surface shadow-sm border border-border-subtle overflow-hidden hover:shadow-md hover:border-orange-200 transition-all duration-200 flex flex-col"
-                >
-                  {/* Card Header */}
-                  <div
-                    className="h-28 flex items-center justify-center relative"
-                    style={{ backgroundColor: `${color}15` }}
-                  >
-                    {logo ? (
-                      <img
-                        src={logo}
-                        alt={`${agency.name} logo`}
-                        className="max-h-16 max-w-[140px] object-contain"
-                      />
-                    ) : (
-                      <div
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-sm"
-                        style={{ backgroundColor: color }}
-                      >
-                        {initials}
-                      </div>
-                    )}
-                    <div className="absolute top-3 right-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                        Verified
-                      </span>
-                    </div>
-                  </div>
+ return (
+ <Link
+ key={agency.id}
+ href={`/agencies/${agency.id}`}
+ className="group rounded-2xl bg-surface shadow-sm border border-border-subtle overflow-hidden hover:shadow-md hover:border-brand-orange transition-all duration-200 flex flex-col"
+ >
+ {/* Card Header */}
+ <div
+ className="h-28 flex items-center justify-center relative"
+ style={{ backgroundColor: `${color}15` }}
+ >
+ {logo ? (
+ <img
+ src={logo}
+ alt={`${agency.name} logo`}
+ className="max-h-16 max-w-[140px] object-contain"
+ />
+ ) : (
+ <div
+ className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-sm"
+ style={{ backgroundColor: color }}
+ >
+ {initials}
+ </div>
+ )}
+ <div className="absolute top-3 right-3">
+ <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700">
+ <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+ Verified
+ </span>
+ </div>
+ </div>
 
-                  {/* Card Body */}
-                  <div className="p-5 flex flex-col flex-1">
-                    <h2 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors line-clamp-2">
-                      {agency.name}
-                    </h2>
+ {/* Card Body */}
+ <div className="p-5 flex flex-col flex-1">
+ <h2 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors line-clamp-2">
+ {agency.name}
+ </h2>
 
-                    <div className="mt-3 flex flex-col gap-1.5 text-xs text-text-secondary">
-                      <span className="flex items-center gap-1.5">
-                        <Home className="h-3.5 w-3.5 flex-shrink-0 text-text-muted" />
-                        {agency._count.properties} {agency._count.properties === 1 ? 'property' : 'properties'}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <Users className="h-3.5 w-3.5 flex-shrink-0 text-text-muted" />
-                        {agency._count.staff} {agency._count.staff === 1 ? 'member' : 'team members'}
-                      </span>
-                    </div>
+ <div className="mt-3 flex flex-col gap-1.5 text-xs text-text-secondary">
+ <span className="flex items-center gap-1.5">
+ <Home className="h-3.5 w-3.5 flex-shrink-0 text-text-muted" />
+ {agency._count.properties} {agency._count.properties === 1 ? 'property' : 'properties'}
+ </span>
+ <span className="flex items-center gap-1.5">
+ <Users className="h-3.5 w-3.5 flex-shrink-0 text-text-muted" />
+ {agency._count.staff} {agency._count.staff === 1 ? 'member' : 'team members'}
+ </span>
+ </div>
 
-                    <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                      <span className="text-xs font-medium text-accent group-hover:text-brand-orange">
-                        View agency
-                      </span>
-                      <ChevronRight className="h-4 w-4 text-orange-400 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+ <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
+ <span className="text-xs font-medium text-accent group-hover:text-brand-orange">
+ View agency
+ </span>
+ <ChevronRight className="h-4 w-4 text-orange-400 group-hover:translate-x-0.5 transition-transform" />
+ </div>
+ </div>
+ </Link>
+ );
+ })}
+ </div>
+ )}
 
-        {/* Pagination */}
-        {meta && meta.totalPages > 1 && (
-          <div className="mt-10 flex items-center justify-center gap-2">
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-4 py-2 rounded-lg text-sm font-medium border border-border-strong bg-surface text-text-primary hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-text-secondary">
-              Page {meta.page} of {meta.totalPages}
-            </span>
-            <button
-              disabled={page >= meta.totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-4 py-2 rounded-lg text-sm font-medium border border-border-strong bg-surface text-text-primary hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </section>
-    </div>
-  );
+ {/* Pagination */}
+ {meta && meta.totalPages > 1 && (
+ <div className="mt-10 flex items-center justify-center gap-2">
+ <button
+ disabled={page <= 1}
+ onClick={() => setPage((p) => p - 1)}
+ className="px-4 py-2 rounded-lg text-sm font-medium border border-border-strong bg-surface text-text-primary hover:bg-surface-lavender disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+ >
+ Previous
+ </button>
+ <span className="text-sm text-text-secondary">
+ Page {meta.page} of {meta.totalPages}
+ </span>
+ <button
+ disabled={page >= meta.totalPages}
+ onClick={() => setPage((p) => p + 1)}
+ className="px-4 py-2 rounded-lg text-sm font-medium border border-border-strong bg-surface text-text-primary hover:bg-surface-lavender disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+ >
+ Next
+ </button>
+ </div>
+ )}
+ </section>
+ </div>
+ );
 }

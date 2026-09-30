@@ -23,10 +23,10 @@ test.describe('Phase 1: Public Website Walkthrough', () => {
       const res = await page.goto(`http://localhost:3000${route}`, { waitUntil: 'networkidle' });
       // Ensure the directory exists
       fs.mkdirSync('f:/Jesmond2.0/qa-screenshots', { recursive: true });
-      
+
       const routeName = route === '/' ? 'home' : route.replace(/\//g, '_');
       await page.screenshot({ path: `f:/Jesmond2.0/qa-screenshots/${routeName}.png`, fullPage: true });
-      
+
       // Basic check for 404 text
       const content = await page.content();
       if (content.includes('404') && content.toLowerCase().includes('not found')) {

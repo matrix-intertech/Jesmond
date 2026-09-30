@@ -5,68 +5,68 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Student Accommodation by City",
-  description: "Find verified student accommodation in Australian cities.",
+ title: "Student Accommodation by City",
+ description: "Find verified student accommodation in Australian cities.",
 };
 
 
 export default async function CityDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const resolvedParams = await params;
-  const rawSlug = resolvedParams.slug.toLowerCase().trim();
-  const normalizedSlug = rawSlug.replace(/[^a-z0-9]+/g, '-');
-  const spacedSlug = rawSlug.replace(/-/g, ' ');
+ const resolvedParams = await params;
+ const rawSlug = resolvedParams.slug.toLowerCase().trim();
+ const normalizedSlug = rawSlug.replace(/[^a-z0-9]+/g, '-');
+ const spacedSlug = rawSlug.replace(/-/g, ' ');
 
-  const cities = await prisma.city.findMany({
-    where: {
-      OR: [
-        { name: { equals: rawSlug, mode: 'insensitive' } },
-        { name: { equals: spacedSlug, mode: 'insensitive' } },
-        { normalizedName: { equals: rawSlug, mode: 'insensitive' } },
-        { normalizedName: { equals: normalizedSlug, mode: 'insensitive' } },
-        { normalizedName: { equals: spacedSlug, mode: 'insensitive' } }
-      ]
-    },
-    include: { state: true, suburbs: true }
-  });
+ const cities = await prisma.city.findMany({
+ where: {
+ OR: [
+ { name: { equals: rawSlug, mode: 'insensitive' } },
+ { name: { equals: spacedSlug, mode: 'insensitive' } },
+ { normalizedName: { equals: rawSlug, mode: 'insensitive' } },
+ { normalizedName: { equals: normalizedSlug, mode: 'insensitive' } },
+ { normalizedName: { equals: spacedSlug, mode: 'insensitive' } }
+ ]
+ },
+ include: { state: true, suburbs: true }
+ });
 
-  if (cities.length === 0) return notFound();
+ if (cities.length === 0) return notFound();
 
-  // If uniquely resolvable, redirect to the new state-scoped hierarchy
-  if (cities.length === 1) {
-    const city = cities[0];
-    const stateSlug = (city.state.normalizedName || city.state.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-    const citySlug = (city.normalizedName || city.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-    redirect(`/states/${stateSlug}/${citySlug}`);
-  }
+ // If uniquely resolvable, redirect to the new state-scoped hierarchy
+ if (cities.length === 1) {
+ const city = cities[0];
+ const stateSlug = (city.state.normalizedName || city.state.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+ const citySlug = (city.normalizedName || city.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+ redirect(`/states/${stateSlug}/${citySlug}`);
+ }
 
-  // Disambiguation UI
-  return (
-    <div className="min-h-screen bg-surface">
-      <GlobalNav />
-      <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-24 min-h-[70vh]">
-        <Link href="/states" className="text-sm font-semibold text-accent hover:underline mb-8 inline-block">&larr; View all States</Link>
-        <h1 className="text-4xl md:text-5xl font-medium text-primary mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
-          Multiple locations found for "{resolvedParams.slug}"
-        </h1>
-        <p className="text-lg text-text-secondary max-w-2xl mb-12">Please select the state you are looking for.</p>
+ // Disambiguation UI
+ return (
+ <div className="min-h-screen bg-surface">
+ <GlobalNav />
+ <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 py-24 min-h-[70vh]">
+ <Link href="/states" className="text-sm font-semibold text-accent hover:underline mb-8 inline-block">&larr; View all States</Link>
+ <h1 className="text-4xl md:text-5xl font-medium text-primary mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+ Multiple locations found for "{resolvedParams.slug}"
+ </h1>
+ <p className="text-lg text-text-secondary max-w-2xl mb-12">Please select the state you are looking for.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cities.map(city => {
-            const stateSlug = (city.state.normalizedName || city.state.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-            const citySlug = (city.normalizedName || city.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
-            return (
-              <Link key={city.id} href={`/states/${stateSlug}/${citySlug}`} className="group p-6 border border-border-strong rounded-2xl hover:border-accent transition-all flex flex-col items-start justify-between min-h-[140px]">
-                <div>
-                  <h3 className="text-xl font-bold text-primary mb-1">{city.name}</h3>
-                  <p className="text-text-secondary">{city.state.name}</p>
-                </div>
-                <span className="text-sm font-semibold text-accent mt-4 group-hover:underline">View City &rarr;</span>
-              </Link>
-            );
-          })}
-        </div>
-      </main>
-      <EditorialFooter />
-    </div>
-  );
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+ {cities.map(city => {
+ const stateSlug = (city.state.normalizedName || city.state.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+ const citySlug = (city.normalizedName || city.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+ return (
+ <Link key={city.id} href={`/states/${stateSlug}/${citySlug}`} className="group p-6 border border-border-strong rounded-2xl hover:border-accent transition-all flex flex-col items-start justify-between min-h-[140px]">
+ <div>
+ <h3 className="text-xl font-bold text-primary mb-1">{city.name}</h3>
+ <p className="text-text-secondary">{city.state.name}</p>
+ </div>
+ <span className="text-sm font-semibold text-accent mt-4 group-hover:underline">View City &rarr;</span>
+ </Link>
+ );
+ })}
+ </div>
+ </main>
+ <EditorialFooter />
+ </div>
+ );
 }

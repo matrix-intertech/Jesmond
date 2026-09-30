@@ -3,71 +3,71 @@ import { StoreCard } from "@/components/retail/StoreCard";
 import { Search, ShoppingBag, Store } from "lucide-react";
 
 export const metadata = {
-  title: "Local Retail Stores",
-  description: "Shop from local stores and retailers connected to the Jesmond community.",
+ title: "Local Retail Stores",
+ description: "Shop from local stores and retailers connected to the Jesmond community.",
 };
 
 
 async function getStores() {
-  try {
-    const res = await fetch(`${getApiUrl()}/api/v1/retail/marketplace/stores`, {
-      next: { revalidate: 60 } // Revalidate every minute
-    });
-    if (!res.ok) return [];
-    return await res.json();
-  } catch (err) {
-    console.error("Failed to fetch stores", err);
-    return [];
-  }
+ try {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/marketplace/stores`, {
+ next: { revalidate: 60 } // Revalidate every minute
+ });
+ if (!res.ok) return [];
+ return await res.json();
+ } catch (err) {
+ console.error("Failed to fetch stores", err);
+ return [];
+ }
 }
 
 export default async function RetailDiscoveryPage() {
-  const stores = await getStores();
+ const stores = await getStores();
 
-  return (
-    <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-12">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-muted text-accent font-bold text-sm rounded-full mb-6">
-            <ShoppingBag size={16} /> Retail Marketplace
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight">
-            Discover Student <span className="text-accent">Essentials</span> Near You.
-          </h1>
-          <p className="mt-4 text-lg text-text-secondary">
-            Browse our partnered retail stores, from groceries to textbooks, tailored for student life. Order for pickup or delivery right to your accommodation.
-          </p>
-        </div>
-      </div>
+ return (
+ <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-12">
+ <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+ <div className="max-w-2xl">
+ <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-muted text-accent font-bold text-sm rounded-full mb-6">
+ <ShoppingBag size={16} /> Retail Marketplace
+ </div>
+ <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight">
+ Discover Student <span className="text-accent">Essentials</span> Near You.
+ </h1>
+ <p className="mt-4 text-lg text-text-secondary">
+ Browse our partnered retail stores, from groceries to textbooks, tailored for student life. Order for pickup or delivery right to your accommodation.
+ </p>
+ </div>
+ </div>
 
-      <div className="relative mb-12">
-        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted">
-          <Search size={20} />
-        </div>
-        <input
-          type="text"
-          placeholder="Search for stores by name or location..."
-          className="w-full pl-12 pr-6 py-4 bg-surface border-2 border-border-strong rounded-2xl text-lg focus:outline-none focus:border-accent focus:ring-4 focus:ring-orange-50 transition-all text-primary font-medium"
-        />
-      </div>
+ <div className="relative mb-12">
+ <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-text-muted">
+ <Search size={20} />
+ </div>
+ <input
+ type="text"
+ placeholder="Search for stores by name or location..."
+ className="w-full pl-12 pr-6 py-4 bg-surface border-2 border-border-strong rounded-2xl text-lg focus:outline-none focus:border-accent focus:ring-4 focus:ring-orange-50 transition-all text-primary font-medium"
+ />
+ </div>
 
-      {stores.length === 0 ? (
-        <div className="bg-surface rounded-3xl p-12 text-center border border-border-strong">
-          <div className="w-20 h-20 bg-slate-50 text-text-muted rounded-full flex items-center justify-center mx-auto mb-6">
-            <Store size={32} />
-          </div>
-          <h3 className="text-2xl font-bold text-primary">No stores available</h3>
-          <p className="text-text-secondary mt-2 max-w-md mx-auto">
-            We couldn't find any retail stores near your location right now. Please check back later.
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stores.map((store: any) => (
-            <StoreCard key={store.id} store={store} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+ {stores.length === 0 ? (
+ <div className="bg-surface rounded-3xl p-12 text-center border border-border-strong">
+ <div className="w-20 h-20 bg-surface-lavender text-text-muted rounded-full flex items-center justify-center mx-auto mb-6">
+ <Store size={32} />
+ </div>
+ <h3 className="text-2xl font-bold text-primary">No stores available</h3>
+ <p className="text-text-secondary mt-2 max-w-md mx-auto">
+ We couldn't find any retail stores near your location right now. Please check back later.
+ </p>
+ </div>
+ ) : (
+ <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+ {stores.map((store: any) => (
+ <StoreCard key={store.id} store={store} />
+ ))}
+ </div>
+ )}
+ </div>
+ );
 }

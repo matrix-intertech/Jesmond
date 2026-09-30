@@ -65,7 +65,7 @@ test.describe('Retail Inventory Workspace', () => {
     // KPIs
     await expect(page.locator('text=Total Products')).toBeVisible();
     await expect(page.locator('text=Total Units')).toBeVisible();
-    
+
     // We expect 2 products based on mock
     const statCards = page.locator('.text-2xl');
     await expect(statCards.nth(0)).toHaveText('2'); // Total Products
@@ -77,7 +77,7 @@ test.describe('Retail Inventory Workspace', () => {
   test('Branch selector works', async ({ page }) => {
     const select = page.locator('select');
     await expect(select).toHaveValue(branchId);
-    
+
     // Mock the second branch
     await page.route(`**/api/v1/retail/inventory/branch-east`, async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
@@ -104,19 +104,19 @@ test.describe('Retail Inventory Workspace', () => {
 
   test('Product detail drawer and stock adjustment works', async ({ page }) => {
     await page.click('text=Jesmond Tote Bag');
-    
+
     // Drawer opens
     await expect(page.locator('h2', { hasText: 'Jesmond Tote Bag' })).toBeVisible();
     await expect(page.locator('text=Current Stock').locator('..').locator('text=24')).toBeVisible();
 
     // Open Adjustment
     await page.click('button:has-text("Adjust Stock")');
-    
+
     // Mock the POST response
     await page.route(`**/api/v1/retail/inventory/${branchId}/${productId}/adjust`, async (route) => {
       const request = route.request();
       expect(request.method()).toBe('POST');
-      
+
       const body = JSON.parse(request.postData() || '{}');
       expect(body.quantity).toBe(6);
       expect(body.reason).toBe('STOCK_RECEIPT');
@@ -146,10 +146,10 @@ test.describe('Retail Inventory Workspace', () => {
   test('Error state works for negative stock', async ({ page }) => {
     await page.click('text=Jesmond Tote Bag');
     await page.click('button:has-text("Adjust Stock")');
-    
+
     await page.click('button:has-text("Remove Stock")');
     await page.fill('input[type="number"]', '50'); // Current is 24, so this makes it -26
-    
+
     // The projected stock should turn red
     const projected = page.locator('text=Projected Stock').locator('..').locator('span:last-child');
     await expect(projected).toHaveText('-26');
@@ -163,7 +163,7 @@ test.describe('Retail Inventory Workspace', () => {
   test('Mobile layout checking (no console errors)', async ({ page }) => {
     // Set viewport to mobile
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     const errors: string[] = [];
     page.on('console', msg => {
       if (msg.type() === 'error') errors.push(msg.text());
@@ -171,7 +171,7 @@ test.describe('Retail Inventory Workspace', () => {
 
     await page.reload();
     await expect(page.locator('text=Inventory')).toBeVisible();
-    
+
     expect(errors.length).toBe(0);
   });
 });
