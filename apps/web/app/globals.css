@@ -47,30 +47,7 @@
   --info: #3b82f6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --surface: #171717;
-    --surface-muted: #1f2937;
-    
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    
-    --border-subtle: #334155;
-    --border-strong: #475569;
 
-    --secondary: 31 41 55;
-    --secondary-foreground: 248 250 252;
-    
-    /* Force light inputs in dark mode for form controls */
-    --input-bg: #ffffff;
-    --input-fg: #0f172a;
-    --input-placeholder: #94a3b8;
-    --input-border: #e2e8f0;
-  }
-}
 
 html,
 body {
@@ -98,18 +75,7 @@ a {
   display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
-}
 
 @layer base {
   input:not([type="checkbox"]):not([type="radio"]), 
