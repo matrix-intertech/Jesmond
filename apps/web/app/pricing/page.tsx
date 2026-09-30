@@ -21,7 +21,7 @@ export default function PricingPage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-white mb-6 tracking-tight" style={{ fontFamily: 'var(--font-outfit)' }}>
               Simple, Transparent Pricing
             </h1>
-            <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
+            <p className="text-lg md:text-xl text-text-muted max-w-2xl mx-auto font-light leading-relaxed">
               No hidden fees. No lock-in contracts. Pay only when students book through Jesmond.
             </p>
           </div>
@@ -39,7 +39,7 @@ export default function PricingPage() {
                 <span className="text-4xl font-bold text-primary">Free</span>
                 <span className="text-text-muted text-sm ml-2">to list</span>
               </div>
-              <ul className="space-y-3 text-sm text-slate-600 mb-8 flex-1">
+              <ul className="space-y-3 text-sm text-text-secondary mb-8 flex-1">
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                   Up to 3 property listings
@@ -62,12 +62,12 @@ export default function PricingPage() {
             <div className="bg-primary rounded-[24px] p-8 border border-brand-navy shadow-xl flex flex-col relative">
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-accent text-white text-xs font-bold rounded-full uppercase tracking-wider">Most Popular</span>
               <h3 className="text-lg font-bold text-white mb-2">Professional</h3>
-              <p className="text-slate-300 text-sm mb-6">For growing accommodation providers.</p>
+              <p className="text-text-muted text-sm mb-6">For growing accommodation providers.</p>
               <div className="mb-6">
                 <span className="text-4xl font-bold text-white">5%</span>
-                <span className="text-slate-300 text-sm ml-2">per booking</span>
+                <span className="text-text-muted text-sm ml-2">per booking</span>
               </div>
-              <ul className="space-y-3 text-sm text-slate-200 mb-8 flex-1">
+              <ul className="space-y-3 text-sm text-text-muted mb-8 flex-1">
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                   Unlimited listings
@@ -97,7 +97,7 @@ export default function PricingPage() {
               <div className="mb-6">
                 <span className="text-4xl font-bold text-primary">Custom</span>
               </div>
-              <ul className="space-y-3 text-sm text-slate-600 mb-8 flex-1">
+              <ul className="space-y-3 text-sm text-text-secondary mb-8 flex-1">
                 <li className="flex items-start gap-2">
                   <svg className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                   Everything in Professional

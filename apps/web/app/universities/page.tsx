@@ -107,13 +107,13 @@ export default async function UniversitiesPage({
                     {uni.campuses.slice(0, 3).map((c: CampusWithLocation) => {
                       const cityName = c.suburb?.city?.name ?? 'Unknown Location';
                       return (
-                        <span key={c.id} className="text-xs bg-surface-muted text-slate-600 px-3 py-1.5 rounded-full border border-border-subtle font-medium">
+                        <span key={c.id} className="text-xs bg-surface-muted text-text-secondary px-3 py-1.5 rounded-full border border-border-subtle font-medium">
                           {c.name} ({cityName})
                         </span>
                       );
                     })}
                     {uni.campuses.length > 3 && (
-                      <span className="text-xs bg-surface-muted text-slate-600 px-3 py-1.5 rounded-full border border-border-subtle font-medium">
+                      <span className="text-xs bg-surface-muted text-text-secondary px-3 py-1.5 rounded-full border border-border-subtle font-medium">
                         +{uni.campuses.length - 3} more
                       </span>
                     )}

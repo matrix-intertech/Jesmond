@@ -148,7 +148,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
               <User className="h-5 w-5 mr-2 text-text-muted" /> Visitor Information
             </h3>
             {lead.user ? (
@@ -162,7 +162,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
           </div>
 
           <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
               <Activity className="h-5 w-5 mr-2 text-text-muted" /> Activity
             </h3>
             <div className="space-y-3 text-sm">
@@ -176,7 +176,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
 
         <div className="space-y-6">
           <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center">
               <Building className="h-5 w-5 mr-2 text-text-muted" /> Management
             </h3>
             

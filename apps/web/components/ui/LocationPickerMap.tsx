@@ -91,7 +91,7 @@ export default function LocationPickerMap({ lat, lng, onChange, suburbLat, subur
       </div>
 
       {lat && lng && (
-        <div className="bg-surface-muted p-3 rounded-lg border border-border-subtle text-sm text-gray-600 mt-2">
+        <div className="bg-surface-muted p-3 rounded-lg border border-border-subtle text-sm text-text-secondary mt-2">
           <div className="font-medium text-primary mb-1">Selected location:</div>
           <div>Latitude: {Number(lat).toFixed(6)}</div>
           <div>Longitude: {Number(lng).toFixed(6)}</div>

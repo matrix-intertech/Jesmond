@@ -163,7 +163,7 @@ function RetailOverviewContent() {
               </div>
             </button>
             <button onClick={() => router.push('/portal/retail/orders')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-blue-50 text-primary flex items-center justify-center">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
@@ -178,7 +178,7 @@ function RetailOverviewContent() {
               </div>
             </button>
             <button onClick={() => router.push('/portal/retail/terminals')} className="p-4 border border-border-strong rounded-lg hover:bg-slate-50 text-left transition-colors flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-purple-50 text-primary flex items-center justify-center">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
                   <line x1="9" y1="1" x2="9" y2="4" />
@@ -208,7 +208,7 @@ function RetailOverviewContent() {
                     <div>
                       <div className="font-medium text-sm text-primary">{order.orderNumber}</div>
                       <div className="text-xs text-text-secondary mb-1">{new Date(order.createdAt).toLocaleString()}</div>
-                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-700' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-blue-100 text-blue-700' : 'bg-secondary text-text-primary'}`}>
+                      <div className={`text-[10px] px-2 py-0.5 rounded-full inline-block ${order.fulfillmentType === 'DELIVERY' ? 'bg-surface-muted text-brand-purple' : order.fulfillmentType === 'TAKEAWAY' ? 'bg-blue-100 text-brand-purple' : 'bg-secondary text-text-primary'}`}>
                         {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
                       </div>
                     </div>
@@ -234,7 +234,7 @@ function RetailOverviewContent() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center flex-1 text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-3 text-slate-300">
+              <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-3 text-text-muted">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 </svg>

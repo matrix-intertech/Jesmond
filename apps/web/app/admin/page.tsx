@@ -144,8 +144,8 @@ export default function AdminDashboardPage() {
               {pendingProperties.map((prop) => (
                 <div key={prop.id} className="bg-surface rounded-xl shadow-sm p-4 border">
                   <h3 className="font-semibold text-primary mb-1">{prop.name}</h3>
-                  <p className="text-sm text-slate-600 mb-1">{prop.suburb?.name}, {prop.suburb?.city?.name}</p>
-                  <p className="text-sm text-slate-600 mb-1">Provider: {prop.organization?.name}</p>
+                  <p className="text-sm text-text-secondary mb-1">{prop.suburb?.name}, {prop.suburb?.city?.name}</p>
+                  <p className="text-sm text-text-secondary mb-1">Provider: {prop.organization?.name}</p>
                   <StatusBadge status="PENDING_APPROVAL" />
                   <div className="mt-2">
                     <Link href={`/admin/properties/${prop.id}`} className="text-accent hover:underline text-sm">Review</Link>
@@ -164,7 +164,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-surface-muted p-6 rounded-xl border">
             <div className="mb-4 md:mb-0 max-w-lg">
               <h3 className="font-bold text-lg text-primary mb-2">Payments &amp; Booking</h3>
-              <p className="text-slate-600 mb-3">Allow students to make payments and activate accommodation bookings.</p>
+              <p className="text-text-secondary mb-3">Allow students to make payments and activate accommodation bookings.</p>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-text-secondary">Status:</span>
                 {paymentsEnabled ? (
@@ -172,7 +172,7 @@ export default function AdminDashboardPage() {
                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span> ENABLED
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 text-slate-600 font-bold bg-secondary px-2 py-1 rounded-md text-xs tracking-wider">
+                  <span className="flex items-center gap-1 text-text-secondary font-bold bg-secondary px-2 py-1 rounded-md text-xs tracking-wider">
                     <span className="w-2 h-2 rounded-full border-2 border-slate-400"></span> DISABLED
                   </span>
                 )}

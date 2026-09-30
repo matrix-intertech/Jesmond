@@ -163,15 +163,15 @@ function SalesHistoryContent() {
                   {displayedOrders.map(order => (
                     <tr key={order.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-primary">{order.orderNumber}</td>
-                      <td className="px-6 py-4 text-slate-600">{new Date(order.createdAt).toLocaleString()}</td>
+                      <td className="px-6 py-4 text-text-secondary">{new Date(order.createdAt).toLocaleString()}</td>
                       {activeTab === 'ONLINE' && (
-                        <td className="px-6 py-4 text-slate-600">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-info/10 text-info'}`}>
+                        <td className="px-6 py-4 text-text-secondary">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-surface-muted text-brand-indigo' : 'bg-info/10 text-info'}`}>
                             {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : order.fulfillmentType === 'TAKEAWAY' ? 'Take Away' : 'In-Store'}
                           </span>
                         </td>
                       )}
-                      <td className="px-6 py-4 text-slate-600">
+                      <td className="px-6 py-4 text-text-secondary">
                         {order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} items
                       </td>
                       <td className="px-6 py-4 font-bold text-primary">${(order.total / 100).toFixed(2)}</td>

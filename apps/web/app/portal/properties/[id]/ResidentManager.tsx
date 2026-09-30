@@ -141,11 +141,11 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
                   </div>
                 )}
                 <div>
-                  <h4 className="font-semibold text-gray-900">{res.name}</h4>
+                  <h4 className="font-semibold text-text-primary">{res.name}</h4>
                   <p className="text-xs text-text-secondary">{res.occupation || 'No occupation listed'}</p>
                 </div>
               </div>
-              <div className="text-sm text-gray-600 mb-4 flex-1">
+              <div className="text-sm text-text-secondary mb-4 flex-1">
                 {res.shortBio ? <p className="line-clamp-2">{res.shortBio}</p> : <p className="italic">No bio provided.</p>}
               </div>
               <div className="flex gap-2 text-xs text-accent justify-end mt-auto pt-2 border-t border-border-subtle">
@@ -220,7 +220,7 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
               </div>
 
               <div className="flex gap-4 justify-end mt-6">
-                <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-gray-600 hover:text-gray-900">Cancel</button>
+                <button type="button" onClick={() => setIsEditing(false)} className="px-4 py-2 text-text-secondary hover:text-text-primary">Cancel</button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-accent text-white rounded hover:bg-accent disabled:opacity-50">
                   {isSubmitting ? 'Saving...' : 'Save Resident'}
                 </button>

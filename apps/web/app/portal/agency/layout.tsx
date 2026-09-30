@@ -17,7 +17,7 @@ export default function AgencyLayout({ children }: { children: React.ReactNode }
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Agency Management</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-text-primary">Agency Management</h1>
         <p className="mt-2 text-sm text-text-secondary">
           Manage your team members, property access, and agency settings.
         </p>

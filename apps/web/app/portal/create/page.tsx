@@ -390,8 +390,8 @@ export default function CreatePropertyPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Property Created Successfully!</h2>
-          <p className="text-gray-600 mb-6">Your property listing has been saved.</p>
+          <h2 className="text-2xl font-bold text-text-primary mb-2">Property Created Successfully!</h2>
+          <p className="text-text-secondary mb-6">Your property listing has been saved.</p>
           {error && <div className="mt-4 mb-6 p-4 bg-error/10 text-error rounded-md text-sm">{error}</div>}
           <p className="text-sm text-text-secondary">Redirecting to your properties...</p>
         </div>
@@ -420,21 +420,21 @@ export default function CreatePropertyPage() {
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input type="radio" checked={formData.listingMode === 'MULTI_UNIT' && formData.listingType === 'NORMAL'} onChange={() => setFormData({...formData, listingMode: 'MULTI_UNIT', listingType: 'NORMAL'})} className="mt-1 h-4 w-4 border-border-strong text-accent" />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">Multi-Unit Property</span>
+                      <span className="text-sm font-medium text-text-primary">Multi-Unit Property</span>
                       <span className="text-sm text-text-secondary">Student accommodation building with multiple room types.</span>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input type="radio" checked={formData.listingMode === 'INDIVIDUAL' && formData.listingType === 'NORMAL'} onChange={() => setFormData({...formData, listingMode: 'INDIVIDUAL', listingType: 'NORMAL'})} className="mt-1 h-4 w-4 border-border-strong text-accent" />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">Individual Property</span>
+                      <span className="text-sm font-medium text-text-primary">Individual Property</span>
                       <span className="text-sm text-text-secondary">A single house, apartment, or unit rented entirely.</span>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 cursor-pointer">
                     <input type="radio" checked={formData.listingType === 'CO_LIVING'} onChange={() => setFormData({...formData, listingMode: 'INDIVIDUAL', listingType: 'CO_LIVING'})} className="mt-1 h-4 w-4 border-border-strong text-accent" />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-900">Co-Living Space</span>
+                      <span className="text-sm font-medium text-text-primary">Co-Living Space</span>
                       <span className="text-sm text-text-secondary">A property with shared spaces, house rules, and resident profiles.</span>
                     </div>
                   </label>
@@ -545,10 +545,10 @@ export default function CreatePropertyPage() {
           {step === 5 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">5. Pricing</h4>
-              <p className="text-sm text-gray-600">What will the seeker pay?</p>
+              <p className="text-sm text-text-secondary">What will the seeker pay?</p>
 
               {formData.listingMode === 'MULTI_UNIT' ? (
-                <div className="bg-blue-50 text-blue-800 p-4 rounded-md text-sm border border-blue-200">
+                <div className="bg-blue-50 text-brand-indigo p-4 rounded-md text-sm border border-blue-200">
                   <p className="font-semibold mb-1">Multi-Unit Pricing</p>
                   <p>You have selected a Multi-Unit property. You will be able to configure pricing for each individual room type (e.g., Studio, 1-Bed) in the "Rooms & Spaces" tab after creating this property.</p>
                 </div>
@@ -566,7 +566,7 @@ export default function CreatePropertyPage() {
           {step === 6 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">6. Photos & Media</h4>
-              <p className="text-sm text-gray-600">Upload high-quality images of the property. You can upload multiple images at once.</p>
+              <p className="text-sm text-text-secondary">Upload high-quality images of the property. You can upload multiple images at once.</p>
 
               <div className="mb-4 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:gap-4">
                 {mediaFiles.map((file, i) => (
@@ -583,7 +583,7 @@ export default function CreatePropertyPage() {
                 ))}
               </div>
 
-              <label className="bg-accent/10 text-accent px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
+              <label className="bg-accent/10 text-accent px-4 py-2 rounded-md cursor-pointer hover:bg-surface-muted transition inline-block">
                 <span>+ Select Images</span>
                 <input
                   type="file"
@@ -659,7 +659,7 @@ export default function CreatePropertyPage() {
           {step === 8 && (
             <div className="space-y-6">
               <h4 className="text-md font-semibold">8. Contact & Enquiry Preferences</h4>
-              <p className="text-sm text-gray-600">Choose how seekers can contact you about this property.</p>
+              <p className="text-sm text-text-secondary">Choose how seekers can contact you about this property.</p>
 
               <div className="bg-surface-muted p-4 rounded-lg border border-border-strong">
                 <label className="flex items-start space-x-3 cursor-pointer">
@@ -670,7 +670,7 @@ export default function CreatePropertyPage() {
                     className="mt-1 h-4 w-4 rounded border-border-strong text-accent"
                   />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>
+                    <span className="text-sm font-medium text-text-primary">Show my contact details on this property</span>
                     <span className="text-sm text-text-secondary">
                       If checked, your approved public contact phone and email will be visible to seekers. If unchecked, seekers must use the secure Enquiry Form.
                     </span>
@@ -682,7 +682,7 @@ export default function CreatePropertyPage() {
 
           <div className="mt-8 flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-between">
             {step > 1 ? (
-              <button type="button" onClick={() => setStep(step - 1)} className="min-h-11 rounded-md border px-6 py-2 text-gray-600 hover:bg-gray-50">Back</button>
+              <button type="button" onClick={() => setStep(step - 1)} className="min-h-11 rounded-md border px-6 py-2 text-text-secondary hover:bg-gray-50">Back</button>
             ) : <div/>}
 
             {step < 8 ? (

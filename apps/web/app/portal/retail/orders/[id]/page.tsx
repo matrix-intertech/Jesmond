@@ -121,9 +121,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
           <div className="flex flex-wrap items-center gap-2">
             {/* Fulfillment Tag */}
             <span className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-              isDelivery ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+              isDelivery ? 'bg-surface-muted text-brand-indigo border border-purple-200' :
               isTakeaway ? 'bg-info/10 text-info border border-blue-200' :
-              'bg-surface-muted text-slate-800 border border-border-strong'
+              'bg-surface-muted text-text-primary border border-border-strong'
             }`}>
               {isDelivery ? <Truck size={14} /> : isTakeaway ? <ShoppingBag size={14} /> : <Store size={14} />}
               {order.fulfillmentType}
@@ -163,7 +163,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   {order.items?.map((item: any, idx: number) => (
                     <div key={idx} className="py-4 first:pt-0 last:pb-0 flex justify-between items-center text-sm">
                       <div>
-                        <p className="font-bold text-slate-800">{item.product?.name || `Product ${item.productId}`}</p>
+                        <p className="font-bold text-text-primary">{item.product?.name || `Product ${item.productId}`}</p>
                         <div className="flex items-center gap-3 text-xs text-text-secondary mt-1">
                           {item.product?.sku && <span className="font-mono bg-surface-muted px-1.5 py-0.5 rounded">SKU: {item.product.sku}</span>}
                           <span>Qty: {item.quantity}</span>
@@ -181,14 +181,14 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               {/* Financial Summary */}
               <div className="p-6 bg-slate-50/70 space-y-2.5 text-sm">
                 <h4 className="font-semibold text-text-primary mb-3 uppercase tracking-wider text-xs">Financial Summary</h4>
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-text-secondary">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-slate-800">${(order.subtotal / 100).toFixed(2)}</span>
+                  <span className="font-semibold text-text-primary">${(order.subtotal / 100).toFixed(2)}</span>
                 </div>
                 {order.deliveryFee > 0 && (
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-text-secondary">
                     <span>Delivery Fee</span>
-                    <span className="font-semibold text-slate-800">${(order.deliveryFee / 100).toFixed(2)}</span>
+                    <span className="font-semibold text-text-primary">${(order.deliveryFee / 100).toFixed(2)}</span>
                   </div>
                 )}
                 {order.discount > 0 && (
@@ -197,9 +197,9 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     <span className="font-semibold">-${(order.discount / 100).toFixed(2)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-text-secondary">
                   <span>Tax</span>
-                  <span className="font-semibold text-slate-800">${(order.tax / 100).toFixed(2)}</span>
+                  <span className="font-semibold text-text-primary">${(order.tax / 100).toFixed(2)}</span>
                 </div>
 
                 <div className="pt-3 border-t border-border-strong flex justify-between items-center text-base">
@@ -209,7 +209,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
 
                 {/* Payment Breakdown */}
                 <div className="mt-4 pt-3 border-t border-border-strong flex flex-wrap justify-between items-center text-xs text-text-secondary">
-                  <span>Payment Method: <strong className="text-slate-800 font-semibold">{payment?.method || 'CASH'}</strong></span>
+                  <span>Payment Method: <strong className="text-text-primary font-semibold">{payment?.method || 'CASH'}</strong></span>
                   <span>Status: <strong className={`font-semibold ${payment?.status === 'PAID' || order.status === 'COMPLETED' ? 'text-emerald-600' : 'text-amber-600'}`}>{payment?.status || (order.status === 'COMPLETED' ? 'PAID' : 'PENDING')}</strong></span>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     1
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-slate-800">PENDING</p>
+                    <p className="text-xs font-bold text-text-primary">PENDING</p>
                     <p className="text-[11px] text-text-secondary">Order received</p>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     2
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-slate-800">ACCEPTED</p>
+                    <p className="text-xs font-bold text-text-primary">ACCEPTED</p>
                     <p className="text-[11px] text-text-secondary">Store accepted order</p>
                   </div>
                   {order.status === 'PENDING' && (
@@ -267,7 +267,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     3
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-slate-800">PACKED</p>
+                    <p className="text-xs font-bold text-text-primary">PACKED</p>
                     <p className="text-[11px] text-text-secondary">Order packed and ready</p>
                   </div>
                   {order.status === 'ACCEPTED' && (
@@ -289,7 +289,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     4
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-slate-800">{isDelivery ? 'DELIVERED' : 'TAKEN'}</p>
+                    <p className="text-xs font-bold text-text-primary">{isDelivery ? 'DELIVERED' : 'TAKEN'}</p>
                     <p className="text-[11px] text-text-secondary">{isDelivery ? 'Handed to customer' : 'Picked up by customer'}</p>
                   </div>
                   {order.status === 'PACKED' && (
@@ -316,16 +316,16 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                   </div>
                   <div className="flex justify-between border-b border-border-subtle pb-2">
                     <span className="text-text-secondary">Email</span>
-                    <span className="font-medium text-slate-800">{order.customer.email || 'N/A'}</span>
+                    <span className="font-medium text-text-primary">{order.customer.email || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between border-b border-border-subtle pb-2">
                     <span className="text-text-secondary">Phone</span>
-                    <span className="font-medium text-slate-800">{order.customer.phone || 'N/A'}</span>
+                    <span className="font-medium text-text-primary">{order.customer.phone || 'N/A'}</span>
                   </div>
                   {isDelivery && (
                     <div className="flex justify-between pt-1">
                       <span className="text-text-secondary">Delivery Address</span>
-                      <span className="font-medium text-slate-800 text-right max-w-[180px]">{order.customer.address || 'Address provided at checkout'}</span>
+                      <span className="font-medium text-text-primary text-right max-w-[180px]">{order.customer.address || 'Address provided at checkout'}</span>
                     </div>
                   )}
                 </div>

@@ -133,7 +133,7 @@ export default function CustomersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title="Customers" description="Manage your retail customer database." />
-        <button onClick={openCreateModal} className="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={openCreateModal} className="bg-primary hover:bg-surface-muted text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Add Customer
         </button>
       </div>
@@ -166,7 +166,7 @@ export default function CustomersPage() {
                   <td className="px-6 py-4 font-medium text-primary">
                     {cust.firstName} {cust.lastName}
                   </td>
-                  <td className="px-6 py-4 text-slate-600">
+                  <td className="px-6 py-4 text-text-secondary">
                     <div className="flex flex-col">
                       <span>{cust.email || '-'}</span>
                       <span className="text-xs text-text-muted">{cust.phone}</span>
@@ -184,11 +184,11 @@ export default function CustomersPage() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/50 backdrop-blur-sm">
           <div className="bg-surface rounded-xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center shrink-0">
               <h3 className="font-semibold text-lg text-primary">{editingCustomer ? 'Edit Customer' : 'Add Customer'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-slate-600">&times;</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
             </div>
             
             <div className="overflow-y-auto p-6">

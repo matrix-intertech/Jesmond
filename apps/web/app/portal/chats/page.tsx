@@ -125,7 +125,7 @@ export default function HostChatsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className={`truncate text-base font-bold group-hover:text-accent ${isUnread ? "text-primary" : "text-slate-800"}`}>
+                      <h3 className={`truncate text-base font-bold group-hover:text-accent ${isUnread ? "text-primary" : "text-text-primary"}`}>
                         {conv.property?.name || "Unknown Property"}
                       </h3>
                       {participantName && <p className="mt-0.5 truncate text-xs font-medium text-text-secondary">{participantName}</p>}

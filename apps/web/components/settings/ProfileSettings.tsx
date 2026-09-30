@@ -225,7 +225,7 @@ export default function ProfileSettings() {
           </div>
 
           <div className="border-t border-border-subtle pt-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-2">Public Contact Information</h3>
+            <h3 className="text-base font-semibold text-text-primary mb-2">Public Contact Information</h3>
             <p className="text-sm text-text-secondary mb-4">
               Allow students and visitors to view my contact details on my public Agency profile.
             </p>
@@ -242,7 +242,7 @@ export default function ProfileSettings() {
                   className={`${data.allowPublicContactDetails ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out`}
                 />
               </button>
-              <span className="text-sm font-medium text-gray-900">
+              <span className="text-sm font-medium text-text-primary">
                 {data.allowPublicContactDetails ? 'ON: Your email and phone number may be displayed publicly on your Agency profile.' : 'OFF: Your contact details are private.'}
               </span>
             </div>

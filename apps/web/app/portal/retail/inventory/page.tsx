@@ -252,7 +252,7 @@ function InventoryWorkspaceContent() {
               )}
             </select>
           </div>
-          <button onClick={() => fetchInventory(branchId)} className="p-2 bg-surface border border-border-strong rounded-lg hover:bg-slate-50 shadow-sm text-slate-600 transition" title="Refresh">
+          <button onClick={() => fetchInventory(branchId)} className="p-2 bg-surface border border-border-strong rounded-lg hover:bg-slate-50 shadow-sm text-text-secondary transition" title="Refresh">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
@@ -289,7 +289,7 @@ function InventoryWorkspaceContent() {
                   placeholder="Search product, SKU or barcode..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm text-slate-800 bg-surface"
+                  className="pl-10 w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm text-text-primary bg-surface"
                 />
               </div>
               <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
@@ -300,7 +300,7 @@ function InventoryWorkspaceContent() {
                     className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                       stockFilter === filter
                         ? 'bg-primary text-white'
-                        : 'bg-surface-muted text-slate-600 hover:bg-secondary'
+                        : 'bg-surface-muted text-text-secondary hover:bg-secondary'
                     }`}
                   >
                     {filter.replace(/_/g, ' ')}
@@ -330,7 +330,7 @@ function InventoryWorkspaceContent() {
                   </div>
                   <h3 className="text-lg font-semibold text-primary mb-1">Your inventory is empty</h3>
                   <p className="text-text-secondary max-w-sm mb-6">Create products in Catalog to begin tracking stock, or adjust your search filters.</p>
-                  <button onClick={() => router.push('/portal/retail/catalog')} className="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-slate-800 transition">
+                  <button onClick={() => router.push('/portal/retail/catalog')} className="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-surface-muted transition">
                     Go to Catalog
                   </button>
                 </div>
@@ -365,7 +365,7 @@ function InventoryWorkspaceContent() {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className="text-sm text-slate-600">{item.product.category?.name || 'Uncategorized'}</span>
+                              <span className="text-sm text-text-secondary">{item.product.category?.name || 'Uncategorized'}</span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
@@ -392,7 +392,7 @@ function InventoryWorkspaceContent() {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setIsAdjusting(true); }}
-                                className="text-accent hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-lg transition"
+                                className="text-accent hover:text-brand-orange bg-orange-50 hover:bg-surface-muted px-3 py-1.5 rounded-lg transition"
                               >
                                 Adjust
                               </button>
@@ -464,7 +464,7 @@ function InventoryWorkspaceContent() {
 
       {/* Detail / Adjust Drawer/Modal Overlay */}
       {selectedItem && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm transition-opacity">
+        <div className="fixed inset-0 z-50 flex justify-end bg-surface-muted/50 backdrop-blur-sm transition-opacity">
           <div className="bg-surface w-full max-w-md h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
             <div className="flex items-start justify-between gap-3 border-b border-border-subtle bg-slate-50 p-4 sm:p-6">
               <div>
@@ -481,7 +481,7 @@ function InventoryWorkspaceContent() {
               </div>
               <button
                 onClick={() => { setSelectedItem(null); setIsAdjusting(false); setAdjSuccess(""); setAdjError(""); }}
-                className="p-2 text-text-muted hover:text-slate-600 hover:bg-secondary rounded-full transition"
+                className="p-2 text-text-muted hover:text-text-secondary hover:bg-secondary rounded-full transition"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -504,22 +504,22 @@ function InventoryWorkspaceContent() {
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between border-b border-border-subtle pb-2">
                         <span className="text-text-secondary">Category</span>
-                        <span className="font-medium text-slate-800">{selectedItem.product.category?.name || 'Uncategorized'}</span>
+                        <span className="font-medium text-text-primary">{selectedItem.product.category?.name || 'Uncategorized'}</span>
                       </div>
                       <div className="flex justify-between border-b border-border-subtle pb-2">
                         <span className="text-text-secondary">Selling Price</span>
-                        <span className="font-medium text-slate-800">${(selectedItem.product.sellingPrice / 100).toFixed(2)}</span>
+                        <span className="font-medium text-text-primary">${(selectedItem.product.sellingPrice / 100).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between border-b border-border-subtle pb-2">
                         <span className="text-text-secondary">Last Updated</span>
-                        <span className="font-medium text-slate-800">{new Date(selectedItem.updatedAt).toLocaleString()}</span>
+                        <span className="font-medium text-text-primary">{new Date(selectedItem.updatedAt).toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
                     <h4 className="text-sm font-semibold text-accent mb-1">Need to modify stock?</h4>
-                    <p className="text-xs text-orange-800 mb-3">Record a manual stock adjustment, return, or damage claim.</p>
+                    <p className="text-xs text-brand-orange mb-3">Record a manual stock adjustment, return, or damage claim.</p>
                     <button
                       onClick={() => setIsAdjusting(true)}
                       className="w-full py-2 bg-accent text-white font-medium rounded-lg hover:bg-accent transition shadow-sm"
@@ -584,14 +584,14 @@ function InventoryWorkspaceContent() {
                             <button
                               type="button"
                               onClick={() => setAdjType("ADD")}
-                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "ADD" ? 'bg-primary text-white border-brand-navy' : 'bg-surface text-slate-600 border-border-strong hover:bg-slate-50'}`}
+                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "ADD" ? 'bg-primary text-white border-brand-navy' : 'bg-surface text-text-secondary border-border-strong hover:bg-slate-50'}`}
                             >
                               Add Stock
                             </button>
                             <button
                               type="button"
                               onClick={() => setAdjType("REMOVE")}
-                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "REMOVE" ? 'bg-rose-600 text-white border-rose-600' : 'bg-surface text-slate-600 border-border-strong hover:bg-slate-50'}`}
+                              className={`py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${adjType === "REMOVE" ? 'bg-rose-600 text-white border-rose-600' : 'bg-surface text-text-secondary border-border-strong hover:bg-slate-50'}`}
                             >
                               Remove Stock
                             </button>
@@ -646,7 +646,7 @@ function InventoryWorkspaceContent() {
                           <span>{adjType === "ADD" ? "+" : "-"}{parseInt(adjQty) || 0}</span>
                         </div>
                         <div className="pt-2 mt-2 border-t border-border-strong flex justify-between items-center font-bold">
-                          <span className="text-slate-800">Projected Stock</span>
+                          <span className="text-text-primary">Projected Stock</span>
                           <span className={((selectedItem.quantity) + (adjType === "ADD" ? (parseInt(adjQty)||0) : -(parseInt(adjQty)||0))) < 0 ? 'text-rose-600' : 'text-primary'}>
                             {(selectedItem.quantity) + (adjType === "ADD" ? (parseInt(adjQty)||0) : -(parseInt(adjQty)||0))}
                           </span>

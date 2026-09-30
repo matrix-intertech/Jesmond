@@ -105,14 +105,14 @@ export default function EmployeePermissionsPage() {
                 </div>
                 <div className="flex items-center gap-4">
                   {saving === employee.id && <span className="text-xs text-text-muted">Saving...</span>}
-                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 'bg-secondary text-text-secondary'}`}>
+                  <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${employee.role === 'ADMIN' ? 'bg-surface-muted text-brand-indigo' : 'bg-secondary text-text-secondary'}`}>
                     {employee.role}
                   </span>
                 </div>
               </div>
               
               {employee.role === 'ADMIN' || employee.permissions?.includes('*') ? (
-                <div className="p-4 bg-indigo-50/50 rounded-lg text-sm text-indigo-800">
+                <div className="p-4 bg-indigo-50/50 rounded-lg text-sm text-brand-indigo">
                   This user is an Admin and has full access to all features automatically. Specific permissions do not apply.
                 </div>
               ) : (
@@ -126,7 +126,7 @@ export default function EmployeePermissionsPage() {
                         onChange={() => togglePermission(employee, perm)}
                         disabled={saving === employee.id}
                       />
-                      <span className={`text-xs font-medium ${employee.permissions?.includes(perm) ? 'text-accent' : 'text-slate-600'}`}>
+                      <span className={`text-xs font-medium ${employee.permissions?.includes(perm) ? 'text-accent' : 'text-text-secondary'}`}>
                         {perm.replace('RETAIL_', '').replace(/_/g, ' ')}
                       </span>
                     </label>

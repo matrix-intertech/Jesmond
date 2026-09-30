@@ -126,14 +126,14 @@ export default function ApplicationDetailPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <div>
               <h3 className="font-bold text-lg mb-4 text-primary border-b pb-2">Student Information</h3>
-              <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Name:</span> {app.student.firstName} {app.student.lastName}</p>
-              <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Email:</span> {app.student.email}</p>
+              <p className="text-text-secondary mb-2"><span className="font-semibold w-24 inline-block">Name:</span> {app.student.firstName} {app.student.lastName}</p>
+              <p className="text-text-secondary mb-2"><span className="font-semibold w-24 inline-block">Email:</span> {app.student.email}</p>
             </div>
             <div>
               <h3 className="font-bold text-lg mb-4 text-primary border-b pb-2">Property Details</h3>
-              <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Property:</span> {app.roomType.property.name}</p>
-              <p className="text-slate-600 mb-2"><span className="font-semibold w-24 inline-block">Room:</span> {app.roomType.name}</p>
-              <p className="text-slate-600 mb-2">
+              <p className="text-text-secondary mb-2"><span className="font-semibold w-24 inline-block">Property:</span> {app.roomType.property.name}</p>
+              <p className="text-text-secondary mb-2"><span className="font-semibold w-24 inline-block">Room:</span> {app.roomType.name}</p>
+              <p className="text-text-secondary mb-2">
                 <span className="font-semibold w-24 inline-block">Inventory:</span> 
                 <span className={app.roomType.inventory > 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
                   {app.roomType.inventory} remaining

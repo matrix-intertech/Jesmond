@@ -242,10 +242,10 @@ function OrdersContent() {
                           <span className={`shrink-0 px-2 py-1 text-xs font-medium rounded-full ${
                             order.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
                             order.status === 'ACCEPTED' ? 'bg-sky-100 text-sky-800' :
-                            order.status === 'PACKED' ? 'bg-indigo-100 text-indigo-800' :
+                            order.status === 'PACKED' ? 'bg-surface-muted text-brand-indigo' :
                             order.status === 'DELIVERED' || order.status === 'TAKEN' ? 'bg-emerald-100 text-emerald-800' :
                             order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
-                            'bg-surface-muted text-slate-800'
+                            'bg-surface-muted text-text-primary'
                           }`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
                           </span>
@@ -296,13 +296,13 @@ function OrdersContent() {
                             {order.orderNumber}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">{new Date(order.createdAt).toLocaleString()}</td>
+                        <td className="px-6 py-4 text-text-secondary">{new Date(order.createdAt).toLocaleString()}</td>
                         <td className="px-6 py-4">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-purple-100 text-purple-800' : 'bg-info/10 text-info'}`}>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${order.fulfillmentType === 'DELIVERY' ? 'bg-surface-muted text-brand-indigo' : 'bg-info/10 text-info'}`}>
                             {order.fulfillmentType === 'DELIVERY' ? 'Delivery' : 'Take Away'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="px-6 py-4 text-text-secondary">
                           {order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0} items
                         </td>
                         <td className="px-6 py-4 font-bold text-primary">${(order.total / 100).toFixed(2)}</td>
@@ -310,10 +310,10 @@ function OrdersContent() {
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                             order.status === 'PENDING' ? 'bg-amber-100 text-amber-800' :
                             order.status === 'ACCEPTED' ? 'bg-sky-100 text-sky-800' :
-                            order.status === 'PACKED' ? 'bg-indigo-100 text-indigo-800' :
+                            order.status === 'PACKED' ? 'bg-surface-muted text-brand-indigo' :
                             order.status === 'DELIVERED' || order.status === 'TAKEN' ? 'bg-emerald-100 text-emerald-800' :
                             order.status === 'CANCELLED' ? 'bg-rose-100 text-rose-800' :
-                            'bg-surface-muted text-slate-800'
+                            'bg-surface-muted text-text-primary'
                           }`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
                           </span>
@@ -346,9 +346,9 @@ function OrdersContent() {
 
           {/* Pagination Controls Footer */}
           {totalPages > 1 && (
-            <div className="p-4 border-t border-border-strong bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+            <div className="p-4 border-t border-border-strong bg-slate-50 flex items-center justify-between text-xs text-text-secondary">
               <div>
-                Showing Page <span className="font-bold text-slate-800">{page}</span> of <span className="font-bold text-slate-800">{totalPages}</span> ({total} total orders)
+                Showing Page <span className="font-bold text-text-primary">{page}</span> of <span className="font-bold text-text-primary">{totalPages}</span> ({total} total orders)
               </div>
               <div className="flex gap-2">
                 <button

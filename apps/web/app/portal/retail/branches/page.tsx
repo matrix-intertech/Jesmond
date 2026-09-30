@@ -124,7 +124,7 @@ export default function BranchesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title="Retail Branches" description="Manage your retail store locations." />
-        <button onClick={openCreateModal} className="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={openCreateModal} className="bg-primary hover:bg-surface-muted text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Add Branch
         </button>
       </div>
@@ -157,14 +157,14 @@ export default function BranchesPage() {
                   <td className="px-6 py-4 font-medium text-primary">
                     {branch.name}
                   </td>
-                  <td className="px-6 py-4 text-slate-600">
+                  <td className="px-6 py-4 text-text-secondary">
                     <div className="flex flex-col">
                       <span>{branch.phone || '-'}</span>
                       <span className="text-xs text-text-muted">{branch.address}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${branch.isActive ? 'bg-success/10 text-success' : 'bg-surface-muted text-slate-800'}`}>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${branch.isActive ? 'bg-success/10 text-success' : 'bg-surface-muted text-text-primary'}`}>
                       {branch.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
@@ -179,11 +179,11 @@ export default function BranchesPage() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/50 backdrop-blur-sm">
           <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center shrink-0">
               <h3 className="font-semibold text-lg text-primary">{editingBranch ? 'Edit Branch' : 'Add Branch'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-slate-600">&times;</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
             </div>
             
             <div className="overflow-y-auto p-6">
@@ -207,7 +207,7 @@ export default function BranchesPage() {
 
                 <div className="flex items-center mt-2">
                   <input id="isActive" type="checkbox" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="h-4 w-4 text-accent focus:ring-accent border-border-strong rounded" />
-                  <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
+                  <label htmlFor="isActive" className="ml-2 block text-sm text-text-primary">
                     Branch is Active
                   </label>
                 </div>

@@ -151,16 +151,16 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
           <div className="absolute top-0 left-0 right-0 h-14 bg-surface/95 backdrop-blur z-20 border-b border-border-subtle flex items-center px-4">
             <button 
               onClick={() => setSelectedConversationId(null)}
-              className="p-2 -ml-2 mr-2 text-text-secondary hover:text-slate-800 rounded-full hover:bg-surface-muted transition-colors"
+              className="p-2 -ml-2 mr-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-surface-muted transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-800 truncate">
+              <p className="text-sm font-bold text-text-primary truncate">
                 {conversations.find(c => c.id === selectedConversationId)?.property?.name || "Chat"}
               </p>
             </div>
-            <button onClick={onClose} className="p-2 -mr-2 text-text-muted hover:text-slate-600 rounded-full hover:bg-surface-muted transition-colors">
+            <button onClick={onClose} className="p-2 -mr-2 text-text-muted hover:text-text-secondary rounded-full hover:bg-surface-muted transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -176,8 +176,8 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
       ) : (
         <div className="flex flex-col h-full bg-slate-50">
           <div className="h-14 bg-surface border-b border-border-subtle flex items-center justify-between px-4 shrink-0">
-            <h3 className="font-bold text-slate-800">Messages</h3>
-            <button onClick={onClose} className="p-2 -mr-2 text-text-muted hover:text-slate-600 rounded-full hover:bg-surface-muted transition-colors">
+            <h3 className="font-bold text-text-primary">Messages</h3>
+            <button onClick={onClose} className="p-2 -mr-2 text-text-muted hover:text-text-secondary rounded-full hover:bg-surface-muted transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -191,8 +191,8 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
               <div className="p-4 text-sm text-rose-600 text-center">{error}</div>
             ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 h-full text-center">
-                <MessageCircle className="w-10 h-10 text-slate-200 mb-3" />
-                <p className="text-sm font-medium text-slate-600">No conversations yet</p>
+                <MessageCircle className="w-10 h-10 text-text-muted mb-3" />
+                <p className="text-sm font-medium text-text-secondary">No conversations yet</p>
                 <Link href="/search" onClick={onClose} className="text-sm text-accent hover:underline mt-2">
                   Browse properties
                 </Link>
@@ -223,7 +223,7 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-baseline mb-0.5">
-                          <p className={`text-sm truncate pr-2 ${unread ? 'font-bold text-slate-900' : 'font-semibold text-text-primary'}`}>
+                          <p className={`text-sm truncate pr-2 ${unread ? 'font-bold text-text-primary' : 'font-semibold text-text-primary'}`}>
                             {conv.property?.name || "Property"}
                           </p>
                           {latestMessage && (
@@ -235,7 +235,7 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
                         <p className="text-[12px] text-text-secondary truncate mb-1">
                           {participantNames}
                         </p>
-                        <p className={`text-[13px] truncate ${unread ? 'font-medium text-slate-800' : 'text-text-secondary'}`}>
+                        <p className={`text-[13px] truncate ${unread ? 'font-medium text-text-primary' : 'text-text-secondary'}`}>
                           {latestMessage ? latestMessage.encryptedPayload || "Message sent" : "No messages yet"}
                         </p>
                       </div>

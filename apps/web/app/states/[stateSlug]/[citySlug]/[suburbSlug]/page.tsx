@@ -141,23 +141,23 @@ export default async function SuburbPage({ params }: { params: Promise<{ stateSl
             <li>
               <Link href="/" className="hover:text-accent transition-colors">Home</Link>
             </li>
-            <li><span className="mx-2 text-slate-300">/</span></li>
+            <li><span className="mx-2 text-text-muted">/</span></li>
             <li>
               <Link href="/states" className="hover:text-accent transition-colors">States</Link>
             </li>
-            <li><span className="mx-2 text-slate-300">/</span></li>
+            <li><span className="mx-2 text-text-muted">/</span></li>
             <li>
               <Link href={`/states/${stateSlug}`} className="hover:text-accent transition-colors">{suburb?.state.name}</Link>
             </li>
             {suburb?.city && (
               <>
-                <li><span className="mx-2 text-slate-300">/</span></li>
+                <li><span className="mx-2 text-text-muted">/</span></li>
                 <li>
                   <Link href={`/states/${stateSlug}/${citySlug}`} className="hover:text-accent transition-colors">{suburb.city.name}</Link>
                 </li>
               </>
             )}
-            <li><span className="mx-2 text-slate-300">/</span></li>
+            <li><span className="mx-2 text-text-muted">/</span></li>
             <li className="text-primary font-medium" aria-current="page">
               {suburb?.name}
             </li>

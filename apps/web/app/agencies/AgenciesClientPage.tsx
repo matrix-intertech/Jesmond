@@ -72,13 +72,13 @@ export default function AgenciesClientPage() {
       <section className="bg-surface border-b border-border-strong pt-[104px]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           <div className="text-center">
-            <span className="inline-block mb-3 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase bg-orange-100 text-orange-700">
+            <span className="inline-block mb-3 px-3 py-1 rounded-full text-xs font-semibold tracking-wide uppercase bg-surface-muted text-brand-orange">
               Verified Agencies
             </span>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-text-primary sm:text-5xl">
               Student Accommodation Agencies
             </h1>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-text-secondary max-w-2xl mx-auto">
               Browse trusted agencies managing student accommodation across Australia. Each agency is verified and maintains a portfolio of quality properties.
             </p>
 
@@ -131,8 +131,8 @@ export default function AgenciesClientPage() {
           </div>
         ) : agencies.length === 0 ? (
           <div className="text-center py-24">
-            <Building2 className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">No agencies found</h3>
+            <Building2 className="mx-auto h-12 w-12 text-text-muted" />
+            <h3 className="mt-4 text-lg font-semibold text-text-primary">No agencies found</h3>
             <p className="mt-2 text-sm text-text-secondary">
               {search ? `No results for "${search}". Try a different search.` : 'No verified agencies are listed yet.'}
             </p>
@@ -192,7 +192,7 @@ export default function AgenciesClientPage() {
 
                   {/* Card Body */}
                   <div className="p-5 flex flex-col flex-1">
-                    <h2 className="text-sm font-semibold text-gray-900 group-hover:text-accent transition-colors line-clamp-2">
+                    <h2 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors line-clamp-2">
                       {agency.name}
                     </h2>
 
@@ -208,7 +208,7 @@ export default function AgenciesClientPage() {
                     </div>
 
                     <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-                      <span className="text-xs font-medium text-accent group-hover:text-orange-700">
+                      <span className="text-xs font-medium text-accent group-hover:text-brand-orange">
                         View agency
                       </span>
                       <ChevronRight className="h-4 w-4 text-orange-400 group-hover:translate-x-0.5 transition-transform" />

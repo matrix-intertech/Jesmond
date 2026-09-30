@@ -525,7 +525,7 @@ function POSPageContent() {
               placeholder="Search by name, SKU, or barcode..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 border border-border-strong rounded-lg shadow-sm focus:border-accent focus:ring-accent text-sm text-slate-800 bg-surface"
+              className="w-full pl-9 pr-3 py-1.5 border border-border-strong rounded-lg shadow-sm focus:border-accent focus:ring-accent text-sm text-text-primary bg-surface"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -545,7 +545,7 @@ function POSPageContent() {
                 className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition ${
                   selectedCategory === cat
                     ? 'bg-primary text-white'
-                    : 'bg-surface-muted text-slate-600 hover:bg-secondary'
+                    : 'bg-surface-muted text-text-secondary hover:bg-secondary'
                 }`}
               >
                 {cat}
@@ -568,21 +568,21 @@ function POSPageContent() {
             </div>
           ) : !branchId ? (
             <div className="flex flex-col items-center justify-center h-full text-text-secondary">
-              <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-12 h-12 text-text-muted mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
               <span>Select a branch to start selling.</span>
             </div>
           ) : products.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-text-secondary">
-              <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-12 h-12 text-text-muted mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
               <h3 className="font-semibold text-primary">No products available for this branch.</h3>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-text-secondary">
-              <svg className="w-12 h-12 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-12 h-12 text-text-muted mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <span>No products match your search.</span>
@@ -656,14 +656,14 @@ function POSPageContent() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => handleUpdateQuantity(item.productId, -1)}
-                      className="w-6 h-6 rounded bg-surface-muted border border-border-strong flex items-center justify-center text-slate-600 hover:bg-secondary font-bold"
+                      className="w-6 h-6 rounded bg-surface-muted border border-border-strong flex items-center justify-center text-text-secondary hover:bg-secondary font-bold"
                     >
                       -
                     </button>
                     <span className="text-sm font-bold text-primary min-w-[20px] text-center">{item.quantity}</span>
                     <button
                       onClick={() => handleUpdateQuantity(item.productId, 1)}
-                      className="w-6 h-6 rounded bg-surface-muted border border-border-strong flex items-center justify-center text-slate-600 hover:bg-secondary font-bold"
+                      className="w-6 h-6 rounded bg-surface-muted border border-border-strong flex items-center justify-center text-text-secondary hover:bg-secondary font-bold"
                     >
                       +
                     </button>
@@ -695,17 +695,17 @@ function POSPageContent() {
 
       {/* Checkout Drawer / Modal Overlay */}
       {checkoutOpen && (
-        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-end">
+        <div className="absolute inset-0 bg-surface-muted/60 backdrop-blur-sm z-50 flex justify-end">
           <div className="w-full max-w-lg bg-surface h-full shadow-2xl flex flex-col animate-slide-in">
             {/* Header */}
             <div className="p-6 bg-primary text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-bold">POS Checkout</h3>
-                <p className="text-xs text-slate-300">Authorize and complete the transaction</p>
+                <p className="text-xs text-text-muted">Authorize and complete the transaction</p>
               </div>
               <button
                 onClick={handleCancelCheckout}
-                className="text-slate-200 hover:text-white text-sm font-semibold bg-slate-800 px-3 py-1.5 rounded-lg transition"
+                className="text-text-muted hover:text-white text-sm font-semibold bg-surface-muted px-3 py-1.5 rounded-lg transition"
               >
                 Close / Cancel
               </button>
@@ -715,7 +715,7 @@ function POSPageContent() {
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Grand Total Banner */}
               <div className="bg-slate-50 border border-border-strong rounded-xl p-4 flex justify-between items-center">
-                <span className="text-slate-600 font-semibold">Amount Due</span>
+                <span className="text-text-secondary font-semibold">Amount Due</span>
                 <span className="text-3xl font-black text-primary">${(totalCents / 100).toFixed(2)}</span>
               </div>
 
@@ -730,7 +730,7 @@ function POSPageContent() {
                         className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 transition ${
                           paymentMethod === "CASH"
                             ? "border-accent bg-orange-50/50 text-accent font-bold shadow-sm"
-                            : "border-border-strong hover:border-border-strong text-slate-600"
+                            : "border-border-strong hover:border-border-strong text-text-secondary"
                         }`}
                       >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -743,7 +743,7 @@ function POSPageContent() {
                         className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 transition ${
                           paymentMethod === "CREDIT_CARD"
                             ? "border-accent bg-orange-50/50 text-accent font-bold shadow-sm"
-                            : "border-border-strong hover:border-border-strong text-slate-600"
+                            : "border-border-strong hover:border-border-strong text-text-secondary"
                         }`}
                       >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -802,7 +802,7 @@ function POSPageContent() {
                           </select>
                         )}
                       </div>
-                      <div className="bg-blue-50 border border-blue-200 text-blue-800 font-bold text-xs p-3 rounded-lg flex items-center gap-2">
+                      <div className="bg-blue-50 border border-blue-200 text-brand-indigo font-bold text-xs p-3 rounded-lg flex items-center gap-2">
                         <span>SANDBOX MODE ACTIVE</span>
                       </div>
                     </div>
@@ -929,7 +929,7 @@ function POSPageContent() {
               {paymentStatus === "PAID" && (
                 <button
                   onClick={() => setCheckoutOpen(false)}
-                  className="w-full py-4 bg-primary hover:bg-slate-800 text-white font-bold rounded-lg shadow-sm transition text-lg"
+                  className="w-full py-4 bg-primary hover:bg-surface-muted text-white font-bold rounded-lg shadow-sm transition text-lg"
                 >
                   New Sale
                 </button>

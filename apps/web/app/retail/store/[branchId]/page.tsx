@@ -56,7 +56,7 @@ export default async function StoreDetailPage({
       </Link>
 
       {!branch.isActive && (
-        <div className="mb-8 p-4 bg-surface-muted border border-border-strong rounded-xl text-center text-slate-600 font-bold uppercase tracking-wider">
+        <div className="mb-8 p-4 bg-surface-muted border border-border-strong rounded-xl text-center text-text-secondary font-bold uppercase tracking-wider">
           Currently Unavailable
         </div>
       )}
@@ -82,7 +82,7 @@ export default async function StoreDetailPage({
               </div>
             )}
             {branch.takeawayEnabled && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-xl border border-blue-100">
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-brand-purple font-bold rounded-xl border border-blue-100">
                 <Clock size={18} /> Takeaway
               </div>
             )}

@@ -177,7 +177,7 @@ function EmployeesPageContent() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title="Retail Employees" description="Manage your staff and branch assignments." />
-        <button onClick={openCreateModal} className="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={openCreateModal} className="bg-primary hover:bg-surface-muted text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Add Employee
         </button>
       </div>
@@ -213,7 +213,7 @@ function EmployeesPageContent() {
                       <span className="text-xs text-text-muted font-normal">{emp.user.email}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-600">
+                  <td className="px-6 py-4 text-text-secondary">
                     <div className="flex flex-col">
                       <span className="font-medium text-text-primary">{emp.role.replace('_', ' ')}</span>
                       <span className="text-xs text-text-muted">
@@ -227,7 +227,7 @@ function EmployeesPageContent() {
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       emp.user.accountStatus === 'ACTIVE' ? 'bg-success/10 text-success' :
                       emp.user.accountStatus === 'PENDING_VERIFICATION' ? 'bg-amber-100 text-amber-800' :
-                      'bg-surface-muted text-slate-800'
+                      'bg-surface-muted text-text-primary'
                     }`}>
                       {emp.user.accountStatus.replace('_', ' ')}
                     </span>
@@ -246,11 +246,11 @@ function EmployeesPageContent() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/50 backdrop-blur-sm">
           <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center shrink-0">
               <h3 className="font-semibold text-lg text-primary">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-slate-600">&times;</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
             </div>
 
             <div className="overflow-y-auto p-6">

@@ -195,12 +195,12 @@ export function LocationAutocomplete({
           aria-controls="location-suggestions"
         />
         {isLoading ? (
-          <Loader2 className="absolute right-3 w-5 h-5 text-blue-500 animate-spin" />
+          <Loader2 className="absolute right-3 w-5 h-5 text-primary animate-spin" />
         ) : query ? (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-gray-600 transition-colors"
+            className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-secondary transition-colors"
             aria-label="Clear location"
           >
             <X className="w-4 h-4" />
@@ -225,9 +225,9 @@ export function LocationAutocomplete({
                   role="option"
                   aria-selected={index === selectedIndex}
                 >
-                  <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-blue-600' : 'text-text-muted'}`} />
+                  <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-text-muted'}`} />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900 line-clamp-1">{result.label}</span>
+                    <span className="text-sm font-medium text-text-primary line-clamp-1">{result.label}</span>
                     <span className="text-xs text-text-secondary capitalize">{result.type.replace('_', ' ')} • {result.postcode || result.state || result.country}</span>
                   </div>
                 </li>

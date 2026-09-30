@@ -207,7 +207,7 @@ export default function PortalPropertiesPage() {
                         {isAdmin && (
                           <button 
                             onClick={() => openAssignModal(p)}
-                            className="text-sm font-medium text-gray-600 hover:text-accent flex items-center"
+                            className="text-sm font-medium text-text-secondary hover:text-accent flex items-center"
                           >
                             <Users className="mr-1 h-4 w-4" /> Assign
                           </button>
@@ -232,11 +232,11 @@ export default function PortalPropertiesPage() {
           <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
               <div className="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-                <h3 className="text-lg font-semibold leading-6 text-gray-900 mb-1" id="assign-modal-title">
+                <h3 className="text-lg font-semibold leading-6 text-text-primary mb-1" id="assign-modal-title">
                   Assign Team Members
                 </h3>
                 <p className="text-sm text-text-secondary mb-4">
-                  Property: <span className="font-semibold text-gray-900">{selectedProperty.name}</span>
+                  Property: <span className="font-semibold text-text-primary">{selectedProperty.name}</span>
                 </p>
 
                 {assignError && (
@@ -260,10 +260,10 @@ export default function PortalPropertiesPage() {
                       return (
                         <div key={member.id} className="flex items-center justify-between p-4">
                           <div>
-                            <p className="font-medium text-gray-900">{member.user.firstName} {member.user.lastName}</p>
+                            <p className="font-medium text-text-primary">{member.user.firstName} {member.user.lastName}</p>
                             <p className="text-xs text-text-secondary">{member.user.email}</p>
                             {isAgencyAdmin ? (
-                              <span className="mt-1 inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
+                              <span className="mt-1 inline-flex items-center rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-brand-purple ring-1 ring-inset ring-purple-700/10">
                                 Agency Admin (Full Access)
                               </span>
                             ) : (
@@ -306,7 +306,7 @@ export default function PortalPropertiesPage() {
                     type="button"
                     disabled={savingAssignments}
                     onClick={() => setIsAssignModalOpen(false)}
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                    className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-text-primary shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
                   >
                     Cancel
                   </button>

@@ -63,7 +63,7 @@ export function HeroSearchBar() {
 
         {/* Distance Filter (Only enabled when location selected) */}
         <div className="w-full md:w-48 relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
-          <label className="block text-[10px] font-bold text-slate-800 mb-0.5">Distance</label>
+          <label className="block text-[10px] font-bold text-text-primary mb-0.5">Distance</label>
           <select
             value={radiusKm}
             onChange={(e) => setRadiusKm(e.target.value)}
@@ -88,7 +88,7 @@ export function HeroSearchBar() {
         <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
           {/* Property Type */}
           <div className="relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
-            <label className="block text-[10px] font-bold text-slate-800 mb-0.5">Property Type</label>
+            <label className="block text-[10px] font-bold text-text-primary mb-0.5">Property Type</label>
             <select
               value={roomType}
               onChange={(e) => setRoomType(e.target.value)}
@@ -106,7 +106,7 @@ export function HeroSearchBar() {
 
           {/* Move In */}
           <div className="relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
-            <label className="block text-[10px] font-bold text-slate-800 mb-0.5">Move In</label>
+            <label className="block text-[10px] font-bold text-text-primary mb-0.5">Move In</label>
             <input
               type="date"
               value={moveIn}
@@ -117,7 +117,7 @@ export function HeroSearchBar() {
 
           {/* Price Range */}
           <div className="relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
-            <label className="block text-[10px] font-bold text-slate-800 mb-0.5">Price Range</label>
+            <label className="block text-[10px] font-bold text-text-primary mb-0.5">Price Range</label>
             <select
               value={priceRange}
               onChange={(e) => setPriceRange(e.target.value)}

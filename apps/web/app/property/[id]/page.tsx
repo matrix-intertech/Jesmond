@@ -85,7 +85,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-primary mb-4">About this property</h2>
-            <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{property.description}</p>
+            <p className="text-text-secondary leading-relaxed whitespace-pre-wrap">{property.description}</p>
 
             {/* Property Overview */}
             <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-border-strong">
@@ -134,7 +134,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   {property.houseRule.guests && <div><span className="text-text-secondary block">Guests</span><span className="font-semibold text-text-primary">{property.houseRule.guests.replace(/_/g, ' ')}</span></div>}
                   {(property.houseRule.quietHoursStart || property.houseRule.quietHoursEnd) && <div><span className="text-text-secondary block">Quiet Hours</span><span className="font-semibold text-text-primary">{property.houseRule.quietHoursStart} - {property.houseRule.quietHoursEnd}</span></div>}
                 </div>
-                {property.houseRule.additionalRules && <p className="mt-4 text-sm text-slate-600 whitespace-pre-wrap">{property.houseRule.additionalRules}</p>}
+                {property.houseRule.additionalRules && <p className="mt-4 text-sm text-text-secondary whitespace-pre-wrap">{property.houseRule.additionalRules}</p>}
               </div>
             )}
 
@@ -152,13 +152,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                         )}
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-800">{resident.name}</h4>
+                        <h4 className="font-bold text-text-primary">{resident.name}</h4>
                         <div className="text-sm text-text-secondary mt-1 flex flex-wrap gap-2">
                           {resident.age && <span>{resident.age} yrs</span>}
                           {resident.occupation && <span>• {resident.occupation}</span>}
                           {resident.ethnicity && <span>• {resident.ethnicity}</span>}
                         </div>
-                        {resident.shortBio && <p className="text-sm text-slate-600 mt-2 line-clamp-2">{resident.shortBio}</p>}
+                        {resident.shortBio && <p className="text-sm text-text-secondary mt-2 line-clamp-2">{resident.shortBio}</p>}
                       </div>
                     </div>
                   ))}
@@ -168,7 +168,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
             <div className="mt-16">
               <h2 className="text-2xl font-bold text-primary mb-4">Location</h2>
-              <p className="text-slate-600 mb-6">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
+              <p className="text-text-secondary mb-6">{formatLocation({ address: property.address, suburb: property.suburb, state: property.suburb.state, city: property.suburb.city })}</p>
 
               <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-border-strong">
                 <PropertyMap

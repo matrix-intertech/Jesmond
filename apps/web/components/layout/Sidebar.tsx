@@ -504,7 +504,7 @@ export default function Sidebar({ role }: { role: string }) {
                   onClick={() => setOpen(false)}
                   className={`flex min-h-11 items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-accent/10 text-accent font-semibold shadow-sm' : 'text-primary/90 hover:bg-surface-muted hover:text-primary'}`}
                 >
-                  <div className={`relative ${isActive ? 'text-accent' : 'text-gray-600'}`}>
+                  <div className={`relative ${isActive ? 'text-accent' : 'text-text-secondary'}`}>
                     {item.icon}
                     {item.label === 'Messages' && unreadChatCount > 0 && (
                       <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">

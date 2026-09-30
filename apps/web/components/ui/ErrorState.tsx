@@ -35,7 +35,7 @@ export default function ErrorState({ title, description, onRetry }: ErrorStatePr
         <circle cx="12" cy="16" r="1" />
       </svg>
       <h2 className="text-xl font-outfit font-semibold text-primary">{title}</h2>
-      {description && <p className="text-sm text-slate-600 max-w-md text-center">{description}</p>}
+      {description && <p className="text-sm text-text-secondary max-w-md text-center">{description}</p>}
       <button
         onClick={onRetry}
         className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition"

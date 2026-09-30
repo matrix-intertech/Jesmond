@@ -124,7 +124,7 @@ export default function ProviderEnquiriesPage() {
                         {!enq.student && <div className="text-[10px] uppercase font-bold text-text-muted mt-1">Guest</div>}
                       </td>
                       <td className="p-4">
-                        <div className="text-xs text-slate-600 mb-1">{email}</div>
+                        <div className="text-xs text-text-secondary mb-1">{email}</div>
                         <div className="text-xs text-text-secondary">{phone}</div>
                       </td>
                       <td className="p-4 font-medium">
@@ -133,7 +133,7 @@ export default function ProviderEnquiriesPage() {
                         </Link>
                       </td>
                       <td className="p-4">
-                        <div className="text-slate-600 whitespace-pre-wrap text-sm line-clamp-3" title={enq.message}>{enq.message}</div>
+                        <div className="text-text-secondary whitespace-pre-wrap text-sm line-clamp-3" title={enq.message}>{enq.message}</div>
                         <div className="text-xs text-text-muted mt-2">{new Date(enq.createdAt).toLocaleString()}</div>
                       </td>
                       <td className="p-4">

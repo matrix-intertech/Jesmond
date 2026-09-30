@@ -41,7 +41,7 @@ export default function StatCard({
         </div>
       ) : (
         <>
-          {icon && <div className="flex-shrink-0 text-slate-600">{icon}</div>}
+          {icon && <div className="flex-shrink-0 text-text-secondary">{icon}</div>}
           <div>
             <p className="text-sm text-text-secondary font-medium uppercase tracking-wider">
               {label}

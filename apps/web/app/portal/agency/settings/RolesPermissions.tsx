@@ -155,7 +155,7 @@ export default function RolesPermissions() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-lg font-medium leading-6 text-gray-900">Roles & Permissions</h3>
+          <h3 className="text-lg font-medium leading-6 text-text-primary">Roles & Permissions</h3>
           <p className="mt-1 text-sm text-text-secondary">Manage your organization's roles and assign granular permissions.</p>
         </div>
         <button
@@ -175,7 +175,7 @@ export default function RolesPermissions() {
             roles.map(role => (
               <li key={role.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 transition-colors flex justify-between items-center">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">{role.name} {role.isSystem && <span className="ml-2 inline-flex items-center rounded-md bg-surface-muted px-2 py-1 text-xs font-medium text-gray-600">System</span>}</h4>
+                  <h4 className="text-sm font-medium text-text-primary">{role.name} {role.isSystem && <span className="ml-2 inline-flex items-center rounded-md bg-surface-muted px-2 py-1 text-xs font-medium text-text-secondary">System</span>}</h4>
                   <p className="text-sm text-text-secondary mt-1">{role.description || 'No description'}</p>
                   <div className="mt-2 text-xs text-text-secondary flex gap-4">
                     <span>{role._count.staff} members assigned</span>
@@ -202,13 +202,13 @@ export default function RolesPermissions() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-500/75">
           <div className="bg-surface rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-border-strong">
-              <h3 className="text-lg font-medium text-gray-900">{editingRole ? 'Edit Role' : 'Create Role'}</h3>
+              <h3 className="text-lg font-medium text-text-primary">{editingRole ? 'Edit Role' : 'Create Role'}</h3>
             </div>
             
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
               <div className="px-6 py-4 space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900">Role Name</label>
+                  <label className="block text-sm font-medium text-text-primary">Role Name</label>
                   <input
                     required
                     disabled={editingRole?.isSystem}
@@ -218,7 +218,7 @@ export default function RolesPermissions() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900">Description</label>
+                  <label className="block text-sm font-medium text-text-primary">Description</label>
                   <input
                     disabled={editingRole?.isSystem}
                     className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm disabled:bg-surface-muted disabled:text-text-secondary"
@@ -228,7 +228,7 @@ export default function RolesPermissions() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-3">Permissions</label>
+                  <label className="block text-sm font-medium text-text-primary mb-3">Permissions</label>
                   <div className="space-y-6">
                     {PERMISSION_GROUPS.map(group => (
                       <div key={group.group}>
@@ -256,7 +256,7 @@ export default function RolesPermissions() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                  className="rounded-md bg-surface px-3 py-2 text-sm font-semibold text-text-primary shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                 >
                   Cancel
                 </button>

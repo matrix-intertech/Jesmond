@@ -58,7 +58,7 @@ export default async function StatesPage({
               <Link href="/" className="hover:text-accent transition-colors">Home</Link>
             </li>
             <li>
-              <span className="mx-2 text-slate-300">/</span>
+              <span className="mx-2 text-text-muted">/</span>
             </li>
             <li className="text-primary font-medium" aria-current="page">
               States

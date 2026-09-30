@@ -75,13 +75,13 @@ export function ProductCard({ inventory, branchId, storeIsActive = true }: { inv
 
         {!storeIsActive ? (
           <div className="absolute inset-0 bg-surface/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-            <div className="px-4 py-1.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
+            <div className="px-4 py-1.5 bg-surface-muted text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
               Currently Unavailable
             </div>
           </div>
         ) : availableQty <= 0 && (
           <div className="absolute inset-0 bg-surface/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-            <div className="px-4 py-1.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
+            <div className="px-4 py-1.5 bg-surface-muted text-white text-sm font-bold uppercase tracking-wider rounded-full shadow-lg">
               Out of stock
             </div>
           </div>

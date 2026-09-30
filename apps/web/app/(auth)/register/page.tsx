@@ -275,7 +275,7 @@ function RegisterForm() {
                 type="button"
                 onClick={handleResendOtp}
                 disabled={resendCooldown > 0}
-                className="text-accent hover:text-indigo-500 disabled:text-text-muted font-medium"
+                className="text-accent hover:text-primary disabled:text-text-muted font-medium"
               >
                 {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : 'Resend verification code'}
               </button>
@@ -295,7 +295,7 @@ function RegisterForm() {
           </h2>
           <p className="mt-2 text-center text-sm text-text-secondary">
             Already have an account?{' '}
-            <Link href="/login" className="text-accent hover:text-indigo-500 font-medium">
+            <Link href="/login" className="text-accent hover:text-primary font-medium">
               Sign in
             </Link>
           </p>
@@ -310,7 +310,7 @@ function RegisterForm() {
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'student'
                 ? 'bg-accent text-white'
-                : 'bg-surface text-gray-600 hover:bg-surface-muted'
+                : 'bg-surface text-text-secondary hover:bg-surface-muted'
             }`}
           >
             Student
@@ -321,7 +321,7 @@ function RegisterForm() {
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'host'
                 ? 'bg-accent text-white'
-                : 'bg-surface text-gray-600 hover:bg-surface-muted'
+                : 'bg-surface text-text-secondary hover:bg-surface-muted'
             }`}
           >
             Host
@@ -332,7 +332,7 @@ function RegisterForm() {
             className={`flex-1 py-3 text-sm font-semibold transition ${
               accountType === 'retailer'
                 ? 'bg-accent text-white'
-                : 'bg-surface text-gray-600 hover:bg-surface-muted'
+                : 'bg-surface text-text-secondary hover:bg-surface-muted'
             }`}
           >
             Retailer

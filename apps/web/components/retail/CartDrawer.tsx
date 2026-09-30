@@ -19,7 +19,7 @@ export function CartDrawer() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsCartOpen(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110]"
+            className="fixed inset-0 bg-surface-muted/40 backdrop-blur-sm z-[110]"
           />
         )}
       </AnimatePresence>
@@ -51,7 +51,7 @@ export function CartDrawer() {
             <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-text-muted">
                     <ShoppingBag size={32} />
                   </div>
                   <div>
@@ -60,7 +60,7 @@ export function CartDrawer() {
                   </div>
                   <button
                     onClick={() => setIsCartOpen(false)}
-                    className="mt-4 px-6 py-2 bg-primary text-white rounded-full font-medium hover:bg-slate-800 transition"
+                    className="mt-4 px-6 py-2 bg-primary text-white rounded-full font-medium hover:bg-surface-muted transition"
                   >
                     Continue Shopping
                   </button>
@@ -83,7 +83,7 @@ export function CartDrawer() {
                             <h4 className="font-semibold text-primary leading-tight">{item.name}</h4>
                             <button
                               onClick={() => removeItem(item.productId)}
-                              className="text-slate-300 hover:text-red-500 transition-colors"
+                              className="text-text-muted hover:text-red-500 transition-colors"
                             >
                               <X size={16} />
                             </button>

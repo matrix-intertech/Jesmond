@@ -67,8 +67,8 @@ export default function AgencyOverviewPage() {
   if (state === 'no_agency') {
     return (
       <div className="p-8 text-center">
-        <Building2 className="mx-auto h-12 w-12 text-gray-300" />
-        <h3 className="mt-4 text-lg font-semibold text-gray-900">No Agency Found</h3>
+        <Building2 className="mx-auto h-12 w-12 text-text-muted" />
+        <h3 className="mt-4 text-lg font-semibold text-text-primary">No Agency Found</h3>
         <p className="mt-2 text-sm text-text-secondary max-w-sm mx-auto">
           You are not currently linked to an agency. Contact your platform administrator to set one up, or create one below.
         </p>
@@ -90,7 +90,7 @@ export default function AgencyOverviewPage() {
     return (
       <div className="p-8 text-center">
         <Shield className="mx-auto h-12 w-12 text-orange-300" />
-        <h3 className="mt-4 text-lg font-semibold text-gray-900">Access Restricted</h3>
+        <h3 className="mt-4 text-lg font-semibold text-text-primary">Access Restricted</h3>
         <p className="mt-2 text-sm text-text-secondary max-w-sm mx-auto">
           You do not have permission to access agency management. Please contact your Agency Admin.
         </p>
@@ -103,7 +103,7 @@ export default function AgencyOverviewPage() {
     return (
       <div className="p-8 text-center">
         <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
-        <h3 className="mt-4 text-lg font-semibold text-gray-900">Something went wrong</h3>
+        <h3 className="mt-4 text-lg font-semibold text-text-primary">Something went wrong</h3>
         <p className="mt-2 text-sm text-text-secondary max-w-sm mx-auto">{errorMsg}</p>
         <button
           onClick={fetchAgency}
@@ -125,7 +125,7 @@ export default function AgencyOverviewPage() {
     <div className="p-6">
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:tracking-tight">
+          <h2 className="text-2xl font-bold leading-7 text-text-primary sm:truncate sm:tracking-tight">
             {agency.name}
           </h2>
           <p className="mt-1 text-sm text-text-secondary capitalize">
@@ -150,13 +150,13 @@ export default function AgencyOverviewPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="truncate text-sm font-medium text-text-secondary">Total Team Members</dt>
-                  <dd className="text-lg font-medium text-gray-900">{agency.staff?.length ?? 0}</dd>
+                  <dd className="text-lg font-medium text-text-primary">{agency.staff?.length ?? 0}</dd>
                 </dl>
               </div>
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
-            <Link href="/portal/agency/members" className="text-sm font-medium text-accent hover:text-orange-800">
+            <Link href="/portal/agency/members" className="text-sm font-medium text-accent hover:text-brand-orange">
               Manage Team →
             </Link>
           </div>
@@ -170,7 +170,7 @@ export default function AgencyOverviewPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="truncate text-sm font-medium text-text-secondary">Agency Admins</dt>
-                  <dd className="text-lg font-medium text-gray-900">{agencyAdmins.length || unrolled.length || 0}</dd>
+                  <dd className="text-lg font-medium text-text-primary">{agencyAdmins.length || unrolled.length || 0}</dd>
                 </dl>
               </div>
             </div>
@@ -188,13 +188,13 @@ export default function AgencyOverviewPage() {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="truncate text-sm font-medium text-text-secondary">Managed Properties</dt>
-                  <dd className="text-lg font-medium text-gray-900">{agency.properties?.length ?? 0}</dd>
+                  <dd className="text-lg font-medium text-text-primary">{agency.properties?.length ?? 0}</dd>
                 </dl>
               </div>
             </div>
           </div>
           <div className="bg-gray-50 px-5 py-3">
-            <Link href="/portal/properties" className="text-sm font-medium text-accent hover:text-orange-800">
+            <Link href="/portal/properties" className="text-sm font-medium text-accent hover:text-brand-orange">
               View Properties →
             </Link>
           </div>
@@ -205,10 +205,10 @@ export default function AgencyOverviewPage() {
       {agency.staff && agency.staff.length > 0 && (
         <div className="rounded-lg border border-border-strong bg-surface overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
-            <h3 className="text-base font-semibold text-gray-900">Team Roster</h3>
+            <h3 className="text-base font-semibold text-text-primary">Team Roster</h3>
             <Link
               href="/portal/agency/members"
-              className="text-sm font-medium text-accent hover:text-orange-800"
+              className="text-sm font-medium text-accent hover:text-brand-orange"
             >
               Manage →
             </Link>
@@ -217,11 +217,11 @@ export default function AgencyOverviewPage() {
             {agency.staff.slice(0, 6).map((member: any) => (
               <li key={member.id} className="px-6 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 font-semibold text-sm">
+                  <div className="h-8 w-8 rounded-full bg-surface-muted flex items-center justify-center text-brand-orange font-semibold text-sm">
                     {member.user?.firstName?.[0]}{member.user?.lastName?.[0]}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-text-primary">
                       {member.user?.firstName} {member.user?.lastName}
                     </p>
                     <p className="text-xs text-text-secondary">{member.user?.email}</p>
@@ -229,10 +229,10 @@ export default function AgencyOverviewPage() {
                 </div>
                 <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                   member.agencyRole === 'AGENCY_ADMIN'
-                    ? 'bg-purple-50 text-purple-700 ring-purple-700/10'
+                    ? 'bg-purple-50 text-brand-purple ring-purple-700/10'
                     : member.agencyRole === 'TEAM_MEMBER'
                     ? 'bg-green-50 text-green-700 ring-green-600/20'
-                    : 'bg-gray-50 text-gray-600 ring-gray-500/10'
+                    : 'bg-gray-50 text-text-secondary ring-gray-500/10'
                 }`}>
                   {member.agencyRole === 'AGENCY_ADMIN' ? 'Agency Admin'
                     : member.agencyRole === 'TEAM_MEMBER' ? 'Team Member'

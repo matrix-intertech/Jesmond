@@ -196,7 +196,7 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className={`truncate text-sm font-bold group-hover:text-accent ${isUnread || isActive ? "text-primary" : "text-slate-800"}`}>
+                  <h3 className={`truncate text-sm font-bold group-hover:text-accent ${isUnread || isActive ? "text-primary" : "text-text-primary"}`}>
                     {conv.property?.name || "Unknown Property"}
                   </h3>
                   {latestActivityAt && <span className="shrink-0 text-[11px] font-medium text-text-muted">{formatConversationTime(latestActivityAt)}</span>}

@@ -30,7 +30,7 @@ export default function SupportPage() {
             <h1 className="text-4xl md:text-5xl font-medium text-white mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
               How can we help?
             </h1>
-            <p className="text-lg text-slate-300 mb-10">
+            <p className="text-lg text-text-muted mb-10">
               Search our knowledge base or browse categories below.
             </p>
 
@@ -83,7 +83,7 @@ export default function SupportPage() {
         <section className="mt-24 max-w-[800px] mx-auto px-6">
           <div className="bg-accent/10 rounded-[32px] p-10 md:p-14 text-center border border-indigo-100">
             <h2 className="text-3xl font-semibold text-primary mb-4" style={{ fontFamily: 'var(--font-outfit)' }}>Can't find what you're looking for?</h2>
-            <p className="text-lg text-slate-600 mb-8 max-w-lg mx-auto">
+            <p className="text-lg text-text-secondary mb-8 max-w-lg mx-auto">
               Our support team is here to help. Reach out to us directly and we'll get back to you as soon as possible.
             </p>
             <Link href="/contact" className="inline-flex items-center justify-center px-8 py-4 text-base font-medium rounded-xl text-white bg-accent hover:bg-accent shadow-md transition-colors">

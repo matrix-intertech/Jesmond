@@ -74,15 +74,15 @@ export default function PortalLeadsPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-surface p-4 rounded-xl shadow-sm border border-border-strong">
               <p className="text-sm text-text-secondary font-medium">Total Leads</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{leads.length}</p>
+              <p className="text-3xl font-bold text-text-primary mt-1">{leads.length}</p>
             </div>
             <div className="bg-surface p-4 rounded-xl shadow-sm border border-border-strong">
               <p className="text-sm text-text-secondary font-medium">New Leads</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{leads.filter(l => l.status === 'NEW').length}</p>
+              <p className="text-3xl font-bold text-text-primary mt-1">{leads.filter(l => l.status === 'NEW').length}</p>
             </div>
             <div className="bg-surface p-4 rounded-xl shadow-sm border border-border-strong">
               <p className="text-sm text-text-secondary font-medium">Warm / Hot</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{leads.filter(l => l.temperature === 'WARM' || l.temperature === 'HOT').length}</p>
+              <p className="text-3xl font-bold text-text-primary mt-1">{leads.filter(l => l.temperature === 'WARM' || l.temperature === 'HOT').length}</p>
             </div>
             <div className="bg-surface p-4 rounded-xl shadow-sm border border-border-strong">
               <p className="text-sm text-text-secondary font-medium">Converted</p>
@@ -108,21 +108,21 @@ export default function PortalLeadsPage() {
                     <td className="px-6 py-4">
                       {lead.user ? (
                         <div>
-                          <p className="font-medium text-gray-900">{lead.user.firstName} {lead.user.lastName}</p>
+                          <p className="font-medium text-text-primary">{lead.user.firstName} {lead.user.lastName}</p>
                           <p className="text-xs text-text-secondary">{lead.user.email}</p>
                         </div>
                       ) : (
-                        <p className="font-medium text-gray-600">Anonymous Visitor</p>
+                        <p className="font-medium text-text-secondary">Anonymous Visitor</p>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        lead.sourceType === 'PROPERTY_PAGE' ? 'bg-info/10 text-info' : 'bg-purple-100 text-purple-800'
+                        lead.sourceType === 'PROPERTY_PAGE' ? 'bg-info/10 text-info' : 'bg-surface-muted text-brand-indigo'
                       }`}>
                         {lead.sourceType === 'PROPERTY_PAGE' ? 'Property Page' : 'Agency Page'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 text-sm font-medium text-text-primary">
                       {lead.property ? lead.property.name : <span className="text-text-muted italic">Agency General</span>}
                     </td>
                     <td className="px-6 py-4">
@@ -130,7 +130,7 @@ export default function PortalLeadsPage() {
                         <StatusBadge status={lead.status} />
                         <span className={`text-xs font-semibold ${
                           lead.temperature === 'HOT' ? 'text-red-600' :
-                          lead.temperature === 'WARM' ? 'text-accent' : 'text-blue-500'
+                          lead.temperature === 'WARM' ? 'text-accent' : 'text-primary'
                         }`}>
                           {lead.temperature}
                         </span>
@@ -140,7 +140,7 @@ export default function PortalLeadsPage() {
                       {lead.assignments && lead.assignments.length > 0 ? (
                         <div className="flex -space-x-1 overflow-hidden">
                           {lead.assignments.map((a: any) => (
-                            <div key={a.id} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-secondary flex items-center justify-center text-xs font-bold text-gray-600" title={`${a.orgStaff?.user?.firstName} ${a.orgStaff?.user?.lastName}`}>
+                            <div key={a.id} className="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-secondary flex items-center justify-center text-xs font-bold text-text-secondary" title={`${a.orgStaff?.user?.firstName} ${a.orgStaff?.user?.lastName}`}>
                               {a.orgStaff?.user?.firstName?.[0]}{a.orgStaff?.user?.lastName?.[0]}
                             </div>
                           ))}
@@ -166,9 +166,9 @@ export default function PortalLeadsPage() {
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     {lead.user ? (
-                      <p className="font-semibold text-gray-900">{lead.user.firstName} {lead.user.lastName}</p>
+                      <p className="font-semibold text-text-primary">{lead.user.firstName} {lead.user.lastName}</p>
                     ) : (
-                      <p className="font-semibold text-gray-600">Anonymous Visitor</p>
+                      <p className="font-semibold text-text-secondary">Anonymous Visitor</p>
                     )}
                     <p className="text-xs text-text-secondary">{lead.property ? lead.property.name : 'Agency General'}</p>
                   </div>
@@ -177,11 +177,11 @@ export default function PortalLeadsPage() {
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`text-xs font-semibold ${
                           lead.temperature === 'HOT' ? 'text-red-600' :
-                          lead.temperature === 'WARM' ? 'text-accent' : 'text-blue-500'
+                          lead.temperature === 'WARM' ? 'text-accent' : 'text-primary'
                         }`}>
                     {lead.temperature}
                   </span>
-                  <span className="text-gray-300">•</span>
+                  <span className="text-text-muted">•</span>
                   <span className="text-xs text-text-secondary">{new Date(lead.lastVisitedAt).toLocaleDateString()}</span>
                 </div>
                 <Link href={`/portal/leads/${lead.id}`} className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-accent px-4 py-2 text-sm font-semibold text-accent">

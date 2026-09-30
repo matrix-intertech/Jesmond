@@ -81,7 +81,7 @@ export default function RetailSettingsIndex() {
               <div className="space-y-4">
                 <label className="flex items-center justify-between cursor-pointer">
                   <div>
-                    <p className="font-medium text-sm text-slate-800">Takeaway Enabled</p>
+                    <p className="font-medium text-sm text-text-primary">Takeaway Enabled</p>
                     <p className="text-xs text-text-secondary">Allow customers to pick up orders from this branch.</p>
                   </div>
                   <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${branch.takeawayEnabled ? 'bg-accent' : 'bg-secondary'}`}>
@@ -92,7 +92,7 @@ export default function RetailSettingsIndex() {
                 
                 <label className="flex items-center justify-between cursor-pointer">
                   <div>
-                    <p className="font-medium text-sm text-slate-800">Delivery Enabled</p>
+                    <p className="font-medium text-sm text-text-primary">Delivery Enabled</p>
                     <p className="text-xs text-text-secondary">Enable delivery fulfillment from this branch.</p>
                   </div>
                   <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${branch.deliveryEnabled ? 'bg-accent' : 'bg-secondary'}`}>

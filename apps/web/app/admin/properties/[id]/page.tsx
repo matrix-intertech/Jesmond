@@ -169,19 +169,19 @@ export default function AdminPropertyReviewPage() {
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-medium text-primary font-outfit mb-2">{property.name}</h1>
-            <p className="text-gray-600 mb-1">Provider: <strong>{property.organization.name}</strong></p>
+            <p className="text-text-secondary mb-1">Provider: <strong>{property.organization.name}</strong></p>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium text-text-primary">Verification Status:</span>
               <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                property.verificationStatus === 'VERIFIED' ? 'bg-blue-100 text-blue-700' :
+                property.verificationStatus === 'VERIFIED' ? 'bg-blue-100 text-brand-purple' :
                 property.verificationStatus === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                property.verificationStatus === 'SUSPENDED' ? 'bg-orange-100 text-orange-700' :
+                property.verificationStatus === 'SUSPENDED' ? 'bg-surface-muted text-brand-orange' :
                 'bg-secondary text-text-secondary'
               }`}>
                 {property.verificationStatus}
               </span>
             </div>
-            <p className="text-gray-600">{property.address}, {property.suburb.name}</p>
+            <p className="text-text-secondary">{property.address}, {property.suburb.name}</p>
           </div>
           <div className="flex flex-col items-end gap-4">
             <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
@@ -205,7 +205,7 @@ export default function AdminPropertyReviewPage() {
                       onChange={e => setRejectReason(e.target.value)}
                     />
                     <div className="flex gap-2 justify-end">
-                      <button onClick={() => setRejectPrompt(false)} className="text-xs px-3 py-1 text-gray-600">Cancel</button>
+                      <button onClick={() => setRejectPrompt(false)} className="text-xs px-3 py-1 text-text-secondary">Cancel</button>
                       <button onClick={handleReject} className="text-xs px-3 py-1 bg-red-600 text-white rounded">Confirm Reject</button>
                     </div>
                   </div>
@@ -226,7 +226,7 @@ export default function AdminPropertyReviewPage() {
               <div className="relative">
                 <button
                   onClick={() => setVerificationPrompt(!verificationPrompt)}
-                  className="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-md hover:bg-blue-100 text-sm font-medium transition"
+                  className="bg-blue-50 text-brand-purple border border-blue-200 px-4 py-2 rounded-md hover:bg-blue-100 text-sm font-medium transition"
                 >
                   Change Verification
                 </button>
@@ -237,7 +237,7 @@ export default function AdminPropertyReviewPage() {
                       <button
                         key={st}
                         onClick={() => handleVerificationStatusUpdate(st)}
-                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-text-primary hover:bg-surface-muted'}`}
+                        className={`w-full text-left px-3 py-2 text-sm rounded ${property.verificationStatus === st ? 'bg-blue-50 text-brand-purple font-semibold' : 'text-text-primary hover:bg-surface-muted'}`}
                       >
                         {st}
                       </button>
@@ -277,11 +277,11 @@ export default function AdminPropertyReviewPage() {
                   <div className="flex justify-between">
                     <div>
                       <h3 className="font-medium">{room.name}</h3>
-                      <p className="text-sm text-gray-600">{room.description}</p>
+                      <p className="text-sm text-text-secondary">{room.description}</p>
                     </div>
                     <div className="text-right">
                       <div className="font-medium">${(room.pricePerWeek / 100).toFixed(2)}/wk</div>
-                      <div className="text-sm text-gray-600">Inv: {room.inventory}</div>
+                      <div className="text-sm text-text-secondary">Inv: {room.inventory}</div>
                     </div>
                   </div>
                 </div>

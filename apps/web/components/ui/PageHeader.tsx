@@ -84,7 +84,7 @@ export default function PageHeader({
             {title}
           </h1>
           {description && (
-            <p className="mt-2 text-base text-slate-600">
+            <p className="mt-2 text-base text-text-secondary">
               {description}
             </p>
           )}

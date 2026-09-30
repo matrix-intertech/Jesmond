@@ -32,11 +32,11 @@ function AccountStatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; text: string; dot: string; label: string }> = {
     ACTIVE:               { bg: 'bg-emerald-50',  text: 'text-emerald-800', dot: 'bg-emerald-500', label: 'Active' },
     PENDING_VERIFICATION: { bg: 'bg-amber-50',    text: 'text-amber-800',   dot: 'bg-amber-400',   label: 'Pending' },
-    LOCKED:               { bg: 'bg-orange-50',   text: 'text-orange-800',  dot: 'bg-orange-500',  label: 'Locked' },
+    LOCKED:               { bg: 'bg-orange-50',   text: 'text-brand-orange',  dot: 'bg-orange-500',  label: 'Locked' },
     SUSPENDED:            { bg: 'bg-red-50',       text: 'text-red-700',     dot: 'bg-red-500',     label: 'Suspended' },
-    DEACTIVATED:          { bg: 'bg-surface-muted',   text: 'text-slate-600',   dot: 'bg-slate-400',   label: 'Disabled' },
+    DEACTIVATED:          { bg: 'bg-surface-muted',   text: 'text-text-secondary',   dot: 'bg-slate-400',   label: 'Disabled' },
   };
-  const s = map[status] ?? { bg: 'bg-surface-muted', text: 'text-gray-600', dot: 'bg-gray-400', label: status };
+  const s = map[status] ?? { bg: 'bg-surface-muted', text: 'text-text-secondary', dot: 'bg-gray-400', label: status };
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${s.bg} ${s.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
@@ -47,13 +47,13 @@ function AccountStatusBadge({ status }: { status: string }) {
 
 function ProfileTypeBadge({ profileType }: { profileType: string }) {
   const colorMap: Record<string, string> = {
-    Student:          'bg-blue-50 text-blue-800',
-    Parent:           'bg-purple-50 text-purple-800',
+    Student:          'bg-blue-50 text-brand-indigo',
+    Parent:           'bg-purple-50 text-brand-indigo',
     Host:             'bg-teal-50 text-teal-800',
-    Retailer:         'bg-indigo-50 text-indigo-800',
+    Retailer:         'bg-indigo-50 text-brand-indigo',
     Agent:            'bg-cyan-50 text-cyan-800',
     'University Staff': 'bg-violet-50 text-violet-800',
-    Admin:            'bg-orange-50 text-orange-800',
+    Admin:            'bg-orange-50 text-brand-orange',
     'Super Admin':    'bg-rose-50 text-rose-800',
   };
   const cls = colorMap[profileType] ?? 'bg-secondary text-text-secondary';
@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={() => { setSearchInput(''); setSearch(''); setPage(1); }}
-            className="px-4 py-2.5 bg-surface-muted text-slate-600 rounded-xl text-sm font-medium hover:bg-secondary transition"
+            className="px-4 py-2.5 bg-surface-muted text-text-secondary rounded-xl text-sm font-medium hover:bg-secondary transition"
           >
             Clear
           </button>
@@ -273,7 +273,7 @@ export default function AdminUsersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-sm text-slate-600">{u.email}</td>
+                    <td className="px-5 py-4 text-sm text-text-secondary">{u.email}</td>
                     <td className="px-5 py-4">
                       <ProfileTypeBadge profileType={u.profileType} />
                     </td>
@@ -357,7 +357,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 text-sm font-medium rounded-xl bg-surface border border-border-strong text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="px-4 py-2 text-sm font-medium rounded-xl bg-surface border border-border-strong text-text-secondary hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
                 Previous
               </button>
@@ -367,7 +367,7 @@ export default function AdminUsersPage() {
               <button
                 onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                 disabled={page === meta.totalPages}
-                className="px-4 py-2 text-sm font-medium rounded-xl bg-surface border border-border-strong text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                className="px-4 py-2 text-sm font-medium rounded-xl bg-surface border border-border-strong text-text-secondary hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
               >
                 Next
               </button>

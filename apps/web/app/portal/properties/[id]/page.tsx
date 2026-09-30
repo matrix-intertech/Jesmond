@@ -551,7 +551,7 @@ export default function AccommodationManagementPage() {
                 {submitConfirm && (
                   <div className="absolute right-0 top-full mt-2 w-72 bg-surface border shadow-lg rounded-xl p-4 z-10">
                     <h3 className="font-semibold text-sm mb-2">Submit for Review?</h3>
-                    <p className="text-xs text-gray-600 mb-4">You will not be able to edit it while pending.</p>
+                    <p className="text-xs text-text-secondary mb-4">You will not be able to edit it while pending.</p>
                     <div className="flex gap-2 justify-end">
                       <button disabled={isSubmitting} onClick={() => setSubmitConfirm(false)} className="text-xs px-3 py-1 text-text-secondary disabled:opacity-50">Cancel</button>
                       <button disabled={isSubmitting} onClick={handleSubmitReview} className="text-xs px-3 py-1 bg-accent text-white rounded disabled:opacity-50">
@@ -577,7 +577,7 @@ export default function AccommodationManagementPage() {
         {toast && <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-8">{toast}</div>}
 
         {isPending && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-8">
+          <div className="bg-blue-50 border border-blue-200 text-brand-indigo p-4 rounded-lg mb-8">
             <h3 className="font-medium">Awaiting Admin Approval</h3>
             <p className="text-sm">This property is currently being reviewed by administrators. Editing is disabled until a decision is made.</p>
           </div>
@@ -706,7 +706,7 @@ export default function AccommodationManagementPage() {
                   className="mt-1 h-4 w-4 rounded border-border-strong text-accent"
                 />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900">Show my contact details on this property</span>
+                  <span className="text-sm font-medium text-text-primary">Show my contact details on this property</span>
                   <span className="text-sm text-text-secondary">
                     If checked, your approved public contact phone and email will be visible to seekers.
                   </span>
@@ -715,7 +715,7 @@ export default function AccommodationManagementPage() {
             </div>
 
             <div className="flex gap-4 justify-end">
-              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-gray-600 hover:text-primary disabled:opacity-50">Cancel</button>
+              <button disabled={isSubmitting} type="button" onClick={() => setIsEditingProp(false)} className="px-4 py-2 text-text-secondary hover:text-primary disabled:opacity-50">Cancel</button>
               <button disabled={isSubmitting} type="submit" className="bg-accent text-white px-4 py-2 rounded-md hover:bg-accent disabled:opacity-50">
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
@@ -736,7 +736,7 @@ export default function AccommodationManagementPage() {
             </div>
             {!isPending && (
               <div>
-                <label className="bg-accent/10 text-accent px-4 py-2 rounded-md cursor-pointer hover:bg-indigo-100 transition inline-block">
+                <label className="bg-accent/10 text-accent px-4 py-2 rounded-md cursor-pointer hover:bg-surface-muted transition inline-block">
                   <span>+ Upload Image</span>
                   <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isPending} />
                 </label>
@@ -775,7 +775,7 @@ export default function AccommodationManagementPage() {
                   <button disabled={isSubmitting} onClick={() => {
                     setSelectedAmenities(property.amenities?.map((a: any) => a.amenityId) || []);
                     setIsEditingAmenities(false);
-                  }} className="text-sm text-gray-600 disabled:opacity-50">Cancel</button>
+                  }} className="text-sm text-text-secondary disabled:opacity-50">Cancel</button>
                   <button disabled={isSubmitting} onClick={handleUpdateAmenities} className="text-sm bg-accent text-white px-4 py-1.5 rounded hover:bg-accent disabled:opacity-50">
                     {isSubmitting ? 'Saving...' : 'Save'}
                   </button>

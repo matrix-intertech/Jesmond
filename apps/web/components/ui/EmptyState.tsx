@@ -23,7 +23,7 @@ export default function EmptyState({ icon, title, description, action }: EmptySt
     <div className="flex flex-col items-center justify-center py-12 space-y-4">
       {icon && <div className="text-text-muted">{icon}</div>}
       <h2 className="text-xl font-outfit font-semibold text-primary">{title}</h2>
-      {description && <p className="text-sm text-slate-600 max-w-md text-center">{description}</p>}
+      {description && <p className="text-sm text-text-secondary max-w-md text-center">{description}</p>}
       {action && (
         <a
           href={action.href}

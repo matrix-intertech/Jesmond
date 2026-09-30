@@ -91,10 +91,10 @@ export default function MyOrdersPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-20 bg-surface rounded-2xl shadow-sm border border-border-subtle">
-            <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 mx-auto text-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No orders found</h3>
+            <h3 className="text-lg font-medium text-text-primary mb-2">No orders found</h3>
             <p className="text-text-secondary">You haven't placed any orders yet.</p>
           </div>
         ) : (
@@ -114,23 +114,23 @@ export default function MyOrdersPage() {
                 <tbody className="divide-y divide-slate-200">
                   {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-900">
+                      <td className="px-6 py-4 font-medium text-text-primary">
                         {order.orderNumber}
                       </td>
                       <td className="px-6 py-4 text-text-secondary">
                         {new Date(order.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">
+                      <td className="px-6 py-4 text-text-secondary">
                         {order.branch?.name || 'Unknown Store'}
                       </td>
-                      <td className="px-6 py-4 font-medium text-slate-900">
+                      <td className="px-6 py-4 font-medium text-text-primary">
                         {formatCurrency(order.total, order.currency)}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                           order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                           order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
-                          order.status === 'PENDING' ? 'bg-orange-100 text-orange-700' :
+                          order.status === 'PENDING' ? 'bg-surface-muted text-brand-orange' :
                           'bg-secondary text-text-secondary'
                         }`}>
                           {order.status}
@@ -139,7 +139,7 @@ export default function MyOrdersPage() {
                       <td className="px-6 py-4 text-right">
                         <button
                           onClick={() => router.push(`/my-orders/${order.id}`)}
-                          className="text-accent hover:text-orange-700 font-medium text-sm transition-colors"
+                          className="text-accent hover:text-brand-orange font-medium text-sm transition-colors"
                         >
                           View Details
                         </button>

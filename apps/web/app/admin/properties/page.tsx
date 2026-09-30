@@ -69,7 +69,7 @@ export default function AdminPropertiesPage() {
         <>
           <div className="space-y-3 md:hidden">
             {properties.length === 0 ? (
-              <div className="rounded-xl border bg-surface p-6 text-center text-slate-600">
+              <div className="rounded-xl border bg-surface p-6 text-center text-text-secondary">
                 {activeTab === 'pending' ? 'No properties pending approval.' : 'No active properties.'}
               </div>
             ) : (
@@ -109,7 +109,7 @@ export default function AdminPropertiesPage() {
               <tbody className="divide-y divide-gray-200">
                 {properties.length === 0 ? (
                   <tr>
-                    <td colSpan={activeTab === 'active' ? 5 : 4} className="px-6 py-8 text-center text-slate-600">
+                    <td colSpan={activeTab === 'active' ? 5 : 4} className="px-6 py-8 text-center text-text-secondary">
                       {activeTab === 'pending' ? 'No properties pending approval.' : 'No active properties.'}
                     </td>
                   </tr>

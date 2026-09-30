@@ -120,7 +120,7 @@ export default function ProviderPortalPage() {
       {pending.length > 0 && (
         <section className="mb-12">
           <h2 className="text-2xl font-bold text-primary mb-4">Pending Approval</h2>
-          <p className="text-sm text-gray-600 mb-4">Awaiting admin approval – editing disabled.</p>
+          <p className="text-sm text-text-secondary mb-4">Awaiting admin approval – editing disabled.</p>
           <ul className="divide-y divide-gray-200">
             {pending.map(prop => (
               <li key={prop.id} className="p-4 flex justify-between items-center opacity-60">

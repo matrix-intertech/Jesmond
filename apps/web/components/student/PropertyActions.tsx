@@ -136,7 +136,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
           <div className="flex flex-col gap-3">
             <div className="bg-surface border-2 border-brand-navy p-6 rounded-xl text-center shadow-sm">
               <h3 className="font-bold text-primary mb-2">Provider Contact</h3>
-              {providerContact.name && <p className="font-semibold text-lg text-slate-800">{providerContact.name}</p>}
+              {providerContact.name && <p className="font-semibold text-lg text-text-primary">{providerContact.name}</p>}
               {providerContact.phone ? (
                 <p className="text-accent font-medium mt-1">{providerContact.phone}</p>
               ) : (
@@ -217,7 +217,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
       {showEnquiry && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/50 p-4">
           <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-4 sm:p-6">
-            <button onClick={() => setShowEnquiry(false)} className="absolute top-4 right-4 text-text-muted hover:text-slate-600">✕</button>
+            <button onClick={() => setShowEnquiry(false)} className="absolute top-4 right-4 text-text-muted hover:text-text-secondary">✕</button>
             <h2 className="text-2xl font-bold mb-4">{showContactDetails && providerContact ? 'Send Enquiry' : 'Request Contact Details'}</h2>
             {success && <div className="bg-emerald-100 text-emerald-700 p-3 rounded mb-4">{success}</div>}
             {error && <div className="bg-rose-100 text-rose-700 p-3 rounded mb-4">{error}</div>}
@@ -260,7 +260,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
       {showApply && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/50 p-4">
           <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-4 sm:p-6">
-            <button onClick={() => { setShowApply(null); setApplicationResult(null); }} className="absolute top-4 right-4 text-text-muted hover:text-slate-600">✕</button>
+            <button onClick={() => { setShowApply(null); setApplicationResult(null); }} className="absolute top-4 right-4 text-text-muted hover:text-text-secondary">✕</button>
             
             {applicationResult ? (
               <div className="text-center py-4">

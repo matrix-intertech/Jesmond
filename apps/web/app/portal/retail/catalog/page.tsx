@@ -166,7 +166,7 @@ function CatalogPageContent() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageHeader title="Catalog" description="Manage retail products and categories." />
-        <button onClick={openCreateModal} className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 sm:w-auto">
+        <button onClick={openCreateModal} className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-surface-muted sm:w-auto">
           Add Product
         </button>
       </div>
@@ -192,7 +192,7 @@ function CatalogPageContent() {
                 placeholder="Search product..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm text-slate-800 bg-surface"
+                className="pl-10 w-full rounded-lg border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm text-text-primary bg-surface"
               />
             </div>
             
@@ -276,7 +276,7 @@ function CatalogPageContent() {
                           <span className="text-xs font-mono text-text-secondary">{p.sku} {p.barcode && `• ${p.barcode}`}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600">{p.category?.name || 'Uncategorized'}</td>
+                      <td className="px-6 py-4 text-text-secondary">{p.category?.name || 'Uncategorized'}</td>
                       <td className="px-6 py-4 font-medium">${(p.sellingPrice / 100).toFixed(2)}</td>
                       <td className="px-6 py-4">
                         <StatusBadge status={p.active ? 'ENABLED' : 'DISABLED'} />
@@ -297,11 +297,11 @@ function CatalogPageContent() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-surface-muted/50 p-4 backdrop-blur-sm">
           <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-surface shadow-xl">
             <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center">
               <h3 className="font-semibold text-lg text-primary">Add Product</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-slate-600">&times;</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">

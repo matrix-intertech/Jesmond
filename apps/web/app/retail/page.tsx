@@ -28,13 +28,13 @@ export default async function RetailDiscoveryPage() {
     <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-12">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-accent font-bold text-sm rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-muted text-accent font-bold text-sm rounded-full mb-6">
             <ShoppingBag size={16} /> Retail Marketplace
           </div>
           <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight">
             Discover Student <span className="text-accent">Essentials</span> Near You.
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
+          <p className="mt-4 text-lg text-text-secondary">
             Browse our partnered retail stores, from groceries to textbooks, tailored for student life. Order for pickup or delivery right to your accommodation.
           </p>
         </div>
@@ -53,7 +53,7 @@ export default async function RetailDiscoveryPage() {
 
       {stores.length === 0 ? (
         <div className="bg-surface rounded-3xl p-12 text-center border border-border-strong">
-          <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-20 h-20 bg-slate-50 text-text-muted rounded-full flex items-center justify-center mx-auto mb-6">
             <Store size={32} />
           </div>
           <h3 className="text-2xl font-bold text-primary">No stores available</h3>

@@ -158,7 +158,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-medium">Accommodation Hierarchy</h2>
         {!isPending && (
-          <button onClick={() => setAddingBuilding(true)} className="bg-accent/10 text-accent px-3 py-1.5 rounded text-sm hover:bg-indigo-100">
+          <button onClick={() => setAddingBuilding(true)} className="bg-accent/10 text-accent px-3 py-1.5 rounded text-sm hover:bg-surface-muted">
             + Add Building
           </button>
         )}
@@ -253,7 +253,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                               <div className="flex items-center gap-2 text-sm">
                                 <span className="text-purple-300 text-[10px]">{expandedRoomTypes.includes(rt.id) ? '▼' : '▶'}</span>
                                 <span className="font-medium text-purple-900">{rt.name}</span>
-                                <span className="text-purple-600 text-xs">${rt.pricePerWeek / 100}/wk</span>
+                                <span className="text-primary text-xs">${rt.pricePerWeek / 100}/wk</span>
                                 <span className="text-text-muted text-xs">Inv: {rt.inventory}</span>
                               </div>
                               {!isPending && (
@@ -317,7 +317,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-purple-300 text-[10px]">{expandedRoomTypes.includes(rt.id) ? '▼' : '▶'}</span>
                     <span className="font-medium text-purple-900">{rt.name}</span>
-                    <span className="text-purple-600 text-xs">${rt.pricePerWeek / 100}/wk</span>
+                    <span className="text-primary text-xs">${rt.pricePerWeek / 100}/wk</span>
                     <span className="text-text-muted text-xs">Inv: {rt.inventory}</span>
                   </div>
                   {!isPending && (

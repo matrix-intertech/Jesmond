@@ -28,7 +28,7 @@ const ROLE_LABELS: Record<AgencyRole, string> = {
 };
 
 const ROLE_BADGE_CLASSES: Record<AgencyRole, string> = {
-  AGENCY_ADMIN: 'bg-purple-50 text-purple-700 ring-purple-700/10',
+  AGENCY_ADMIN: 'bg-purple-50 text-brand-purple ring-purple-700/10',
   TEAM_MEMBER: 'bg-green-50 text-green-700 ring-green-600/20',
 };
 
@@ -198,7 +198,7 @@ export default function AgencyMembersPage() {
     <div className="p-6">
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold leading-7 text-gray-900 sm:truncate sm:tracking-tight">
+          <h2 className="text-xl font-bold leading-7 text-text-primary sm:truncate sm:tracking-tight">
             Team Members
           </h2>
           <p className="mt-1 text-sm text-text-secondary">
@@ -220,10 +220,10 @@ export default function AgencyMembersPage() {
         <table className="min-w-full divide-y divide-gray-300">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Agency Role</th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Property Access</th>
+              <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-text-primary sm:pl-6">Name</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-text-primary">Email</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-text-primary">Agency Role</th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-text-primary">Property Access</th>
               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                 <span className="sr-only">Actions</span>
               </th>
@@ -234,9 +234,9 @@ export default function AgencyMembersPage() {
               const roleKey = member.agencyRole ?? null;
               return (
                 <tr key={member.id}>
-                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-text-primary sm:pl-6">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center text-orange-700 text-xs font-semibold flex-shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-surface-muted flex items-center justify-center text-brand-orange text-xs font-semibold flex-shrink-0">
                         {member.user.firstName[0]}{member.user.lastName[0]}
                       </div>
                       {member.user.firstName} {member.user.lastName}
@@ -245,7 +245,7 @@ export default function AgencyMembersPage() {
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-text-secondary">{member.user.email}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-text-secondary">
                     {member.customRole ? (
-                      <span className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-blue-50 text-blue-700 ring-blue-700/10">
+                      <span className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset bg-blue-50 text-brand-purple ring-blue-700/10">
                         {member.customRole.name}
                       </span>
                     ) : roleKey ? (
@@ -259,7 +259,7 @@ export default function AgencyMembersPage() {
                   </td>
                   <td className="px-3 py-4 text-sm text-text-secondary">
                     {roleKey === 'AGENCY_ADMIN' ? (
-                      <span className="text-gray-900 font-medium">All Properties</span>
+                      <span className="text-text-primary font-medium">All Properties</span>
                     ) : (
                       <div>
                         {member.managedProperties.length === 0 ? (
@@ -269,7 +269,7 @@ export default function AgencyMembersPage() {
                             {member.managedProperties.slice(0, 2).map((mp) => (
                               <span key={mp.propertyId} className="text-xs">
                                 {mp.property.name}
-                                <span className={`ml-1 inline-flex px-1 rounded text-[10px] font-semibold ${mp.permission === 'MANAGE' ? 'bg-blue-100 text-blue-700' : 'bg-surface-muted text-gray-600'}`}>
+                                <span className={`ml-1 inline-flex px-1 rounded text-[10px] font-semibold ${mp.permission === 'MANAGE' ? 'bg-blue-100 text-brand-purple' : 'bg-surface-muted text-text-secondary'}`}>
                                   {mp.permission}
                                 </span>
                               </span>
@@ -295,7 +295,7 @@ export default function AgencyMembersPage() {
                             handleChangeRole(member, 'TEAM_MEMBER', val);
                           }
                         }}
-                        className="block w-32 rounded-md border border-border-strong px-2 py-1 text-xs text-gray-900 focus:border-accent focus:outline-none"
+                        className="block w-32 rounded-md border border-border-strong px-2 py-1 text-xs text-text-primary focus:border-accent focus:outline-none"
                       >
                         <option value="AGENCY_ADMIN">Agency Admin</option>
                         <option value="TEAM_MEMBER">Team Member</option>
@@ -343,7 +343,7 @@ export default function AgencyMembersPage() {
           <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
               <div className="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <h3 className="text-base font-semibold leading-6 text-gray-900" id="invite-modal-title">
+                <h3 className="text-base font-semibold leading-6 text-text-primary" id="invite-modal-title">
                   Invite Team Member
                 </h3>
                 <form onSubmit={handleInvite} className="mt-4 space-y-4">
@@ -413,7 +413,7 @@ export default function AgencyMembersPage() {
                     <button
                       type="button"
                       onClick={() => setIsInviteModalOpen(false)}
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-text-primary shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
                     >
                       Cancel
                     </button>
@@ -432,7 +432,7 @@ export default function AgencyMembersPage() {
           <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
               <div className="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
-                <h3 className="text-base font-semibold leading-6 text-gray-900" id="perms-modal-title">
+                <h3 className="text-base font-semibold leading-6 text-text-primary" id="perms-modal-title">
                   Property Access for {selectedMember.user.firstName} {selectedMember.user.lastName}
                 </h3>
                 <p className="mt-1 text-sm text-text-secondary">
@@ -459,7 +459,7 @@ export default function AgencyMembersPage() {
                                 className="h-4 w-4 rounded border-border-strong text-accent focus:ring-accent"
                               />
                               <label htmlFor={`prop-${prop.id}`} className="cursor-pointer">
-                                <p className="text-sm font-medium text-gray-900">{prop.name}</p>
+                                <p className="text-sm font-medium text-text-primary">{prop.name}</p>
                                 {prop.suburb && (
                                   <p className="text-xs text-text-secondary">{prop.suburb.name}{prop.suburb.city ? `, ${prop.suburb.city.name}` : ''}</p>
                                 )}
@@ -469,7 +469,7 @@ export default function AgencyMembersPage() {
                               <select
                                 value={assignment!.permission}
                                 onChange={(e) => changePropertyPermission(prop.id, e.target.value as PropertyPermission)}
-                                className="block w-32 rounded-md border border-border-strong px-2 py-1 text-sm text-gray-900 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                                className="block w-32 rounded-md border border-border-strong px-2 py-1 text-sm text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                               >
                                 <option value="VIEW">View Only</option>
                                 <option value="MANAGE">Manage</option>
@@ -492,7 +492,7 @@ export default function AgencyMembersPage() {
                   <button
                     type="button"
                     onClick={() => setIsPermsModalOpen(false)}
-                    className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
+                    className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-text-primary shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:col-start-1 sm:mt-0"
                   >
                     Cancel
                   </button>

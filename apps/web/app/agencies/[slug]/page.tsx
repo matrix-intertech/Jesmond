@@ -143,14 +143,14 @@ export default function AgencyDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center text-center px-4">
         <div>
-          <Building2 className="mx-auto h-12 w-12 text-gray-300" />
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">Agency not found</h1>
+          <Building2 className="mx-auto h-12 w-12 text-text-muted" />
+          <h1 className="mt-4 text-2xl font-bold text-text-primary">Agency not found</h1>
           <p className="mt-2 text-text-secondary text-sm">
             This agency may not exist or is not publicly listed.
           </p>
           <Link
             href="/agencies"
-            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-orange-700"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-brand-orange"
           >
             <ArrowLeft className="h-4 w-4" />
             Browse all agencies
@@ -165,7 +165,7 @@ export default function AgencyDetailPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center text-center px-4">
         <div>
           <AlertCircle className="mx-auto h-12 w-12 text-red-400" />
-          <h1 className="mt-4 text-lg font-semibold text-gray-900">Something went wrong</h1>
+          <h1 className="mt-4 text-lg font-semibold text-text-primary">Something went wrong</h1>
           <p className="mt-2 text-sm text-text-secondary">{error}</p>
           <button
             onClick={fetchAgency}
@@ -226,7 +226,7 @@ export default function AgencyDetailPage() {
 
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{agency.name}</h1>
+                <h1 className="text-3xl font-bold text-text-primary">{agency.name}</h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">
                   <Shield className="h-3 w-3" />
                   Verified
@@ -250,7 +250,7 @@ export default function AgencyDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Left: Properties */}
         <div className="lg:col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900 mb-5">Properties</h2>
+          <h2 className="text-xl font-semibold text-text-primary mb-5">Properties</h2>
           {agency.properties?.length === 0 ? (
             <div className="rounded-2xl bg-surface border border-border-subtle p-8 text-center text-text-muted text-sm">
               No public properties listed.
@@ -274,13 +274,13 @@ export default function AgencyDetailPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <div className="w-full h-full flex items-center justify-center text-text-muted">
                           <Building2 className="h-10 w-10" />
                         </div>
                       )}
                     </div>
                     <div className="p-4">
-                      <h3 className="text-sm font-semibold text-gray-900 group-hover:text-accent transition-colors line-clamp-1">
+                      <h3 className="text-sm font-semibold text-text-primary group-hover:text-accent transition-colors line-clamp-1">
                         {prop.name}
                       </h3>
                       <p className="text-xs text-text-secondary mt-0.5 flex items-center gap-1 line-clamp-1">
@@ -302,7 +302,7 @@ export default function AgencyDetailPage() {
 
         {/* Right: Team */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-5">Team</h2>
+          <h2 className="text-xl font-semibold text-text-primary mb-5">Team</h2>
           <div className="rounded-2xl bg-surface border border-border-subtle overflow-hidden">
             {publicStaff.length === 0 ? (
               <p className="p-6 text-sm text-text-muted text-center">No public team information.</p>
@@ -324,7 +324,7 @@ export default function AgencyDetailPage() {
                           {avatarInitial.toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
+                          <p className="text-sm font-medium text-text-primary truncate">{name}</p>
                           <p className="text-xs text-text-muted">Team Member</p>
                         </div>
                       </button>
@@ -342,10 +342,10 @@ export default function AgencyDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-gray-900/50 backdrop-blur-sm">
           <div className="bg-surface rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
-              <h3 className="text-lg font-semibold text-gray-900">Team Member</h3>
+              <h3 className="text-lg font-semibold text-text-primary">Team Member</h3>
               <button 
                 onClick={() => setSelectedMember(null)}
-                className="text-text-muted hover:text-gray-600 transition-colors"
+                className="text-text-muted hover:text-text-secondary transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -360,7 +360,7 @@ export default function AgencyDetailPage() {
                   {((selectedMember.user.firstName?.[0] ?? '') + (selectedMember.user.lastName?.[0] ?? '')).toUpperCase()}
                 </div>
                 <div>
-                  <h4 className="text-lg font-bold text-gray-900">
+                  <h4 className="text-lg font-bold text-text-primary">
                     {selectedMember.user.firstName} {selectedMember.user.lastName}
                   </h4>
                   <p className="text-sm text-text-secondary">Team Member</p>
@@ -372,7 +372,7 @@ export default function AgencyDetailPage() {
                   {selectedMember.user.email && (
                     <div>
                       <p className="text-xs text-text-secondary mb-0.5">Email</p>
-                      <a href={`mailto:${selectedMember.user.email}`} className="text-sm font-medium text-gray-900 hover:text-accent">
+                      <a href={`mailto:${selectedMember.user.email}`} className="text-sm font-medium text-text-primary hover:text-accent">
                         {selectedMember.user.email}
                       </a>
                     </div>
@@ -380,7 +380,7 @@ export default function AgencyDetailPage() {
                   {selectedMember.user.phone && (
                     <div>
                       <p className="text-xs text-text-secondary mb-0.5">Phone</p>
-                      <a href={`tel:${selectedMember.user.phone}`} className="text-sm font-medium text-gray-900 hover:text-accent">
+                      <a href={`tel:${selectedMember.user.phone}`} className="text-sm font-medium text-text-primary hover:text-accent">
                         {selectedMember.user.phone}
                       </a>
                     </div>
@@ -391,7 +391,7 @@ export default function AgencyDetailPage() {
                 </div>
               ) : (
                 <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-border-subtle text-center">
-                  <p className="text-sm font-medium text-gray-900 mb-1">Contact details are private.</p>
+                  <p className="text-sm font-medium text-text-primary mb-1">Contact details are private.</p>
                   <p className="text-xs text-text-secondary">You can message this team member through Jesmond.</p>
                 </div>
               )}

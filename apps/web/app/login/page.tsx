@@ -73,7 +73,7 @@ function LoginContent() {
           </h2>
           <p className="mt-2 text-center text-sm text-text-secondary">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-accent hover:text-indigo-500 font-medium">
+            <Link href="/register" className="text-accent hover:text-primary font-medium">
               Sign up
             </Link>
           </p>
@@ -115,7 +115,7 @@ function LoginContent() {
 
           <div className="flex items-center justify-end">
             <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-accent hover:text-indigo-500">
+              <Link href="/forgot-password" className="font-medium text-accent hover:text-primary">
                 Forgot your password?
               </Link>
             </div>

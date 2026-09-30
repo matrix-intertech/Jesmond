@@ -14,10 +14,10 @@ const QUICK_ACTIONS = [
 
 export function FinalConversion() {
   return (
-    <section className="w-full bg-primary py-32 lg:py-48 relative overflow-hidden">
+    <section className="w-full bg-gradient-to-br from-primary via-brand-purple to-accent py-32 lg:py-48 relative overflow-hidden">
 
       {/* Background ambient light */}
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-full max-h-[800px] w-full max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1a2f6b] opacity-50 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-full max-h-[800px] w-full max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/20 opacity-50 blur-[120px]" />
 
       <div className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 relative z-10 flex flex-col items-center text-center">
 
@@ -50,7 +50,7 @@ export function FinalConversion() {
           className="flex flex-col sm:flex-row items-stretch sm:items-center w-full sm:w-auto gap-4 mb-24"
         >
           <Link href="/search">
-            <button className="w-full sm:w-auto bg-accent hover:bg-accent text-white rounded-xl px-10 py-5 text-lg font-semibold shadow-xl shadow-orange-900/20 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
+            <button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-white rounded-xl px-10 py-5 text-lg font-semibold shadow-xl shadow-accent/20 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
               Find Accommodation
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
             </button>

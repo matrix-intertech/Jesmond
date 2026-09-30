@@ -67,7 +67,7 @@ export default function AgencySettingsPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-6">
-        <h2 className="text-xl font-bold leading-7 text-gray-900 sm:truncate sm:tracking-tight">
+        <h2 className="text-xl font-bold leading-7 text-text-primary sm:truncate sm:tracking-tight">
           Agency Settings
         </h2>
         <p className="mt-1 text-sm text-text-secondary">
@@ -99,18 +99,18 @@ export default function AgencySettingsPage() {
         <form onSubmit={handleSubmit} className="max-w-2xl">
           <div className="overflow-hidden rounded-lg bg-surface shadow">
             <div className="border-b border-border-strong px-4 py-5 sm:px-6">
-              <h3 className="text-base font-semibold leading-6 text-gray-900">Basic Information</h3>
+              <h3 className="text-base font-semibold leading-6 text-text-primary">Basic Information</h3>
               <p className="mt-1 text-sm text-text-secondary">This information is displayed publicly to students.</p>
             </div>
             <div className="px-4 py-5 sm:p-6">
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">Agency Name</label>
+                  <label htmlFor="name" className="block text-sm font-medium leading-6 text-text-primary">Agency Name</label>
                   <div className="mt-2">
                     <input
                       id="name"
                       required
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border-0 py-1.5 text-text-primary shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6"
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
                     />

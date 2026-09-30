@@ -228,7 +228,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
                         if (!hasBed && !hasBath && !hasCar) return null;
 
                         return (
-                          <div className="flex items-center gap-4 text-sm text-slate-600 font-medium">
+                          <div className="flex items-center gap-4 text-sm text-text-secondary font-medium">
                             {hasBed && (
                               <span className="flex items-center gap-1.5" title="Bedrooms">
                                 <BedDouble className="h-4 w-4" />

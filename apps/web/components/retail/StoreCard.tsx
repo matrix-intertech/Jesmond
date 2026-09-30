@@ -38,7 +38,7 @@ export function StoreCard({ store }: StoreCardProps) {
 
         <div className="mt-6 flex flex-wrap gap-2">
           {store.availability?.available === false ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-muted text-slate-600 text-xs font-bold uppercase tracking-wider rounded-full border border-border-strong">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-surface-muted text-text-secondary text-xs font-bold uppercase tracking-wider rounded-full border border-border-strong">
               <Store size={12} /> {store.availability.label}
             </span>
           ) : (
@@ -49,12 +49,12 @@ export function StoreCard({ store }: StoreCardProps) {
                 </span>
               )}
               {store.takeawayEnabled && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-brand-purple text-xs font-semibold rounded-full border border-blue-200">
                   <Clock size={12} /> Takeaway
                 </span>
               )}
               {!store.deliveryEnabled && !store.takeawayEnabled && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 text-slate-600 text-xs font-semibold rounded-full border border-border-strong">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-50 text-text-secondary text-xs font-semibold rounded-full border border-border-strong">
                   <Store size={12} /> In-Store Only
                 </span>
               )}

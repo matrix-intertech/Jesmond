@@ -124,7 +124,7 @@ export default function CheckoutPage() {
       </Link>
 
       <div className="flex items-center gap-4 mb-10">
-        <div className="w-12 h-12 bg-orange-100 text-accent rounded-xl flex items-center justify-center">
+        <div className="w-12 h-12 bg-surface-muted text-accent rounded-xl flex items-center justify-center">
           <CheckCircle size={24} />
         </div>
         <div>
@@ -225,7 +225,7 @@ export default function CheckoutPage() {
           <div className="bg-primary text-white rounded-3xl p-6 sm:p-8 sticky top-[120px] shadow-2xl shadow-brand-navy/20">
             <h3 className="text-xl font-bold mb-6">Order Summary</h3>
 
-            <div className="space-y-4 mb-6 text-slate-300 font-medium">
+            <div className="space-y-4 mb-6 text-text-muted font-medium">
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="text-white">${(subtotal / 100).toFixed(2)}</span>
@@ -239,7 +239,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="pt-6 border-t border-slate-700/50 mb-8 flex justify-between items-center">
-              <span className="text-lg text-slate-300 font-medium">Total</span>
+              <span className="text-lg text-text-muted font-medium">Total</span>
               <span className="text-3xl font-extrabold text-accent">
                 ${(total / 100).toFixed(2)}
               </span>

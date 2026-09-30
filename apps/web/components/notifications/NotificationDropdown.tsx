@@ -57,7 +57,7 @@ export function NotificationDropdown() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 text-text-muted hover:text-slate-600 hover:bg-surface-muted rounded-full transition"
+        className="relative p-2 text-text-muted hover:text-text-secondary hover:bg-surface-muted rounded-full transition"
         aria-label="Notifications"
       >
         {unreadCount > 0 && (
@@ -71,19 +71,19 @@ export function NotificationDropdown() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-surface border border-border-strong shadow-lg rounded-xl overflow-hidden z-50">
-          <div className="p-4 border-b border-border-subtle font-semibold text-slate-800 flex justify-between items-center">
+          <div className="p-4 border-b border-border-subtle font-semibold text-text-primary flex justify-between items-center">
             <span>Notifications ({unreadCount})</span>
           </div>
 
           {isSupported && permission === 'default' && (
             <div className="p-3 bg-blue-50 border-b border-blue-100 flex flex-col gap-2">
-              <p className="text-xs text-blue-800">Enable push notifications to stay updated on new messages.</p>
+              <p className="text-xs text-brand-indigo">Enable push notifications to stay updated on new messages.</p>
               <button
                 onClick={() => {
                   const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
                   if (vapidKey) subscribe(vapidKey);
                 }}
-                className="text-xs font-semibold bg-blue-600 text-white py-1 px-3 rounded w-max hover:bg-blue-700 transition"
+                className="text-xs font-semibold bg-primary text-white py-1 px-3 rounded w-max hover:bg-brand-purple transition"
               >
                 Enable
               </button>
@@ -96,7 +96,7 @@ export function NotificationDropdown() {
             ) : (
               notifications.map((n) => (
                 <div key={n.id} onClick={() => markAsRead(n.id)} className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 ${n.isRead ? 'opacity-70' : 'bg-blue-50/20'}`}>
-                  <p className="text-sm font-medium text-slate-900">{n.title}</p>
+                  <p className="text-sm font-medium text-text-primary">{n.title}</p>
                   <p className="text-xs text-text-secondary mt-1">{n.body}</p>
                   {n.actionUrl && (
                     <Link href={n.actionUrl} className="text-xs text-accent mt-2 inline-block">

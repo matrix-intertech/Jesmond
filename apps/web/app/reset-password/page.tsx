@@ -93,7 +93,7 @@ function ResetPasswordForm() {
               {message}
             </div>
             <div className="text-center">
-              <Link href="/login" className="text-accent hover:text-indigo-500 font-medium">
+              <Link href="/login" className="text-accent hover:text-primary font-medium">
                 Go to Login &rarr;
               </Link>
             </div>
@@ -107,7 +107,7 @@ function ResetPasswordForm() {
             )}
             
             {message && status === 'idle' && (
-              <div className="bg-blue-50 text-blue-600 text-sm text-center p-3 rounded-lg border border-blue-200">
+              <div className="bg-blue-50 text-primary text-sm text-center p-3 rounded-lg border border-blue-200">
                 {message}
               </div>
             )}

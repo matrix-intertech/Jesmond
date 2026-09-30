@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
               {message}
             </div>
             <div className="text-center">
-              <Link href={`/reset-password?email=${encodeURIComponent(email)}`} className="text-accent hover:text-indigo-500 font-medium">
+              <Link href={`/reset-password?email=${encodeURIComponent(email)}`} className="text-accent hover:text-primary font-medium">
                 Enter OTP to Reset Password &rarr;
               </Link>
             </div>

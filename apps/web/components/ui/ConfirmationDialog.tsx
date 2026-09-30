@@ -18,7 +18,7 @@ export default function ConfirmationDialog({ open, title, message, onConfirm, on
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             onClick={onCancel}
-            className="min-h-11 rounded bg-secondary px-4 py-2 text-primary/90 transition hover:bg-gray-300"
+            className="min-h-11 rounded bg-secondary px-4 py-2 text-primary/90 transition hover:bg-border-subtle"
           >
             Cancel
           </button>

@@ -115,15 +115,15 @@ export default async function CityPage({ params }: { params: Promise<{ stateSlug
             <li>
               <Link href="/" className="hover:text-accent transition-colors">Home</Link>
             </li>
-            <li><span className="mx-2 text-slate-300">/</span></li>
+            <li><span className="mx-2 text-text-muted">/</span></li>
             <li>
               <Link href="/states" className="hover:text-accent transition-colors">States</Link>
             </li>
-            <li><span className="mx-2 text-slate-300">/</span></li>
+            <li><span className="mx-2 text-text-muted">/</span></li>
             <li>
               <Link href={`/states/${stateSlug}`} className="hover:text-accent transition-colors">{city?.state.name}</Link>
             </li>
-            <li><span className="mx-2 text-slate-300">/</span></li>
+            <li><span className="mx-2 text-text-muted">/</span></li>
             <li className="text-primary font-medium" aria-current="page">
               {city?.name}
             </li>

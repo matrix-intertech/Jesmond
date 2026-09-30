@@ -146,7 +146,7 @@ export default function TerminalsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <PageHeader title="Terminals" description="Manage POS terminals across your branches." />
-        <button onClick={openCreateModal} className="bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+        <button onClick={openCreateModal} className="bg-primary hover:bg-surface-muted text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Add Terminal
         </button>
       </div>
@@ -178,7 +178,7 @@ export default function TerminalsPage() {
               {terminals.map(term => (
                 <tr key={term.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-primary">{term.name}</td>
-                  <td className="px-6 py-4 text-slate-600">{term.branch?.name || term.branchId}</td>
+                  <td className="px-6 py-4 text-text-secondary">{term.branch?.name || term.branchId}</td>
                   <td className="px-6 py-4">
                     <StatusBadge status={mapStatusColor(term.status)} />
                   </td>
@@ -194,11 +194,11 @@ export default function TerminalsPage() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/50 backdrop-blur-sm">
           <div className="bg-surface rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center">
               <h3 className="font-semibold text-lg text-primary">{editingTerminal ? 'Edit Terminal' : 'Add Terminal'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-slate-600">&times;</button>
+              <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">

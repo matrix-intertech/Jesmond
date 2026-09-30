@@ -56,7 +56,7 @@ export function QuickDiscoveryStrip() {
                 <Link
                   key={item.label}
                   href={item.href}
-                  className="group relative px-5 py-2.5 bg-surface border border-border-strong rounded-full text-[13px] font-medium text-slate-600 hover:text-primary hover:border-border-strong transition-all duration-300 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.08)]"
+                  className="group relative px-5 py-2.5 bg-surface border border-border-strong rounded-full text-[13px] font-medium text-text-secondary hover:text-primary hover:border-border-strong transition-all duration-300 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_12px_-4px_rgba(0,0,0,0.08)]"
                 >
                   <span className="relative z-10">{item.label}</span>
                   {/* Subtle hover gradient background */}

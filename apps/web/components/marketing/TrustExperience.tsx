@@ -45,7 +45,7 @@ export function TrustExperience() {
             <h3 className="text-3xl sm:text-[2.5rem] lg:text-[3.5rem] font-bold text-primary tracking-tight leading-[1.1] mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
               Backed by certainty.
             </h3>
-            <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
               Moving to a new city is stressful enough. Booking your accommodation shouldn't be.
               We've built Australia's most trusted student housing platform.
             </p>
@@ -67,7 +67,7 @@ export function TrustExperience() {
                 {feature.icon}
               </div>
               <h4 className="text-xl font-bold text-primary mb-4 tracking-tight">{feature.title}</h4>
-              <p className="text-slate-600 leading-relaxed font-medium">
+              <p className="text-text-secondary leading-relaxed font-medium">
                 {feature.description}
               </p>
             </motion.div>
@@ -80,29 +80,29 @@ export function TrustExperience() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-20 bg-primary rounded-[32px] p-12 relative overflow-hidden"
+          className="mt-20 bg-surface-muted border border-border-strong rounded-[32px] p-12 relative overflow-hidden"
         >
           {/* Subtle background decoration */}
-          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-surface/5 blur-3xl sm:h-96 sm:w-96 sm:translate-x-1/3 sm:-translate-y-1/3" />
+          <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-primary/5 blur-3xl sm:h-96 sm:w-96 sm:translate-x-1/3 sm:-translate-y-1/3" />
 
-          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center md:text-left divide-x divide-white/10">
+          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center md:text-left divide-x divide-border-strong">
             <div className="px-4">
-              <p className="text-4xl lg:text-5xl font-bold text-white mb-2">18k+</p>
-              <p className="text-sm font-semibold text-orange-400 uppercase tracking-wider">Students Helped</p>
+              <p className="text-4xl lg:text-5xl font-bold text-primary mb-2">18k+</p>
+              <p className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Students Helped</p>
             </div>
             <div className="px-4 lg:pl-12">
-              <p className="text-4xl lg:text-5xl font-bold text-white mb-2">420+</p>
-              <p className="text-sm font-semibold text-orange-400 uppercase tracking-wider">Verified Properties</p>
+              <p className="text-4xl lg:text-5xl font-bold text-primary mb-2">420+</p>
+              <p className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Verified Properties</p>
             </div>
             <div className="px-4 lg:pl-12">
-              <p className="text-4xl lg:text-5xl font-bold text-white mb-2">35+</p>
-              <p className="text-sm font-semibold text-orange-400 uppercase tracking-wider">Universities</p>
+              <p className="text-4xl lg:text-5xl font-bold text-primary mb-2">35+</p>
+              <p className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Universities</p>
             </div>
             <div className="px-4 lg:pl-12">
-              <p className="text-4xl lg:text-5xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-1">
-                4.9<svg className="w-6 h-6 text-yellow-400 pb-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              <p className="text-4xl lg:text-5xl font-bold text-primary mb-2 flex items-center justify-center md:justify-start gap-1">
+                4.9<svg className="w-6 h-6 text-brand-orange pb-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
               </p>
-              <p className="text-sm font-semibold text-orange-400 uppercase tracking-wider">Average Rating</p>
+              <p className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Average Rating</p>
             </div>
           </div>
         </motion.div>

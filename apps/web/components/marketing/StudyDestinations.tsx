@@ -94,7 +94,7 @@ export function StudyDestinations() {
                 onClick={() => setActiveDest(dest)}
                 className={`relative w-full text-left p-6 rounded-xl transition-all duration-300 group ${
                   isActive
-                    ? "bg-primary text-white shadow-xl shadow-brand-navy/10"
+                    ? "bg-gradient-to-r from-primary to-brand-purple text-white shadow-xl shadow-primary/20"
                     : "bg-transparent text-text-secondary hover:bg-surface-muted"
                 }`}
               >
@@ -117,7 +117,7 @@ export function StudyDestinations() {
         </div>
 
         {/* Right Column: Immersive Destination Data (The Reveal) */}
-        <div className="w-full lg:w-2/3 relative rounded-[24px] overflow-hidden bg-primary shadow-2xl flex flex-col justify-end">
+        <div className="w-full lg:w-2/3 relative rounded-[24px] overflow-hidden bg-surface-muted shadow-2xl flex flex-col justify-end">
 
           <AnimatePresence mode="wait">
             <motion.div

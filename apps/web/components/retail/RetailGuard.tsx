@@ -97,7 +97,7 @@ export default function RetailGuard({ children, requirePermissions = [], require
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-slate-800">Access Denied</h2>
+        <h2 className="text-2xl font-bold text-text-primary">Access Denied</h2>
         <p className="text-text-secondary mt-2 max-w-md mx-auto">
           You do not have permission to access this module. Please contact your Retail Business Admin if you believe this is a mistake.
         </p>
