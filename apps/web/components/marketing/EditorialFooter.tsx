@@ -13,7 +13,7 @@ export function EditorialFooter() {
  <div className="lg:col-span-4 flex flex-col justify-between">
  <div>
  <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
- <Image src="/assets/logo_footer.png" alt="Jesmond" width={186} height={48} className="h-12 w-auto" />
+ <Image src="/assets/logo_footer.png" alt="Jesmond" width={512} height={396} className="w-[128px] h-auto object-contain" />
  </Link>
  <p className="text-sm text-text-secondary font-light leading-relaxed max-w-xs mb-8 mt-6">
  Australia's premium student accommodation platform. Designed for certainty, built for student success.
