@@ -11,11 +11,11 @@ export function EditorialFooter() {
 
  {/* Column 1: Brand (Spans 4 cols on large screens for breathing room) */}
  <div className="lg:col-span-4 flex flex-col justify-between">
- <div>
- <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
- <Image src="/assets/logo_footer.png" alt="Jesmond" width={512} height={396} className="w-[160px] h-auto object-contain" />
+ <div className="flex flex-col items-start">
+ <Link href="/" className="block mb-4 group">
+ <Image src="/assets/logo_footer.png" alt="Jesmond" width={512} height={396} className="w-[190px] h-auto object-contain" />
  </Link>
- <p className="text-sm text-text-secondary font-light leading-relaxed max-w-xs mb-8 mt-6">
+ <p className="text-sm text-text-secondary font-light leading-relaxed max-w-[190px] mb-8 mt-2 text-left">
  Australia's premium student accommodation platform. Designed for certainty, built for student success.
  </p>
  </div>
