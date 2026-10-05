@@ -78,9 +78,13 @@ export default function ProviderEnquiriesPage() {
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {
  fetchEnquiries();
+ } else {
+ const err = await res.json().catch(() => ({}));
+ alert(`Failed to update status: ${err.message || 'Unknown error'}`);
  }
  } catch (e) {
  console.error(e);
+ alert('An unexpected error occurred.');
  } finally {
  setActionLoadingId(null);
  }
@@ -142,14 +146,15 @@ export default function ProviderEnquiriesPage() {
  onChange={(e) => handleUpdateStatus(enq.id, e.target.value)}
  disabled={actionLoadingId === enq.id}
  className={`text-xs font-bold uppercase tracking-wider border rounded px-2 py-1 outline-none ${
- enq.status === 'RESPONDED' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
- enq.status === 'ARCHIVED' ? 'bg-secondary text-text-secondary border-border-strong' :
+ enq.status === 'CONTACTED' || enq.status === 'IN_PROGRESS' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+ enq.status === 'CLOSED' ? 'bg-secondary text-text-secondary border-border-strong' :
  'bg-amber-100 text-amber-700 border-amber-200'
  }`}
  >
  <option value="NEW">New</option>
- <option value="RESPONDED">Responded</option>
- <option value="ARCHIVED">Archived</option>
+ <option value="CONTACTED">Contacted</option>
+ <option value="IN_PROGRESS">In Progress</option>
+ <option value="CLOSED">Closed</option>
  </select>
  </td>
  <td className="p-4">
