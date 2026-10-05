@@ -19,10 +19,12 @@ export function LeadTracker({ organizationId, propertyId }: { organizationId: st
  }
 
  const token = getAccessToken();
+ if (!token) return; // Do not track anonymous visitors
+
  const headers: Record<string, string> = {
- 'Content-Type': 'application/json'
+ 'Content-Type': 'application/json',
+ 'Authorization': `Bearer ${token}`
  };
- if (token) headers['Authorization'] = `Bearer ${token}`;
 
  try {
  await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/leads/track`, {

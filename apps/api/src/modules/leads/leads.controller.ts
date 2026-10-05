@@ -22,7 +22,8 @@ import { UserRole, OrgType } from '@prisma/client';
 export class LeadsController {
   constructor(private readonly leadsService: LeadsService) {}
 
-  // 1. Track Visit (anonymous or authenticated handled via frontend or simple logic)
+  // 1. Track Visit (must be authenticated)
+  @UseGuards(JwtAuthGuard)
   @Post('track')
   async trackVisit(@Body() data: any, @Request() req: any) {
     if (!data.visitorId) {
@@ -37,8 +38,8 @@ export class LeadsController {
        throw new BadRequestException('Invalid organizationId.');
     }
     
-    // If the request has an authorization token, req.user will be populated
-    const userId = req.user?.id;
+    // Identity must come from authenticated token
+    const userId = req.user.id;
 
     return this.leadsService.trackVisit({
       visitorId: data.visitorId,
