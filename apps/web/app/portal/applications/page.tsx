@@ -65,15 +65,16 @@ export default function ProviderApplicationsPage() {
 
  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
- const handleRemove = async (applicationId: string) => {
- if (!confirm('Are you sure you want to remove this student from the application? This action cannot be undone.')) return;
+ const handleStatusAction = async (applicationId: string, action: 'approve' | 'reject' | 'remove') => {
+ const actionText = action === 'remove' ? 'remove this student from the application' : `${action} this application`;
+ if (!confirm(`Are you sure you want to ${actionText}? This action cannot be undone.`)) return;
 
  setActionLoadingId(applicationId);
  try {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${applicationId}/remove`, {
+ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${applicationId}/${action}`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });
@@ -81,9 +82,13 @@ export default function ProviderApplicationsPage() {
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {
  fetchApplications();
+ } else {
+ const errorData = await res.json().catch(() => ({}));
+ alert(`Failed to ${action} application: ${errorData.message || 'Unknown error'}`);
  }
  } catch (e) {
  console.error(e);
+ alert('An unexpected error occurred.');
  } finally {
  setActionLoadingId(null);
  }
@@ -142,15 +147,35 @@ export default function ProviderApplicationsPage() {
  </span>
  </td>
  <td className="p-4">
+ <div className="flex gap-2">
+ {app.status === 'PENDING_REVIEW' && (
+ <>
+ <button
+ onClick={() => handleStatusAction(app.id, 'approve')}
+ disabled={actionLoadingId === app.id}
+ className="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200"
+ >
+ {actionLoadingId === app.id ? '...' : 'Approve'}
+ </button>
+ <button
+ onClick={() => handleStatusAction(app.id, 'reject')}
+ disabled={actionLoadingId === app.id}
+ className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+ >
+ {actionLoadingId === app.id ? '...' : 'Reject'}
+ </button>
+ </>
+ )}
  {(app.status === 'PENDING_REVIEW' || app.status === 'APPROVED') && (
  <button
- onClick={() => handleRemove(app.id)}
+ onClick={() => handleStatusAction(app.id, 'remove')}
  disabled={actionLoadingId === app.id}
  className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
  >
  {actionLoadingId === app.id ? 'Removing...' : 'Remove Student'}
  </button>
  )}
+ </div>
  </td>
  </tr>
  ))}
