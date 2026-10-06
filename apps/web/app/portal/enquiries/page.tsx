@@ -144,7 +144,7 @@ export default function ProviderEnquiriesPage() {
  <select
  value={enq.status}
  onChange={(e) => handleUpdateStatus(enq.id, e.target.value)}
- disabled={actionLoadingId === enq.id}
+ disabled={actionLoadingId !== null}
  className={`text-xs font-bold uppercase tracking-wider border rounded px-2 py-1 outline-none ${
  enq.status === 'CONTACTED' || enq.status === 'IN_PROGRESS' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
  enq.status === 'CLOSED' ? 'bg-secondary text-text-secondary border-border-strong' :

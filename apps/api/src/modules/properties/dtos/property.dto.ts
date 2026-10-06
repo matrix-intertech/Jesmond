@@ -1,6 +1,12 @@
 import { IsString, IsNotEmpty, MaxLength, IsNumber, Min, Max, IsUUID, IsOptional, IsInt, IsEnum } from 'class-validator';
-import { PropertyListingMode, PropertyListingType, PropertyType, PropertyOfferingType, FurnishingType } from '@prisma/client';
+import { PropertyListingMode, PropertyListingType, PropertyType, PropertyOfferingType, FurnishingType, EnquiryStatus } from '@prisma/client';
 
+
+export class UpdateEnquiryStatusDto {
+  @IsEnum(EnquiryStatus)
+  @IsNotEmpty()
+  status!: EnquiryStatus;
+}
 export class CreatePropertyDto {
   @IsEnum(PropertyListingMode)
   @IsOptional()

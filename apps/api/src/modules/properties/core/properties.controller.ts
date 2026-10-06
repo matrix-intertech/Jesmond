@@ -8,7 +8,7 @@ import { OrgTypes } from '../../auth/decorators/org-types.decorator';
 import { OrgType, PropertyType, PropertyOfferingType, FurnishingType } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdatePropertyDto, UpdateRoomTypeDto, UpdateAmenitiesDto, CreateBuildingDto, CreateFloorDto, CreateRoomDto } from '../dtos/property.dto';
+import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdatePropertyDto, UpdateRoomTypeDto, UpdateAmenitiesDto, CreateBuildingDto, CreateFloorDto, CreateRoomDto, UpdateEnquiryStatusDto } from '../dtos/property.dto';
 
 @Controller('properties')
 export class PropertiesController {
@@ -450,9 +450,8 @@ export class PropertiesController {
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('enquiries/:enquiryId/status')
-  async updateEnquiryStatus(@Param('enquiryId') enquiryId: string, @Body() dto: { status: string }, @Request() req: any) {
+  async updateEnquiryStatus(@Param('enquiryId') enquiryId: string, @Body() dto: UpdateEnquiryStatusDto, @Request() req: any) {
     if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
-    if (!dto.status) throw new BadRequestException('Status is required');
     return this.propertiesService.updateEnquiryStatus(enquiryId, req.user, dto.status);
   }
 }
