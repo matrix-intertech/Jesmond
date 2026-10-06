@@ -365,7 +365,8 @@ export class OrdersService {
     branchId?: string,
     page?: number,
     limit?: number,
-    status?: string
+    status?: string,
+    fulfillmentType?: string
   ) {
     const where: any = { organizationId };
     if (branchId) {
@@ -377,6 +378,9 @@ export class OrdersService {
       } else {
         where.status = status as OrderStatus;
       }
+    }
+    if (fulfillmentType && fulfillmentType !== 'ALL') {
+      where.fulfillmentType = fulfillmentType;
     }
 
     const isPaginated = page !== undefined || limit !== undefined;
@@ -420,8 +424,11 @@ export class OrdersService {
       where.branchId = branchId;
     }
 
+    // Limitation: RetailBranch currently lacks a `timezone` field in the Prisma schema.
+    // As a safe deterministic fallback, we calculate the start of the day in UTC
+    // rather than relying on the Node server's local execution timezone.
     const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    startOfToday.setUTCHours(0, 0, 0, 0);
 
     const [groupedCounts, total, todayRevenueAgg] = await Promise.all([
       this.prisma.salesOrder.groupBy({

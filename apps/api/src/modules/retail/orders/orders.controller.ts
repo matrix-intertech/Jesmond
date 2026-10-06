@@ -9,6 +9,7 @@ import { Roles } from '../../auth/decorators/roles.decorator';
 import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 import { RetailPermission } from '../auth/retail-permissions.enum';
+import { ListOrdersQueryDto } from './dtos/list-orders.dto';
 
 @Controller('retail/orders')
 @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
@@ -57,21 +58,20 @@ export class OrdersController {
   @RequirePermissions(RetailPermission.ORDERS_VIEW)
   async listOrders(
     @Request() req: any,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('status') status?: string
+    @Query() query: ListOrdersQueryDto
   ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required to access sales orders');
     }
-    const parsedPage = page ? parseInt(page, 10) : undefined;
-    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+    const parsedPage = query.page ? parseInt(query.page, 10) : undefined;
+    const parsedLimit = query.limit ? parseInt(query.limit, 10) : undefined;
     return this.ordersService.listOrders(
       req.user.organizationId,
       req.user.retailBranchId,
       parsedPage,
       parsedLimit,
-      status
+      query.status,
+      query.fulfillmentType
     );
   }
 

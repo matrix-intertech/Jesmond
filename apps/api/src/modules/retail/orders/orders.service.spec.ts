@@ -2,6 +2,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
+import { NotificationsService } from '../../notifications/notifications.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -26,6 +27,7 @@ describe('OrdersService', () => {
         OrdersService,
         { provide: InventoryService, useValue: { deductInventoryForSale: jest.fn() } },
         { provide: PrismaService, useValue: prismaMock },
+        { provide: NotificationsService, useValue: {} },
       ],
     }).compile();
 
@@ -66,6 +68,43 @@ describe('OrdersService', () => {
 
       const result = await service.listOrders('org-1', undefined, 1, 500);
       expect((result as any).meta.limit).toBe(100);
+    });
+
+    it('should apply fulfillmentType filtering when provided (e.g. DELIVERY)', async () => {
+      prismaMock.salesOrder.findMany.mockResolvedValue([]);
+      prismaMock.salesOrder.count.mockResolvedValue(0);
+
+      await service.listOrders('org-1', undefined, 1, 20, undefined, 'DELIVERY');
+      
+      expect(prismaMock.salesOrder.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            fulfillmentType: 'DELIVERY'
+          })
+        })
+      );
+      expect(prismaMock.salesOrder.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            fulfillmentType: 'DELIVERY'
+          })
+        })
+      );
+    });
+
+    it('should ignore fulfillmentType filtering when ALL is provided', async () => {
+      prismaMock.salesOrder.findMany.mockResolvedValue([]);
+      prismaMock.salesOrder.count.mockResolvedValue(0);
+
+      await service.listOrders('org-1', undefined, 1, 20, undefined, 'ALL');
+      
+      expect(prismaMock.salesOrder.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({
+            fulfillmentType: expect.anything()
+          })
+        })
+      );
     });
   });
 

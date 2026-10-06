@@ -72,7 +72,10 @@ function OrdersContent() {
  page: page.toString(),
  limit: limit.toString(),
  status: statusFilter,
- });
+      });
+      if (typeFilter && typeFilter !== 'ALL') {
+        params.append('fulfillmentType', typeFilter);
+      }
 
  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders?${params.toString()}`, {
  headers: { Authorization: `Bearer ${token}` },
@@ -103,7 +106,7 @@ function OrdersContent() {
  } finally {
  setLoading(false);
  }
- }, [page, limit, statusFilter, router]);
+ }, [page, limit, statusFilter, typeFilter, router]);
 
  useEffect(() => {
  fetchOrders();
@@ -154,11 +157,7 @@ function OrdersContent() {
  return null;
  };
 
- const displayedOrders = orders.filter(order => {
- if (order.source === 'IN_STORE') return false;
- if (typeFilter !== 'ALL' && order.fulfillmentType !== typeFilter) return false;
- return true;
- });
+ const displayedOrders = orders.filter(order => order.source !== 'IN_STORE');
 
  return (
  <div className="space-y-6">
