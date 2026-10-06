@@ -294,9 +294,17 @@ export class ApplicationsService {
       throw new BadRequestException('Only PENDING_REVIEW applications can be rejected.');
     }
 
-    const updatedApp = await this.prisma.application.update({
-      where: { id: app.id },
+    const updateResult = await this.prisma.application.updateMany({
+      where: { id: app.id, status: 'PENDING_REVIEW' },
       data: { status: 'REJECTED' }
+    });
+
+    if (updateResult.count === 0) {
+      throw new BadRequestException('Only PENDING_REVIEW applications can be rejected.');
+    }
+
+    const updatedApp = await this.prisma.application.findUnique({
+      where: { id: app.id }
     });
 
     this.notificationsService.createNotification({

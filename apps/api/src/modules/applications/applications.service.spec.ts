@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ApplicationsService } from './applications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../auth/services/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('ApplicationsService - Inventory Allocation & Restoration', () => {
@@ -39,11 +40,16 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       sendApplicationApprovalEmail: jest.fn().mockResolvedValue(true),
     };
 
+    const notificationsService = {
+      createNotification: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ApplicationsService,
         { provide: PrismaService, useValue: prisma },
         { provide: EmailService, useValue: emailService },
+        { provide: NotificationsService, useValue: notificationsService },
       ],
     }).compile();
 
@@ -115,6 +121,41 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         data: { inventory: { decrement: 1 } }
       });
       expect(prisma.lease.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('rejectApplication', () => {
+    it('should successfully reject application using atomic updateMany', async () => {
+      const mockApp = {
+        id: 'app-reject-1',
+        status: 'PENDING_REVIEW',
+        studentId: 'stud-1'
+      };
+
+      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      prisma.application.updateMany.mockResolvedValue({ count: 1 });
+      prisma.application.findUnique.mockResolvedValue({ ...mockApp, status: 'REJECTED' });
+
+      const result = await service.rejectApplication('org-1', 'app-reject-1');
+
+      expect(prisma.application.updateMany).toHaveBeenCalledWith({
+        where: { id: 'app-reject-1', status: 'PENDING_REVIEW' },
+        data: { status: 'REJECTED' }
+      });
+      expect(result.status).toBe('REJECTED');
+    });
+
+    it('should throw BadRequestException if updateMany returns count 0', async () => {
+      const mockApp = {
+        id: 'app-reject-2',
+        status: 'PENDING_REVIEW',
+        studentId: 'stud-1'
+      };
+
+      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      prisma.application.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.rejectApplication('org-1', 'app-reject-2')).rejects.toThrow(BadRequestException);
     });
   });
 

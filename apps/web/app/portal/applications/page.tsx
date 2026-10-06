@@ -152,14 +152,14 @@ export default function ProviderApplicationsPage() {
  <>
  <button
  onClick={() => handleStatusAction(app.id, 'approve')}
- disabled={actionLoadingId === app.id}
+ disabled={actionLoadingId !== null}
  className="px-3 py-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200"
  >
  {actionLoadingId === app.id ? '...' : 'Approve'}
  </button>
  <button
  onClick={() => handleStatusAction(app.id, 'reject')}
- disabled={actionLoadingId === app.id}
+ disabled={actionLoadingId !== null}
  className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
  >
  {actionLoadingId === app.id ? '...' : 'Reject'}
@@ -169,7 +169,7 @@ export default function ProviderApplicationsPage() {
  {(app.status === 'PENDING_REVIEW' || app.status === 'APPROVED') && (
  <button
  onClick={() => handleStatusAction(app.id, 'remove')}
- disabled={actionLoadingId === app.id}
+ disabled={actionLoadingId !== null}
  className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
  >
  {actionLoadingId === app.id ? 'Removing...' : 'Remove Student'}
