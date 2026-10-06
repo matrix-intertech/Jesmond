@@ -29,13 +29,23 @@ export class LeadsService {
     const sourceType = propertyId ? LeadSourceType.PROPERTY_PAGE : LeadSourceType.AGENCY_PAGE;
     const initialTemperature = propertyId ? LeadTemperature.WARM : LeadTemperature.COLD;
 
+    const whereClause: any = {
+      organizationId,
+      propertyId: propertyId || null,
+    };
+
+    if (userId) {
+      whereClause.OR = [
+        { userId },
+        { visitorId, userId: null }
+      ];
+    } else {
+      whereClause.visitorId = visitorId;
+    }
+
     // Try atomic update first
     const updated = await this.prisma.lead.updateMany({
-      where: {
-        organizationId,
-        propertyId: propertyId || null,
-        visitorId
-      },
+      where: whereClause,
       data: {
         visitCount: { increment: 1 },
         lastVisitedAt: new Date(),
@@ -44,6 +54,11 @@ export class LeadsService {
     });
 
     if (updated.count > 0) {
+      if (userId) {
+        return this.prisma.lead.findFirst({
+          where: { organizationId, propertyId: propertyId || null, userId }
+        });
+      }
       return this.prisma.lead.findFirst({
         where: { organizationId, propertyId: propertyId || null, visitorId }
       });
@@ -66,6 +81,11 @@ export class LeadsService {
       // P2002 is Prisma's unique constraint violation code
       if (e.code === 'P2002') {
         // If a concurrent request created it, try fetching again
+        if (userId) {
+          return this.prisma.lead.findFirst({
+            where: { organizationId, propertyId: propertyId || null, userId }
+          });
+        }
         return this.prisma.lead.findFirst({
           where: { organizationId, propertyId: propertyId || null, visitorId }
         });
