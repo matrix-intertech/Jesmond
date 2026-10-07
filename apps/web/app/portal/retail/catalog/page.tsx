@@ -17,6 +17,7 @@ interface Product {
  active: boolean;
  category?: { name: string };
  availableStock?: number;
+  imageUrl?: string;
 }
 
 import RetailGuard from "@/components/retail/RetailGuard";
@@ -24,7 +25,8 @@ import RetailGuard from "@/components/retail/RetailGuard";
 function CatalogPageContent() {
  const router = useRouter();
  const [isModalOpen, setIsModalOpen] = useState(false);
- const [formData, setFormData] = useState({
+ const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
  sku: '',
  name: '',
  sellingPrice: '',
@@ -109,7 +111,33 @@ function CatalogPageContent() {
  fetchProducts();
  }, [branchId, search]);
 
- const openCreateModal = () => {
+ const openEditModal = (p: Product) => {
+    setFormData({ sku: p.sku || "", name: p.name, sellingPrice: (p.sellingPrice / 100).toString(), imageUrl: p.imageUrl || "" });
+    setFormError("");
+    setFormSuccess("");
+    setEditingProductId(p.id);
+    setIsModalOpen(true);
+  };
+
+  const toggleProductStatus = async (p: Product) => {
+    if (!confirm(`Are you sure you want to ${p.active ? "deactivate" : "activate"} this product?`)) return;
+    const token = getAccessToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/retail/catalog/products/${p.id}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ isActive: !p.active })
+      });
+      if (res.ok) fetchProducts();
+    } catch (e) { console.error(e); }
+  };
+
+  const openCreateModal = () => {
+    setEditingProductId(null);
  setFormData({ sku: '', name: '', sellingPrice: '', imageUrl: '' });
  setFormError("");
  setFormSuccess("");
@@ -134,7 +162,8 @@ function CatalogPageContent() {
  imageUrl: formData.imageUrl
  };
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog/products`, {
+ const endpoint = editingProductId ? `/api/v1/retail/catalog/products/${editingProductId}` : "/api/v1/retail/catalog/products";
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}${endpoint}`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -144,7 +173,7 @@ function CatalogPageContent() {
  });
 
  if (res.ok) {
- setFormSuccess("Product created successfully!");
+ setFormSuccess(editingProductId ? "Product updated successfully!" : "Product created successfully!");
  fetchProducts(); // Refresh the list
  setTimeout(() => setIsModalOpen(false), 3000);
  } else {
@@ -264,8 +293,9 @@ function CatalogPageContent() {
  <th className="px-6 py-4 font-medium">Category</th>
  <th className="px-6 py-4 font-medium">Price</th>
  <th className="px-6 py-4 font-medium">Status</th>
- {branchId && <th className="px-6 py-4 font-medium">Stock</th>}
- </tr>
+                      {branchId && <th className="px-6 py-4 font-medium">Stock</th>}
+                      <th className="px-6 py-4 font-medium text-right">Actions</th>
+                    </tr>
  </thead>
  <tbody className="divide-y divide-slate-100">
  {products.map(p => (
@@ -300,7 +330,7 @@ function CatalogPageContent() {
  <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-surface-muted/50 p-4 backdrop-blur-sm">
  <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl bg-surface shadow-xl">
  <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center">
- <h3 className="font-semibold text-lg text-primary">Add Product</h3>
+ <h3 className="font-semibold text-lg text-primary">{editingProductId ? "Edit Product" : "Add Product"}</h3>
  <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
  </div>
 
@@ -379,7 +409,7 @@ function CatalogPageContent() {
  <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-muted rounded-md">Cancel</button>
  <button type="submit" disabled={formLoading || imageUploading} className="px-4 py-2 text-sm font-medium text-white bg-accent hover:bg-accent rounded-md disabled:opacity-50">
- {formLoading ? 'Creating...' : 'Create Product'}
+ {formLoading ? "Saving..." : editingProductId ? "Save Changes" : "Create Product"}
  </button>
  </div>
  </form>

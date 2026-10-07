@@ -4,7 +4,7 @@ import { useCart } from "@/providers/CartProvider";
 import { getApiUrl } from "@/utils/api";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Navigation, Clock, Store, CheckCircle, ArrowLeft, Loader2, AlertTriangle } from "lucide-react";
+import { Navigation, Clock, Store, CheckCircle, ArrowLeft, Loader2, AlertTriangle, CreditCard, Banknote } from "lucide-react";
 import Link from "next/link";
 import { isAuthenticated, getAccessToken } from "@/utils/auth";
 import Image from "next/image";
@@ -24,8 +24,19 @@ export default function CheckoutPage() {
  const [branch, setBranch] = useState<BranchDetails | null>(null);
  const [loading, setLoading] = useState(true);
  const [fulfillment, setFulfillment] = useState<'DELIVERY' | 'TAKEAWAY' | 'IN_STORE'>('IN_STORE');
+ const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'ONLINE'>('CASH');
+ const [paymentSettings, setPaymentSettings] = useState<any>(null);
+ const [clientSecret, setClientSecret] = useState<string | null>(null);
 
  const [submitting, setSubmitting] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState({
+    name: '',
+    phone: '',
+    addressLine: '',
+    city: '',
+    state: '',
+    postalCode: ''
+  });
  const [error, setError] = useState("");
 
  useEffect(() => {
@@ -55,6 +66,11 @@ export default function CheckoutPage() {
  if (data.branch.deliveryEnabled) setFulfillment('DELIVERY');
  else if (data.branch.takeawayEnabled) setFulfillment('TAKEAWAY');
  else setFulfillment('IN_STORE');
+ 
+ setPaymentSettings(data.paymentSettings);
+ if (data.paymentSettings?.onlinePaymentsEnabled && data.paymentSettings?.stripeConfigured) {
+   setPaymentMethod('ONLINE');
+ }
  } else {
  setError("Store is currently unavailable.");
  }
@@ -77,6 +93,9 @@ export default function CheckoutPage() {
  const payload = {
  branchId,
  fulfillmentType: fulfillment,
+ paymentMethod,
+ idempotencyKey: `checkout_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+ ...(fulfillment === 'DELIVERY' ? { deliveryAddress } : {}),
  items: items.map(i => ({ productId: i.productId, quantity: i.quantity }))
  };
 
@@ -91,8 +110,12 @@ export default function CheckoutPage() {
 
  if (res.ok) {
  const order = await res.json();
- clearCart();
- router.push(`/retail/order/${order.id}`);
+ if (paymentMethod === 'ONLINE' && order.clientSecret) {
+   setClientSecret(order.clientSecret);
+ } else {
+   clearCart();
+   router.push(`/retail/order/${order.id}`);
+ }
  } else {
  const errData = await res.json();
  setError(errData.message || "Checkout failed. Items might be out of stock.");
@@ -192,10 +215,41 @@ export default function CheckoutPage() {
  </label>
  )}
  </div>
- </section>
+            {fulfillment === 'DELIVERY' && (
+              <div className="mt-6 space-y-4">
+                <h3 className="font-bold text-primary">Delivery Address</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="text" placeholder="Full Name *" value={deliveryAddress.name} onChange={e => setDeliveryAddress({...deliveryAddress, name: e.target.value})} className="col-span-2 p-3 rounded-xl border border-border-strong bg-surface focus:outline-none focus:border-accent" />
+                  <input type="tel" placeholder="Phone" value={deliveryAddress.phone} onChange={e => setDeliveryAddress({...deliveryAddress, phone: e.target.value})} className="col-span-2 p-3 rounded-xl border border-border-strong bg-surface focus:outline-none focus:border-accent" />
+                  <input type="text" placeholder="Address Line *" value={deliveryAddress.addressLine} onChange={e => setDeliveryAddress({...deliveryAddress, addressLine: e.target.value})} className="col-span-2 p-3 rounded-xl border border-border-strong bg-surface focus:outline-none focus:border-accent" />
+                  <input type="text" placeholder="City *" value={deliveryAddress.city} onChange={e => setDeliveryAddress({...deliveryAddress, city: e.target.value})} className="p-3 rounded-xl border border-border-strong bg-surface focus:outline-none focus:border-accent" />
+                  <input type="text" placeholder="State" value={deliveryAddress.state} onChange={e => setDeliveryAddress({...deliveryAddress, state: e.target.value})} className="p-3 rounded-xl border border-border-strong bg-surface focus:outline-none focus:border-accent" />
+                  <input type="text" placeholder="Postal Code" value={deliveryAddress.postalCode} onChange={e => setDeliveryAddress({...deliveryAddress, postalCode: e.target.value})} className="col-span-2 p-3 rounded-xl border border-border-strong bg-surface focus:outline-none focus:border-accent" />
+                </div>
+              </div>
+            )}
 
- <section>
- <h2 className="text-xl font-bold text-primary mb-4">Order Items</h2>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-primary mb-4">Payment Method</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <label className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all border-accent bg-surface-orange`}>
+                   <input type="radio" name="paymentMethod" className="sr-only" checked={true} readOnly />
+                   <div className="flex items-center justify-between mb-2">
+                     <div className="flex items-center gap-2 text-primary font-bold">
+                       <Banknote size={18} className="text-accent" />
+                       {fulfillment === 'DELIVERY' ? 'Pay on Delivery' : 'Pay In-Store'}
+                     </div>
+                     <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-white"><CheckCircle size={12} strokeWidth={4} /></div>
+                   </div>
+                   <p className="text-sm text-text-secondary font-medium">Pay when you receive your order</p>
+                 </label>
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-primary mb-4">Order Items</h2>
  <div className="bg-surface rounded-3xl border border-border-strong overflow-hidden shadow-sm">
  <ul className="divide-y divide-slate-100">
  {items.map((item) => (
@@ -253,7 +307,7 @@ export default function CheckoutPage() {
  {submitting ? (
  <><Loader2 className="animate-spin" size={20} /> Processing...</>
  ) : (
- 'Place Order securely'
+ 'Place Order'
  )}
  </button>
  <p className="text-center text-xs text-text-muted mt-4">

@@ -163,7 +163,7 @@ async function main() {
             organizationId: organization.id
           }
         });
-        
+
         // Add room type
         await prisma.roomType.create({
           data: {

@@ -56,15 +56,9 @@ const publicItems: BottomNavItem[] = [
  },
  {
  href: "/retail",
- label: "Retail",
+ label: "Businesses",
  icon: Store,
  isActive: section("/retail"),
- },
- {
- href: "/providers",
- label: "Providers",
- icon: Building2,
- isActive: section("/providers"),
  },
  {
  href: "/guide",

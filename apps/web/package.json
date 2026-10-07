@@ -13,6 +13,8 @@
   "dependencies": {
     "@jesmond/db": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@stripe/react-stripe-js": "^7.0.0",
+    "@stripe/stripe-js": "^10.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^13.0.0",
     "leaflet": "^1.9.4",

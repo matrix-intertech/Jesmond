@@ -136,7 +136,7 @@ export default function ProfileSettings() {
  Please fill in the highlighted fields below to complete your profile.
  {missingFields.includes('retailStoreName') && (
  <span className="block mt-1">
- <strong>Note:</strong> Your Retail Store Name is also missing. Please update it in your <a href="/portal/settings/business" className="underline text-accent hover:text-orange-700">Business Profile</a>.
+ <strong>Note:</strong> Your Business Name is also missing. Please update it in your <a href="/portal/settings/business" className="underline text-accent hover:text-orange-700">Business Profile</a>.
  </span>
  )}
  </p>

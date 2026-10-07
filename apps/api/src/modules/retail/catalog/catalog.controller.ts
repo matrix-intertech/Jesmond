@@ -42,7 +42,7 @@ export class CatalogController {
   @Post('products/:id')
   async updateProduct(
     @Request() req: any,
-    @Body() data: { sku?: string; name?: string; sellingPrice?: number; imageUrl?: string },
+    @Body() data: { sku?: string; name?: string; sellingPrice?: number; imageUrl?: string; isActive?: boolean },
     @Param('id') id: string
   ) {
     if (!req.user || !req.user.organizationId) {

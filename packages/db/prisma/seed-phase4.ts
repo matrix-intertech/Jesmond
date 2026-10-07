@@ -7,20 +7,20 @@ async function main() {
 
   // 1. Clean existing data in correct dependency order
   console.log('Cleaning existing data...');
-  
+
   await prisma.notificationTrigger.deleteMany();
   await prisma.savedSearch.deleteMany();
   await prisma.recentSearch.deleteMany();
   await prisma.recentlyViewed.deleteMany();
   await prisma.searchAnalytics.deleteMany();
-  
+
   // Application depends on User and RoomType
   await prisma.application.deleteMany();
-  
+
   await prisma.pricingHistory.deleteMany();
   await prisma.availabilityCalendar.deleteMany();
   await prisma.roomType.deleteMany();
-  
+
   await prisma.propertyAmenity.deleteMany();
   await prisma.media.deleteMany();
   await prisma.maintenanceRequest.deleteMany();
@@ -28,16 +28,16 @@ async function main() {
   await prisma.building.deleteMany();
   await prisma.propertyVersion.deleteMany();
   await prisma.property.deleteMany();
-  
+
   await prisma.amenity.deleteMany();
-  
+
   await prisma.campus.deleteMany();
   await prisma.university.deleteMany();
   await prisma.suburb.deleteMany();
   await prisma.city.deleteMany();
   await prisma.state.deleteMany();
   await prisma.country.deleteMany();
-  
+
   await prisma.orgStaff.deleteMany();
   await prisma.office.deleteMany();
   await prisma.apiKey.deleteMany();
@@ -46,7 +46,7 @@ async function main() {
 
   // 2. Create Base Data
   console.log('Creating Base Organization and Location data...');
-  
+
   const providerOrg = await prisma.organization.create({
     data: {
       name: 'Jesmond Verified Providers',
@@ -115,9 +115,9 @@ async function main() {
   const aPool = await prisma.amenity.create({ data: { name: 'Swimming Pool', category: 'Wellness' } });
 
   console.log('Generating Properties...');
-  
+
   const propertiesToCreate = [];
-  
+
   // 25 Melbourne CBD
   for(let i=1; i<=25; i++) {
     propertiesToCreate.push({
@@ -176,7 +176,7 @@ async function main() {
   for (const p of propertiesToCreate) {
     const propIndex = p._index;
     const { _index, ...propertyData } = p;
-    
+
     const prop = await prisma.property.create({
       data: propertyData
     });
@@ -191,7 +191,7 @@ async function main() {
     if (propIndex % 2 === 0) {
       amenitiesToConnect.push({ propertyId: prop.id, amenityId: aPool.id });
     }
-    
+
     await prisma.propertyAmenity.createMany({ data: amenitiesToConnect });
 
     // 5 Media records per property
@@ -200,10 +200,10 @@ async function main() {
       const paddedProp = String(propIndex).padStart(2, '0');
       const paddedMedia = String(m).padStart(2, '0');
       mediaData.push({
-        propertyId: prop.id, 
-        url: `/assets/properties/property-${paddedProp}-${paddedMedia}.jpg`, 
-        type: 'IMAGE', 
-        displayOrder: m 
+        propertyId: prop.id,
+        url: `/assets/properties/property-${paddedProp}-${paddedMedia}.jpg`,
+        type: 'IMAGE',
+        displayOrder: m
       });
       mediaCount++;
     }

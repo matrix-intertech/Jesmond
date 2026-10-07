@@ -48,7 +48,7 @@ export class CatalogService {
     organizationId: string,
     userId: string,
     productId: string,
-    data: { sku?: string; name?: string; sellingPrice?: number; imageUrl?: string }
+    data: { sku?: string; name?: string; sellingPrice?: number; imageUrl?: string; isActive?: boolean }
   ) {
     const existing = await this.prisma.product.findUnique({
       where: { id: productId },
@@ -77,6 +77,7 @@ export class CatalogService {
           name: data.name !== undefined ? data.name : existing.name,
           sellingPrice: data.sellingPrice !== undefined ? data.sellingPrice : existing.sellingPrice,
           imageUrl: data.imageUrl !== undefined ? data.imageUrl : existing.imageUrl,
+          isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
         },
       });
 
@@ -127,8 +128,6 @@ export class CatalogService {
 
     if (query.active !== undefined) {
       where.isActive = query.active;
-    } else {
-      where.isActive = true;
     }
 
     if (query.category) {
@@ -173,6 +172,7 @@ export class CatalogService {
         sku: product.sku,
         barcode: product.barcode,
         sellingPrice: product.sellingPrice,
+        imageUrl: product.imageUrl,
         isActive: product.isActive,
         category: product.category ? { id: product.category.id, name: product.category.name } : null,
         quantity,

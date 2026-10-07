@@ -69,12 +69,12 @@ export function EditorialFooter() {
  </ul>
  </div>
 
- {/* Column 5: Providers */}
+ {/* Column 5: Businesses */}
  <div className="lg:col-span-2">
- <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6">Providers</h4>
+ <h4 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-6">Businesses</h4>
  <ul className="flex flex-col gap-4 text-sm text-text-secondary font-medium">
  <li><Link href="/list" className="hover:text-primary transition-colors">List Your Property</Link></li>
- <li><Link href="/portal" className="hover:text-primary transition-colors">Provider Portal</Link></li>
+ <li><Link href="/portal" className="hover:text-primary transition-colors">Business Portal</Link></li>
  <li><Link href="/verification" className="hover:text-primary transition-colors">Verification Process</Link></li>
  <li><Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
  <li><Link href="/support" className="hover:text-primary transition-colors">Support</Link></li>

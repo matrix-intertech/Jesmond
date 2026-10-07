@@ -68,9 +68,8 @@ export function GlobalNav() {
  }, [isMobileMenuOpen]);
 
  const navLinks = [
- { label: "Retail", href: "/retail" },
+ { label: "Businesses", href: "/retail" },
  { label: "Universities", href: "/universities" },
- { label: "Providers", href: "/providers" },
  { label: "Agencies", href: "/agencies" },
  { label: "Support", href: "/support" },
  ];

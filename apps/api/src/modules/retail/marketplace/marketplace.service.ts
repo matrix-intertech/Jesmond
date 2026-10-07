@@ -1,13 +1,15 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { FulfillmentType, OrderSource, OrderStatus } from '@prisma/client';
+import { PaymentSettingsService } from '../payments/payment-settings.service';
 
 @Injectable()
 export class MarketplaceService {
   constructor(
     private prisma: PrismaService,
-    private redisService: RedisService
+    private redisService: RedisService,
+    private paymentSettingsService: PaymentSettingsService
   ) {}
 
   async listStores(lat?: number, lng?: number, radius?: number) {
@@ -95,17 +97,28 @@ export class MarketplaceService {
       };
     });
 
+    const paymentSettings = await this.paymentSettingsService.getSettings(branch.organizationId);
+
     return {
       branch,
       catalog,
+      paymentSettings,
     };
   }
 
   async checkout(userId: string, data: any) {
-    const { branchId, items, fulfillmentType } = data; // items: { productId: string, quantity: number }[]
+    const { branchId, items, fulfillmentType, deliveryAddress, idempotencyKey } = data;
 
     if (!items || items.length === 0) {
       throw new BadRequestException('Cart is empty');
+    }
+
+    if (fulfillmentType === 'DELIVERY' && !deliveryAddress) {
+      throw new BadRequestException('Delivery address is required for DELIVERY fulfillment');
+    }
+
+    if (!idempotencyKey) {
+      throw new BadRequestException('Idempotency key is required');
     }
 
     const branch = await this.prisma.retailBranch.findUnique({
@@ -128,12 +141,54 @@ export class MarketplaceService {
       throw new BadRequestException('Takeaway is not available for this store');
     }
 
-    // Validate and create order inside a transaction
-    return this.prisma.$transaction(async (tx) => {
+    // Check if idempotent request already succeeded
+    const existingOrder = await this.prisma.salesOrder.findFirst({
+      where: { organizationId: branch.organizationId, idempotencyKey }
+    });
+    
+    if (existingOrder) {
+      // If the customer payload was entirely different for the same key, it's a conflict
+      if (existingOrder.customerId) {
+        // verify it belongs to same user
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        const existingCustomer = await this.prisma.retailCustomer.findUnique({ where: { id: existingOrder.customerId } });
+        if (existingCustomer && user && existingCustomer.email !== user.email) {
+          throw new BadRequestException('Idempotency key conflict');
+        }
+      }
+      return existingOrder;
+    }
+
+    // Ensure customer exists
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+
+    let customer = await this.prisma.retailCustomer.findFirst({
+      where: { organizationId: branch.organizationId, email: user.email },
+    });
+
+    if (!customer) {
+      customer = await this.prisma.retailCustomer.create({
+        data: {
+          organizationId: branch.organizationId,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+        },
+      });
+    }
+
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+      // Double check idempotency inside transaction
+      const existingTx = await tx.salesOrder.findFirst({
+        where: { organizationId: branch.organizationId, idempotencyKey }
+      });
+      if (existingTx) return existingTx;
+
       let subtotal = 0;
       const orderItems = [];
 
-      // Phase 1D: Batched Product Lookup (Eliminates N+1 query overhead while preserving branch & org validation)
       const productIds = Array.from(new Set(items.map((i: any) => i.productId))) as string[];
       const fetchedProducts = await tx.product.findMany({
         where: {
@@ -158,34 +213,21 @@ export class MarketplaceService {
           throw new BadRequestException(`Insufficient inventory for product ${product.name}`);
         }
 
-        // Atomic deduction to avoid race condition
+        // Atomically increment reserved quantity
         const result = await tx.inventory.updateMany({
           where: {
              branchId,
              productId: item.productId,
-             quantity: { gte: item.quantity + inv.reservedQuantity }
+             quantity: { gte: inv.reservedQuantity + item.quantity } // Ensure enough left
           },
           data: {
-            quantity: { decrement: item.quantity },
+             reservedQuantity: { increment: item.quantity },
           },
         });
 
         if (result.count === 0) {
           throw new BadRequestException(`Insufficient inventory for product ${product.name} (checked out concurrently)`);
         }
-
-        // Add inventory movement
-        await tx.inventoryMovement.create({
-          data: {
-            branchId,
-            productId: item.productId,
-            type: 'OUT',
-            quantity: item.quantity,
-            referenceType: 'SALE',
-            reason: 'Marketplace Order',
-            createdBy: userId,
-          }
-        });
 
         const lineTotal = product.sellingPrice * item.quantity;
         subtotal += lineTotal;
@@ -198,43 +240,25 @@ export class MarketplaceService {
         });
       }
 
-      const tax = 0; // Simplified
-      const deliveryFee = fulfillmentType === 'DELIVERY' ? 500 : 0; // Flat $5 for demo
+      const tax = 0;
+      const deliveryFee = fulfillmentType === 'DELIVERY' ? 500 : 0; 
       const total = subtotal + tax + deliveryFee;
 
-      // Ensure customer exists
-      const user = await tx.user.findUnique({ where: { id: userId } });
-      if (!user) throw new BadRequestException('User not found');
-
-      let customer = await tx.retailCustomer.findFirst({
-        where: { organizationId: branch.organizationId, email: user.email },
-      });
-
-      if (!customer) {
-        customer = await tx.retailCustomer.create({
-          data: {
-            organizationId: branch.organizationId,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-          },
-        });
-      }
-
-      // Create Order
       const order = await tx.salesOrder.create({
         data: {
           orderNumber: `ORD-${Date.now()}`,
           organizationId: branch.organizationId,
           branchId,
           customerId: customer.id,
-          status: OrderStatus.PENDING,
+          status: 'PENDING',
           subtotal,
           tax,
           total,
           deliveryFee,
-          fulfillmentType: fulfillmentType as FulfillmentType,
-          source: OrderSource.ONLINE,
+          fulfillmentType,
+          deliveryAddress: deliveryAddress ? deliveryAddress : null,
+          idempotencyKey,
+          source: 'ONLINE',
           items: {
             create: orderItems,
           },
@@ -243,5 +267,53 @@ export class MarketplaceService {
 
       return order;
     });
+    } catch (error: any) {
+      if (error.code === 'P2002' && error.meta?.target?.includes('idempotencyKey')) {
+        const existingOrder = await this.prisma.salesOrder.findFirst({
+          where: { organizationId: branch.organizationId, idempotencyKey }
+        });
+        if (existingOrder) {
+          // Verify customer match
+          if (existingOrder.customerId) {
+            const user = await this.prisma.user.findUnique({ where: { id: userId } });
+            const existingCustomer = await this.prisma.retailCustomer.findUnique({ where: { id: existingOrder.customerId as string } });
+            if (existingCustomer && user && existingCustomer.email !== user.email) {
+              throw new BadRequestException('Idempotency key conflict');
+            }
+          }
+          return existingOrder;
+        }
+      }
+      throw error;
+    }
+  }
+
+
+  async getOrder(userId: string, orderId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+
+    const order = await this.prisma.salesOrder.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: { product: true }
+        },
+        payments: true,
+        branch: {
+          select: { name: true, organization: { select: { name: true } } }
+        }
+      }
+    });
+
+    if (!order) throw new NotFoundException('Order not found');
+
+    // Securely match customer to user
+    const customer = await this.prisma.retailCustomer.findUnique({ where: { id: order.customerId as string } });
+    if (!customer || customer.email !== user.email) {
+      throw new ForbiddenException('Order belongs to a different user');
+    }
+
+    return order;
   }
 }

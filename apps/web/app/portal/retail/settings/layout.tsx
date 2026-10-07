@@ -1,10 +1,11 @@
 import SettingsLayout from "@/components/layout/SettingsLayout";
-import { Shield, Building, Users } from "lucide-react";
+import { Shield, Building, CreditCard } from "lucide-react";
 import RetailGuard from "@/components/retail/RetailGuard";
 
 const links = [
  { label: "Delivery & Takeaway", href: "/portal/retail/settings", icon: <Building className="w-5 h-5" /> },
  { label: "Employee Permissions", href: "/portal/retail/settings/permissions", icon: <Shield className="w-5 h-5" /> },
+ { label: "Payment Settings", href: "/portal/retail/settings/payments", icon: <CreditCard className="w-5 h-5" /> },
 ];
 
 export default function RetailSettingsLayout({ children }: { children: React.ReactNode }) {

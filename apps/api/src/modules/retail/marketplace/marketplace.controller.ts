@@ -29,4 +29,10 @@ export class MarketplaceController {
   async checkout(@Request() req: any, @Body() body: any) {
     return this.marketplaceService.checkout(req.user.id, body);
   }
+
+  @Get('orders/:id')
+  @UseGuards(JwtAuthGuard)
+  async getOrder(@Request() req: any, @Param('id') id: string) {
+    return this.marketplaceService.getOrder(req.user.id, id);
+  }
 }

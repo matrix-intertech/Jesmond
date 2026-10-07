@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { LoggerModule } from 'nestjs-pino';
 import { TerminusModule } from '@nestjs/terminus';
 // BullMQ requires configuration, we'll import it but set it up minimally
@@ -45,6 +46,8 @@ import { RedisModule } from './modules/redis/redis.module';
         },
       },
     }),
+
+    ScheduleModule.forRoot(),
 
     // 3. Health Checks
     TerminusModule,

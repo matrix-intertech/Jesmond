@@ -196,7 +196,7 @@ const navConfig: NavItem[] = [
  },
  {
  href: '/portal/retail',
- label: 'Retail Overview',
+ label: 'Business Overview',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -210,7 +210,7 @@ const navConfig: NavItem[] = [
  },
  {
  href: '/portal/retail/business',
- label: 'Retail Business',
+ label: 'Business Profile',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -222,7 +222,7 @@ const navConfig: NavItem[] = [
  },
  {
  href: '/portal/retail/branches',
- label: 'Retail Branches',
+ label: 'Business Branches',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
  <path d="M14 2H6a2 2 0 0 0-2 2v16h16v-8l-6-6z" />
@@ -250,7 +250,7 @@ const navConfig: NavItem[] = [
  },
  {
  href: '/portal/retail/terminals',
- label: 'Retail Terminals',
+ label: 'Business Terminals',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
@@ -270,7 +270,7 @@ const navConfig: NavItem[] = [
  },
  {
  href: '/portal/retail/customers',
- label: 'Retail Customers',
+ label: 'Business Customers',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -284,7 +284,7 @@ const navConfig: NavItem[] = [
  },
  {
  href: '/portal/retail/catalog',
- label: 'Retail Catalog',
+ label: 'Business Catalog',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />

@@ -132,6 +132,7 @@ model Organization {
   PosSyncJob        PosSyncJob[]
   PosWebhookEvent   PosWebhookEvent[]
   agencyCustomRoles AgencyCustomRole[]
+  paymentSettings   OrganizationPaymentSettings?
 
   @@index([abn])
 }
@@ -1265,6 +1266,8 @@ model SalesOrder {
   currency        String          @default("AUD")
   source          OrderSource     @default(IN_STORE)
   externalId      String? // POS order ID
+  idempotencyKey  String?         @unique
+  deliveryAddress Json?
 
   items    SalesOrderItem[]
   payments RetailPayment[]
@@ -1340,6 +1343,7 @@ enum PaymentMethod {
   DEBIT_CARD
   GIFT_CARD
   OTHER
+  ONLINE
 }
 
 enum RetailPaymentStatus {
@@ -1594,4 +1598,16 @@ model PushSubscription {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+
+model OrganizationPaymentSettings {
+  id                    String       @id @default(uuid())
+  organizationId        String       @unique
+  organization          Organization @relation(fields: [organizationId], references: [id])
+  onlinePaymentsEnabled Boolean      @default(false)
+  stripeConfigured      Boolean      @default(false)
+  stripeAccountId       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
