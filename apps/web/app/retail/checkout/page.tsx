@@ -301,7 +301,7 @@ export default function CheckoutPage() {
 
  <button
  onClick={handleCheckout}
- disabled={submitting || branch.isActive === false}
+ disabled={submitting || branch.isActive === false || (fulfillment === 'DELIVERY' && (!deliveryAddress.name.trim() || !deliveryAddress.phone.trim() || !deliveryAddress.addressLine.trim() || !deliveryAddress.city.trim() || !deliveryAddress.state.trim() || !deliveryAddress.postalCode.trim()))}
  className="w-full py-4 bg-accent hover:bg-accent text-white rounded-xl font-bold text-lg transition-all shadow-lg shadow-orange-500/25 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
  >
  {submitting ? (

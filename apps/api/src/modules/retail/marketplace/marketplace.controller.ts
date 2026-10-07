@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { MarketplaceService } from './marketplace.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-
+import { CheckoutDto } from './dto/checkout.dto';
+import { ValidationPipe } from '@nestjs/common';
 @Controller('retail/marketplace')
 export class MarketplaceController {
   constructor(private readonly marketplaceService: MarketplaceService) {}
@@ -26,7 +27,7 @@ export class MarketplaceController {
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
-  async checkout(@Request() req: any, @Body() body: any) {
+  async checkout(@Request() req: any, @Body(new ValidationPipe({ whitelist: true, transform: true })) body: CheckoutDto) {
     return this.marketplaceService.checkout(req.user.id, body);
   }
 

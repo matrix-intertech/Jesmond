@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { FulfillmentType, OrderSource, OrderStatus } from '@prisma/client';
 import { PaymentSettingsService } from '../payments/payment-settings.service';
+import { CheckoutDto } from './dto/checkout.dto';
 
 @Injectable()
 export class MarketplaceService {
@@ -106,15 +107,19 @@ export class MarketplaceService {
     };
   }
 
-  async checkout(userId: string, data: any) {
-    const { branchId, items, fulfillmentType, deliveryAddress, idempotencyKey } = data;
-
+  async checkout(userId: string, data: CheckoutDto) {
+    const { branchId, items, fulfillmentType, idempotencyKey } = data;
+    let { deliveryAddress } = data;
     if (!items || items.length === 0) {
       throw new BadRequestException('Cart is empty');
     }
 
     if (fulfillmentType === 'DELIVERY' && !deliveryAddress) {
       throw new BadRequestException('Delivery address is required for DELIVERY fulfillment');
+    }
+
+    if (fulfillmentType !== 'DELIVERY') {
+      deliveryAddress = undefined; // Force null/undefined for non-delivery
     }
 
     if (!idempotencyKey) {
@@ -256,7 +261,7 @@ export class MarketplaceService {
           total,
           deliveryFee,
           fulfillmentType,
-          deliveryAddress: deliveryAddress ? deliveryAddress : null,
+          deliveryAddress: deliveryAddress ? (deliveryAddress as any) : undefined,
           idempotencyKey,
           source: 'ONLINE',
           items: {

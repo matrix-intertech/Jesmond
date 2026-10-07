@@ -322,10 +322,15 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
  <span className="text-text-secondary">Phone</span>
  <span className="font-medium text-text-primary">{order.customer.phone || 'N/A'}</span>
  </div>
- {isDelivery && (
+ {isDelivery && order.deliveryAddress && (
  <div className="flex justify-between pt-1">
  <span className="text-text-secondary">Delivery Address</span>
- <span className="font-medium text-text-primary text-right max-w-[180px]">{order.customer.address || 'Address provided at checkout'}</span>
+ <div className="font-medium text-text-primary text-right max-w-[180px]">
+   <div>{order.deliveryAddress.name}</div>
+   {order.deliveryAddress.phone && <div>{order.deliveryAddress.phone}</div>}
+   <div>{order.deliveryAddress.addressLine}</div>
+   <div>{order.deliveryAddress.city}, {order.deliveryAddress.state} {order.deliveryAddress.postalCode}</div>
+ </div>
  </div>
  )}
  </div>
