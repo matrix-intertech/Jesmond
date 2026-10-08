@@ -64,13 +64,17 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         roomType: { id: 'room-1', property: { status: 'PUBLISHED' } },
         studentId: 'stud-1',
         moveInDate: new Date(),
-        durationMonths: 12
+        durationMonths: 12,
       };
 
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp); // Re-fetch inside tx
 
-      await expect(service.approveApplication('org-1', 'app-approve')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.approveApplication('org-1', 'app-approve'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.roomType.updateMany).not.toHaveBeenCalled();
     });
 
@@ -81,16 +85,20 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         roomType: { id: 'room-1', property: { status: 'PUBLISHED' } },
         studentId: 'stud-1',
         moveInDate: new Date(),
-        durationMonths: 12
+        durationMonths: 12,
       };
 
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp); // Re-fetch inside tx
 
       // Simulate inventory decrement returning 0 updated rows
       prisma.roomType.updateMany.mockResolvedValue({ count: 0 });
 
-      await expect(service.approveApplication('org-1', 'app-approve-2')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.approveApplication('org-1', 'app-approve-2'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.lease.create).not.toHaveBeenCalled();
       expect(prisma.application.update).not.toHaveBeenCalled();
     });
@@ -99,26 +107,37 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       const mockApp = {
         id: 'app-approve-3',
         status: 'PENDING_REVIEW',
-        roomType: { id: 'room-1', property: { status: 'PUBLISHED', organization: { name: 'Org', staff: [] } } },
+        roomType: {
+          id: 'room-1',
+          property: {
+            status: 'PUBLISHED',
+            organization: { name: 'Org', staff: [] },
+          },
+        },
         studentId: 'stud-1',
         moveInDate: new Date(),
         durationMonths: 12,
-        student: { firstName: 'John' }
+        student: { firstName: 'John' },
       };
 
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp); // Re-fetch inside tx
 
       prisma.roomType.updateMany.mockResolvedValue({ count: 1 });
       prisma.lease.create.mockResolvedValue({ id: 'lease-new' });
-      prisma.application.update.mockResolvedValue({ ...mockApp, status: 'APPROVED' });
+      prisma.application.update.mockResolvedValue({
+        ...mockApp,
+        status: 'APPROVED',
+      });
 
       const result = await service.approveApplication('org-1', 'app-approve-3');
 
       expect(result.application.status).toBe('APPROVED');
       expect(prisma.roomType.updateMany).toHaveBeenCalledWith({
         where: { id: 'room-1', inventory: { gt: 0 } },
-        data: { inventory: { decrement: 1 } }
+        data: { inventory: { decrement: 1 } },
       });
       expect(prisma.lease.create).toHaveBeenCalled();
     });
@@ -129,18 +148,23 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       const mockApp = {
         id: 'app-reject-1',
         status: 'PENDING_REVIEW',
-        studentId: 'stud-1'
+        studentId: 'stud-1',
       };
 
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValue({ ...mockApp, status: 'REJECTED' });
+      prisma.application.findUnique.mockResolvedValue({
+        ...mockApp,
+        status: 'REJECTED',
+      });
 
       const result = await service.rejectApplication('org-1', 'app-reject-1');
 
       expect(prisma.application.updateMany).toHaveBeenCalledWith({
         where: { id: 'app-reject-1', status: 'PENDING_REVIEW' },
-        data: { status: 'REJECTED' }
+        data: { status: 'REJECTED' },
       });
       expect(result.status).toBe('REJECTED');
     });
@@ -149,13 +173,17 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       const mockApp = {
         id: 'app-reject-2',
         status: 'PENDING_REVIEW',
-        studentId: 'stud-1'
+        studentId: 'stud-1',
       };
 
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.updateMany.mockResolvedValue({ count: 0 });
 
-      await expect(service.rejectApplication('org-1', 'app-reject-2')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.rejectApplication('org-1', 'app-reject-2'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -169,14 +197,24 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         roomType: {
           property: {
             name: 'Sunny Lodge',
-            organization: { name: 'Org 1', staff: [{ role: 'ADMIN', user: { email: 'admin@org.com' } }] },
+            organization: {
+              name: 'Org 1',
+              staff: [{ role: 'ADMIN', user: { email: 'admin@org.com' } }],
+            },
           },
         },
-        student: { firstName: 'John', lastName: 'Doe', email: 'john@student.com' },
+        student: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@student.com',
+        },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
       const result = await service.withdrawApplication('student-1', 'app-1');
 
@@ -195,14 +233,24 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         roomType: {
           property: {
             name: 'Sunny Lodge',
-            organization: { name: 'Org 1', staff: [{ role: 'ADMIN', user: { email: 'admin@org.com' } }] },
+            organization: {
+              name: 'Org 1',
+              staff: [{ role: 'ADMIN', user: { email: 'admin@org.com' } }],
+            },
           },
         },
-        student: { firstName: 'John', lastName: 'Doe', email: 'john@student.com' },
+        student: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@student.com',
+        },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
       const result = await service.withdrawApplication('student-1', 'app-2');
 
@@ -230,13 +278,23 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
             organization: { name: 'Org 1', staff: [] },
           },
         },
-        student: { firstName: 'Alice', lastName: 'Smith', email: 'alice@student.com' },
+        student: {
+          firstName: 'Alice',
+          lastName: 'Smith',
+          email: 'alice@student.com',
+        },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
-      const result = await service.withdrawApplication('student-1', 'app-lease-pending');
+      const result = await service.withdrawApplication(
+        'student-1',
+        'app-lease-pending',
+      );
 
       expect(result!.status).toBe('WITHDRAWN');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
@@ -262,13 +320,23 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
             organization: { name: 'Org 1', staff: [] },
           },
         },
-        student: { firstName: 'Bob', lastName: 'Taylor', email: 'bob@student.com' },
+        student: {
+          firstName: 'Bob',
+          lastName: 'Taylor',
+          email: 'bob@student.com',
+        },
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'WITHDRAWN' });
 
-      const result = await service.withdrawApplication('student-1', 'app-booked');
+      const result = await service.withdrawApplication(
+        'student-1',
+        'app-booked',
+      );
 
       expect(result!.status).toBe('WITHDRAWN');
       expect(prisma.roomType.update).toHaveBeenCalledWith({
@@ -290,22 +358,42 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       };
       prisma.application.findUnique.mockResolvedValue(mockApp);
 
-      await expect(service.withdrawApplication('student-1', 'app-withdrawn')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.withdrawApplication('student-1', 'app-withdrawn'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.roomType.update).not.toHaveBeenCalled();
     });
 
     it('should throw BadRequestException on CANCELLED, REJECTED, or EXPIRED application', async () => {
-      const mockAppCancelled = { id: 'app-c', studentId: 'student-1', status: 'CANCELLED' };
+      const mockAppCancelled = {
+        id: 'app-c',
+        studentId: 'student-1',
+        status: 'CANCELLED',
+      };
       prisma.application.findUnique.mockResolvedValue(mockAppCancelled);
-      await expect(service.withdrawApplication('student-1', 'app-c')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.withdrawApplication('student-1', 'app-c'),
+      ).rejects.toThrow(BadRequestException);
 
-      const mockAppRejected = { id: 'app-r', studentId: 'student-1', status: 'REJECTED' };
+      const mockAppRejected = {
+        id: 'app-r',
+        studentId: 'student-1',
+        status: 'REJECTED',
+      };
       prisma.application.findUnique.mockResolvedValue(mockAppRejected);
-      await expect(service.withdrawApplication('student-1', 'app-r')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.withdrawApplication('student-1', 'app-r'),
+      ).rejects.toThrow(BadRequestException);
 
-      const mockAppExpired = { id: 'app-e', studentId: 'student-1', status: 'EXPIRED' };
+      const mockAppExpired = {
+        id: 'app-e',
+        studentId: 'student-1',
+        status: 'EXPIRED',
+      };
       prisma.application.findUnique.mockResolvedValue(mockAppExpired);
-      await expect(service.withdrawApplication('student-1', 'app-e')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.withdrawApplication('student-1', 'app-e'),
+      ).rejects.toThrow(BadRequestException);
 
       expect(prisma.roomType.update).not.toHaveBeenCalled();
     });
@@ -317,7 +405,11 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         status: 'APPROVED',
         roomTypeId: 'room-1',
         roomType: { property: { organization: { staff: [] } } },
-        student: { firstName: 'John', lastName: 'Doe', email: 'john@student.com' },
+        student: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@student.com',
+        },
       };
       // Initial findUnique returns APPROVED
       prisma.application.findUnique.mockResolvedValueOnce(mockInitialApp);
@@ -325,7 +417,9 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
       prisma.application.findUnique.mockResolvedValueOnce(mockInitialApp);
       prisma.application.updateMany.mockResolvedValueOnce({ count: 0 });
 
-      await expect(service.withdrawApplication('student-1', 'app-conc')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.withdrawApplication('student-1', 'app-conc'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.roomType.update).not.toHaveBeenCalled();
     });
   });
@@ -342,12 +436,20 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
             name: 'Sunny Lodge',
           },
         },
-        student: { email: 'john@student.com', firstName: 'John', lastName: 'Doe' },
+        student: {
+          email: 'john@student.com',
+          firstName: 'John',
+          lastName: 'Doe',
+        },
       };
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-5');
 
@@ -368,12 +470,20 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
             name: 'Sunny Lodge',
           },
         },
-        student: { email: 'john@student.com', firstName: 'John', lastName: 'Doe' },
+        student: {
+          email: 'john@student.com',
+          firstName: 'John',
+          lastName: 'Doe',
+        },
       };
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-6');
 
@@ -400,12 +510,20 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
             name: 'Sunny Lodge',
           },
         },
-        student: { email: 'lp@student.com', firstName: 'Jane', lastName: 'Doe' },
+        student: {
+          email: 'lp@student.com',
+          firstName: 'Jane',
+          lastName: 'Doe',
+        },
       };
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-rem-lp');
 
@@ -432,12 +550,20 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
             name: 'Sunny Lodge',
           },
         },
-        student: { email: 'bk@student.com', firstName: 'Mark', lastName: 'Lee' },
+        student: {
+          email: 'bk@student.com',
+          firstName: 'Mark',
+          lastName: 'Lee',
+        },
       };
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
       prisma.application.findUnique.mockResolvedValue(mockApp);
       prisma.application.updateMany.mockResolvedValue({ count: 1 });
-      prisma.application.findUnique.mockResolvedValueOnce(mockApp).mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
+      prisma.application.findUnique
+        .mockResolvedValueOnce(mockApp)
+        .mockResolvedValueOnce({ ...mockApp, status: 'CANCELLED' });
 
       const result = await service.removeStudent('org-1', 'app-rem-bk');
 
@@ -457,12 +583,18 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
         id: 'app-closed',
         status: 'CANCELLED',
         roomTypeId: 'room-1',
-        roomType: { property: { organizationId: 'org-1', name: 'Sunny Lodge' } },
+        roomType: {
+          property: { organizationId: 'org-1', name: 'Sunny Lodge' },
+        },
         student: { email: 'test@student.com', firstName: 'A', lastName: 'B' },
       };
-      jest.spyOn(service, 'getProviderApplication').mockResolvedValue(mockApp as any);
+      jest
+        .spyOn(service, 'getProviderApplication')
+        .mockResolvedValue(mockApp as any);
 
-      await expect(service.removeStudent('org-1', 'app-closed')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.removeStudent('org-1', 'app-closed'),
+      ).rejects.toThrow(BadRequestException);
       expect(prisma.roomType.update).not.toHaveBeenCalled();
     });
   });
@@ -475,7 +607,11 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
           status: 'PENDING_REVIEW',
           roomTypeId: 'room-1',
           lease: null,
-          student: { firstName: 'Student1', lastName: 'One', email: 's1@test.com' },
+          student: {
+            firstName: 'Student1',
+            lastName: 'One',
+            email: 's1@test.com',
+          },
           roomType: { property: { name: 'Sunny Lodge' } },
         },
         {
@@ -483,7 +619,11 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
           status: 'APPROVED',
           roomTypeId: 'room-1',
           lease: { id: 'lease-app-1', status: 'DRAFT' },
-          student: { firstName: 'Student2', lastName: 'Two', email: 's2@test.com' },
+          student: {
+            firstName: 'Student2',
+            lastName: 'Two',
+            email: 's2@test.com',
+          },
           roomType: { property: { name: 'Sunny Lodge' } },
         },
         {
@@ -491,7 +631,11 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
           status: 'LEASE_PENDING',
           roomTypeId: 'room-2',
           lease: { id: 'lease-app-2', status: 'DRAFT' },
-          student: { firstName: 'Student3', lastName: 'Three', email: 's3@test.com' },
+          student: {
+            firstName: 'Student3',
+            lastName: 'Three',
+            email: 's3@test.com',
+          },
           roomType: { property: { name: 'Sunny Lodge' } },
         },
         {
@@ -499,7 +643,11 @@ describe('ApplicationsService - Inventory Allocation & Restoration', () => {
           status: 'BOOKED',
           roomTypeId: 'room-2',
           lease: { id: 'lease-app-3', status: 'ACTIVE' },
-          student: { firstName: 'Student4', lastName: 'Four', email: 's4@test.com' },
+          student: {
+            firstName: 'Student4',
+            lastName: 'Four',
+            email: 's4@test.com',
+          },
           roomType: { property: { name: 'Sunny Lodge' } },
         },
       ];

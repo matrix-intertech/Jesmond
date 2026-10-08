@@ -82,6 +82,8 @@ model User {
 
   notifications     Notification[]     @relation("UserNotifications")
   pushSubscriptions PushSubscription[]
+  FoodOrder         FoodOrder[]
+  FoodOrderStatusHistory FoodOrderStatusHistory[]
 
   @@index([email])
 }
@@ -110,10 +112,11 @@ model Organization {
   status OrgStatus @default(PENDING)
 
   // Business Fields
-  timezone       String? @default("Australia/Sydney")
-  branding       Json?
-  settings       Json?
-  billingProfile Json?
+  timezone         String?          @default("Australia/Sydney")
+  branding         Json?
+  settings         Json?
+  billingProfile   Json?
+  businessCategory BusinessCategory @default(RETAIL)
 
   offices    Office[]
   properties Property[]
@@ -121,8 +124,8 @@ model Organization {
   apiKeys    ApiKey[]
   leads      Lead[]
 
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt         DateTime                     @default(now())
+  updatedAt         DateTime                     @updatedAt
   deletedAt         DateTime?
   RetailBranch      RetailBranch[]
   ProductCategory   ProductCategory[]
@@ -133,6 +136,10 @@ model Organization {
   PosWebhookEvent   PosWebhookEvent[]
   agencyCustomRoles AgencyCustomRole[]
   paymentSettings   OrganizationPaymentSettings?
+
+  // Food
+  FoodMenu  FoodMenu[]
+  FoodOrder FoodOrder[]
 
   @@index([abn])
 }
@@ -1078,6 +1085,8 @@ model RetailBranch {
   name            String
   address         String?
   phone           String?
+  lat             Float?
+  lng             Float?
   isActive        Boolean             @default(true)
   deliveryEnabled Boolean             @default(false)
   takeawayEnabled Boolean             @default(true)
@@ -1089,8 +1098,12 @@ model RetailBranch {
   staff           OrgStaff[]
   staffBranches   OrgStaffBranch[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Food
+  foodMenus FoodMenu[]
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  FoodOrder FoodOrder[]
 
   @@index([organizationId])
 }
@@ -1600,7 +1613,6 @@ model PushSubscription {
   @@index([userId])
 }
 
-
 model OrganizationPaymentSettings {
   id                    String       @id @default(uuid())
   organizationId        String       @unique
@@ -1608,6 +1620,155 @@ model OrganizationPaymentSettings {
   onlinePaymentsEnabled Boolean      @default(false)
   stripeConfigured      Boolean      @default(false)
   stripeAccountId       String?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+}
+
+enum BusinessCategory {
+  RETAIL
+  FOOD
+  MECHANICS
+  SERVICES
+  RENTALS
+}
+
+// ---------------------------------------------------------
+// FOOD MENU MANAGEMENT
+// ---------------------------------------------------------
+
+model FoodMenu {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  branchId       String
+  branch         RetailBranch @relation(fields: [branchId], references: [id])
+  name           String
+  description    String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  categories FoodMenuCategory[]
+
+  @@index([organizationId])
+  @@index([branchId])
+}
+
+model FoodMenuCategory {
+  id           String   @id @default(uuid())
+  menuId       String
+  menu         FoodMenu @relation(fields: [menuId], references: [id])
+  name         String
+  description  String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items FoodMenuItem[]
+
+  @@index([menuId, displayOrder])
+}
+
+model FoodMenuItem {
+  id           String           @id @default(uuid())
+  categoryId   String
+  category     FoodMenuCategory @relation(fields: [categoryId], references: [id])
+  name         String
+  description  String?
+  price        Int // In cents
+  imageUrl     String?
+  isActive     Boolean          @default(true)
+  displayOrder Int              @default(0)
+
+  // Future extensions
+  isVegetarian Boolean @default(false)
+  prepTimeMins Int?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  FoodOrderItem FoodOrderItem[]
+
+  @@index([categoryId, displayOrder])
+}
+
+// ---------------------------------------------------------
+// FOOD ORDERING
+// ---------------------------------------------------------
+
+model FoodOrder {
+  id             String       @id @default(uuid())
+  orderNumber    String       @unique
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  branchId       String
+  branch         RetailBranch @relation(fields: [branchId], references: [id])
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+
+  status          FoodOrderStatus          @default(PENDING)
+  fulfillmentType FoodOrderFulfillmentType @default(TAKEAWAY)
+  deliveryAddress Json?
+  paymentMethod   String                   @default("CASH")
+  subtotal        Int // In cents
+  total           Int // In cents
+  idempotencyKey  String?                  @unique
+
+  items FoodOrderItem[]
+  statusHistory FoodOrderStatusHistory[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([branchId])
+  @@index([userId])
 }
+
+model FoodOrderItem {
+  id             String       @id @default(uuid())
+  foodOrderId    String
+  foodOrder      FoodOrder    @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
+  foodMenuItemId String
+  foodMenuItem   FoodMenuItem @relation(fields: [foodMenuItemId], references: [id])
+
+  itemName  String
+  unitPrice Int // In cents
+  quantity  Int
+  lineTotal Int // In cents
+
+  createdAt DateTime @default(now())
+
+  @@index([foodOrderId])
+  @@index([foodMenuItemId])
+}
+
+enum FoodOrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum FoodOrderFulfillmentType {
+  DELIVERY
+  TAKEAWAY
+}
+
+model FoodOrderStatusHistory {
+  id             String          @id @default(uuid())
+  foodOrderId    String
+  foodOrder      FoodOrder       @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
+  fromStatus     FoodOrderStatus?
+  toStatus       FoodOrderStatus
+  changedByUserId String?
+  changedByUser   User?          @relation(fields: [changedByUserId], references: [id])
+
+  createdAt      DateTime        @default(now())
+
+  @@index([foodOrderId])
+  @@index([changedByUserId])
+}
+

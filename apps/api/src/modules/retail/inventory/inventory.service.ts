@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
@@ -16,7 +20,7 @@ export class InventoryService {
     productId: string,
     quantity: number,
     userId: string,
-    reason: string
+    reason: string,
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Verify branch belongs to the authenticated organization
@@ -25,7 +29,9 @@ export class InventoryService {
       });
 
       if (!branch) {
-        throw new ForbiddenException('You do not have access to this branch or it does not exist');
+        throw new ForbiddenException(
+          'You do not have access to this branch or it does not exist',
+        );
       }
 
       // Verify product belongs to the authenticated organization
@@ -34,7 +40,9 @@ export class InventoryService {
       });
 
       if (!product) {
-        throw new ForbiddenException('You do not have access to this product or it does not exist');
+        throw new ForbiddenException(
+          'You do not have access to this product or it does not exist',
+        );
       }
 
       // Find current inventory
@@ -80,8 +88,8 @@ export class InventoryService {
           action: 'inventory.adjust',
           resourceType: 'Inventory',
           resourceId: updated.id,
-          changes: { old: current as any, new: updated as any }
-        }
+          changes: { old: current as any, new: updated as any },
+        },
       });
 
       return updated;
@@ -96,7 +104,7 @@ export class InventoryService {
     branchId: string,
     productId: string,
     quantity: number,
-    orderId: string
+    orderId: string,
   ) {
     if (quantity <= 0) {
       throw new BadRequestException('Deduction quantity must be positive');
@@ -114,7 +122,9 @@ export class InventoryService {
     });
 
     if (affected.count === 0) {
-      throw new BadRequestException(`Insufficient inventory for product ${productId}`);
+      throw new BadRequestException(
+        `Insufficient inventory for product ${productId}`,
+      );
     }
 
     const updated = await tx.inventory.findUnique({
@@ -145,12 +155,14 @@ export class InventoryService {
     const branch = await this.prisma.retailBranch.findFirst({
       where: {
         id: branchId,
-        organizationId: organizationId
-      }
+        organizationId: organizationId,
+      },
     });
 
     if (!branch) {
-      throw new ForbiddenException('You do not have access to this branch or it does not exist');
+      throw new ForbiddenException(
+        'You do not have access to this branch or it does not exist',
+      );
     }
 
     return this.prisma.inventory.findMany({
@@ -159,7 +171,7 @@ export class InventoryService {
         product: {
           include: {
             category: true,
-          }
+          },
         },
       },
     });
@@ -168,16 +180,22 @@ export class InventoryService {
   /**
    * Fetch inventory movement history for a branch (and optional product).
    */
-  async getInventoryMovements(organizationId: string, branchId: string, productId?: string) {
+  async getInventoryMovements(
+    organizationId: string,
+    branchId: string,
+    productId?: string,
+  ) {
     const branch = await this.prisma.retailBranch.findFirst({
       where: {
         id: branchId,
-        organizationId
-      }
+        organizationId,
+      },
     });
 
     if (!branch) {
-      throw new ForbiddenException('You do not have access to this branch or it does not exist');
+      throw new ForbiddenException(
+        'You do not have access to this branch or it does not exist',
+      );
     }
 
     const where: any = { branchId };
@@ -195,9 +213,9 @@ export class InventoryService {
             id: true,
             name: true,
             sku: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
   }
 }

@@ -1,5 +1,14 @@
-import { Injectable, InternalServerErrorException, ServiceUnavailableException, Logger } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  Injectable,
+  InternalServerErrorException,
+  ServiceUnavailableException,
+  Logger,
+} from '@nestjs/common';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -19,7 +28,9 @@ export class StorageService {
 
     if (this.bucketName && accessKeyId && secretAccessKey) {
       if (!r2AccountId) {
-        this.logger.error('R2_ACCOUNT_ID is missing. Cannot configure Cloudflare R2 securely.');
+        this.logger.error(
+          'R2_ACCOUNT_ID is missing. Cannot configure Cloudflare R2 securely.',
+        );
       } else {
         this.s3Client = new S3Client({
           region,
@@ -32,13 +43,20 @@ export class StorageService {
         this.logger.log('S3/R2 Storage configured successfully.');
       }
     } else {
-      this.logger.warn('S3/R2 credentials/bucket not fully configured. Uploads will be disabled.');
+      this.logger.warn(
+        'S3/R2 credentials/bucket not fully configured. Uploads will be disabled.',
+      );
     }
   }
 
-  async uploadPropertyImage(propertyId: string, file: Express.Multer.File): Promise<string> {
+  async uploadPropertyImage(
+    propertyId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
     if (!this.s3Client || !this.bucketName) {
-      throw new ServiceUnavailableException('Storage is not configured on this server.');
+      throw new ServiceUnavailableException(
+        'Storage is not configured on this server.',
+      );
     }
 
     const fileExt = file.originalname.split('.').pop();
@@ -51,27 +69,39 @@ export class StorageService {
           Key: key,
           Body: file.buffer,
           ContentType: file.mimetype,
-        })
+        }),
       );
-      
+
       if (!this.r2PublicUrl) {
-        throw new InternalServerErrorException('R2_PUBLIC_URL is missing. Cannot generate public object URL.');
+        throw new InternalServerErrorException(
+          'R2_PUBLIC_URL is missing. Cannot generate public object URL.',
+        );
       }
       // Strip trailing slash if present
-      const baseUrl = this.r2PublicUrl.endsWith('/') ? this.r2PublicUrl.slice(0, -1) : this.r2PublicUrl;
+      const baseUrl = this.r2PublicUrl.endsWith('/')
+        ? this.r2PublicUrl.slice(0, -1)
+        : this.r2PublicUrl;
       return `${baseUrl}/${key}`;
     } catch (error: any) {
-      this.logger.error(`Failed to upload image to S3/R2: ${error.message || error}`, error);
+      this.logger.error(
+        `Failed to upload image to S3/R2: ${error.message || error}`,
+        error,
+      );
       throw new InternalServerErrorException('Failed to upload image');
     }
   }
 
-  async uploadRetailProductImage(orgId: string, file: Express.Multer.File): Promise<string> {
+  async uploadRetailProductImage(
+    orgId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
     if (!this.s3Client || !this.bucketName) {
-      // Local development fallback: Since S3 is not configured, we'll write to .tempmediaStorage 
+      // Local development fallback: Since S3 is not configured, we'll write to .tempmediaStorage
       // ONLY IF we are in a dev environment without credentials, to avoid throwing 500s locally.
       // Wait, the prompt says "Reuse the same canonical mechanism". Let's stick strictly to the exact S3 logic.
-      throw new ServiceUnavailableException('Storage is not configured on this server.');
+      throw new ServiceUnavailableException(
+        'Storage is not configured on this server.',
+      );
     }
 
     const fileExt = file.originalname.split('.').pop();
@@ -84,16 +114,23 @@ export class StorageService {
           Key: key,
           Body: file.buffer,
           ContentType: file.mimetype,
-        })
+        }),
       );
-      
+
       if (!this.r2PublicUrl) {
-        throw new InternalServerErrorException('R2_PUBLIC_URL is missing. Cannot generate public object URL.');
+        throw new InternalServerErrorException(
+          'R2_PUBLIC_URL is missing. Cannot generate public object URL.',
+        );
       }
-      const baseUrl = this.r2PublicUrl.endsWith('/') ? this.r2PublicUrl.slice(0, -1) : this.r2PublicUrl;
+      const baseUrl = this.r2PublicUrl.endsWith('/')
+        ? this.r2PublicUrl.slice(0, -1)
+        : this.r2PublicUrl;
       return `${baseUrl}/${key}`;
     } catch (error: any) {
-      this.logger.error(`Failed to upload retail product image to S3/R2: ${error.message || error}`, error);
+      this.logger.error(
+        `Failed to upload retail product image to S3/R2: ${error.message || error}`,
+        error,
+      );
       throw new InternalServerErrorException('Failed to upload image');
     }
   }
@@ -106,7 +143,9 @@ export class StorageService {
       if (url.includes('.amazonaws.com/')) {
         key = url.split('.amazonaws.com/')[1];
       } else if (this.r2PublicUrl && url.startsWith(this.r2PublicUrl)) {
-        const baseUrl = this.r2PublicUrl.endsWith('/') ? this.r2PublicUrl : `${this.r2PublicUrl}/`;
+        const baseUrl = this.r2PublicUrl.endsWith('/')
+          ? this.r2PublicUrl
+          : `${this.r2PublicUrl}/`;
         key = url.replace(baseUrl, '');
       } else if (url.includes('/properties/')) {
         // Fallback robust parsing if it's a known format
@@ -118,7 +157,7 @@ export class StorageService {
           new DeleteObjectCommand({
             Bucket: this.bucketName,
             Key: key,
-          })
+          }),
         );
       }
     } catch (error) {

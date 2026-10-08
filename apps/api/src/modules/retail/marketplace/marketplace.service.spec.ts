@@ -18,10 +18,23 @@ describe('MarketplaceService', () => {
       product: { findMany: jest.fn(), findUnique: jest.fn() },
       inventory: { findUnique: jest.fn(), updateMany: jest.fn() },
       inventoryMovement: { create: jest.fn() },
-      salesOrder: { create: jest.fn(), findFirst: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-      retailPayment: { create: jest.fn(), update: jest.fn(), findFirst: jest.fn() },
+      salesOrder: {
+        create: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+      },
+      retailPayment: {
+        create: jest.fn(),
+        update: jest.fn(),
+        findFirst: jest.fn(),
+      },
       user: { findUnique: jest.fn() },
-      retailCustomer: { findFirst: jest.fn(), create: jest.fn(), findUnique: jest.fn() },
+      retailCustomer: {
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        findUnique: jest.fn(),
+      },
     };
 
     redisMock = {
@@ -35,8 +48,8 @@ describe('MarketplaceService', () => {
       getSettings: jest.fn().mockResolvedValue({
         onlinePaymentsEnabled: true,
         stripeConfigured: true,
-        gateway: 'STRIPE'
-      })
+        gateway: 'STRIPE',
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -53,16 +66,40 @@ describe('MarketplaceService', () => {
 
   const setupSuccessCheckoutMocks = () => {
     prismaMock.retailBranch.findUnique.mockResolvedValue({
-      id: 'branch-1', isActive: true, organizationId: 'org-1', takeawayEnabled: true, deliveryEnabled: true
+      id: 'branch-1',
+      isActive: true,
+      organizationId: 'org-1',
+      takeawayEnabled: true,
+      deliveryEnabled: true,
     });
     prismaMock.product.findMany.mockResolvedValue([
-      { id: 'p-1', name: 'Coffee', sellingPrice: 500, organizationId: 'org-1', isActive: true },
+      {
+        id: 'p-1',
+        name: 'Coffee',
+        sellingPrice: 500,
+        organizationId: 'org-1',
+        isActive: true,
+      },
     ]);
-    prismaMock.inventory.findUnique.mockResolvedValue({ quantity: 10, reservedQuantity: 0 });
+    prismaMock.inventory.findUnique.mockResolvedValue({
+      quantity: 10,
+      reservedQuantity: 0,
+    });
     prismaMock.inventory.updateMany.mockResolvedValue({ count: 1 });
-    prismaMock.user.findUnique.mockResolvedValue({ id: 'u-1', email: 'user@test.com', firstName: 'John', lastName: 'Doe' });
-    prismaMock.retailCustomer.findFirst.mockResolvedValue({ id: 'c-1', email: 'user@test.com' });
-    prismaMock.salesOrder.create.mockResolvedValue({ id: 'ord-1', orderNumber: 'ORD-123' });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'u-1',
+      email: 'user@test.com',
+      firstName: 'John',
+      lastName: 'Doe',
+    });
+    prismaMock.retailCustomer.findFirst.mockResolvedValue({
+      id: 'c-1',
+      email: 'user@test.com',
+    });
+    prismaMock.salesOrder.create.mockResolvedValue({
+      id: 'ord-1',
+      orderNumber: 'ORD-123',
+    });
     prismaMock.salesOrder.findFirst.mockResolvedValue(null);
     prismaMock.retailPayment.create.mockResolvedValue({ id: 'pay-1' });
   };
@@ -74,20 +111,41 @@ describe('MarketplaceService', () => {
   describe('Checkout - Delivery and Takeaway Validation', () => {
     it('should require deliveryAddress if fulfillment is DELIVERY', async () => {
       setupSuccessCheckoutMocks();
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'DELIVERY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 1 }] };
-      await expect(service.checkout('u-1', checkoutData)).rejects.toThrow(BadRequestException);
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'DELIVERY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
+      await expect(service.checkout('u-1', checkoutData)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should succeed DELIVERY if address provided', async () => {
       setupSuccessCheckoutMocks();
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'DELIVERY' as any, paymentMethod: 'CASH' as any, deliveryAddress: { city: 'Sydney' }, items: [{ productId: 'p-1', quantity: 1 }] };
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'DELIVERY' as any,
+        paymentMethod: 'CASH' as any,
+        deliveryAddress: { city: 'Sydney' },
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
       const order = await service.checkout('u-1', checkoutData);
       expect(order).toBeDefined();
     });
 
     it('should succeed TAKEAWAY without address', async () => {
       setupSuccessCheckoutMocks();
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'TAKEAWAY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 1 }] };
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'TAKEAWAY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
       const order = await service.checkout('u-1', checkoutData);
       expect(order).toBeDefined();
     });
@@ -97,8 +155,16 @@ describe('MarketplaceService', () => {
     it('should rollback if reserved quantity update fails (count 0)', async () => {
       setupSuccessCheckoutMocks();
       prismaMock.inventory.updateMany.mockResolvedValue({ count: 0 }); // simulate concurrent stock out
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'TAKEAWAY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 1 }] };
-      await expect(service.checkout('u-1', checkoutData)).rejects.toThrow('checked out concurrently');
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'TAKEAWAY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
+      await expect(service.checkout('u-1', checkoutData)).rejects.toThrow(
+        'checked out concurrently',
+      );
       expect(prismaMock.salesOrder.create).not.toHaveBeenCalled();
     });
 
@@ -107,27 +173,52 @@ describe('MarketplaceService', () => {
       prismaMock.product.findMany.mockResolvedValue([
         // simulate product inactive (won't be found in query with isActive: true)
       ]);
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'TAKEAWAY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 1 }] };
-      await expect(service.checkout('u-1', checkoutData)).rejects.toThrow('Product p-1 is unavailable');
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'TAKEAWAY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
+      await expect(service.checkout('u-1', checkoutData)).rejects.toThrow(
+        'Product p-1 is unavailable',
+      );
     });
 
     it('should use backend authoritative pricing', async () => {
       setupSuccessCheckoutMocks();
       // Even if frontend passed price, it's ignored.
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'TAKEAWAY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 2 }] };
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'TAKEAWAY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 2 }],
+      };
       await service.checkout('u-1', checkoutData);
       // product price is 500
-      expect(prismaMock.salesOrder.create).toHaveBeenCalledWith(expect.objectContaining({
-        data: expect.objectContaining({ subtotal: 1000, total: 1000 })
-      }));
+      expect(prismaMock.salesOrder.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ subtotal: 1000, total: 1000 }),
+        }),
+      );
     });
   });
 
   describe('Checkout - Idempotency', () => {
     it('should return existing order on duplicate idempotencyKey', async () => {
       setupSuccessCheckoutMocks();
-      prismaMock.salesOrder.findFirst.mockResolvedValue({ id: 'existing-1', customerId: 'c-1' });
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-1', fulfillmentType: 'TAKEAWAY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 1 }] };
+      prismaMock.salesOrder.findFirst.mockResolvedValue({
+        id: 'existing-1',
+        customerId: 'c-1',
+      });
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-1',
+        fulfillmentType: 'TAKEAWAY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
       const order = await service.checkout('u-1', checkoutData);
       expect(order.id).toBe('existing-1');
       expect(prismaMock.salesOrder.create).not.toHaveBeenCalled();
@@ -146,8 +237,14 @@ describe('MarketplaceService', () => {
       prismaMock.salesOrder.findFirst
         .mockResolvedValueOnce(null) // first check
         .mockResolvedValueOnce({ id: 'race-winner', customerId: 'c-1' }); // caught check
-      
-      const checkoutData = { branchId: 'branch-1', idempotencyKey: 'k-race', fulfillmentType: 'TAKEAWAY' as any, paymentMethod: 'CASH' as any, items: [{ productId: 'p-1', quantity: 1 }] };
+
+      const checkoutData = {
+        branchId: 'branch-1',
+        idempotencyKey: 'k-race',
+        fulfillmentType: 'TAKEAWAY' as any,
+        paymentMethod: 'CASH' as any,
+        items: [{ productId: 'p-1', quantity: 1 }],
+      };
       const order = await service.checkout('u-1', checkoutData);
       expect(order.id).toBe('race-winner');
     });

@@ -47,7 +47,9 @@ export class AgencyController {
   @Get('my')
   async getMyAgency(@Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.getMyAgency(req.user.organizationId);
   }
 
@@ -59,7 +61,9 @@ export class AgencyController {
   @Put('my')
   async updateAgency(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.updateAgency(req.user, data);
   }
 
@@ -71,7 +75,9 @@ export class AgencyController {
   @Get('my/members')
   async getTeamMembers(@Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.getTeamMembers(req.user.organizationId);
   }
 
@@ -83,7 +89,9 @@ export class AgencyController {
   @Post('my/members')
   async inviteTeamMember(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.inviteTeamMember(req.user, data);
   }
 
@@ -95,11 +103,13 @@ export class AgencyController {
   @Put('my/members/:id/role')
   async updateTeamMemberRole(
     @Param('id') id: string,
-    @Body() data: { agencyRole?: string, customRoleId?: string | null },
+    @Body() data: { agencyRole?: string; customRoleId?: string | null },
     @Request() req: any,
   ) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.updateTeamMemberRole(req.user, id, data);
   }
 
@@ -115,7 +125,9 @@ export class AgencyController {
     @Request() req: any,
   ) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.updateTeamMemberPermissions(
       req.user,
       id,
@@ -131,7 +143,9 @@ export class AgencyController {
   @Delete('my/members/:id')
   async removeTeamMember(@Param('id') id: string, @Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.removeTeamMember(req.user, id);
   }
 
@@ -143,11 +157,16 @@ export class AgencyController {
   @Put('properties/:propertyId/team')
   async updatePropertyTeam(
     @Param('propertyId') propertyId: string,
-    @Body() data: { assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[] },
+    @Body()
+    data: {
+      assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[];
+    },
     @Request() req: any,
   ) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.updatePropertyTeam(
       req.user,
       propertyId,
@@ -159,10 +178,16 @@ export class AgencyController {
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
-  @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES, AgencyPermission.TEAM_VIEW) // can view roles if either
+  @RequireAgencyPermissions(
+    AgencyPermission.AGENCY_MANAGE_ROLES,
+    AgencyPermission.TEAM_VIEW,
+  ) // can view roles if either
   @Get('my/roles')
   async getCustomRoles(@Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.getRoles(req.user.organizationId);
   }
 
@@ -172,7 +197,10 @@ export class AgencyController {
   @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
   @Post('my/roles')
   async createCustomRole(@Body() data: any, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.createCustomRole(req.user, data);
   }
 
@@ -181,8 +209,15 @@ export class AgencyController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
   @Put('my/roles/:id')
-  async updateCustomRole(@Param('id') id: string, @Body() data: any, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async updateCustomRole(
+    @Param('id') id: string,
+    @Body() data: any,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.updateCustomRole(req.user, id, data);
   }
 
@@ -192,7 +227,10 @@ export class AgencyController {
   @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
   @Delete('my/roles/:id')
   async deleteCustomRole(@Param('id') id: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.agencyService.deleteCustomRole(req.user, id);
   }
 }

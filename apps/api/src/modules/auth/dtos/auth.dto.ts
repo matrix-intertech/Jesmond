@@ -1,5 +1,15 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsEnum, IsNotEmpty, IsOptional, IsIn, IsDateString } from 'class-validator';
-import { OrgType } from '@prisma/client';
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsIn,
+  IsDateString,
+} from 'class-validator';
+import { OrgType, BusinessCategory } from '@prisma/client';
 
 export class RegisterProviderDto {
   @IsString()
@@ -48,6 +58,10 @@ export class RegisterProviderDto {
 
   @IsEnum(OrgType)
   organizationType!: OrgType;
+
+  @IsEnum(BusinessCategory)
+  @IsOptional()
+  businessCategory?: BusinessCategory;
 }
 
 export class RegisterStudentDto {
@@ -165,4 +179,3 @@ export class ResetPasswordDto {
   @MaxLength(100)
   newPassword!: string;
 }
-

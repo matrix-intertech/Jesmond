@@ -25,7 +25,10 @@ describe('OrdersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
-        { provide: InventoryService, useValue: { deductInventoryForSale: jest.fn() } },
+        {
+          provide: InventoryService,
+          useValue: { deductInventoryForSale: jest.fn() },
+        },
         { provide: PrismaService, useValue: prismaMock },
         { provide: NotificationsService, useValue: {} },
       ],
@@ -58,7 +61,7 @@ describe('OrdersService', () => {
         expect.objectContaining({
           skip: 10,
           take: 10,
-        })
+        }),
       );
     });
 
@@ -74,21 +77,28 @@ describe('OrdersService', () => {
       prismaMock.salesOrder.findMany.mockResolvedValue([]);
       prismaMock.salesOrder.count.mockResolvedValue(0);
 
-      await service.listOrders('org-1', undefined, 1, 20, undefined, 'DELIVERY');
-      
+      await service.listOrders(
+        'org-1',
+        undefined,
+        1,
+        20,
+        undefined,
+        'DELIVERY',
+      );
+
       expect(prismaMock.salesOrder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            fulfillmentType: 'DELIVERY'
-          })
-        })
+            fulfillmentType: 'DELIVERY',
+          }),
+        }),
       );
       expect(prismaMock.salesOrder.count).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            fulfillmentType: 'DELIVERY'
-          })
-        })
+            fulfillmentType: 'DELIVERY',
+          }),
+        }),
       );
     });
 
@@ -97,13 +107,13 @@ describe('OrdersService', () => {
       prismaMock.salesOrder.count.mockResolvedValue(0);
 
       await service.listOrders('org-1', undefined, 1, 20, undefined, 'ALL');
-      
+
       expect(prismaMock.salesOrder.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.not.objectContaining({
-            fulfillmentType: expect.anything()
-          })
-        })
+            fulfillmentType: expect.anything(),
+          }),
+        }),
       );
     });
   });

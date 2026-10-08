@@ -14,7 +14,10 @@ describe('CatalogController', () => {
       providers: [
         { provide: CatalogService, useValue: {} },
         { provide: StorageService, useValue: { uploadFile: jest.fn() } },
-        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+        {
+          provide: PrismaService,
+          useValue: { orgStaff: { findUnique: jest.fn() } },
+        },
       ],
     }).compile();
 

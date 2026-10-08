@@ -1,4 +1,15 @@
-import { Controller, Get, Patch, Post, Delete, Param, Body, UseGuards, Request, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -8,10 +19,18 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get()
-  async getNotifications(@Request() req: any, @Query('page') page: string = '1', @Query('limit') limit: string = '20') {
+  async getNotifications(
+    @Request() req: any,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+  ) {
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 20;
-    return this.notificationsService.getUserNotifications(req.user.id, pageNum, limitNum);
+    return this.notificationsService.getUserNotifications(
+      req.user.id,
+      pageNum,
+      limitNum,
+    );
   }
 
   @Get('unread-count')
@@ -35,7 +54,10 @@ export class NotificationsController {
   }
 
   @Delete('push/subscribe')
-  async unsubscribePush(@Request() req: any, @Body('endpoint') endpoint: string) {
+  async unsubscribePush(
+    @Request() req: any,
+    @Body('endpoint') endpoint: string,
+  ) {
     return this.notificationsService.unsubscribePush(req.user.id, endpoint);
   }
 }

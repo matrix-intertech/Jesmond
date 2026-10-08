@@ -11,7 +11,10 @@ describe('InventoryController', () => {
       controllers: [InventoryController],
       providers: [
         { provide: InventoryService, useValue: {} },
-        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+        {
+          provide: PrismaService,
+          useValue: { orgStaff: { findUnique: jest.fn() } },
+        },
       ],
     }).compile();
 

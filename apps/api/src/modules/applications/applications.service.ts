@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { ApplicationStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../auth/services/email.service';
@@ -35,18 +40,26 @@ export class ApplicationsService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  async createApplication(studentId: string, propertyId: string, roomTypeId: string, moveInDate: string, durationMonths: number) {
+  async createApplication(
+    studentId: string,
+    propertyId: string,
+    roomTypeId: string,
+    moveInDate: string,
+    durationMonths: number,
+  ) {
     // Verify Property is PUBLISHED
     const property = await this.prisma.property.findUnique({
-      where: { id: propertyId }
+      where: { id: propertyId },
     });
     if (!property || property.status !== 'PUBLISHED') {
-      throw new BadRequestException('Property is not available for applications.');
+      throw new BadRequestException(
+        'Property is not available for applications.',
+      );
     }
 
     // Verify Room belongs to Property and has inventory
     const roomType = await this.prisma.roomType.findFirst({
-      where: { id: roomTypeId, propertyId }
+      where: { id: roomTypeId, propertyId },
     });
     if (!roomType) {
       throw new BadRequestException('Invalid room type for this property.');
@@ -64,24 +77,39 @@ export class ApplicationsService {
         durationMonths,
         lockedPrice: roomType.pricePerWeek,
         status: 'PENDING_REVIEW',
-      }
+      },
     });
 
     // Notify organization admins
-    this.prisma.orgStaff.findMany({
-      where: { organizationId: property.organizationId, role: 'ADMIN' },
-      select: { userId: true }
-    }).then(admins => {
-      admins.forEach(admin => {
-        this.notificationsService.createNotification({
-          recipientId: admin.userId,
-          type: 'APPLICATION_CREATED',
-          title: 'New Application',
-          body: `A new application has been submitted for ${property.name}`,
-          actionUrl: `/dashboard/applications/${application.id}`,
-        }).catch(err => this.logger.error('Failed to notify admin of new application', err));
-      });
-    }).catch(err => this.logger.error('Failed to fetch admins for application notification', err));
+    this.prisma.orgStaff
+      .findMany({
+        where: { organizationId: property.organizationId, role: 'ADMIN' },
+        select: { userId: true },
+      })
+      .then((admins) => {
+        admins.forEach((admin) => {
+          this.notificationsService
+            .createNotification({
+              recipientId: admin.userId,
+              type: 'APPLICATION_CREATED',
+              title: 'New Application',
+              body: `A new application has been submitted for ${property.name}`,
+              actionUrl: `/dashboard/applications/${application.id}`,
+            })
+            .catch((err) =>
+              this.logger.error(
+                'Failed to notify admin of new application',
+                err,
+              ),
+            );
+        });
+      })
+      .catch((err) =>
+        this.logger.error(
+          'Failed to fetch admins for application notification',
+          err,
+        ),
+      );
 
     return application;
   }
@@ -97,13 +125,13 @@ export class ApplicationsService {
                 id: true,
                 name: true,
                 status: true,
-                media: { orderBy: { displayOrder: 'asc' }, take: 1 }
-              }
-            }
-          }
-        }
+                media: { orderBy: { displayOrder: 'asc' }, take: 1 },
+              },
+            },
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -112,19 +140,21 @@ export class ApplicationsService {
       where: {
         roomType: {
           property: {
-            organizationId
-          }
-        }
+            organizationId,
+          },
+        },
       },
       include: {
         roomType: {
           include: {
-            property: { select: { id: true, name: true } }
-          }
+            property: { select: { id: true, name: true } },
+          },
         },
-        student: { select: { id: true, firstName: true, lastName: true, email: true } }
+        student: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -168,7 +198,9 @@ export class ApplicationsService {
             },
           },
         },
-        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        student: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
       },
     });
 
@@ -182,14 +214,21 @@ export class ApplicationsService {
 
   async approveApplication(organizationId: string, applicationId: string) {
     // 1. Fetch application and verify ownership
-    const app = await this.getProviderApplication(organizationId, applicationId);
+    const app = await this.getProviderApplication(
+      organizationId,
+      applicationId,
+    );
 
     if (app.status !== 'PENDING_REVIEW') {
-      throw new BadRequestException('Only PENDING_REVIEW applications can be approved.');
+      throw new BadRequestException(
+        'Only PENDING_REVIEW applications can be approved.',
+      );
     }
 
     if (app.roomType.property.status !== 'PUBLISHED') {
-      throw new BadRequestException('Cannot approve application for unpublished property.');
+      throw new BadRequestException(
+        'Cannot approve application for unpublished property.',
+      );
     }
 
     // Atomic Inventory Decrement and Lease Creation
@@ -200,21 +239,25 @@ export class ApplicationsService {
       });
 
       if (!txApp || txApp.status !== 'PENDING_REVIEW') {
-        throw new BadRequestException('Application is no longer in PENDING_REVIEW state.');
+        throw new BadRequestException(
+          'Application is no longer in PENDING_REVIEW state.',
+        );
       }
 
       const updateResult = await tx.roomType.updateMany({
         where: {
           id: app.roomType.id,
-          inventory: { gt: 0 }
+          inventory: { gt: 0 },
         },
         data: {
-          inventory: { decrement: 1 }
-        }
+          inventory: { decrement: 1 },
+        },
       });
 
       if (updateResult.count === 0) {
-        throw new BadRequestException('This room is currently out of stock. Cannot approve application.');
+        throw new BadRequestException(
+          'This room is currently out of stock. Cannot approve application.',
+        );
       }
 
       const endDate = new Date(app.moveInDate);
@@ -227,12 +270,12 @@ export class ApplicationsService {
           startDate: app.moveInDate,
           endDate,
           status: 'DRAFT',
-        }
+        },
       });
 
       const updatedApp = await tx.application.update({
         where: { id: app.id },
-        data: { status: 'APPROVED' }
+        data: { status: 'APPROVED' },
       });
 
       return { application: updatedApp, lease };
@@ -247,8 +290,7 @@ export class ApplicationsService {
     // Prefer the org ADMIN-role staff as the contact; fall back to the earliest active staff member.
     const staffList = org.staff ?? [];
     const contactStaff =
-      staffList.find((s) => s.role === 'ADMIN')?.user ??
-      staffList[0]?.user;
+      staffList.find((s) => s.role === 'ADMIN')?.user ?? staffList[0]?.user;
 
     // Build a clean address string, omitting blank segments
     const addressParts = [
@@ -273,47 +315,71 @@ export class ApplicationsService {
         // contactPhone: not populated — no phone field exists on Organization, OrgStaff, or User
       })
       .catch((err) =>
-        this.logger.error(`Failed to send approval email for application ${app.id}`, err),
+        this.logger.error(
+          `Failed to send approval email for application ${app.id}`,
+          err,
+        ),
       );
 
-    this.notificationsService.createNotification({
-      recipientId: app.studentId,
-      type: 'APPLICATION_STATUS_CHANGED',
-      title: 'Application Approved',
-      body: `Your application for ${property.name} has been approved.`,
-      actionUrl: `/dashboard/applications/${app.id}`,
-    }).catch(err => this.logger.error('Failed to notify student of application approval', err));
+    this.notificationsService
+      .createNotification({
+        recipientId: app.studentId,
+        type: 'APPLICATION_STATUS_CHANGED',
+        title: 'Application Approved',
+        body: `Your application for ${property.name} has been approved.`,
+        actionUrl: `/dashboard/applications/${app.id}`,
+      })
+      .catch((err) =>
+        this.logger.error(
+          'Failed to notify student of application approval',
+          err,
+        ),
+      );
 
     return result;
   }
 
   async rejectApplication(organizationId: string, applicationId: string) {
-    const app = await this.getProviderApplication(organizationId, applicationId);
+    const app = await this.getProviderApplication(
+      organizationId,
+      applicationId,
+    );
 
     if (app.status !== 'PENDING_REVIEW') {
-      throw new BadRequestException('Only PENDING_REVIEW applications can be rejected.');
+      throw new BadRequestException(
+        'Only PENDING_REVIEW applications can be rejected.',
+      );
     }
 
     const updateResult = await this.prisma.application.updateMany({
       where: { id: app.id, status: 'PENDING_REVIEW' },
-      data: { status: 'REJECTED' }
+      data: { status: 'REJECTED' },
     });
 
     if (updateResult.count === 0) {
-      throw new BadRequestException('Only PENDING_REVIEW applications can be rejected.');
+      throw new BadRequestException(
+        'Only PENDING_REVIEW applications can be rejected.',
+      );
     }
 
     const updatedApp = await this.prisma.application.findUnique({
-      where: { id: app.id }
+      where: { id: app.id },
     });
 
-    this.notificationsService.createNotification({
-      recipientId: app.studentId,
-      type: 'APPLICATION_STATUS_CHANGED',
-      title: 'Application Update',
-      body: `Your application status has been updated.`,
-      actionUrl: `/dashboard/applications/${app.id}`,
-    }).catch(err => this.logger.error('Failed to notify student of application rejection', err));
+    this.notificationsService
+      .createNotification({
+        recipientId: app.studentId,
+        type: 'APPLICATION_STATUS_CHANGED',
+        title: 'Application Update',
+        body: `Your application status has been updated.`,
+        actionUrl: `/dashboard/applications/${app.id}`,
+      })
+      .catch((err) =>
+        this.logger.error(
+          'Failed to notify student of application rejection',
+          err,
+        ),
+      );
 
     return updatedApp;
   }
@@ -331,16 +397,24 @@ export class ApplicationsService {
                   include: {
                     staff: {
                       where: { deletedAt: null },
-                      include: { user: { select: { email: true, firstName: true, lastName: true } } }
-                    }
-                  }
-                }
-              }
-            }
-          }
+                      include: {
+                        user: {
+                          select: {
+                            email: true,
+                            firstName: true,
+                            lastName: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
-        student: { select: { firstName: true, lastName: true, email: true } }
-      }
+        student: { select: { firstName: true, lastName: true, email: true } },
+      },
     });
 
     if (!app || app.studentId !== studentId) {
@@ -348,38 +422,44 @@ export class ApplicationsService {
     }
 
     if (isClosedStatus(app.status)) {
-      throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+      throw new BadRequestException(
+        'Application is already closed, withdrawn, or rejected.',
+      );
     }
 
     const updatedApp = await this.prisma.$transaction(async (tx) => {
       const txApp = await tx.application.findUnique({
         where: { id: app.id },
-        include: { lease: true }
+        include: { lease: true },
       });
 
       if (!txApp) throw new NotFoundException('Application not found');
       if (isClosedStatus(txApp.status)) {
-        throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+        throw new BadRequestException(
+          'Application is already closed, withdrawn, or rejected.',
+        );
       }
 
       const updateResult = await tx.application.updateMany({
         where: { id: txApp.id, status: txApp.status },
-        data: { status: 'WITHDRAWN' }
+        data: { status: 'WITHDRAWN' },
       });
       if (updateResult.count === 0) {
-        throw new BadRequestException('Application status modified concurrently.');
+        throw new BadRequestException(
+          'Application status modified concurrently.',
+        );
       }
 
       if (isAllocatedStatus(txApp.status)) {
         await tx.roomType.update({
           where: { id: txApp.roomTypeId },
-          data: { inventory: { increment: 1 } }
+          data: { inventory: { increment: 1 } },
         });
 
         if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
           await tx.lease.update({
             where: { id: txApp.lease.id },
-            data: { status: 'TERMINATED' }
+            data: { status: 'TERMINATED' },
           });
         }
       }
@@ -388,7 +468,8 @@ export class ApplicationsService {
     });
 
     const staffList = app.roomType.property.organization.staff ?? [];
-    const contactStaff = staffList.find((s) => s.role === 'ADMIN')?.user ?? staffList[0]?.user;
+    const contactStaff =
+      staffList.find((s) => s.role === 'ADMIN')?.user ?? staffList[0]?.user;
     if (contactStaff?.email) {
       this.emailService
         .sendApplicationWithdrawalEmail({
@@ -397,48 +478,62 @@ export class ApplicationsService {
           studentName: `${app.student.firstName} ${app.student.lastName}`,
           propertyName: app.roomType.property.name,
         })
-        .catch((err) => this.logger.error(`Failed to send withdrawal email for app ${app.id}`, err));
+        .catch((err) =>
+          this.logger.error(
+            `Failed to send withdrawal email for app ${app.id}`,
+            err,
+          ),
+        );
     }
 
     return updatedApp;
   }
 
   async removeStudent(organizationId: string, applicationId: string) {
-    const app = await this.getProviderApplication(organizationId, applicationId);
+    const app = await this.getProviderApplication(
+      organizationId,
+      applicationId,
+    );
 
     if (isClosedStatus(app.status)) {
-      throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+      throw new BadRequestException(
+        'Application is already closed, withdrawn, or rejected.',
+      );
     }
 
     const updatedApp = await this.prisma.$transaction(async (tx) => {
       const txApp = await tx.application.findUnique({
         where: { id: app.id },
-        include: { lease: true }
+        include: { lease: true },
       });
 
       if (!txApp) throw new NotFoundException('Application not found');
       if (isClosedStatus(txApp.status)) {
-        throw new BadRequestException('Application is already closed, withdrawn, or rejected.');
+        throw new BadRequestException(
+          'Application is already closed, withdrawn, or rejected.',
+        );
       }
 
       const updateResult = await tx.application.updateMany({
         where: { id: txApp.id, status: txApp.status },
-        data: { status: 'CANCELLED' }
+        data: { status: 'CANCELLED' },
       });
       if (updateResult.count === 0) {
-        throw new BadRequestException('Application status modified concurrently.');
+        throw new BadRequestException(
+          'Application status modified concurrently.',
+        );
       }
 
       if (isAllocatedStatus(txApp.status)) {
         await tx.roomType.update({
           where: { id: txApp.roomTypeId },
-          data: { inventory: { increment: 1 } }
+          data: { inventory: { increment: 1 } },
         });
 
         if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
           await tx.lease.update({
             where: { id: txApp.lease.id },
-            data: { status: 'TERMINATED' }
+            data: { status: 'TERMINATED' },
           });
         }
       }
@@ -452,7 +547,12 @@ export class ApplicationsService {
         studentName: `${app.student.firstName} ${app.student.lastName}`,
         propertyName: app.roomType.property.name,
       })
-      .catch((err) => this.logger.error(`Failed to send removal email for app ${app.id}`, err));
+      .catch((err) =>
+        this.logger.error(
+          `Failed to send removal email for app ${app.id}`,
+          err,
+        ),
+      );
 
     return updatedApp;
   }
@@ -461,13 +561,15 @@ export class ApplicationsService {
     const apps = await this.prisma.application.findMany({
       where: {
         roomType: { propertyId },
-        status: { in: ['PENDING_REVIEW', 'APPROVED', 'LEASE_PENDING', 'BOOKED'] }
+        status: {
+          in: ['PENDING_REVIEW', 'APPROVED', 'LEASE_PENDING', 'BOOKED'],
+        },
       },
       include: {
         lease: true,
         student: { select: { firstName: true, lastName: true, email: true } },
-        roomType: { include: { property: { select: { name: true } } } }
-      }
+        roomType: { include: { property: { select: { name: true } } } },
+      },
     });
 
     // Chunk the applications to prevent database connection exhaustion if there are hundreds of pending apps
@@ -475,50 +577,57 @@ export class ApplicationsService {
     for (let i = 0; i < apps.length; i += chunkSize) {
       const chunk = apps.slice(i, i + chunkSize);
 
-      await Promise.all(chunk.map(async (app) => {
-        await this.prisma.$transaction(async (tx) => {
-          const txApp = await tx.application.findUnique({
-            where: { id: app.id },
-            include: { lease: true }
-          });
-
-          if (!txApp) return;
-          if (isClosedStatus(txApp.status)) {
-            return; // Already closed
-          }
-
-          const updateResult = await tx.application.updateMany({
-            where: { id: txApp.id, status: txApp.status },
-            data: { status: 'CANCELLED' }
-          });
-          if (updateResult.count === 0) {
-            return; // Concurrently modified, safely abort
-          }
-
-          if (isAllocatedStatus(txApp.status)) {
-            await tx.roomType.update({
-              where: { id: txApp.roomTypeId },
-              data: { inventory: { increment: 1 } }
+      await Promise.all(
+        chunk.map(async (app) => {
+          await this.prisma.$transaction(async (tx) => {
+            const txApp = await tx.application.findUnique({
+              where: { id: app.id },
+              include: { lease: true },
             });
 
-            if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
-              await tx.lease.update({
-                where: { id: txApp.lease.id },
-                data: { status: 'TERMINATED' }
-              });
+            if (!txApp) return;
+            if (isClosedStatus(txApp.status)) {
+              return; // Already closed
             }
-          }
-        });
 
-        this.emailService
-          .sendApplicationRemovalEmail({
-            studentEmail: app.student.email,
-            studentName: `${app.student.firstName} ${app.student.lastName}`,
-            propertyName: app.roomType.property.name,
-            reason: 'Property is no longer available',
-          })
-          .catch((err) => this.logger.error(`Failed to send property unpublish email for app ${app.id}`, err));
-      }));
+            const updateResult = await tx.application.updateMany({
+              where: { id: txApp.id, status: txApp.status },
+              data: { status: 'CANCELLED' },
+            });
+            if (updateResult.count === 0) {
+              return; // Concurrently modified, safely abort
+            }
+
+            if (isAllocatedStatus(txApp.status)) {
+              await tx.roomType.update({
+                where: { id: txApp.roomTypeId },
+                data: { inventory: { increment: 1 } },
+              });
+
+              if (txApp.lease && txApp.lease.status !== 'TERMINATED') {
+                await tx.lease.update({
+                  where: { id: txApp.lease.id },
+                  data: { status: 'TERMINATED' },
+                });
+              }
+            }
+          });
+
+          this.emailService
+            .sendApplicationRemovalEmail({
+              studentEmail: app.student.email,
+              studentName: `${app.student.firstName} ${app.student.lastName}`,
+              propertyName: app.roomType.property.name,
+              reason: 'Property is no longer available',
+            })
+            .catch((err) =>
+              this.logger.error(
+                `Failed to send property unpublish email for app ${app.id}`,
+                err,
+              ),
+            );
+        }),
+      );
     }
   }
 
@@ -526,7 +635,9 @@ export class ApplicationsService {
   async adminFindAll() {
     return this.prisma.application.findMany({
       include: {
-        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        student: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         roomType: {
           include: {
             property: {
@@ -534,7 +645,9 @@ export class ApplicationsService {
                 id: true,
                 name: true,
                 organization: { select: { name: true } },
-                suburb: { select: { name: true, city: { select: { name: true } } } },
+                suburb: {
+                  select: { name: true, city: { select: { name: true } } },
+                },
               },
             },
           },
@@ -549,7 +662,9 @@ export class ApplicationsService {
     return this.prisma.application.findUnique({
       where: { id },
       include: {
-        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        student: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
         roomType: {
           include: {
             property: {
@@ -557,7 +672,9 @@ export class ApplicationsService {
                 id: true,
                 name: true,
                 organization: { select: { name: true } },
-                suburb: { select: { name: true, city: { select: { name: true } } } },
+                suburb: {
+                  select: { name: true, city: { select: { name: true } } },
+                },
               },
             },
           },
@@ -565,5 +682,4 @@ export class ApplicationsService {
       },
     });
   }
-
 }

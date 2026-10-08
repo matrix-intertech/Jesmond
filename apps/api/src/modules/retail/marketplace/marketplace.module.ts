@@ -7,6 +7,6 @@ import { PaymentsModule } from '../payments/payments.module';
   imports: [forwardRef(() => PaymentsModule)],
   controllers: [MarketplaceController],
   providers: [MarketplaceService],
-  exports: [MarketplaceService]
+  exports: [MarketplaceService],
 })
 export class MarketplaceModule {}

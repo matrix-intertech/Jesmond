@@ -108,16 +108,22 @@ describe('StudentActionsController', () => {
       service.saveProperty.mockResolvedValue({ id: 'saved-1' } as any);
 
       const result = await controller.saveProperty('prop-1', req);
-      expect(service.saveProperty).toHaveBeenCalledWith('student-123', 'prop-1');
+      expect(service.saveProperty).toHaveBeenCalledWith(
+        'student-123',
+        'prop-1',
+      );
       expect(result).toEqual({ id: 'saved-1' });
     });
 
     it('should delegate unsaveProperty to service', async () => {
       const req = { user: { id: 'student-123' } };
-      service.unsaveProperty.mockResolvedValue({ success: true } as any);
+      service.unsaveProperty.mockResolvedValue({ success: true });
 
       const result = await controller.unsaveProperty('prop-1', req);
-      expect(service.unsaveProperty).toHaveBeenCalledWith('student-123', 'prop-1');
+      expect(service.unsaveProperty).toHaveBeenCalledWith(
+        'student-123',
+        'prop-1',
+      );
       expect(result).toEqual({ success: true });
     });
   });

@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import Redis from 'ioredis';
 
 @Injectable()
@@ -32,10 +37,14 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
       this.client.on('error', (err) => {
         this.isConnected = false;
-        this.logger.warn(`Redis connection unavailable: ${err.message}. Falling back to DB.`);
+        this.logger.warn(
+          `Redis connection unavailable: ${err.message}. Falling back to DB.`,
+        );
       });
     } catch (e: any) {
-      this.logger.warn(`Failed to initialize Redis client: ${e.message}. Operating in fallback mode.`);
+      this.logger.warn(
+        `Failed to initialize Redis client: ${e.message}. Operating in fallback mode.`,
+      );
       this.isConnected = false;
     }
   }
@@ -79,7 +88,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         await this.client.del(...keys);
       }
     } catch (e: any) {
-      this.logger.warn(`Redis delPattern error for pattern ${pattern}: ${e.message}`);
+      this.logger.warn(
+        `Redis delPattern error for pattern ${pattern}: ${e.message}`,
+      );
     }
   }
 

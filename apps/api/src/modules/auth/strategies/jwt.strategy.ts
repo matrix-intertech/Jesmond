@@ -1,6 +1,10 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -8,7 +12,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly prisma: PrismaService) {
     const secret = process.env.JWT_SECRET;
     if (process.env.NODE_ENV === 'production' && !secret) {
-      throw new Error('JWT_SECRET must be explicitly configured in production environment.');
+      throw new Error(
+        'JWT_SECRET must be explicitly configured in production environment.',
+      );
     }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -30,12 +36,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       },
     });
 
-    if (!user || user.accountStatus === 'SUSPENDED' || user.accountStatus === 'DEACTIVATED') {
+    if (
+      !user ||
+      user.accountStatus === 'SUSPENDED' ||
+      user.accountStatus === 'DEACTIVATED'
+    ) {
       throw new UnauthorizedException();
     }
 
     if (payload.sessionId) {
-      const session = await this.prisma.session.findUnique({ where: { id: payload.sessionId } });
+      const session = await this.prisma.session.findUnique({
+        where: { id: payload.sessionId },
+      });
       if (!session || session.isRevoked || session.expiresAt < new Date()) {
         throw new UnauthorizedException('Session revoked or expired');
       }
@@ -46,20 +58,29 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (user.orgStaffRoles && user.orgStaffRoles.length > 0) {
       const requestedOrgId = (
         (req?.headers?.['x-organization-id'] as string) ||
-        (typeof req?.header === 'function' ? req.header('x-organization-id') : undefined) ||
-        (typeof req?.get === 'function' ? req.get('x-organization-id') : undefined)
+        (typeof req?.header === 'function'
+          ? req.header('x-organization-id')
+          : undefined) ||
+        (typeof req?.get === 'function'
+          ? req.get('x-organization-id')
+          : undefined)
       )?.trim();
 
       if (requestedOrgId) {
-        const matched = user.orgStaffRoles.find((r) => r.organizationId === requestedOrgId);
+        const matched = user.orgStaffRoles.find(
+          (r) => r.organizationId === requestedOrgId,
+        );
         if (!matched) {
-          throw new ForbiddenException('You do not have access to the requested organization.');
+          throw new ForbiddenException(
+            'You do not have access to the requested organization.',
+          );
         }
         activeRole = matched;
       } else {
         // Deterministic primary organization (earliest created active membership)
         activeRole = [...user.orgStaffRoles].sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         )[0];
       }
     }

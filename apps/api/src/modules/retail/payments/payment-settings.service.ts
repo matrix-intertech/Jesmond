@@ -6,12 +6,12 @@ import { StripePaymentGateway } from './gateways/stripe-payment.gateway';
 export class PaymentSettingsService {
   constructor(
     private prisma: PrismaService,
-    private stripeGateway: StripePaymentGateway
+    private stripeGateway: StripePaymentGateway,
   ) {}
 
   async getSettings(organizationId: string) {
     const settings = await this.prisma.organizationPaymentSettings.findUnique({
-      where: { organizationId }
+      where: { organizationId },
     });
 
     const isStripeConfigured = this.stripeGateway.isConfigured();
@@ -20,22 +20,24 @@ export class PaymentSettingsService {
       return {
         onlinePaymentsEnabled: false,
         stripeConfigured: isStripeConfigured,
-        gateway: 'STRIPE'
+        gateway: 'STRIPE',
       };
     }
 
     return {
       onlinePaymentsEnabled: settings.onlinePaymentsEnabled,
       stripeConfigured: isStripeConfigured,
-      gateway: 'STRIPE'
+      gateway: 'STRIPE',
     };
   }
 
   async updateSettings(organizationId: string, enabled: boolean) {
     const isStripeConfigured = this.stripeGateway.isConfigured();
-    
+
     if (enabled && !isStripeConfigured) {
-      throw new BadRequestException('Cannot enable online payments when Stripe is not configured.');
+      throw new BadRequestException(
+        'Cannot enable online payments when Stripe is not configured.',
+      );
     }
 
     const settings = await this.prisma.organizationPaymentSettings.upsert({
@@ -48,7 +50,7 @@ export class PaymentSettingsService {
         organizationId,
         onlinePaymentsEnabled: enabled,
         stripeConfigured: isStripeConfigured,
-      }
+      },
     });
 
     return settings;

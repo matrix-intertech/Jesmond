@@ -18,7 +18,9 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api/v1');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     prisma = app.get(PrismaService);
     await app.init();
   });
@@ -37,8 +39,18 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
 
     beforeAll(async () => {
       // Clean up test emails and their relations
-      await prisma.session.deleteMany({ where: { user: { email: { in: [testEmail1, testEmail2, testEmail3, testEmail4] } } } });
-      await prisma.user.deleteMany({ where: { email: { in: [testEmail1, testEmail2, testEmail3, testEmail4] } } });
+      await prisma.session.deleteMany({
+        where: {
+          user: {
+            email: { in: [testEmail1, testEmail2, testEmail3, testEmail4] },
+          },
+        },
+      });
+      await prisma.user.deleteMany({
+        where: {
+          email: { in: [testEmail1, testEmail2, testEmail3, testEmail4] },
+        },
+      });
     });
 
     it('1. NEW EMAIL: should register successfully and remain unverified', async () => {
@@ -56,7 +68,9 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
       expect(res.body.requiresEmailVerification).toBe(true);
       expect(res.body.email).toBe(testEmail1);
 
-      const user = await prisma.user.findUnique({ where: { email: testEmail1 } });
+      const user = await prisma.user.findUnique({
+        where: { email: testEmail1 },
+      });
       expect(user).toBeDefined();
       expect(user.emailVerified).toBe(false);
       expect(user.accountStatus).toBe(AccountStatus.PENDING_VERIFICATION);
@@ -76,7 +90,9 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
         })
         .expect(201);
 
-      const userBefore = await prisma.user.findUnique({ where: { email: testEmail2 } });
+      const userBefore = await prisma.user.findUnique({
+        where: { email: testEmail2 },
+      });
       expect(userBefore.emailVerified).toBe(false);
 
       // Second signup attempt
@@ -93,10 +109,14 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
 
       expect(res.body.requiresEmailVerification).toBe(true);
 
-      const userAfter = await prisma.user.findUnique({ where: { email: testEmail2 } });
+      const userAfter = await prisma.user.findUnique({
+        where: { email: testEmail2 },
+      });
       expect(userAfter.firstName).toBe('Updated'); // Confirm details updated
       expect(userAfter.emailVerificationToken).toBeDefined();
-      expect(userAfter.emailVerificationToken).not.toBe(userBefore.emailVerificationToken); // New OTP
+      expect(userAfter.emailVerificationToken).not.toBe(
+        userBefore.emailVerificationToken,
+      ); // New OTP
     });
 
     it('3. EXISTING VERIFIED EMAIL: should return ConflictException', async () => {
@@ -131,7 +151,7 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
         .expect(409); // Conflict
 
       expect(res.body.message).toBe('Email already in use.');
-      
+
       // Ensure no duplicate records (Prisma unique constraint already prevents this, but good to check conceptually)
       const count = await prisma.user.count({ where: { email: testEmail3 } });
       expect(count).toBe(1);
@@ -139,19 +159,21 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
 
     it('4. OTP VERIFICATION: should verify correct OTP and reject wrong/expired ones', async () => {
       // Let's use testEmail1 which is currently unverified
-      const user = await prisma.user.findUnique({ where: { email: testEmail1 } });
-      
+      const user = await prisma.user.findUnique({
+        where: { email: testEmail1 },
+      });
+
       // In a real scenario OTP is sent via email, but we bypass and simulate finding the raw OTP
       // For this test, we can force the OTP token to a known hash so we can verify it
       const otp = '123456';
       const otpHash = await bcrypt.hash(otp, 10);
-      
+
       await prisma.user.update({
         where: { email: testEmail1 },
-        data: { 
+        data: {
           emailVerificationToken: otpHash,
-          emailVerificationExpiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        }
+          emailVerificationExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        },
       });
 
       // Wrong OTP
@@ -168,30 +190,38 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
 
       expect(res.body.access_token).toBeDefined();
 
-      const verifiedUser = await prisma.user.findUnique({ where: { email: testEmail1 } });
+      const verifiedUser = await prisma.user.findUnique({
+        where: { email: testEmail1 },
+      });
       expect(verifiedUser.emailVerified).toBe(true);
       expect(verifiedUser.accountStatus).toBe(AccountStatus.ACTIVE);
-      
+
       // Expired OTP (Let's use a new user for expired test)
       const expiredUserEmail = 'expired@example.com';
       await request(app.getHttpServer())
         .post('/api/v1/auth/register/student')
-        .send({ email: expiredUserEmail, password, firstName: 'Exp', lastName: 'User', turnstileToken })
+        .send({
+          email: expiredUserEmail,
+          password,
+          firstName: 'Exp',
+          lastName: 'User',
+          turnstileToken,
+        })
         .expect(201);
-        
+
       await prisma.user.update({
         where: { email: expiredUserEmail },
-        data: { 
+        data: {
           emailVerificationToken: otpHash,
-          emailVerificationExpiresAt: new Date(Date.now() - 10000) // Expired
-        }
+          emailVerificationExpiresAt: new Date(Date.now() - 10000), // Expired
+        },
       });
-      
+
       await request(app.getHttpServer())
         .post('/api/v1/auth/verify-email')
         .send({ email: expiredUserEmail, otp })
         .expect(401);
-        
+
       await prisma.user.delete({ where: { email: expiredUserEmail } });
     });
 
@@ -213,7 +243,9 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
       const count = await prisma.user.count({ where: { email: testEmail4 } });
       expect(count).toBe(1); // Only 1 record
 
-      const user = await prisma.user.findUnique({ where: { email: testEmail4 } });
+      const user = await prisma.user.findUnique({
+        where: { email: testEmail4 },
+      });
       expect(user.emailVerified).toBe(false);
       expect(user.emailOtpAttempts).toBe(0);
     });
@@ -227,7 +259,7 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
           password,
         })
         .expect(200);
-        
+
       expect(res.body.access_token).toBeDefined();
     });
   });
@@ -238,11 +270,19 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
     const turnstileToken = 'dummy-token';
 
     beforeAll(async () => {
-      await prisma.orgStaff.deleteMany({ where: { user: { email: providerEmail } } });
-      await prisma.session.deleteMany({ where: { user: { email: providerEmail } } });
+      await prisma.orgStaff.deleteMany({
+        where: { user: { email: providerEmail } },
+      });
+      await prisma.session.deleteMany({
+        where: { user: { email: providerEmail } },
+      });
       await prisma.user.deleteMany({ where: { email: providerEmail } });
-      await prisma.organization.deleteMany({ where: { name: 'Regression Provider Org' } });
-      await prisma.organization.deleteMany({ where: { name: 'Updated Provider Org' } });
+      await prisma.organization.deleteMany({
+        where: { name: 'Regression Provider Org' },
+      });
+      await prisma.organization.deleteMany({
+        where: { name: 'Updated Provider Org' },
+      });
     });
 
     it('should register a provider successfully and handle idempotency', async () => {
@@ -260,14 +300,22 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
         })
         .expect(201);
 
-      let user = await prisma.user.findUnique({ where: { email: providerEmail }, include: { orgStaffRoles: { include: { organization: true } } } });
-      const allOrgStaff = await prisma.orgStaff.findMany({ where: { userId: user.id } });
+      let user = await prisma.user.findUnique({
+        where: { email: providerEmail },
+        include: { orgStaffRoles: { include: { organization: true } } },
+      });
+      const allOrgStaff = await prisma.orgStaff.findMany({
+        where: { userId: user.id },
+      });
       console.log('USER IS:', JSON.stringify(user, null, 2));
-      console.log('ALL ORG STAFF FOR USER:', JSON.stringify(allOrgStaff, null, 2));
+      console.log(
+        'ALL ORG STAFF FOR USER:',
+        JSON.stringify(allOrgStaff, null, 2),
+      );
       expect(user.emailVerified).toBe(false);
       expect(user.orgStaffRoles.length).toBe(1);
       expect(user.orgStaffRoles[0].role).toBe('ADMIN');
-      
+
       const orgId = user.orgStaffRoles[0].organizationId;
 
       // 2nd signup (unverified idempotency)
@@ -284,12 +332,17 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
         })
         .expect(201);
 
-      user = await prisma.user.findUnique({ where: { email: providerEmail }, include: { orgStaffRoles: { include: { organization: true } } } });
+      user = await prisma.user.findUnique({
+        where: { email: providerEmail },
+        include: { orgStaffRoles: { include: { organization: true } } },
+      });
       expect(user.firstName).toBe('Prov Updated');
       expect(user.orgStaffRoles.length).toBe(1);
       // Ensure the same org was updated
       expect(user.orgStaffRoles[0].organizationId).toBe(orgId);
-      expect(user.orgStaffRoles[0].organization.name).toBe('Updated Provider Org');
+      expect(user.orgStaffRoles[0].organization.name).toBe(
+        'Updated Provider Org',
+      );
 
       // Verify the provider
       await prisma.user.update({
@@ -311,12 +364,18 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
         })
         .expect(409);
     });
-    
+
     afterAll(async () => {
-      await prisma.orgStaff.deleteMany({ where: { user: { email: providerEmail } } });
-      await prisma.session.deleteMany({ where: { user: { email: providerEmail } } });
+      await prisma.orgStaff.deleteMany({
+        where: { user: { email: providerEmail } },
+      });
+      await prisma.session.deleteMany({
+        where: { user: { email: providerEmail } },
+      });
       await prisma.user.deleteMany({ where: { email: providerEmail } });
-      await prisma.organization.deleteMany({ where: { name: 'Updated Provider Org' } });
+      await prisma.organization.deleteMany({
+        where: { name: 'Updated Provider Org' },
+      });
     });
   });
 
@@ -325,7 +384,9 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
     const password = 'Password123!';
 
     beforeAll(async () => {
-      await prisma.session.deleteMany({ where: { user: { email: testEmail } } });
+      await prisma.session.deleteMany({
+        where: { user: { email: testEmail } },
+      });
       await prisma.user.deleteMany({ where: { email: testEmail } });
       await request(app.getHttpServer())
         .post('/api/v1/auth/register/student')
@@ -339,7 +400,9 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
     });
 
     afterAll(async () => {
-      await prisma.session.deleteMany({ where: { user: { email: testEmail } } });
+      await prisma.session.deleteMany({
+        where: { user: { email: testEmail } },
+      });
       await prisma.user.deleteMany({ where: { email: testEmail } });
     });
 
@@ -349,7 +412,7 @@ describe('Auth Controller - Signup Email Verification (e2e)', () => {
         const res = await request(app.getHttpServer())
           .post('/api/v1/auth/forgot-password')
           .send({ email: testEmail });
-        
+
         expect([200, 201]).toContain(res.status); // Cooldown logic handles it gracefully as 200
       }
 

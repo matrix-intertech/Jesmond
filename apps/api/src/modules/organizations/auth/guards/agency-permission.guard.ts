@@ -1,10 +1,18 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AgencyPermission } from '../agency-permissions.enum';
 import { AGENCY_PERMISSIONS_KEY } from '../decorators/require-agency-permissions.decorator';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { AgencyPermissionsService, SYSTEM_ROLE_ADMIN } from '../../services/agency-permissions.service';
+import {
+  AgencyPermissionsService,
+  SYSTEM_ROLE_ADMIN,
+} from '../../services/agency-permissions.service';
 
 @Injectable()
 export class AgencyPermissionGuard implements CanActivate {
@@ -15,10 +23,9 @@ export class AgencyPermissionGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<AgencyPermission[]>(AGENCY_PERMISSIONS_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredPermissions = this.reflector.getAllAndOverride<
+      AgencyPermission[]
+    >(AGENCY_PERMISSIONS_KEY, [context.getHandler(), context.getClass()]);
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
@@ -39,14 +46,21 @@ export class AgencyPermissionGuard implements CanActivate {
     // Agency staff lookup
     let orgStaff = user.orgStaff;
     if (!orgStaff) {
-       orgStaff = await this.prisma.orgStaff.findUnique({
-         where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
-       });
-       request.user.orgStaff = orgStaff;
+      orgStaff = await this.prisma.orgStaff.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId: user.organizationId,
+          },
+        },
+      });
+      request.user.orgStaff = orgStaff;
     }
 
     if (!orgStaff) {
-      throw new ForbiddenException('Employee record not found for this organization');
+      throw new ForbiddenException(
+        'Employee record not found for this organization',
+      );
     }
 
     // Org owner override
@@ -55,13 +69,17 @@ export class AgencyPermissionGuard implements CanActivate {
     }
 
     // Calculate effective permissions
-    const userPermissions = await this.permissionsService.getEffectivePermissions(user.id, user.organizationId);
+    const userPermissions =
+      await this.permissionsService.getEffectivePermissions(
+        user.id,
+        user.organizationId,
+      );
 
     // Also attach to request for later use
     request.user.effectivePermissions = userPermissions;
 
-    const hasAllRequired = requiredPermissions.every((perm) =>
-      userPermissions.includes('*') || userPermissions.includes(perm)
+    const hasAllRequired = requiredPermissions.every(
+      (perm) => userPermissions.includes('*') || userPermissions.includes(perm),
     );
 
     if (!hasAllRequired) {

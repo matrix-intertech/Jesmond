@@ -60,7 +60,7 @@ export class NotificationsService {
 
   async subscribePush(userId: string, payload: any) {
     const { endpoint, keys } = payload;
-    
+
     // Upsert subscription
     return this.prisma.pushSubscription.upsert({
       where: { endpoint },
@@ -74,7 +74,7 @@ export class NotificationsService {
         userId,
         p256dh: keys.p256dh,
         auth: keys.auth,
-      }
+      },
     });
   }
 
@@ -84,22 +84,33 @@ export class NotificationsService {
     });
   }
 
-  async createNotification(payload: { recipientId: string; type: string; title: string; body: string; actionUrl?: string; metadata?: any }) {
+  async createNotification(payload: {
+    recipientId: string;
+    type: string;
+    title: string;
+    body: string;
+    actionUrl?: string;
+    metadata?: any;
+  }) {
     const notification = await this.prisma.notification.create({
       data: payload,
     });
-    
+
     // Async delivery step
-    this.sendPushNotification(payload.recipientId, notification).catch(err => {
-       console.error('Failed to send push notification', err);
-    });
+    this.sendPushNotification(payload.recipientId, notification).catch(
+      (err) => {
+        console.error('Failed to send push notification', err);
+      },
+    );
 
     return notification;
   }
 
   private async sendPushNotification(userId: string, notification: any) {
     try {
-      const subscriptions = await this.prisma.pushSubscription.findMany({ where: { userId } });
+      const subscriptions = await this.prisma.pushSubscription.findMany({
+        where: { userId },
+      });
       if (subscriptions.length === 0) return;
 
       const vapidPublic = process.env.VAPID_PUBLIC_KEY;
@@ -118,27 +129,31 @@ export class NotificationsService {
         body: notification.body,
         actionUrl: notification.actionUrl,
         notificationId: notification.id,
-        type: notification.type
+        type: notification.type,
       });
 
-      const sendPromises = subscriptions.map(sub => 
-        webpush.sendNotification(
-          {
-            endpoint: sub.endpoint,
-            keys: {
-              p256dh: sub.p256dh,
-              auth: sub.auth
+      const sendPromises = subscriptions.map((sub) =>
+        webpush
+          .sendNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: {
+                p256dh: sub.p256dh,
+                auth: sub.auth,
+              },
+            },
+            payload,
+          )
+          .catch(async (error) => {
+            if (error.statusCode === 410 || error.statusCode === 404) {
+              console.log(`Removing invalid subscription: ${sub.endpoint}`);
+              await this.prisma.pushSubscription.delete({
+                where: { id: sub.id },
+              });
+            } else {
+              console.error('Push notification failed:', error);
             }
-          },
-          payload
-        ).catch(async (error) => {
-          if (error.statusCode === 410 || error.statusCode === 404) {
-            console.log(`Removing invalid subscription: ${sub.endpoint}`);
-            await this.prisma.pushSubscription.delete({ where: { id: sub.id } });
-          } else {
-            console.error('Push notification failed:', error);
-          }
-        })
+          }),
       );
 
       await Promise.allSettled(sendPromises);

@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Body, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Body,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from '@nestjs/common';
 import { ProviderSettingsService } from './provider-settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -13,7 +21,9 @@ import { UserRole } from '@prisma/client';
 @OrgTypes(OrgType.PROVIDER)
 @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
 export class ProviderSettingsController {
-  constructor(private readonly providerSettingsService: ProviderSettingsService) {}
+  constructor(
+    private readonly providerSettingsService: ProviderSettingsService,
+  ) {}
 
   private getOrgId(req: any) {
     if (req.user.role === UserRole.ORG_STAFF) {
@@ -23,7 +33,9 @@ export class ProviderSettingsController {
     // In a full implementation, they might pass orgId in query params.
     // For simplicity, we require the user to have an organizationId context.
     if (!req.user.organizationId) {
-      throw new ForbiddenException('No active organization context found for this user.');
+      throw new ForbiddenException(
+        'No active organization context found for this user.',
+      );
     }
     return req.user.organizationId;
   }

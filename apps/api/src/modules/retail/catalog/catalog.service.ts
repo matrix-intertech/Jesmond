@@ -1,11 +1,27 @@
-import { Injectable, ConflictException, InternalServerErrorException, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  InternalServerErrorException,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CatalogService {
   constructor(private prisma: PrismaService) {}
 
-  async createProduct(organizationId: string, userId: string, data: { sku?: string; name: string; sellingPrice: number; imageUrl?: string }) {
+  async createProduct(
+    organizationId: string,
+    userId: string,
+    data: {
+      sku?: string;
+      name: string;
+      sellingPrice: number;
+      imageUrl?: string;
+    },
+  ) {
     if (!data.imageUrl || data.imageUrl.trim() === '') {
       throw new BadRequestException('Image is required for retail products');
     }
@@ -31,8 +47,8 @@ export class CatalogService {
           action: 'product.create',
           resourceType: 'Product',
           resourceId: product.id,
-          changes: { new: product as any }
-        }
+          changes: { new: product as any },
+        },
       });
 
       return product;
@@ -48,7 +64,13 @@ export class CatalogService {
     organizationId: string,
     userId: string,
     productId: string,
-    data: { sku?: string; name?: string; sellingPrice?: number; imageUrl?: string; isActive?: boolean }
+    data: {
+      sku?: string;
+      name?: string;
+      sellingPrice?: number;
+      imageUrl?: string;
+      isActive?: boolean;
+    },
   ) {
     const existing = await this.prisma.product.findUnique({
       where: { id: productId },
@@ -75,9 +97,14 @@ export class CatalogService {
         data: {
           sku: data.sku !== undefined ? data.sku : existing.sku,
           name: data.name !== undefined ? data.name : existing.name,
-          sellingPrice: data.sellingPrice !== undefined ? data.sellingPrice : existing.sellingPrice,
-          imageUrl: data.imageUrl !== undefined ? data.imageUrl : existing.imageUrl,
-          isActive: data.isActive !== undefined ? data.isActive : existing.isActive,
+          sellingPrice:
+            data.sellingPrice !== undefined
+              ? data.sellingPrice
+              : existing.sellingPrice,
+          imageUrl:
+            data.imageUrl !== undefined ? data.imageUrl : existing.imageUrl,
+          isActive:
+            data.isActive !== undefined ? data.isActive : existing.isActive,
         },
       });
 
@@ -108,7 +135,7 @@ export class CatalogService {
       search?: string;
       category?: string;
       active?: boolean;
-    }
+    },
   ) {
     if (query.branchId) {
       const branch = await this.prisma.retailBranch.findUnique({
@@ -151,11 +178,13 @@ export class CatalogService {
       where,
       include: {
         category: true,
-        ...(query.branchId ? {
-          inventory: {
-            where: { branchId: query.branchId }
-          }
-        } : {})
+        ...(query.branchId
+          ? {
+              inventory: {
+                where: { branchId: query.branchId },
+              },
+            }
+          : {}),
       },
       orderBy: {
         name: 'asc',
@@ -174,7 +203,9 @@ export class CatalogService {
         sellingPrice: product.sellingPrice,
         imageUrl: product.imageUrl,
         isActive: product.isActive,
-        category: product.category ? { id: product.category.id, name: product.category.name } : null,
+        category: product.category
+          ? { id: product.category.id, name: product.category.name }
+          : null,
         quantity,
       };
     });

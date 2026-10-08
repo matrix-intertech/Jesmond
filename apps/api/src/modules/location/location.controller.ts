@@ -6,12 +6,11 @@ export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
   @Get('search')
-  async search(
-    @Query('q') query: string,
-    @Query('limit') limit?: number
-  ) {
+  async search(@Query('q') query: string, @Query('limit') limit?: number) {
     if (!query || query.length < 3) {
-      throw new BadRequestException('Search query must be at least 3 characters long');
+      throw new BadRequestException(
+        'Search query must be at least 3 characters long',
+      );
     }
     const maxLimit = limit ? Math.min(Math.max(limit, 1), 20) : 5;
     return this.locationService.search(query, maxLimit);
@@ -20,7 +19,7 @@ export class LocationController {
   @Get('reverse')
   async reverseGeocode(
     @Query('lat') latStr: string,
-    @Query('lng') lngStr: string
+    @Query('lng') lngStr: string,
   ) {
     const lat = parseFloat(latStr);
     const lng = parseFloat(lngStr);
@@ -39,14 +38,16 @@ export class LocationController {
   @Get('match')
   async matchLocation(
     @Query('suburb') suburb: string,
-    @Query('city') city?: string
+    @Query('city') city?: string,
   ) {
     if (!suburb) {
       throw new BadRequestException('suburb is required for matching');
     }
     const match = await this.locationService.matchLocation(suburb, city);
     if (!match) {
-      throw new BadRequestException('No matching location found in the database');
+      throw new BadRequestException(
+        'No matching location found in the database',
+      );
     }
     return match;
   }

@@ -15,15 +15,22 @@ describe('ChatController', () => {
   });
 
   it('uses req.user.id when initializing chat', async () => {
-    await controller.initConversation({ user: { id: 'student-a' } } as any, { propertyId: 'property-a' });
+    await controller.initConversation({ user: { id: 'student-a' } } as any, {
+      propertyId: 'property-a',
+    });
 
-    expect(chatService.initConversation).toHaveBeenCalledWith('property-a', 'student-a');
+    expect(chatService.initConversation).toHaveBeenCalledWith(
+      'property-a',
+      'student-a',
+    );
   });
 
   it('rejects chat init when authenticated identity is missing', async () => {
-    await expect(controller.initConversation({ user: {} } as any, { propertyId: 'property-a' })).rejects.toThrow(
-      UnauthorizedException,
-    );
+    await expect(
+      controller.initConversation({ user: {} } as any, {
+        propertyId: 'property-a',
+      }),
+    ).rejects.toThrow(UnauthorizedException);
     expect(chatService.initConversation).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { clearAuth, getCurrentUser, User } from '@/utils/auth';
 import { useState, useEffect } from 'react';
 import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
+import { canUseBusinessCapability } from '@/utils/capabilities';
 
 /**
  * Sidebar navigation for the dashboard.
@@ -16,13 +17,14 @@ import { useUnreadChatCount } from '@/hooks/useUnreadChatCount';
  * Role-based navigation items are defined in a simple config object.
  */
 interface NavItem {
- href: string;
- label: string;
- // Inline SVG markup for the icon (lightweight, no external library).
- icon: ReactNode;
- roles: ('SUPER_ADMIN' | 'ADMIN' | 'ORG_STAFF' | 'STUDENT')[];
- orgTypes?: string[];
- requiredPermissions?: string[];
+  href: string;
+  label: string;
+  // Inline SVG markup for the icon (lightweight, no external library).
+  icon: ReactNode;
+  roles: ('SUPER_ADMIN' | 'ADMIN' | 'ORG_STAFF' | 'STUDENT')[];
+  orgTypes?: string[];
+  requiredPermissions?: string[];
+  requiredCapabilities?: import('@/utils/capabilities').BusinessCapability[];
 }
 
 const navConfig: NavItem[] = [
@@ -283,7 +285,7 @@ const navConfig: NavItem[] = [
  orgTypes: ['RETAIL'],
  },
  {
- href: '/portal/retail/catalog',
+ requiredCapabilities: ['CATALOG'], href: '/portal/retail/catalog',
  label: 'Business Catalog',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -295,7 +297,7 @@ const navConfig: NavItem[] = [
  orgTypes: ['RETAIL'],
  },
  {
- href: '/portal/retail/inventory',
+ requiredCapabilities: ['INVENTORY'], href: '/portal/retail/inventory',
  label: 'Inventory',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -308,7 +310,7 @@ const navConfig: NavItem[] = [
  orgTypes: ['RETAIL'],
  },
  {
- href: '/portal/retail/orders',
+ requiredCapabilities: ['ORDERS'], href: '/portal/retail/orders',
  label: 'Orders',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -324,7 +326,7 @@ const navConfig: NavItem[] = [
  requiredPermissions: ['ORDERS_VIEW'],
  },
  {
- href: '/portal/retail/sales-history',
+ requiredCapabilities: ['ORDERS'], href: '/portal/retail/sales-history',
  label: 'Sales History',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -336,7 +338,7 @@ const navConfig: NavItem[] = [
  requiredPermissions: ['ORDERS_VIEW'],
  },
  {
- href: '/portal/retail/pos',
+ requiredCapabilities: ['POS'], href: '/portal/retail/pos',
  label: 'POS',
  icon: (
  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -347,6 +349,32 @@ const navConfig: NavItem[] = [
  ),
  roles: ['ORG_STAFF'],
  orgTypes: ['RETAIL'],
+ },
+ {
+ requiredCapabilities: ['MENU'], href: '/portal/business/menu',
+ label: 'Menu Management',
+ icon: (
+ <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+ <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+ </svg>
+ ),
+ roles: ['ORG_STAFF'],
+ orgTypes: ['PROVIDER'],
+ },
+ {
+ requiredCapabilities: ['ORDERS'], href: '/portal/business/orders',
+ label: 'Food Orders',
+ icon: (
+ <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+ <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+ <polyline points="14 2 14 8 20 8" />
+ <line x1="16" y1="13" x2="8" y2="13" />
+ <line x1="16" y1="17" x2="8" y2="17" />
+ <polyline points="10 9 9 9 8 9" />
+ </svg>
+ ),
+ roles: ['ORG_STAFF'],
+ orgTypes: ['PROVIDER'],
  },
  // Student navigation
  {
@@ -429,6 +457,11 @@ export default function Sidebar({ role }: { role: string }) {
 
  const visibleItems = navConfig.filter((i) => {
  if (!i.roles.includes(role as any)) return false;
+
+  if (i.requiredCapabilities?.length) {
+    const hasCap = i.requiredCapabilities.every(cap => canUseBusinessCapability(user?.businessCategory as any, cap));
+    if (!hasCap) return false;
+  }
  if (i.orgTypes) {
  // Legacy users might not have orgType in local storage yet. Default to PROVIDER.
  const userOrgType = user?.orgType || 'PROVIDER';

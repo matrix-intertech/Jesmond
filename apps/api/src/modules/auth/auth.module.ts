@@ -1,4 +1,9 @@
-import { Module, MiddlewareConsumer, RequestMethod, NestModule } from '@nestjs/common';
+import {
+  Module,
+  MiddlewareConsumer,
+  RequestMethod,
+  NestModule,
+} from '@nestjs/common';
 import rateLimit from 'express-rate-limit';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -16,7 +21,9 @@ import { EmailService } from './services/email.service';
       useFactory: () => {
         const secret = process.env.JWT_SECRET;
         if (process.env.NODE_ENV === 'production' && !secret) {
-          throw new Error('JWT_SECRET must be explicitly configured in production environment.');
+          throw new Error(
+            'JWT_SECRET must be explicitly configured in production environment.',
+          );
         }
         return {
           secret: secret || 'fallback-secret-for-dev',
@@ -36,7 +43,8 @@ export class AuthModule implements NestModule {
       max: 5, // 5 requests per 15 minutes per IP
       standardHeaders: true,
       legacyHeaders: true,
-      message: 'Too many password reset requests from this IP, please try again after 15 minutes.',
+      message:
+        'Too many password reset requests from this IP, please try again after 15 minutes.',
     });
 
     consumer
@@ -44,7 +52,7 @@ export class AuthModule implements NestModule {
       .forRoutes(
         { path: 'auth/forgot-password', method: RequestMethod.POST },
         { path: 'auth/verify-reset-otp', method: RequestMethod.POST },
-        { path: 'auth/reset-password', method: RequestMethod.POST }
+        { path: 'auth/reset-password', method: RequestMethod.POST },
       );
   }
 }

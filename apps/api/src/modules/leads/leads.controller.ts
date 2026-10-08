@@ -8,7 +8,7 @@ import {
   Query,
   UseGuards,
   Request,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -30,14 +30,16 @@ export class LeadsController {
       throw new BadRequestException('visitorId is required.');
     }
     if (!data.organizationId && !data.propertyId) {
-      throw new BadRequestException('organizationId or propertyId is required.');
+      throw new BadRequestException(
+        'organizationId or propertyId is required.',
+      );
     }
-    
+
     // Validate organizationId format (basic check)
     if (data.organizationId && typeof data.organizationId !== 'string') {
-       throw new BadRequestException('Invalid organizationId.');
+      throw new BadRequestException('Invalid organizationId.');
     }
-    
+
     // Identity must come from authenticated token
     const userId = req.user.id;
 
@@ -45,7 +47,7 @@ export class LeadsController {
       visitorId: data.visitorId,
       organizationId: data.organizationId,
       propertyId: data.propertyId,
-      userId
+      userId,
     });
   }
 
@@ -56,7 +58,9 @@ export class LeadsController {
   @Get('my')
   async getMyLeads(@Query() query: any, @Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.leadsService.getMyLeads(req.user, query);
   }
 
@@ -67,7 +71,9 @@ export class LeadsController {
   @Get('my/:id')
   async getLeadDetail(@Param('id') id: string, @Request() req: any) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.leadsService.getLeadDetail(req.user, id);
   }
 
@@ -79,10 +85,12 @@ export class LeadsController {
   async updateLead(
     @Param('id') id: string,
     @Body() data: { status?: string; temperature?: string },
-    @Request() req: any
+    @Request() req: any,
   ) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.leadsService.updateLead(req.user, id, data);
   }
 
@@ -94,10 +102,12 @@ export class LeadsController {
   async assignLead(
     @Param('id') id: string,
     @Body() data: { targetStaffId: string | null },
-    @Request() req: any
+    @Request() req: any,
   ) {
     if (!req.user?.organizationId)
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.leadsService.assignLead(req.user, id, data.targetStaffId);
   }
 }

@@ -1,4 +1,14 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, ValidateNested, IsArray, ArrayMinSize, MinLength, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEnum,
+  ValidateNested,
+  IsArray,
+  ArrayMinSize,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { FulfillmentType, PaymentMethod } from '@prisma/client';
 

@@ -11,7 +11,10 @@ describe('CustomersController', () => {
       controllers: [CustomersController],
       providers: [
         { provide: CustomersService, useValue: {} },
-        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+        {
+          provide: PrismaService,
+          useValue: { orgStaff: { findUnique: jest.fn() } },
+        },
       ],
     }).compile();
 

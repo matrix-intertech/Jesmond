@@ -1,5 +1,9 @@
 import { BasePosConnector } from './base.connector';
-import { PosConnectorCapabilities, PaymentIntent, PaymentResult } from '../pos-connector.interface';
+import {
+  PosConnectorCapabilities,
+  PaymentIntent,
+  PaymentResult,
+} from '../pos-connector.interface';
 import { NotImplementedException } from '@nestjs/common';
 
 export class TyroConnector extends BasePosConnector {
@@ -15,11 +19,20 @@ export class TyroConnector extends BasePosConnector {
     };
   }
 
-  verifyWebhookSignature(request: { headers: any; body: any; rawBody?: Buffer }, secret: string): boolean {
-    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
+  verifyWebhookSignature(
+    request: { headers: any; body: any; rawBody?: Buffer },
+    secret: string,
+  ): boolean {
+    throw new NotImplementedException(
+      'Payment provider not configured/implemented in this environment.',
+    );
   }
 
-  parseWebhookEvent(payload: any): { eventId: string; type: string; data: any } {
+  parseWebhookEvent(payload: any): {
+    eventId: string;
+    type: string;
+    data: any;
+  } {
     return {
       eventId: payload.id || '',
       type: payload.eventType || '',
@@ -27,15 +40,31 @@ export class TyroConnector extends BasePosConnector {
     };
   }
 
-  async pairTerminal(organizationId: string, providerTerminalId: string): Promise<boolean> {
-    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
+  async pairTerminal(
+    organizationId: string,
+    providerTerminalId: string,
+  ): Promise<boolean> {
+    throw new NotImplementedException(
+      'Payment provider not configured/implemented in this environment.',
+    );
   }
 
-  async initiatePayment(organizationId: string, intent: PaymentIntent): Promise<PaymentResult> {
-    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
+  async initiatePayment(
+    organizationId: string,
+    intent: PaymentIntent,
+  ): Promise<PaymentResult> {
+    throw new NotImplementedException(
+      'Payment provider not configured/implemented in this environment.',
+    );
   }
 
-  async refundPayment(organizationId: string, providerTransactionId: string, amount: number): Promise<PaymentResult> {
-    throw new NotImplementedException('Payment provider not configured/implemented in this environment.');
+  async refundPayment(
+    organizationId: string,
+    providerTransactionId: string,
+    amount: number,
+  ): Promise<PaymentResult> {
+    throw new NotImplementedException(
+      'Payment provider not configured/implemented in this environment.',
+    );
   }
 }

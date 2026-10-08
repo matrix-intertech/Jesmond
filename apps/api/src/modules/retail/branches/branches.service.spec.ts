@@ -41,8 +41,13 @@ describe('BranchesService', () => {
   });
 
   it('should invalidate marketplace store cache on branch mutation', async () => {
-    mockPrisma.retailBranch.create.mockResolvedValue({ id: 'b1', organizationId: 'org1' });
+    mockPrisma.retailBranch.create.mockResolvedValue({
+      id: 'b1',
+      organizationId: 'org1',
+    });
     await service.createBranch('org1', { name: 'New Branch' } as any);
-    expect(mockRedis.delByPattern).toHaveBeenCalledWith('retail:marketplace:stores:*');
+    expect(mockRedis.delByPattern).toHaveBeenCalledWith(
+      'retail:marketplace:stores:*',
+    );
   });
 });

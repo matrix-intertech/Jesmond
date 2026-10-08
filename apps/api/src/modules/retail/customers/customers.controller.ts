@@ -1,4 +1,15 @@
-import { Controller, Post, Get, Patch, Body, Param, UseGuards, Request, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -17,14 +28,29 @@ export class CustomersController {
 
   @Post()
   @RequirePermissions(RetailPermission.CUSTOMERS_MANAGE)
-  async createCustomer(@Request() req: any, @Body() data: { firstName: string; lastName?: string; email?: string; phone?: string; address?: string; externalId?: string }) {
+  async createCustomer(
+    @Request() req: any,
+    @Body()
+    data: {
+      firstName: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      externalId?: string;
+    },
+  ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
     }
     if (!req.user.id) {
       throw new UnauthorizedException('Authenticated user ID is required');
     }
-    return this.customersService.createCustomer(req.user.organizationId, req.user.id, data);
+    return this.customersService.createCustomer(
+      req.user.organizationId,
+      req.user.id,
+      data,
+    );
   }
 
   @Get()
@@ -50,7 +76,15 @@ export class CustomersController {
   async updateCustomer(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() data: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string; externalId?: string }
+    @Body()
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      externalId?: string;
+    },
   ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
@@ -58,6 +92,11 @@ export class CustomersController {
     if (!req.user.id) {
       throw new UnauthorizedException('Authenticated user ID is required');
     }
-    return this.customersService.updateCustomer(req.user.organizationId, req.user.id, id, data);
+    return this.customersService.updateCustomer(
+      req.user.organizationId,
+      req.user.id,
+      id,
+      data,
+    );
   }
 }

@@ -1,6 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserRole, OrgType, LeadSourceType, LeadTemperature, LeadStatus } from '@prisma/client';
+import {
+  UserRole,
+  OrgType,
+  LeadSourceType,
+  LeadTemperature,
+  LeadStatus,
+} from '@prisma/client';
 
 @Injectable()
 export class LeadsService {
@@ -16,7 +27,9 @@ export class LeadsService {
     let { visitorId, organizationId, propertyId, userId } = data;
 
     if (propertyId) {
-      const prop = await this.prisma.property.findUnique({ where: { id: propertyId } });
+      const prop = await this.prisma.property.findUnique({
+        where: { id: propertyId },
+      });
       if (prop) {
         organizationId = prop.organizationId;
       } else {
@@ -24,10 +37,17 @@ export class LeadsService {
       }
     }
 
-    if (!organizationId) throw new BadRequestException('organizationId is required if property is not provided');
+    if (!organizationId)
+      throw new BadRequestException(
+        'organizationId is required if property is not provided',
+      );
 
-    const sourceType = propertyId ? LeadSourceType.PROPERTY_PAGE : LeadSourceType.AGENCY_PAGE;
-    const initialTemperature = propertyId ? LeadTemperature.WARM : LeadTemperature.COLD;
+    const sourceType = propertyId
+      ? LeadSourceType.PROPERTY_PAGE
+      : LeadSourceType.AGENCY_PAGE;
+    const initialTemperature = propertyId
+      ? LeadTemperature.WARM
+      : LeadTemperature.COLD;
 
     const whereClause: any = {
       organizationId,
@@ -35,10 +55,7 @@ export class LeadsService {
     };
 
     if (userId) {
-      whereClause.OR = [
-        { userId },
-        { visitorId, userId: null }
-      ];
+      whereClause.OR = [{ userId }, { visitorId, userId: null }];
     } else {
       whereClause.visitorId = visitorId;
     }
@@ -49,18 +66,18 @@ export class LeadsService {
       data: {
         visitCount: { increment: 1 },
         lastVisitedAt: new Date(),
-        userId: userId || undefined // don't overwrite if undefined
-      }
+        userId: userId || undefined, // don't overwrite if undefined
+      },
     });
 
     if (updated.count > 0) {
       if (userId) {
         return this.prisma.lead.findFirst({
-          where: { organizationId, propertyId: propertyId || null, userId }
+          where: { organizationId, propertyId: propertyId || null, userId },
         });
       }
       return this.prisma.lead.findFirst({
-        where: { organizationId, propertyId: propertyId || null, visitorId }
+        where: { organizationId, propertyId: propertyId || null, visitorId },
       });
     }
 
@@ -74,8 +91,8 @@ export class LeadsService {
           userId,
           sourceType,
           temperature: initialTemperature,
-          status: LeadStatus.NEW
-        }
+          status: LeadStatus.NEW,
+        },
       });
     } catch (e: any) {
       // P2002 is Prisma's unique constraint violation code
@@ -83,11 +100,11 @@ export class LeadsService {
         // If a concurrent request created it, try fetching again
         if (userId) {
           return this.prisma.lead.findFirst({
-            where: { organizationId, propertyId: propertyId || null, userId }
+            where: { organizationId, propertyId: propertyId || null, userId },
           });
         }
         return this.prisma.lead.findFirst({
-          where: { organizationId, propertyId: propertyId || null, visitorId }
+          where: { organizationId, propertyId: propertyId || null, visitorId },
         });
       }
       throw e; // Do not swallow real database errors
@@ -97,32 +114,33 @@ export class LeadsService {
   // 2. Get Leads for Team Member / Admin
   async getMyLeads(user: any, filters: any = {}) {
     const { organizationId, id: userId, orgRole } = user;
-    
+
     // First, identify the staff record
     const staff = await this.prisma.orgStaff.findUnique({
-      where: { userId_organizationId: { userId, organizationId } }
+      where: { userId_organizationId: { userId, organizationId } },
     });
 
-    const isGlobalAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    const isGlobalAdmin =
+      orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
     if (!isGlobalAdmin && !staff) {
       throw new ForbiddenException('Not associated with this organization.');
     }
 
-    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
+    const isAdmin = isGlobalAdmin || staff?.agencyRole === 'AGENCY_ADMIN';
 
-    let leadCondition: any = { organizationId };
+    const leadCondition: any = { organizationId };
 
     if (!isAdmin && staff) {
       // Team Member: can see property leads they manage OR leads assigned to them
       const managedProperties = await this.prisma.propertyManager.findMany({
         where: { orgStaffId: staff.id },
-        select: { propertyId: true }
+        select: { propertyId: true },
       });
-      const managedPropertyIds = managedProperties.map(p => p.propertyId);
+      const managedPropertyIds = managedProperties.map((p) => p.propertyId);
 
       leadCondition.OR = [
         { propertyId: { in: managedPropertyIds } },
-        { assignments: { some: { orgStaffId: staff.id, removedAt: null } } }
+        { assignments: { some: { orgStaffId: staff.id, removedAt: null } } },
       ];
     }
 
@@ -133,11 +151,16 @@ export class LeadsService {
     if (filters.status) leadCondition.status = filters.status;
     if (filters.teamMemberId) {
       // If teamMemberId is filtering by assignment
-      leadCondition.assignments = { some: { orgStaffId: filters.teamMemberId, removedAt: null } };
+      leadCondition.assignments = {
+        some: { orgStaffId: filters.teamMemberId, removedAt: null },
+      };
     }
 
     const page = Math.max(1, parseInt(filters.page || '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(filters.limit || '50', 10)));
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(filters.limit || '50', 10)),
+    );
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([
@@ -145,21 +168,27 @@ export class LeadsService {
         where: leadCondition,
         include: {
           property: { select: { id: true, name: true } },
-          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          user: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
           assignments: {
             where: { removedAt: null },
             include: {
               orgStaff: {
-                include: { user: { select: { firstName: true, lastName: true, email: true } } }
-              }
-            }
-          }
+                include: {
+                  user: {
+                    select: { firstName: true, lastName: true, email: true },
+                  },
+                },
+              },
+            },
+          },
         },
         orderBy: { lastVisitedAt: 'desc' },
         skip,
-        take: limit
+        take: limit,
       }),
-      this.prisma.lead.count({ where: leadCondition })
+      this.prisma.lead.count({ where: leadCondition }),
     ]);
 
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
@@ -168,7 +197,8 @@ export class LeadsService {
   // 3. Get Lead Detail
   async getLeadDetail(user: any, leadId: string) {
     const leads = await this.getMyLeads(user, { id: leadId, limit: 1 });
-    if (!leads.items.length) throw new NotFoundException('Lead not found or unauthorized.');
+    if (!leads.items.length)
+      throw new NotFoundException('Lead not found or unauthorized.');
     return leads.items[0];
   }
 
@@ -178,22 +208,25 @@ export class LeadsService {
 
     // Identify staff
     const staff = await this.prisma.orgStaff.findUnique({
-      where: { userId_organizationId: { userId, organizationId } }
+      where: { userId_organizationId: { userId, organizationId } },
     });
 
-    const isGlobalAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    const isGlobalAdmin =
+      orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
     if (!isGlobalAdmin && !staff) {
       throw new ForbiddenException('Not associated with this organization.');
     }
 
-    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
+    const isAdmin = isGlobalAdmin || staff?.agencyRole === 'AGENCY_ADMIN';
 
     // Verify access and MANAGE permission
     const lead = await this.prisma.lead.findFirst({
       where: { id: leadId, organizationId },
       include: {
-        assignments: staff ? { where: { orgStaffId: staff.id, removedAt: null } } : false
-      }
+        assignments: staff
+          ? { where: { orgStaffId: staff.id, removedAt: null } }
+          : false,
+      },
     });
 
     if (!lead) throw new NotFoundException('Lead not found.');
@@ -204,12 +237,16 @@ export class LeadsService {
       // Check if they manage the property with MANAGE permission
       if (lead.propertyId) {
         const pm = await this.prisma.propertyManager.findFirst({
-          where: { propertyId: lead.propertyId, orgStaffId: staff.id, permission: 'MANAGE' }
+          where: {
+            propertyId: lead.propertyId,
+            orgStaffId: staff.id,
+            permission: 'MANAGE',
+          },
         });
         if (pm) canManage = true;
       }
-      
-      // If they are directly assigned, they can manage (assuming assignment grants management rights, 
+
+      // If they are directly assigned, they can manage (assuming assignment grants management rights,
       // otherwise we would need granular lead permission)
       if (lead.assignments && lead.assignments.length > 0) {
         canManage = true;
@@ -217,15 +254,17 @@ export class LeadsService {
     }
 
     if (!canManage) {
-      throw new ForbiddenException('You do not have MANAGE permission for this lead.');
+      throw new ForbiddenException(
+        'You do not have MANAGE permission for this lead.',
+      );
     }
 
     return this.prisma.lead.update({
       where: { id: leadId },
       data: {
         status: data.status,
-        temperature: data.temperature
-      }
+        temperature: data.temperature,
+      },
     });
   }
 
@@ -235,43 +274,54 @@ export class LeadsService {
 
     // Verify Admin
     const staff = await this.prisma.orgStaff.findUnique({
-      where: { userId_organizationId: { userId, organizationId } }
+      where: { userId_organizationId: { userId, organizationId } },
     });
 
-    const isGlobalAdmin = orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
+    const isGlobalAdmin =
+      orgRole === UserRole.ADMIN || orgRole === UserRole.SUPER_ADMIN;
     if (!isGlobalAdmin && !staff) {
       throw new ForbiddenException('Not associated with this organization.');
     }
-    
-    const isAdmin = isGlobalAdmin || (staff?.agencyRole === 'AGENCY_ADMIN');
-    if (!isAdmin) throw new ForbiddenException('Only Agency Admin can assign leads.');
+
+    const isAdmin = isGlobalAdmin || staff?.agencyRole === 'AGENCY_ADMIN';
+    if (!isAdmin)
+      throw new ForbiddenException('Only Agency Admin can assign leads.');
 
     // Verify Lead
-    const lead = await this.prisma.lead.findFirst({ where: { id: leadId, organizationId } });
+    const lead = await this.prisma.lead.findFirst({
+      where: { id: leadId, organizationId },
+    });
     if (!lead) throw new NotFoundException('Lead not found.');
 
     return this.prisma.$transaction(async (tx) => {
       // Clear existing active assignments for this lead
       await tx.leadAssignment.updateMany({
         where: { leadId, removedAt: null },
-        data: { removedAt: new Date() }
+        data: { removedAt: new Date() },
       });
 
       if (targetStaffId) {
         // Verify target staff
         const targetStaff = await tx.orgStaff.findFirst({
-          where: { id: targetStaffId, organizationId }
+          where: { id: targetStaffId, organizationId },
         });
-        if (!targetStaff) throw new BadRequestException('Target team member not found in this organization.');
+        if (!targetStaff)
+          throw new BadRequestException(
+            'Target team member not found in this organization.',
+          );
 
         // Add new assignment
         await tx.leadAssignment.upsert({
           where: { leadId_orgStaffId: { leadId, orgStaffId: targetStaff.id } },
-          update: { removedAt: null, assignedAt: new Date(), assignedBy: userId },
-          create: { leadId, orgStaffId: targetStaff.id, assignedBy: userId }
+          update: {
+            removedAt: null,
+            assignedAt: new Date(),
+            assignedBy: userId,
+          },
+          create: { leadId, orgStaffId: targetStaff.id, assignedBy: userId },
         });
       }
-      
+
       return { success: true };
     });
   }

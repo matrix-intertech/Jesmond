@@ -8,7 +8,7 @@ export class FeatureFlagService {
 
   async isEnabled(key: string): Promise<boolean> {
     const flag = await this.prisma.featureFlag.findUnique({
-      where: { key }
+      where: { key },
     });
     // Default to false if missing, ensuring safety for payments
     return flag?.enabled || false;
@@ -21,7 +21,7 @@ export class FeatureFlagService {
 
   async getAllFeatures() {
     return this.prisma.featureFlag.findMany({
-      orderBy: { key: 'asc' }
+      orderBy: { key: 'asc' },
     });
   }
 
@@ -42,8 +42,8 @@ export class FeatureFlagService {
           action: 'feature.update',
           resourceType: 'FeatureFlag',
           resourceId: key,
-          changes: { enabled }
-        }
+          changes: { enabled },
+        },
       });
 
       return { key, enabled: feature.enabled };

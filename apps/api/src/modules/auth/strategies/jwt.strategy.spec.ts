@@ -19,10 +19,7 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        JwtStrategy,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [JwtStrategy, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
@@ -193,10 +190,14 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
 
       prisma.user.findUnique.mockResolvedValue(mockUser);
 
-      const req = { headers: { 'x-organization-id': 'org-unauthorized-target' } };
+      const req = {
+        headers: { 'x-organization-id': 'org-unauthorized-target' },
+      };
       const payload = { sub: 'user-1' };
 
-      await expect(strategy.validate(req, payload)).rejects.toThrow(ForbiddenException);
+      await expect(strategy.validate(req, payload)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -242,7 +243,9 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
 
       prisma.user.findUnique.mockResolvedValue(suspendedUser);
 
-      await expect(strategy.validate({}, { sub: 'user-suspended' })).rejects.toThrow(UnauthorizedException);
+      await expect(
+        strategy.validate({}, { sub: 'user-suspended' }),
+      ).rejects.toThrow(UnauthorizedException);
 
       const deactivatedUser = {
         id: 'user-deactivated',
@@ -254,7 +257,9 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
 
       prisma.user.findUnique.mockResolvedValue(deactivatedUser);
 
-      await expect(strategy.validate({}, { sub: 'user-deactivated' })).rejects.toThrow(UnauthorizedException);
+      await expect(
+        strategy.validate({}, { sub: 'user-deactivated' }),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if session is revoked or expired', async () => {
@@ -273,9 +278,12 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
         expiresAt: new Date(Date.now() + 100000),
       });
 
-      await expect(strategy.validate({}, { sub: 'user-session', sessionId: 'session-revoked' })).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        strategy.validate(
+          {},
+          { sub: 'user-session', sessionId: 'session-revoked' },
+        ),
+      ).rejects.toThrow(UnauthorizedException);
 
       prisma.session.findUnique.mockResolvedValue({
         id: 'session-expired',
@@ -283,9 +291,12 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
         expiresAt: new Date(Date.now() - 100000),
       });
 
-      await expect(strategy.validate({}, { sub: 'user-session', sessionId: 'session-expired' })).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        strategy.validate(
+          {},
+          { sub: 'user-session', sessionId: 'session-expired' },
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 });

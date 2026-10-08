@@ -1,6 +1,18 @@
-import { Injectable, ForbiddenException, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UserRole, AccountStatus, OrgType, PropertyPermission, AgencyRole } from '@prisma/client';
+import {
+  UserRole,
+  AccountStatus,
+  OrgType,
+  PropertyPermission,
+  AgencyRole,
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -16,12 +28,19 @@ export class AgencyService {
           where: { deletedAt: null },
           include: {
             user: {
-              select: { id: true, firstName: true, lastName: true, email: true, phone: true, accountStatus: true }
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                accountStatus: true,
+              },
             },
             managedProperties: {
-              include: { property: { select: { id: true, name: true } } }
-            }
-          }
+              include: { property: { select: { id: true, name: true } } },
+            },
+          },
         },
         properties: {
           where: { deletedAt: null },
@@ -30,10 +49,16 @@ export class AgencyService {
             name: true,
             status: true,
             address: true,
-            suburb: { select: { name: true, postcode: true, city: { select: { name: true, stateId: true } } } }
-          }
-        }
-      }
+            suburb: {
+              select: {
+                name: true,
+                postcode: true,
+                city: { select: { name: true, stateId: true } },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!agency || !agency.name || agency.name.trim() === '') {
@@ -41,8 +66,6 @@ export class AgencyService {
     }
     return agency;
   }
-
-
 
   async updateAgency(user: any, data: any) {
     const organizationId = user.organizationId;
@@ -52,7 +75,7 @@ export class AgencyService {
         name: data.name,
         branding: data.branding || undefined,
         settings: data.settings || undefined,
-      }
+      },
     });
   }
 
@@ -60,27 +83,44 @@ export class AgencyService {
     return this.prisma.orgStaff.findMany({
       where: { organizationId, deletedAt: null },
       include: {
-        user: { select: { id: true, firstName: true, lastName: true, email: true, accountStatus: true } },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            accountStatus: true,
+          },
+        },
         customRole: true,
         managedProperties: {
-          include: { property: { select: { id: true, name: true } } }
-        }
-      }
+          include: { property: { select: { id: true, name: true } } },
+        },
+      },
     });
   }
 
   async inviteTeamMember(user: any, data: any) {
     const organizationId = user.organizationId;
-    const { email, firstName, lastName, agencyRole, propertyAssignments, customRoleId } = data;
+    const {
+      email,
+      firstName,
+      lastName,
+      agencyRole,
+      propertyAssignments,
+      customRoleId,
+    } = data;
 
     // Validate agencyRole
     const resolvedAgencyRole: AgencyRole =
-      agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
+      agencyRole === 'AGENCY_ADMIN'
+        ? AgencyRole.AGENCY_ADMIN
+        : AgencyRole.TEAM_MEMBER;
 
     let permissionsToAssign: string[] = [];
     if (customRoleId) {
       const customRole = await this.prisma.agencyCustomRole.findUnique({
-        where: { id: customRoleId, organizationId }
+        where: { id: customRoleId, organizationId },
       });
       if (!customRole) throw new NotFoundException('Custom role not found');
       permissionsToAssign = customRole.permissions;
@@ -89,13 +129,18 @@ export class AgencyService {
     }
 
     // Check if email already in use
-    let existingUser = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
     if (existingUser) {
       // Check if already in org
       const existingStaff = await this.prisma.orgStaff.findUnique({
-        where: { userId_organizationId: { userId: existingUser.id, organizationId } }
+        where: {
+          userId_organizationId: { userId: existingUser.id, organizationId },
+        },
       });
-      if (existingStaff) throw new ConflictException('User is already a member of this agency');
+      if (existingStaff)
+        throw new ConflictException('User is already a member of this agency');
     }
 
     const randomPassword = crypto.randomBytes(32).toString('hex');
@@ -112,7 +157,7 @@ export class AgencyService {
             lastName: lastName || firstName,
             role: UserRole.ORG_STAFF,
             accountStatus: AccountStatus.PENDING_VERIFICATION,
-          }
+          },
         });
       }
 
@@ -124,20 +169,25 @@ export class AgencyService {
           agencyRole: resolvedAgencyRole,
           customRoleId: customRoleId || null,
           permissions: permissionsToAssign,
-        }
+        },
       });
 
       if (propertyAssignments && propertyAssignments.length > 0) {
         for (const pa of propertyAssignments) {
           // Verify property belongs to org
-          const prop = await tx.property.findFirst({ where: { id: pa.propertyId, organizationId } });
+          const prop = await tx.property.findFirst({
+            where: { id: pa.propertyId, organizationId },
+          });
           if (prop) {
             await tx.propertyManager.create({
               data: {
                 propertyId: prop.id,
                 orgStaffId: orgStaff.id,
-                permission: pa.permission === 'MANAGE' ? PropertyPermission.MANAGE : PropertyPermission.VIEW
-              }
+                permission:
+                  pa.permission === 'MANAGE'
+                    ? PropertyPermission.MANAGE
+                    : PropertyPermission.VIEW,
+              },
             });
           }
         }
@@ -147,38 +197,53 @@ export class AgencyService {
     });
   }
 
-  async updateTeamMemberRole(user: any, staffId: string, data: { agencyRole?: string, customRoleId?: string | null }) {
+  async updateTeamMemberRole(
+    user: any,
+    staffId: string,
+    data: { agencyRole?: string; customRoleId?: string | null },
+  ) {
     const organizationId = user.organizationId;
-    const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
+    const staff = await this.prisma.orgStaff.findFirst({
+      where: { id: staffId, organizationId },
+    });
     if (!staff) throw new NotFoundException('Team member not found');
 
     const updateData: any = {};
     if (data.agencyRole !== undefined) {
-      updateData.agencyRole = data.agencyRole === 'AGENCY_ADMIN' ? AgencyRole.AGENCY_ADMIN : AgencyRole.TEAM_MEMBER;
+      updateData.agencyRole =
+        data.agencyRole === 'AGENCY_ADMIN'
+          ? AgencyRole.AGENCY_ADMIN
+          : AgencyRole.TEAM_MEMBER;
     }
 
     if (data.customRoleId !== undefined) {
       if (data.customRoleId === null) {
-         updateData.customRoleId = null;
+        updateData.customRoleId = null;
       } else {
-         const customRole = await this.prisma.agencyCustomRole.findUnique({
-           where: { id: data.customRoleId, organizationId }
-         });
-         if (!customRole) throw new NotFoundException('Custom role not found');
-         updateData.customRoleId = customRole.id;
+        const customRole = await this.prisma.agencyCustomRole.findUnique({
+          where: { id: data.customRoleId, organizationId },
+        });
+        if (!customRole) throw new NotFoundException('Custom role not found');
+        updateData.customRoleId = customRole.id;
       }
     }
 
     return this.prisma.orgStaff.update({
       where: { id: staffId },
-      data: updateData
+      data: updateData,
     });
   }
 
-  async updateTeamMemberPermissions(user: any, staffId: string, propertyAssignments: any[]) {
+  async updateTeamMemberPermissions(
+    user: any,
+    staffId: string,
+    propertyAssignments: any[],
+  ) {
     const organizationId = user.organizationId;
     // Verify staff belongs to org
-    const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
+    const staff = await this.prisma.orgStaff.findFirst({
+      where: { id: staffId, organizationId },
+    });
     if (!staff) throw new NotFoundException('Team member not found');
 
     return this.prisma.$transaction(async (tx) => {
@@ -187,14 +252,19 @@ export class AgencyService {
 
       const newAssignments = [];
       for (const pa of propertyAssignments) {
-        const prop = await tx.property.findFirst({ where: { id: pa.propertyId, organizationId } });
+        const prop = await tx.property.findFirst({
+          where: { id: pa.propertyId, organizationId },
+        });
         if (prop) {
           const pm = await tx.propertyManager.create({
             data: {
               propertyId: prop.id,
               orgStaffId: staff.id,
-              permission: pa.permission === 'MANAGE' ? PropertyPermission.MANAGE : PropertyPermission.VIEW
-            }
+              permission:
+                pa.permission === 'MANAGE'
+                  ? PropertyPermission.MANAGE
+                  : PropertyPermission.VIEW,
+            },
           });
           newAssignments.push(pm);
         }
@@ -205,7 +275,9 @@ export class AgencyService {
 
   async removeTeamMember(user: any, staffId: string) {
     const organizationId = user.organizationId;
-    const staff = await this.prisma.orgStaff.findFirst({ where: { id: staffId, organizationId } });
+    const staff = await this.prisma.orgStaff.findFirst({
+      where: { id: staffId, organizationId },
+    });
     if (!staff) throw new NotFoundException('Team member not found');
 
     return this.prisma.$transaction(async (tx) => {
@@ -214,10 +286,16 @@ export class AgencyService {
     });
   }
 
-  async updatePropertyTeam(user: any, propertyId: string, assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[]) {
+  async updatePropertyTeam(
+    user: any,
+    propertyId: string,
+    assignments: { orgStaffId: string; permission: 'VIEW' | 'MANAGE' }[],
+  ) {
     const organizationId = user.organizationId;
     // Verify property belongs to org
-    const prop = await this.prisma.property.findFirst({ where: { id: propertyId, organizationId } });
+    const prop = await this.prisma.property.findFirst({
+      where: { id: propertyId, organizationId },
+    });
     if (!prop) throw new NotFoundException('Property not found');
 
     return this.prisma.$transaction(async (tx) => {
@@ -227,14 +305,19 @@ export class AgencyService {
       const newAssignments = [];
       for (const assignment of assignments) {
         // Verify staff belongs to org
-        const staff = await tx.orgStaff.findFirst({ where: { id: assignment.orgStaffId, organizationId } });
+        const staff = await tx.orgStaff.findFirst({
+          where: { id: assignment.orgStaffId, organizationId },
+        });
         if (staff) {
           const pm = await tx.propertyManager.create({
             data: {
               propertyId,
               orgStaffId: staff.id,
-              permission: assignment.permission === 'MANAGE' ? PropertyPermission.MANAGE : PropertyPermission.VIEW
-            }
+              permission:
+                assignment.permission === 'MANAGE'
+                  ? PropertyPermission.MANAGE
+                  : PropertyPermission.VIEW,
+            },
           });
           newAssignments.push(pm);
         }
@@ -247,67 +330,94 @@ export class AgencyService {
   async getRoles(organizationId: string) {
     // We can inject or instantiate it, but let's just ensure they exist inline here if we don't want to inject
     const systemRoles = [
-      { name: 'Admin', description: 'Full access to agency settings, team, and all properties.', permissions: ['*'], isSystem: true },
-      { name: 'Team Member', description: 'Standard team member with basic access.', permissions: ['property.view', 'lead.view', 'enquiry.view', 'team.view'], isSystem: true }
+      {
+        name: 'Admin',
+        description:
+          'Full access to agency settings, team, and all properties.',
+        permissions: ['*'],
+        isSystem: true,
+      },
+      {
+        name: 'Team Member',
+        description: 'Standard team member with basic access.',
+        permissions: [
+          'property.view',
+          'lead.view',
+          'enquiry.view',
+          'team.view',
+        ],
+        isSystem: true,
+      },
     ];
 
     const existingSystemRoles = await this.prisma.agencyCustomRole.findMany({
-      where: { organizationId, isSystem: true, name: { in: systemRoles.map(r => r.name) } }
+      where: {
+        organizationId,
+        isSystem: true,
+        name: { in: systemRoles.map((r) => r.name) },
+      },
     });
-    
-    const existingRoleNames = new Set(existingSystemRoles.map(r => r.name));
-    const missingRoles = systemRoles.filter(r => !existingRoleNames.has(r.name));
+
+    const existingRoleNames = new Set(existingSystemRoles.map((r) => r.name));
+    const missingRoles = systemRoles.filter(
+      (r) => !existingRoleNames.has(r.name),
+    );
 
     if (missingRoles.length > 0) {
       await this.prisma.agencyCustomRole.createMany({
-        data: missingRoles.map(role => ({
+        data: missingRoles.map((role) => ({
           organizationId,
           name: role.name,
           description: role.description,
           permissions: role.permissions,
-          isSystem: true
+          isSystem: true,
         })),
-        skipDuplicates: true
+        skipDuplicates: true,
       });
     }
 
     const roles = await this.prisma.agencyCustomRole.findMany({
       where: { organizationId },
       include: {
-        _count: { select: { staff: true } }
+        _count: { select: { staff: true } },
       },
-      orderBy: [
-        { isSystem: 'desc' },
-        { createdAt: 'desc' }
-      ]
+      orderBy: [{ isSystem: 'desc' }, { createdAt: 'desc' }],
     });
 
     const staffCounts = await this.prisma.orgStaff.groupBy({
       by: ['agencyRole'],
       where: { organizationId, agencyRole: { not: null }, deletedAt: null },
-      _count: { id: true }
+      _count: { id: true },
     });
 
-    return roles.map(role => {
+    return roles.map((role) => {
       if (role.name === 'Admin') {
-        const count = staffCounts.find(c => c.agencyRole === 'AGENCY_ADMIN')?._count.id || 0;
+        const count =
+          staffCounts.find((c) => c.agencyRole === 'AGENCY_ADMIN')?._count.id ||
+          0;
         return { ...role, _count: { staff: count + role._count.staff } };
       }
       if (role.name === 'Team Member') {
-        const count = staffCounts.find(c => c.agencyRole === 'TEAM_MEMBER')?._count.id || 0;
+        const count =
+          staffCounts.find((c) => c.agencyRole === 'TEAM_MEMBER')?._count.id ||
+          0;
         return { ...role, _count: { staff: count + role._count.staff } };
       }
       return role;
     });
   }
 
-  async createCustomRole(user: any, data: { name: string, description?: string, permissions: string[] }) {
+  async createCustomRole(
+    user: any,
+    data: { name: string; description?: string; permissions: string[] },
+  ) {
     const organizationId = user.organizationId;
 
     const existing = await this.prisma.agencyCustomRole.findFirst({
-      where: { organizationId, name: data.name }
+      where: { organizationId, name: data.name },
     });
-    if (existing) throw new ConflictException('A role with this name already exists');
+    if (existing)
+      throw new ConflictException('A role with this name already exists');
 
     return this.prisma.agencyCustomRole.create({
       data: {
@@ -315,54 +425,65 @@ export class AgencyService {
         name: data.name,
         description: data.description,
         permissions: data.permissions || [],
-      }
+      },
     });
   }
 
-  async updateCustomRole(user: any, roleId: string, data: { name?: string, description?: string, permissions?: string[] }) {
+  async updateCustomRole(
+    user: any,
+    roleId: string,
+    data: { name?: string; description?: string; permissions?: string[] },
+  ) {
     const organizationId = user.organizationId;
 
-    const role = await this.prisma.agencyCustomRole.findFirst({ where: { id: roleId, organizationId } });
+    const role = await this.prisma.agencyCustomRole.findFirst({
+      where: { id: roleId, organizationId },
+    });
     if (!role) throw new NotFoundException('Role not found');
 
     if (role.isSystem) {
-      if (data.name && data.name !== role.name) throw new ForbiddenException('Cannot rename system roles');
+      if (data.name && data.name !== role.name)
+        throw new ForbiddenException('Cannot rename system roles');
     } else {
       if (data.name && data.name !== role.name) {
         const existing = await this.prisma.agencyCustomRole.findFirst({
-          where: { organizationId, name: data.name }
+          where: { organizationId, name: data.name },
         });
-        if (existing) throw new ConflictException('A role with this name already exists');
+        if (existing)
+          throw new ConflictException('A role with this name already exists');
       }
     }
 
     return this.prisma.$transaction(async (tx) => {
-       const updatedRole = await tx.agencyCustomRole.update({
-         where: { id: roleId },
-         data: {
-           name: data.name,
-           description: data.description,
-           permissions: data.permissions,
-         }
-       });
+      const updatedRole = await tx.agencyCustomRole.update({
+        where: { id: roleId },
+        data: {
+          name: data.name,
+          description: data.description,
+          permissions: data.permissions,
+        },
+      });
 
-       // We no longer sync permissions to OrgStaff.permissions.
-       // The AgencyPermissionsService handles dynamic resolution based on the role.
-       return updatedRole;
+      // We no longer sync permissions to OrgStaff.permissions.
+      // The AgencyPermissionsService handles dynamic resolution based on the role.
+      return updatedRole;
     });
   }
 
   async deleteCustomRole(user: any, roleId: string) {
     const organizationId = user.organizationId;
 
-    const role = await this.prisma.agencyCustomRole.findFirst({ 
+    const role = await this.prisma.agencyCustomRole.findFirst({
       where: { id: roleId, organizationId },
-      include: { _count: { select: { staff: true } } }
+      include: { _count: { select: { staff: true } } },
     });
     if (!role) throw new NotFoundException('Role not found');
-    if (role.isSystem) throw new ForbiddenException('Cannot delete system roles');
+    if (role.isSystem)
+      throw new ForbiddenException('Cannot delete system roles');
     if (role._count.staff > 0) {
-      throw new ConflictException('Cannot delete role while it is assigned to team members');
+      throw new ConflictException(
+        'Cannot delete role while it is assigned to team members',
+      );
     }
 
     return this.prisma.agencyCustomRole.delete({ where: { id: roleId } });
@@ -377,7 +498,7 @@ export class AgencyService {
     const where: any = {
       type: OrgType.PROVIDER,
       status: 'VERIFIED',
-      name: { not: '' }
+      name: { not: '' },
     };
 
     if (search) {
@@ -391,21 +512,34 @@ export class AgencyService {
           id: true,
           name: true,
           branding: true,
-          _count: { select: { staff: { where: { deletedAt: null } }, properties: { where: { deletedAt: null } } } }
+          _count: {
+            select: {
+              staff: { where: { deletedAt: null } },
+              properties: { where: { deletedAt: null } },
+            },
+          },
         },
         take,
         skip,
-        orderBy: { name: 'asc' }
+        orderBy: { name: 'asc' },
       }),
-      this.prisma.organization.count({ where })
+      this.prisma.organization.count({ where }),
     ]);
 
-    return { data: agencies, meta: { total, page, limit: take, totalPages: Math.ceil(total / take) } };
+    return {
+      data: agencies,
+      meta: { total, page, limit: take, totalPages: Math.ceil(total / take) },
+    };
   }
 
   async getPublicAgencyDetails(id: string) {
     const agency = await this.prisma.organization.findFirst({
-      where: { id, type: OrgType.PROVIDER, status: 'VERIFIED', name: { not: '' } },
+      where: {
+        id,
+        type: OrgType.PROVIDER,
+        status: 'VERIFIED',
+        name: { not: '' },
+      },
       select: {
         id: true,
         name: true,
@@ -416,17 +550,17 @@ export class AgencyService {
             id: true,
             role: true,
             agencyRole: true,
-            user: { 
-              select: { 
-                id: true, 
-                firstName: true, 
-                lastName: true, 
-                email: true, 
-                phone: true, 
-                allowPublicContactDetails: true 
-              } 
-            }
-          }
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+                allowPublicContactDetails: true,
+              },
+            },
+          },
         },
         properties: {
           where: { deletedAt: null, status: 'PUBLISHED' },
@@ -435,15 +569,15 @@ export class AgencyService {
             name: true,
             address: true,
             media: { take: 1, orderBy: { displayOrder: 'asc' } },
-            roomTypes: { select: { pricePerWeek: true } }
-          }
-        }
-      }
+            roomTypes: { select: { pricePerWeek: true } },
+          },
+        },
+      },
     });
 
     if (!agency) throw new NotFoundException('Agency not found');
 
-    const mappedStaff = agency.staff.map(s => {
+    const mappedStaff = agency.staff.map((s) => {
       const isPublic = Boolean(s.user.allowPublicContactDetails);
       return {
         id: s.id,
@@ -455,8 +589,8 @@ export class AgencyService {
           lastName: s.user.lastName,
           allowPublicContactDetails: isPublic,
           email: isPublic ? s.user.email : undefined,
-          phone: isPublic ? s.user.phone : undefined
-        }
+          phone: isPublic ? s.user.phone : undefined,
+        },
       };
     });
 

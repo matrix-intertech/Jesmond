@@ -1,8 +1,22 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../auth/types/authenticated-user';
-import { InitConversationDto, InitDirectConversationDto, SendMessageDto } from './dtos/chat.dto';
+import {
+  InitConversationDto,
+  InitDirectConversationDto,
+  SendMessageDto,
+} from './dtos/chat.dto';
 
 interface AuthenticatedRequest {
   user?: AuthenticatedUser;
@@ -22,28 +36,54 @@ export class ChatController {
   }
 
   @Post('init')
-  async initConversation(@Req() req: AuthenticatedRequest, @Body() body: InitConversationDto) {
-    return this.chatService.initConversation(body.propertyId, this.getAuthenticatedUserId(req));
+  async initConversation(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: InitConversationDto,
+  ) {
+    return this.chatService.initConversation(
+      body.propertyId,
+      this.getAuthenticatedUserId(req),
+    );
   }
 
   @Post('conversations/direct')
-  async initDirectConversation(@Req() req: AuthenticatedRequest, @Body() body: InitDirectConversationDto) {
-    return this.chatService.initDirectConversation(body.recipientUserId, this.getAuthenticatedUserId(req));
+  async initDirectConversation(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: InitDirectConversationDto,
+  ) {
+    return this.chatService.initDirectConversation(
+      body.recipientUserId,
+      this.getAuthenticatedUserId(req),
+    );
   }
 
   @Get('conversations')
   async getUserConversations(@Req() req: AuthenticatedRequest) {
-    return this.chatService.getUserConversations(this.getAuthenticatedUserId(req));
+    return this.chatService.getUserConversations(
+      this.getAuthenticatedUserId(req),
+    );
   }
 
   @Get('conversations/:id')
-  async getConversation(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
-    return this.chatService.getConversation(id, this.getAuthenticatedUserId(req));
+  async getConversation(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
+    return this.chatService.getConversation(
+      id,
+      this.getAuthenticatedUserId(req),
+    );
   }
 
   @Patch('conversations/:id/read')
-  async markConversationRead(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
-    return this.chatService.markConversationRead(id, this.getAuthenticatedUserId(req));
+  async markConversationRead(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
+    return this.chatService.markConversationRead(
+      id,
+      this.getAuthenticatedUserId(req),
+    );
   }
 
   @Post('conversations/:id/messages')
@@ -52,6 +92,11 @@ export class ChatController {
     @Param('id') id: string,
     @Body() body: SendMessageDto,
   ) {
-    return this.chatService.sendMessage(id, this.getAuthenticatedUserId(req), body.encryptedPayload, body.iv);
+    return this.chatService.sendMessage(
+      id,
+      this.getAuthenticatedUserId(req),
+      body.encryptedPayload,
+      body.iv,
+    );
   }
 }

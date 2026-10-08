@@ -1,4 +1,9 @@
-import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { UserRole, AccountStatus } from '@prisma/client';
@@ -12,7 +17,11 @@ export class EmployeesService {
     private authService: AuthService,
   ) {}
 
-  async createEmployee(organizationId: string, requesterUserId: string, data: any) {
+  async createEmployee(
+    organizationId: string,
+    requesterUserId: string,
+    data: any,
+  ) {
     const { email, firstName, lastName, role, branchId, branchIds } = data;
 
     // Check if email is already in use
@@ -25,14 +34,17 @@ export class EmployeesService {
     }
 
     // Determine the list of branch IDs to assign
-    const branchesToAssign = branchIds ? branchIds : (branchId ? [branchId] : []);
+    const branchesToAssign = branchIds ? branchIds : branchId ? [branchId] : [];
 
     // Verify branches belong to organization
     if (branchesToAssign.length > 0) {
       const branches = await this.prisma.retailBranch.findMany({
         where: { id: { in: branchesToAssign } },
       });
-      if (branches.length !== branchesToAssign.length || branches.some(b => b.organizationId !== organizationId)) {
+      if (
+        branches.length !== branchesToAssign.length ||
+        branches.some((b) => b.organizationId !== organizationId)
+      ) {
         throw new ForbiddenException('Invalid branch assignment');
       }
     }
@@ -59,22 +71,33 @@ export class EmployeesService {
 
       if (role || (data.permissions && data.permissions.length > 0)) {
         const requesterStaff = await tx.orgStaff.findUnique({
-          where: { userId_organizationId: { userId: requesterUserId, organizationId } }
+          where: {
+            userId_organizationId: { userId: requesterUserId, organizationId },
+          },
         });
 
-        if (!requesterStaff) throw new ForbiddenException('Requester not found');
+        if (!requesterStaff)
+          throw new ForbiddenException('Requester not found');
 
-        const hasAdminPower = requesterStaff.role === UserRole.ADMIN || Boolean(requesterStaff.permissions?.includes('*'));
+        const hasAdminPower =
+          requesterStaff.role === UserRole.ADMIN ||
+          Boolean(requesterStaff.permissions?.includes('*'));
 
         if (!hasAdminPower) {
           if (role && role === 'ADMIN') {
-            throw new ForbiddenException('Only ADMIN can create ADMIN employees');
+            throw new ForbiddenException(
+              'Only ADMIN can create ADMIN employees',
+            );
           }
           if (data.permissions && data.permissions.length > 0) {
             const requesterPerms = requesterStaff.permissions || [];
-            const unauthorizedChanges = data.permissions.some((p: string) => !requesterPerms.includes(p));
+            const unauthorizedChanges = data.permissions.some(
+              (p: string) => !requesterPerms.includes(p),
+            );
             if (unauthorizedChanges) {
-              throw new ForbiddenException('You can only grant permissions that you possess');
+              throw new ForbiddenException(
+                'You can only grant permissions that you possess',
+              );
             }
           }
         }
@@ -87,12 +110,13 @@ export class EmployeesService {
         data: {
           userId: user.id,
           organizationId,
-          retailBranchId: branchesToAssign.length > 0 ? branchesToAssign[0] : null, // legacy fallback
+          retailBranchId:
+            branchesToAssign.length > 0 ? branchesToAssign[0] : null, // legacy fallback
           role: finalRole,
           permissions: finalPermissions,
           branches: {
-            create: branchesToAssign.map((id: string) => ({ branchId: id }))
-          }
+            create: branchesToAssign.map((id: string) => ({ branchId: id })),
+          },
         },
       });
 
@@ -134,10 +158,10 @@ export class EmployeesService {
         branches: {
           include: {
             branch: {
-              select: { id: true, name: true }
-            }
-          }
-        }
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
     });
   }
@@ -164,10 +188,10 @@ export class EmployeesService {
         branches: {
           include: {
             branch: {
-              select: { id: true, name: true }
-            }
-          }
-        }
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
     });
 
@@ -182,18 +206,33 @@ export class EmployeesService {
     return employee;
   }
 
-  async updateEmployee(organizationId: string, requesterUserId: string, employeeId: string, data: any) {
+  async updateEmployee(
+    organizationId: string,
+    requesterUserId: string,
+    employeeId: string,
+    data: any,
+  ) {
     const employee = await this.getEmployee(organizationId, employeeId);
 
     const { branchId, branchIds, role, accountStatus, permissions } = data;
 
-    const branchesToAssign = branchIds !== undefined ? branchIds : (branchId !== undefined ? (branchId ? [branchId] : []) : undefined);
+    const branchesToAssign =
+      branchIds !== undefined
+        ? branchIds
+        : branchId !== undefined
+          ? branchId
+            ? [branchId]
+            : []
+          : undefined;
 
     if (branchesToAssign) {
       const branches = await this.prisma.retailBranch.findMany({
         where: { id: { in: branchesToAssign } },
       });
-      if (branches.length !== branchesToAssign.length || branches.some(b => b.organizationId !== organizationId)) {
+      if (
+        branches.length !== branchesToAssign.length ||
+        branches.some((b) => b.organizationId !== organizationId)
+      ) {
         throw new ForbiddenException('Invalid branch assignment');
       }
     }
@@ -204,28 +243,44 @@ export class EmployeesService {
 
       if (role !== undefined || permissions !== undefined) {
         if (employee.userId === requesterUserId) {
-          throw new ForbiddenException('Cannot modify your own role or permissions');
+          throw new ForbiddenException(
+            'Cannot modify your own role or permissions',
+          );
         }
 
         const requesterStaff = await tx.orgStaff.findUnique({
-          where: { userId_organizationId: { userId: requesterUserId, organizationId } }
+          where: {
+            userId_organizationId: { userId: requesterUserId, organizationId },
+          },
         });
 
         const hasAdminPower = Boolean(
-          requesterStaff && (requesterStaff.role === UserRole.ADMIN || requesterStaff.permissions?.includes('*'))
+          requesterStaff &&
+          (requesterStaff.role === UserRole.ADMIN ||
+            requesterStaff.permissions?.includes('*')),
         );
 
         if (!hasAdminPower) {
           if (role !== undefined && role !== employee.role) {
-            throw new ForbiddenException('Only ADMIN can modify employee roles');
+            throw new ForbiddenException(
+              'Only ADMIN can modify employee roles',
+            );
           }
           if (permissions !== undefined) {
             const requesterPerms = requesterStaff?.permissions || [];
-            const addedPerms = permissions.filter((p: string) => !employee.permissions.includes(p));
-            const removedPerms = employee.permissions.filter((p: string) => !permissions.includes(p));
-            const unauthorizedChanges = [...addedPerms, ...removedPerms].some((p: string) => !requesterPerms.includes(p));
+            const addedPerms = permissions.filter(
+              (p: string) => !employee.permissions.includes(p),
+            );
+            const removedPerms = employee.permissions.filter(
+              (p: string) => !permissions.includes(p),
+            );
+            const unauthorizedChanges = [...addedPerms, ...removedPerms].some(
+              (p: string) => !requesterPerms.includes(p),
+            );
             if (unauthorizedChanges) {
-              throw new ForbiddenException('You can only manage permissions that you possess');
+              throw new ForbiddenException(
+                'You can only manage permissions that you possess',
+              );
             }
           }
         }
@@ -238,7 +293,11 @@ export class EmployeesService {
       const updatedStaff = await tx.orgStaff.update({
         where: { id: employeeId },
         data: {
-          retailBranchId: branchesToAssign ? (branchesToAssign.length > 0 ? branchesToAssign[0] : null) : employee.retailBranchId,
+          retailBranchId: branchesToAssign
+            ? branchesToAssign.length > 0
+              ? branchesToAssign[0]
+              : null
+            : employee.retailBranchId,
           role: finalRole,
           permissions: finalPermissions,
         },
@@ -248,7 +307,10 @@ export class EmployeesService {
         await tx.orgStaffBranch.deleteMany({ where: { staffId: employeeId } });
         if (branchesToAssign.length > 0) {
           await tx.orgStaffBranch.createMany({
-            data: branchesToAssign.map((bId: string) => ({ staffId: employeeId, branchId: bId }))
+            data: branchesToAssign.map((bId: string) => ({
+              staffId: employeeId,
+              branchId: bId,
+            })),
           });
         }
       }

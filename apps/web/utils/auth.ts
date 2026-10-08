@@ -6,6 +6,7 @@ export interface User {
   lastName: string;
   organizationId?: string;
   orgType?: string;
+  businessCategory?: string;
   orgRole?: string;
   permissions?: string[];
   retailBranchId?: string;

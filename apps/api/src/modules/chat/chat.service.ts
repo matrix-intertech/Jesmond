@@ -1,11 +1,25 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { AccountStatus, PropertyStatus, PropertyVerificationStatus, UserRole } from '@prisma/client';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import {
+  AccountStatus,
+  PropertyStatus,
+  PropertyVerificationStatus,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService, private notificationsService: NotificationsService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   private assertId(value: string | undefined | null, label: string): string {
     if (!value || typeof value !== 'string' || value.trim().length === 0) {
@@ -42,7 +56,11 @@ export class ChatService {
     }
   }
   private assertMessagePayload(encryptedPayload: string, iv?: string) {
-    if (!encryptedPayload || typeof encryptedPayload !== 'string' || encryptedPayload.trim().length === 0) {
+    if (
+      !encryptedPayload ||
+      typeof encryptedPayload !== 'string' ||
+      encryptedPayload.trim().length === 0
+    ) {
       throw new BadRequestException('Message payload is required');
     }
 
@@ -74,7 +92,9 @@ export class ChatService {
       property.status !== PropertyStatus.PUBLISHED ||
       property.verificationStatus !== PropertyVerificationStatus.VERIFIED
     ) {
-      throw new ForbiddenException('Property is not eligible for new enquiries');
+      throw new ForbiddenException(
+        'Property is not eligible for new enquiries',
+      );
     }
 
     // Find explicitly assigned active property managers
@@ -112,12 +132,16 @@ export class ChatService {
     }
 
     if (hostUserIds.length === 0) {
-      throw new ForbiddenException('No active property host is available for chat');
+      throw new ForbiddenException(
+        'No active property host is available for chat',
+      );
     }
 
     // Avoid duplicates if student is somehow also a host
     const uniqueParticipantIds = new Set([userId, ...hostUserIds]);
-    const participantsToCreate = Array.from(uniqueParticipantIds).map((userId) => ({ userId }));
+    const participantsToCreate = Array.from(uniqueParticipantIds).map(
+      (userId) => ({ userId }),
+    );
 
     const conversationKey = `prop_${propertyId}_user_${userId}`;
 
@@ -133,7 +157,11 @@ export class ChatService {
         },
       },
       include: {
-        participants: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+        participants: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
         messages: { orderBy: { createdAt: 'asc' } },
       },
     });
@@ -142,11 +170,13 @@ export class ChatService {
   async initDirectConversation(studentUserId: string, recipientUserId: string) {
     const userId = this.assertId(studentUserId, 'Authenticated user id');
     const targetUserId = this.assertId(recipientUserId, 'Recipient user id');
-    
+
     if (userId === targetUserId) {
-      throw new BadRequestException('Cannot start a conversation with yourself');
+      throw new BadRequestException(
+        'Cannot start a conversation with yourself',
+      );
     }
-    
+
     await this.assertActiveChatUser(userId);
 
     const recipientStaff = await this.prisma.orgStaff.findFirst({
@@ -160,13 +190,15 @@ export class ChatService {
         organization: {
           type: 'PROVIDER',
           status: 'VERIFIED',
-        }
+        },
       },
-      include: { organization: true }
+      include: { organization: true },
     });
 
     if (!recipientStaff) {
-      throw new ForbiddenException('Recipient is not eligible for direct messaging');
+      throw new ForbiddenException(
+        'Recipient is not eligible for direct messaging',
+      );
     }
 
     const sortedIds = [userId, targetUserId].sort();
@@ -182,7 +214,11 @@ export class ChatService {
         },
       },
       include: {
-        participants: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+        participants: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
         messages: { orderBy: { createdAt: 'asc' } },
       },
     });
@@ -201,7 +237,9 @@ export class ChatService {
       include: {
         property: { select: { id: true, name: true, media: { take: 1 } } },
         participants: {
-          include: { user: { select: { id: true, firstName: true, lastName: true } } },
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
         },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
@@ -217,20 +255,31 @@ export class ChatService {
       where: { id: conversationId },
       include: {
         property: { select: { id: true, name: true } },
-        participants: { include: { user: { select: { id: true, firstName: true, lastName: true } } } },
+        participants: {
+          include: {
+            user: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
         messages: { orderBy: { createdAt: 'asc' } },
       },
     });
 
     if (!conversation) throw new NotFoundException('Conversation not found');
 
-    const isParticipant = conversation.participants.some((p) => p.userId === id);
+    const isParticipant = conversation.participants.some(
+      (p) => p.userId === id,
+    );
     if (!isParticipant) throw new ForbiddenException('Access denied');
 
     return conversation;
   }
 
-  async sendMessage(conversationId: string, senderId: string, encryptedPayload: string, iv?: string) {
+  async sendMessage(
+    conversationId: string,
+    senderId: string,
+    encryptedPayload: string,
+    iv?: string,
+  ) {
     const userId = this.assertId(senderId, 'Authenticated user id');
     await this.assertActiveChatUser(userId);
 
@@ -241,7 +290,9 @@ export class ChatService {
 
     if (!conversation) throw new NotFoundException('Conversation not found');
 
-    const isParticipant = conversation.participants.some((p) => p.userId === userId);
+    const isParticipant = conversation.participants.some(
+      (p) => p.userId === userId,
+    );
     if (!isParticipant) throw new ForbiddenException('Access denied');
 
     const message = await this.prisma.message.create({
@@ -265,15 +316,19 @@ export class ChatService {
     ]);
 
     // Async notify other participants
-    conversation.participants.forEach(p => {
+    conversation.participants.forEach((p) => {
       if (p.userId !== userId) {
-        this.notificationsService.createNotification({
-          recipientId: p.userId,
-          type: 'NEW_MESSAGE',
-          title: 'New Message',
-          body: `You received a new message in conversation.`,
-          actionUrl: `/messages/${conversationId}`,
-        }).catch(err => console.error('Failed to dispatch message notification', err));
+        this.notificationsService
+          .createNotification({
+            recipientId: p.userId,
+            type: 'NEW_MESSAGE',
+            title: 'New Message',
+            body: `You received a new message in conversation.`,
+            actionUrl: `/messages/${conversationId}`,
+          })
+          .catch((err) =>
+            console.error('Failed to dispatch message notification', err),
+          );
       }
     });
 

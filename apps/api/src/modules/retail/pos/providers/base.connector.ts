@@ -1,4 +1,9 @@
-import { PosConnector, PosConnectorCapabilities, PaymentIntent, PaymentResult } from '../pos-connector.interface';
+import {
+  PosConnector,
+  PosConnectorCapabilities,
+  PaymentIntent,
+  PaymentResult,
+} from '../pos-connector.interface';
 
 export abstract class BasePosConnector implements PosConnector {
   abstract getCapabilities(): PosConnectorCapabilities;
@@ -35,7 +40,14 @@ export abstract class BasePosConnector implements PosConnector {
     // Optional sync
   }
 
-  abstract verifyWebhookSignature(request: { headers: any; body: any; rawBody?: Buffer }, secret: string): boolean;
+  abstract verifyWebhookSignature(
+    request: { headers: any; body: any; rawBody?: Buffer },
+    secret: string,
+  ): boolean;
 
-  abstract parseWebhookEvent(payload: any): { eventId: string; type: string; data: any };
+  abstract parseWebhookEvent(payload: any): {
+    eventId: string;
+    type: string;
+    data: any;
+  };
 }

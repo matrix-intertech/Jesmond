@@ -8,12 +8,12 @@ export class AdminSettingsService {
 
   async getPlatformSettings() {
     let settings = await this.prisma.platformSettings.findUnique({
-      where: { id: 'singleton' }
+      where: { id: 'singleton' },
     });
 
     if (!settings) {
       settings = await this.prisma.platformSettings.create({
-        data: { id: 'singleton' }
+        data: { id: 'singleton' },
       });
     }
 
@@ -34,8 +34,11 @@ export class AdminSettingsService {
           defaultCurrency: data.defaultCurrency,
           maintenanceMode: data.maintenanceMode,
           propertyAutoApproval: data.propertyAutoApproval,
-          featuredPropertyId: data.featuredPropertyId !== undefined ? data.featuredPropertyId : undefined,
-        }
+          featuredPropertyId:
+            data.featuredPropertyId !== undefined
+              ? data.featuredPropertyId
+              : undefined,
+        },
       });
 
       await this.prisma.auditLog.create({
@@ -45,13 +48,15 @@ export class AdminSettingsService {
           action: 'platform.settings.update',
           resourceType: 'PlatformSettings',
           resourceId: 'singleton',
-          changes: { old: current, new: updated }
-        }
+          changes: { old: current, new: updated },
+        },
       });
 
       return updated;
     } catch (error) {
-      throw new InternalServerErrorException('Failed to update platform settings');
+      throw new InternalServerErrorException(
+        'Failed to update platform settings',
+      );
     }
   }
 

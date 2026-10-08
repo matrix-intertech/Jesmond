@@ -11,7 +11,10 @@ describe('PosSandboxController', () => {
       controllers: [PosSandboxController],
       providers: [
         { provide: PosWebhookService, useValue: {} },
-        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+        {
+          provide: PrismaService,
+          useValue: { orgStaff: { findUnique: jest.fn() } },
+        },
       ],
     }).compile();
 

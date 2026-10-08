@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Headers, BadRequestException, Injectable, InternalServerErrorException, Param, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Param,
+  Req,
+} from '@nestjs/common';
 import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
 import { OrgType } from '@prisma/client';
@@ -16,15 +26,24 @@ export class PosWebhookService {
   // A registry for POS connectors
   private getConnector(provider: string): PosConnector | null {
     switch (provider.toUpperCase()) {
-      case 'TYRO': return new TyroConnector();
-      case 'SQUARE': return new SquareConnector();
-      case 'STRIPE': return new StripeConnector();
-      case 'ZELLER': return new ZellerConnector();
-      default: return null;
+      case 'TYRO':
+        return new TyroConnector();
+      case 'SQUARE':
+        return new SquareConnector();
+      case 'STRIPE':
+        return new StripeConnector();
+      case 'ZELLER':
+        return new ZellerConnector();
+      default:
+        return null;
     }
   }
 
-  verifySignature(provider: string, req: { headers: any; body: any; rawBody?: Buffer }, signature: string): boolean {
+  verifySignature(
+    provider: string,
+    req: { headers: any; body: any; rawBody?: Buffer },
+    signature: string,
+  ): boolean {
     const connector = this.getConnector(provider);
     if (!connector) {
       throw new BadRequestException(`Provider not configured: ${provider}`);
@@ -54,7 +73,12 @@ export class PosWebhookService {
     return connector.parseWebhookEvent(payload);
   }
 
-  async processWebhook(provider: string, externalEventId: string, eventType: string, payload: any) {
+  async processWebhook(
+    provider: string,
+    externalEventId: string,
+    eventType: string,
+    payload: any,
+  ) {
     try {
       const existing = await this.prisma.posWebhookEvent.findUnique({
         where: {
@@ -87,13 +111,12 @@ export class PosWebhookService {
       if (transactionId) {
         payment = await this.prisma.retailPayment.findFirst({
           where: { transactionId },
-          include: { order: true }
+          include: { order: true },
         });
         if (payment) {
           resolvedOrgId = payment.order.organizationId;
         }
       }
-
 
       // Ensure resolvedOrgId is a valid foreign key reference
       if (!resolvedOrgId || resolvedOrgId === 'UNKNOWN') {
@@ -114,8 +137,17 @@ export class PosWebhookService {
 
       if (transactionId && !payment) {
         await this.prisma.posWebhookEvent.update({
-          where: { provider_externalEventId: { provider: provider.toUpperCase(), externalEventId } },
-          data: { status: 'FAILED', error: 'Payment not found', processedAt: new Date() },
+          where: {
+            provider_externalEventId: {
+              provider: provider.toUpperCase(),
+              externalEventId,
+            },
+          },
+          data: {
+            status: 'FAILED',
+            error: 'Payment not found',
+            processedAt: new Date(),
+          },
         });
         return { status: 'FAILED', message: 'Payment not found' };
       }
@@ -123,55 +155,70 @@ export class PosWebhookService {
       let newPaymentStatus: string | null = null;
       let newOrderStatus: string | null = null;
 
-        const isSuccessEvent =
-          eventType === 'payment_intent.succeeded' ||
-          ((eventType === 'payment.updated' || eventType === 'payment.created') && (
-            payload.status === 'COMPLETED' ||
+      const isSuccessEvent =
+        eventType === 'payment_intent.succeeded' ||
+        ((eventType === 'payment.updated' || eventType === 'payment.created') &&
+          (payload.status === 'COMPLETED' ||
             payload.status === 'APPROVED' ||
             payload.payment?.status === 'COMPLETED' ||
-            payload.data?.object?.payment?.status === 'COMPLETED'
-          )) ||
-          eventType === 'transaction_completed';
+            payload.data?.object?.payment?.status === 'COMPLETED')) ||
+        eventType === 'transaction_completed';
 
-        const isFailureEvent =
-          eventType === 'payment_intent.payment_failed' ||
-          eventType === 'transaction_failed';
+      const isFailureEvent =
+        eventType === 'payment_intent.payment_failed' ||
+        eventType === 'transaction_failed';
 
+      if (isSuccessEvent) {
+        newPaymentStatus = 'PAID';
+        newOrderStatus = 'COMPLETED';
+      } else if (isFailureEvent) {
+        newPaymentStatus = 'FAILED';
+      }
 
-        if (isSuccessEvent) {
-          newPaymentStatus = 'PAID';
-          newOrderStatus = 'COMPLETED';
-        } else if (isFailureEvent) {
-          newPaymentStatus = 'FAILED';
+      if (newPaymentStatus && payment) {
+        // Safety: never transition a cancelled order/payment via webhook
+        if (payment.order.status === 'CANCELLED') {
+          await this.prisma.posWebhookEvent.update({
+            where: {
+              provider_externalEventId: {
+                provider: provider.toUpperCase(),
+                externalEventId,
+              },
+            },
+            data: {
+              status: 'IGNORED',
+              error: 'Order already cancelled',
+              processedAt: new Date(),
+            },
+          });
+          return {
+            status: 'IGNORED',
+            message: 'Order is cancelled, webhook ignored',
+          };
         }
 
-        if (newPaymentStatus && payment) {
-          // Safety: never transition a cancelled order/payment via webhook
-          if (payment.order.status === 'CANCELLED') {
-            await this.prisma.posWebhookEvent.update({
-              where: { provider_externalEventId: { provider: provider.toUpperCase(), externalEventId } },
-              data: { status: 'IGNORED', error: 'Order already cancelled', processedAt: new Date() },
+        await this.prisma.$transaction(async (tx) => {
+          if (newOrderStatus) {
+            await tx.salesOrder.update({
+              where: { id: payment.orderId },
+              data: { status: newOrderStatus as any },
             });
-            return { status: 'IGNORED', message: 'Order is cancelled, webhook ignored' };
           }
 
-          await this.prisma.$transaction(async (tx) => {
-            if (newOrderStatus) {
-              await tx.salesOrder.update({
-                where: { id: payment.orderId },
-                data: { status: newOrderStatus as any },
-              });
-            }
-
-            await tx.retailPayment.update({
-              where: { id: payment.id },
-              data: { status: newPaymentStatus as any },
-            });
+          await tx.retailPayment.update({
+            where: { id: payment.id },
+            data: { status: newPaymentStatus as any },
           });
-        }
+        });
+      }
 
       await this.prisma.posWebhookEvent.update({
-        where: { provider_externalEventId: { provider: provider.toUpperCase(), externalEventId } },
+        where: {
+          provider_externalEventId: {
+            provider: provider.toUpperCase(),
+            externalEventId,
+          },
+        },
         data: { status: 'PROCESSED', processedAt: new Date() },
       });
 
@@ -183,8 +230,8 @@ export class PosWebhookService {
           action: 'webhook.process',
           resourceType: 'PosWebhookEvent',
           resourceId: webhook.id,
-          changes: { eventType, provider }
-        }
+          changes: { eventType, provider },
+        },
       });
 
       return { status: 'SUCCESS' };
@@ -209,7 +256,8 @@ export class PosWebhookController {
     @Body() payload: any,
     @Param('provider') provider: string,
   ) {
-    const sig = stripeSignature || squareSignature || tyroSignature || signature || '';
+    const sig =
+      stripeSignature || squareSignature || tyroSignature || signature || '';
     if (!sig && provider.toUpperCase() !== 'ZELLER') {
       throw new BadRequestException('Missing signature');
     }
@@ -225,6 +273,11 @@ export class PosWebhookController {
       throw new BadRequestException('Invalid payload structure');
     }
 
-    return this.webhookService.processWebhook(provider, externalEventId, eventType, parsedEvent.data);
+    return this.webhookService.processWebhook(
+      provider,
+      externalEventId,
+      eventType,
+      parsedEvent.data,
+    );
   }
 }

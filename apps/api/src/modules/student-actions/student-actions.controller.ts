@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Delete, Param, Body, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { StudentActionsService } from './student-actions.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -36,11 +46,16 @@ export class StudentActionsController {
   async createEnquiry(
     @Param('id') id: string,
     @Body() body: { message: string; roomTypeId?: string },
-    @Request() req: any
+    @Request() req: any,
   ) {
     if (!body?.message || typeof body.message !== 'string') {
       throw new BadRequestException('Message is required and must be a string');
     }
-    return this.studentActionsService.createEnquiry(req.user.id, id, body.message, body.roomTypeId);
+    return this.studentActionsService.createEnquiry(
+      req.user.id,
+      id,
+      body.message,
+      body.roomTypeId,
+    );
   }
 }

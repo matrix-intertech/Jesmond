@@ -1,11 +1,26 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createCustomer(organizationId: string, userId: string, data: { firstName: string; lastName?: string; email?: string; phone?: string; address?: string; externalId?: string }) {
+  async createCustomer(
+    organizationId: string,
+    userId: string,
+    data: {
+      firstName: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      externalId?: string;
+    },
+  ) {
     const customer = await this.prisma.retailCustomer.create({
       data: {
         organizationId,
@@ -25,8 +40,8 @@ export class CustomersService {
         action: 'customer.create',
         resourceType: 'RetailCustomer',
         resourceId: customer.id,
-        changes: { new: customer as any }
-      }
+        changes: { new: customer as any },
+      },
     });
 
     return customer;
@@ -47,23 +62,40 @@ export class CustomersService {
       throw new NotFoundException('Customer not found');
     }
     if (customer.organizationId !== organizationId) {
-      throw new ForbiddenException('Customer does not belong to your organization');
+      throw new ForbiddenException(
+        'Customer does not belong to your organization',
+      );
     }
     return customer;
   }
 
-  async updateCustomer(organizationId: string, userId: string, customerId: string, data: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string; externalId?: string }) {
+  async updateCustomer(
+    organizationId: string,
+    userId: string,
+    customerId: string,
+    data: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      externalId?: string;
+    },
+  ) {
     const current = await this.getCustomer(organizationId, customerId);
 
     const updated = await this.prisma.retailCustomer.update({
       where: { id: customerId },
       data: {
-        firstName: data.firstName !== undefined ? data.firstName : current.firstName,
-        lastName: data.lastName !== undefined ? data.lastName : current.lastName,
+        firstName:
+          data.firstName !== undefined ? data.firstName : current.firstName,
+        lastName:
+          data.lastName !== undefined ? data.lastName : current.lastName,
         email: data.email !== undefined ? data.email : current.email,
         phone: data.phone !== undefined ? data.phone : current.phone,
         address: data.address !== undefined ? data.address : current.address,
-        externalId: data.externalId !== undefined ? data.externalId : current.externalId,
+        externalId:
+          data.externalId !== undefined ? data.externalId : current.externalId,
       },
     });
 
@@ -74,8 +106,8 @@ export class CustomersService {
         action: 'customer.update',
         resourceType: 'RetailCustomer',
         resourceId: customerId,
-        changes: { old: current as any, new: updated as any }
-      }
+        changes: { old: current as any, new: updated as any },
+      },
     });
 
     return updated;

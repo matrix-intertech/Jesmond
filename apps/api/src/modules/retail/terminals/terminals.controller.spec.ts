@@ -11,7 +11,10 @@ describe('TerminalsController', () => {
       controllers: [TerminalsController],
       providers: [
         { provide: TerminalsService, useValue: {} },
-        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+        {
+          provide: PrismaService,
+          useValue: { orgStaff: { findUnique: jest.fn() } },
+        },
       ],
     }).compile();
 

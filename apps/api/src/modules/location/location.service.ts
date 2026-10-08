@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
-import { LocationProvider, LocationSearchOptions, LocationResult } from './providers/location-provider.interface';
+import {
+  LocationProvider,
+  LocationSearchOptions,
+  LocationResult,
+} from './providers/location-provider.interface';
 import { PhotonProvider } from './providers/photon.provider';
 
 import { PrismaService } from '../prisma/prisma.service';
@@ -13,7 +17,7 @@ export class LocationService {
   constructor(
     private readonly redisService: RedisService,
     private readonly photonProvider: PhotonProvider,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
   ) {
     // We can swap providers here based on environment variable if we add more
     const providerType = process.env.LOCATION_PROVIDER || 'photon';
@@ -39,7 +43,9 @@ export class LocationService {
         return JSON.parse(cached as string);
       }
     } catch (error) {
-      this.logger.warn(`Redis cache error during location search: ${error.message}`);
+      this.logger.warn(
+        `Redis cache error during location search: ${error.message}`,
+      );
     }
 
     let localMatches: any[] = [];
@@ -58,8 +64,8 @@ export class LocationService {
             OR: [
               { name: { startsWith: q, mode: 'insensitive' } },
               { postcode: { startsWith: q } },
-              { city: { name: { startsWith: q, mode: 'insensitive' } } }
-            ]
+              { city: { name: { startsWith: q, mode: 'insensitive' } } },
+            ],
           },
           include: { city: { include: { state: true } } },
           take: limit * 2, // Take extra for JS ranking
@@ -77,13 +83,18 @@ export class LocationService {
           else otherMatch.push(s);
         }
 
-        localMatches = [...exactMatch, ...prefixMatch, ...otherMatch].slice(0, limit);
+        localMatches = [...exactMatch, ...prefixMatch, ...otherMatch].slice(
+          0,
+          limit,
+        );
       }
     } catch (dbError) {
-      this.logger.warn(`Database query failed during location search: ${dbError.message}`);
+      this.logger.warn(
+        `Database query failed during location search: ${dbError.message}`,
+      );
     }
 
-    let results: LocationResult[] = localMatches.map(s => {
+    const results: LocationResult[] = localMatches.map((s) => {
       const stateName = s.city?.state?.name || '';
       const stateCode = s.city?.state?.code || '';
       const cityName = s.city?.name || '';
@@ -104,19 +115,25 @@ export class LocationService {
         suburb: s.name,
         postcode: s.postcode,
         type: 'suburb',
-        source: 'local-db'
+        source: 'local-db',
       };
     });
 
     if (results.length < limit) {
       try {
         const photonResults = await this.provider.search({ query: q, limit });
-        const existingIds = new Set(results.map(r => r.id));
-        const existingNames = new Set(results.map(r => `${r.suburb?.toLowerCase()}-${r.postcode}`));
+        const existingIds = new Set(results.map((r) => r.id));
+        const existingNames = new Set(
+          results.map((r) => `${r.suburb?.toLowerCase()}-${r.postcode}`),
+        );
 
         for (const p of photonResults) {
           const dupKey = `${p.suburb?.toLowerCase()}-${p.postcode}`;
-          if (!existingIds.has(p.id) && !existingNames.has(dupKey) && results.length < limit) {
+          if (
+            !existingIds.has(p.id) &&
+            !existingNames.has(dupKey) &&
+            results.length < limit
+          ) {
             results.push(p);
             existingIds.add(p.id);
             existingNames.add(dupKey);
@@ -133,13 +150,18 @@ export class LocationService {
         await this.redisService.set(cacheKey, JSON.stringify(results), 86400);
       }
     } catch (error) {
-      this.logger.warn(`Redis cache set error during location search: ${error.message}`);
+      this.logger.warn(
+        `Redis cache set error during location search: ${error.message}`,
+      );
     }
 
     return results;
   }
 
-  async reverseGeocode(lat: number, lng: number): Promise<LocationResult | null> {
+  async reverseGeocode(
+    lat: number,
+    lng: number,
+  ): Promise<LocationResult | null> {
     const cacheKey = `location:reverse:${lat.toFixed(4)}:${lng.toFixed(4)}`;
 
     try {
@@ -148,7 +170,9 @@ export class LocationService {
         return JSON.parse(cached as string);
       }
     } catch (error) {
-      this.logger.warn(`Redis cache error during reverse geocoding: ${error.message}`);
+      this.logger.warn(
+        `Redis cache error during reverse geocoding: ${error.message}`,
+      );
     }
 
     const result = await this.provider.reverseGeocode(lat, lng);
@@ -158,7 +182,9 @@ export class LocationService {
         await this.redisService.set(cacheKey, JSON.stringify(result), 86400);
       }
     } catch (error) {
-      this.logger.warn(`Redis cache set error during reverse geocoding: ${error.message}`);
+      this.logger.warn(
+        `Redis cache set error during reverse geocoding: ${error.message}`,
+      );
     }
 
     return result;
@@ -170,22 +196,24 @@ export class LocationService {
     let match = await this.prisma.suburb.findFirst({
       where: {
         name: { equals: suburbName, mode: 'insensitive' },
-        ...(cityName ? { city: { name: { equals: cityName, mode: 'insensitive' } } } : {})
+        ...(cityName
+          ? { city: { name: { equals: cityName, mode: 'insensitive' } } }
+          : {}),
       },
       include: {
         city: {
           include: {
-            state: true
-          }
-        }
-      }
+            state: true,
+          },
+        },
+      },
     });
 
     // Fallback if city doesn't match perfectly, but suburb does
     if (!match && cityName) {
       match = await this.prisma.suburb.findFirst({
         where: { name: { equals: suburbName, mode: 'insensitive' } },
-        include: { city: { include: { state: true } } }
+        include: { city: { include: { state: true } } },
       });
     }
 
@@ -197,7 +225,7 @@ export class LocationService {
         suburb: match.name,
         city: match.city.name,
         state: match.city.state.name,
-        postcode: match.postcode
+        postcode: match.postcode,
       };
     }
     return null;

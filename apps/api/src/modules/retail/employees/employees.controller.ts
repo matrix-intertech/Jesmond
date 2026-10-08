@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from '@nestjs/common';
 import { EmployeesService } from './employees.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -21,7 +32,11 @@ export class EmployeesController {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
     }
-    return this.employeesService.createEmployee(req.user.organizationId, req.user.id, body);
+    return this.employeesService.createEmployee(
+      req.user.organizationId,
+      req.user.id,
+      body,
+    );
   }
 
   @Get()
@@ -44,11 +59,20 @@ export class EmployeesController {
 
   @Patch(':id')
   @RequirePermissions(RetailPermission.EMPLOYEES_MANAGE)
-  async updateEmployee(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+  async updateEmployee(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
     }
-    return this.employeesService.updateEmployee(req.user.organizationId, req.user.id, id, body);
+    return this.employeesService.updateEmployee(
+      req.user.organizationId,
+      req.user.id,
+      id,
+      body,
+    );
   }
 
   @Delete(':id')
@@ -57,6 +81,9 @@ export class EmployeesController {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
     }
-    return this.employeesService.deactivateEmployee(req.user.organizationId, id);
+    return this.employeesService.deactivateEmployee(
+      req.user.organizationId,
+      id,
+    );
   }
 }

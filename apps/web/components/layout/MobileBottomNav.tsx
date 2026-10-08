@@ -1,5 +1,6 @@
 "use client";
 
+import { canUseBusinessCapability } from "@/utils/capabilities";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -34,6 +35,7 @@ type BottomNavItem = {
  icon: BottomNavIcon;
  isActive: (pathname: string, hash: string) => boolean;
  requiredPermissions?: string[];
+  requiredCapabilities?: import("@/utils/capabilities").BusinessCapability[];
 };
 
 const exact = (href: string) => (pathname: string) => pathname === href;
@@ -139,13 +141,15 @@ const retailItems: BottomNavItem[] = [
  isActive: section("/portal/retail/catalog"),
  },
  {
- href: "/portal/retail/inventory",
+ requiredCapabilities: ["INVENTORY"],
+    href: "/portal/retail/inventory",
  label: "Inventory",
  icon: Boxes,
  isActive: section("/portal/retail/inventory"),
  },
  {
- href: "/portal/retail/orders",
+ requiredCapabilities: ["ORDERS"],
+    href: "/portal/retail/orders",
  label: "Orders",
  icon: ShoppingCart,
  isActive: section("/portal/retail/orders"),
@@ -189,6 +193,11 @@ const hasPermission = (user: User | null, item: BottomNavItem) => {
  return permissions.includes("*") || item.requiredPermissions.some((permission) => permissions.includes(permission));
 };
 
+const hasCapability = (user: User | null, item: BottomNavItem) => {
+  if (!item.requiredCapabilities?.length) return true;
+  return item.requiredCapabilities.every((cap: any) => canUseBusinessCapability(user?.businessCategory, cap));
+};
+
 function getItemsForUser(role: UserRole | undefined, user: User | null) {
  if (!role) return publicItems;
  if (role === "STUDENT") return studentItems;
@@ -196,7 +205,7 @@ function getItemsForUser(role: UserRole | undefined, user: User | null) {
 
  if (role === "ORG_STAFF") {
  const orgType = user?.orgType || "PROVIDER";
- if (orgType === "RETAIL") return retailItems.filter((item) => hasPermission(user, item));
+ if (orgType === "RETAIL") return retailItems.filter((item) => hasPermission(user, item) && hasCapability(user, item));
  return providerItems;
  }
 

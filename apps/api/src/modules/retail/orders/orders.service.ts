@@ -1,7 +1,16 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { InventoryService } from '../inventory/inventory.service';
-import { PaymentMethod, OrderStatus, RetailPaymentStatus } from '@prisma/client';
+import {
+  PaymentMethod,
+  OrderStatus,
+  RetailPaymentStatus,
+} from '@prisma/client';
 import { TyroConnector } from '../pos/providers/tyro.connector';
 import { SquareConnector } from '../pos/providers/square.connector';
 import { StripeConnector } from '../pos/providers/stripe.connector';
@@ -13,16 +22,21 @@ export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private inventoryService: InventoryService,
-    private notificationsService: NotificationsService
+    private notificationsService: NotificationsService,
   ) {}
 
   private getConnector(provider: string) {
     switch (provider.toUpperCase()) {
-      case 'TYRO': return new TyroConnector();
-      case 'SQUARE': return new SquareConnector();
-      case 'STRIPE': return new StripeConnector();
-      case 'ZELLER': return new ZellerConnector();
-      default: return null;
+      case 'TYRO':
+        return new TyroConnector();
+      case 'SQUARE':
+        return new SquareConnector();
+      case 'STRIPE':
+        return new StripeConnector();
+      case 'ZELLER':
+        return new ZellerConnector();
+      default:
+        return null;
     }
   }
 
@@ -37,7 +51,7 @@ export class OrdersService {
     paymentMethod: PaymentMethod = PaymentMethod.CASH,
     amountReceived?: number,
     providerRequestId?: string,
-    customerId?: string
+    customerId?: string,
   ) {
     if (!items || items.length === 0) {
       throw new BadRequestException('Order must contain at least one item');
@@ -48,7 +62,7 @@ export class OrdersService {
       if (providerRequestId) {
         const existingPayment = await tx.retailPayment.findFirst({
           where: { providerRequestId },
-          include: { order: { include: { items: true, payments: true } } }
+          include: { order: { include: { items: true, payments: true } } },
         });
         if (existingPayment) {
           return existingPayment.order;
@@ -63,7 +77,9 @@ export class OrdersService {
         throw new NotFoundException('Branch not found');
       }
       if (branch.organizationId !== organizationId) {
-        throw new ForbiddenException('Branch does not belong to your organization');
+        throw new ForbiddenException(
+          'Branch does not belong to your organization',
+        );
       }
 
       // Customer Validation
@@ -72,7 +88,9 @@ export class OrdersService {
           where: { id: customerId },
         });
         if (!customer || customer.organizationId !== organizationId) {
-          throw new BadRequestException('Customer not found or invalid organization context');
+          throw new BadRequestException(
+            'Customer not found or invalid organization context',
+          );
         }
       }
 
@@ -80,7 +98,7 @@ export class OrdersService {
       // taxRate is stored as a decimal multiplier: 0.10 = 10% GST
       // All monetary values are in integer cents to preserve precision
       let subtotal = 0; // sum of (qty * unitPrice) for each line, pre-tax
-      let totalTax = 0;  // sum of per-line tax amounts
+      let totalTax = 0; // sum of per-line tax amounts
       const orderItemsData = [];
 
       for (const item of items) {
@@ -99,16 +117,22 @@ export class OrdersService {
           throw new BadRequestException(`Product ${product.name} is inactive`);
         }
         if (product.organizationId !== organizationId) {
-          throw new ForbiddenException(`Product ${product.name} does not belong to your organization`);
+          throw new ForbiddenException(
+            `Product ${product.name} does not belong to your organization`,
+          );
         }
 
         // Validate stock availability
         const inventory = await tx.inventory.findUnique({
-          where: { branchId_productId: { branchId, productId: item.productId } },
+          where: {
+            branchId_productId: { branchId, productId: item.productId },
+          },
         });
 
         if (!inventory || inventory.quantity < item.quantity) {
-          throw new BadRequestException(`Insufficient inventory for product ${product.name}`);
+          throw new BadRequestException(
+            `Insufficient inventory for product ${product.name}`,
+          );
         }
 
         // Authoritative pricing: all values sourced from DB, never from client payload
@@ -140,7 +164,10 @@ export class OrdersService {
           terminalId,
           customerId,
           orderNumber,
-          status: paymentMethod === PaymentMethod.CASH ? OrderStatus.COMPLETED : OrderStatus.PENDING,
+          status:
+            paymentMethod === PaymentMethod.CASH
+              ? OrderStatus.COMPLETED
+              : OrderStatus.PENDING,
           subtotal,
           tax: totalTax,
           discount: 0,
@@ -160,7 +187,7 @@ export class OrdersService {
           branchId,
           item.productId,
           item.quantity,
-          order.id
+          order.id,
         );
       }
 
@@ -182,9 +209,9 @@ export class OrdersService {
             providerRequestId,
             metadata: {
               amountReceived: cashAmt,
-              changeDue: change
-            }
-          }
+              changeDue: change,
+            },
+          },
         });
       } else {
         // Card reader/terminal integration
@@ -199,7 +226,9 @@ export class OrdersService {
             throw new NotFoundException('Terminal not found');
           }
           if (terminal.branchId !== branchId) {
-            throw new BadRequestException('Terminal does not belong to the selected branch');
+            throw new BadRequestException(
+              'Terminal does not belong to the selected branch',
+            );
           }
 
           providerName = terminal.provider || 'STRIPE';
@@ -210,7 +239,7 @@ export class OrdersService {
               amount: total,
               currency: 'AUD',
               providerTerminalId: terminal.externalId || terminal.id,
-              idempotencyKey: providerRequestId || `idem-${Date.now()}`
+              idempotencyKey: providerRequestId || `idem-${Date.now()}`,
             });
             transactionId = result.providerTransactionId;
           }
@@ -225,8 +254,8 @@ export class OrdersService {
             providerRequestId,
             amount: total,
             status: RetailPaymentStatus.PENDING,
-            reconciliationStatus: 'PENDING'
-          }
+            reconciliationStatus: 'PENDING',
+          },
         });
       }
 
@@ -237,25 +266,29 @@ export class OrdersService {
           action: 'order.create',
           resourceType: 'SalesOrder',
           resourceId: order.id,
-          changes: { new: order as any }
-        }
+          changes: { new: order as any },
+        },
       });
 
       // Reload order with items and payments to return complete object
       const completeOrder = await tx.salesOrder.findUnique({
         where: { id: order.id },
-        include: { items: true, payments: true }
+        include: { items: true, payments: true },
       });
 
       // Async Notification (Non-blocking)
       if (customerId) {
-        this.notificationsService.createNotification({
-          recipientId: customerId,
-          type: 'RETAIL_ORDER_CREATED',
-          title: 'Order Created',
-          body: `Your order ${orderNumber} has been successfully created.`,
-          actionUrl: `/my-orders/${order.id}`,
-        }).catch(err => console.error('Failed to notify customer of order creation', err));
+        this.notificationsService
+          .createNotification({
+            recipientId: customerId,
+            type: 'RETAIL_ORDER_CREATED',
+            title: 'Order Created',
+            body: `Your order ${orderNumber} has been successfully created.`,
+            actionUrl: `/my-orders/${order.id}`,
+          })
+          .catch((err) =>
+            console.error('Failed to notify customer of order creation', err),
+          );
       }
 
       return completeOrder;
@@ -273,7 +306,9 @@ export class OrdersService {
         throw new NotFoundException('Order not found');
       }
       if (order.organizationId !== organizationId) {
-        throw new ForbiddenException('Order does not belong to your organization');
+        throw new ForbiddenException(
+          'Order does not belong to your organization',
+        );
       }
       if (order.status !== OrderStatus.PENDING) {
         throw new BadRequestException('Only PENDING orders can be cancelled');
@@ -294,7 +329,12 @@ export class OrdersService {
       // 3. Roll back (increment) inventory for each item
       for (const item of order.items) {
         await tx.inventory.update({
-          where: { branchId_productId: { branchId: order.branchId, productId: item.productId } },
+          where: {
+            branchId_productId: {
+              branchId: order.branchId,
+              productId: item.productId,
+            },
+          },
           data: {
             quantity: { increment: item.quantity },
           },
@@ -322,24 +362,28 @@ export class OrdersService {
           action: 'order.cancel',
           resourceType: 'SalesOrder',
           resourceId: orderId,
-          changes: { old: order as any, new: updatedOrder as any }
-        }
+          changes: { old: order as any, new: updatedOrder as any },
+        },
       });
 
       return tx.salesOrder.findUnique({
         where: { id: orderId },
-        include: { items: true, payments: true }
+        include: { items: true, payments: true },
       });
     });
 
     if (result && result.customerId) {
-      this.notificationsService.createNotification({
-        recipientId: result.customerId,
-        type: 'RETAIL_ORDER_STATUS_CHANGED',
-        title: 'Order Cancelled',
-        body: `Your order ${result.orderNumber} has been cancelled.`,
-        actionUrl: `/my-orders/${result.id}`,
-      }).catch(err => console.error('Failed to notify customer of order cancellation', err));
+      this.notificationsService
+        .createNotification({
+          recipientId: result.customerId,
+          type: 'RETAIL_ORDER_STATUS_CHANGED',
+          title: 'Order Cancelled',
+          body: `Your order ${result.orderNumber} has been cancelled.`,
+          actionUrl: `/my-orders/${result.id}`,
+        })
+        .catch((err) =>
+          console.error('Failed to notify customer of order cancellation', err),
+        );
     }
 
     return result;
@@ -352,7 +396,12 @@ export class OrdersService {
     }
     const order = await this.prisma.salesOrder.findFirst({
       where,
-      include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
+      include: {
+        items: { include: { product: true } },
+        payments: true,
+        customer: true,
+        branch: true,
+      },
     });
     if (!order) {
       throw new NotFoundException('Order not found');
@@ -366,7 +415,7 @@ export class OrdersService {
     page?: number,
     limit?: number,
     status?: string,
-    fulfillmentType?: string
+    fulfillmentType?: string,
   ) {
     const where: any = { organizationId };
     if (branchId) {
@@ -374,7 +423,9 @@ export class OrdersService {
     }
     if (status && status !== 'ALL') {
       if (status === 'ALL_ACTIVE') {
-        where.status = { in: [OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.PACKED] };
+        where.status = {
+          in: [OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.PACKED],
+        };
       } else {
         where.status = status as OrderStatus;
       }
@@ -395,9 +446,14 @@ export class OrdersService {
           orderBy: { createdAt: 'desc' },
           skip,
           take: boundedLimit,
-          include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
+          include: {
+            items: { include: { product: true } },
+            payments: true,
+            customer: true,
+            branch: true,
+          },
         }),
-        this.prisma.salesOrder.count({ where })
+        this.prisma.salesOrder.count({ where }),
       ]);
 
       return {
@@ -406,15 +462,20 @@ export class OrdersService {
           page: boundedPage,
           limit: boundedLimit,
           total,
-          totalPages: Math.ceil(total / boundedLimit)
-        }
+          totalPages: Math.ceil(total / boundedLimit),
+        },
       };
     }
 
     return this.prisma.salesOrder.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { items: { include: { product: true } }, payments: true, customer: true, branch: true }
+      include: {
+        items: { include: { product: true } },
+        payments: true,
+        customer: true,
+        branch: true,
+      },
     });
   }
 
@@ -434,17 +495,24 @@ export class OrdersService {
       this.prisma.salesOrder.groupBy({
         by: ['status'],
         where,
-        _count: { _all: true }
+        _count: { _all: true },
       }),
       this.prisma.salesOrder.count({ where }),
       this.prisma.salesOrder.aggregate({
         _sum: { total: true },
         where: {
           ...where,
-          status: { in: [OrderStatus.COMPLETED, OrderStatus.DELIVERED, OrderStatus.TAKEN, OrderStatus.PAID] },
-          createdAt: { gte: startOfToday }
-        }
-      })
+          status: {
+            in: [
+              OrderStatus.COMPLETED,
+              OrderStatus.DELIVERED,
+              OrderStatus.TAKEN,
+              OrderStatus.PAID,
+            ],
+          },
+          createdAt: { gte: startOfToday },
+        },
+      }),
     ]);
 
     const statusMap: Record<string, number> = {};
@@ -463,17 +531,17 @@ export class OrdersService {
         taken: statusMap[OrderStatus.TAKEN] || 0,
         cancelled: statusMap[OrderStatus.CANCELLED] || 0,
         completed: statusMap[OrderStatus.COMPLETED] || 0,
-      }
+      },
     };
   }
 
   async getCustomerOrders(email: string) {
     return this.prisma.salesOrder.findMany({
       where: {
-        customer: { email }
+        customer: { email },
       },
       orderBy: { createdAt: 'desc' },
-      include: { items: { include: { product: true } }, branch: true }
+      include: { items: { include: { product: true } }, branch: true },
     });
   }
 
@@ -481,53 +549,82 @@ export class OrdersService {
     const order = await this.prisma.salesOrder.findFirst({
       where: {
         id: orderId,
-        customer: { email }
+        customer: { email },
       },
-      include: { items: { include: { product: true } }, branch: true }
+      include: { items: { include: { product: true } }, branch: true },
     });
     if (!order) {
-      throw new NotFoundException('Order not found or you do not have permission to view it');
+      throw new NotFoundException(
+        'Order not found or you do not have permission to view it',
+      );
     }
     return order;
   }
 
-  async updateOrderStatus(organizationId: string, orderId: string, newStatus: OrderStatus) {
+  async updateOrderStatus(
+    organizationId: string,
+    orderId: string,
+    newStatus: OrderStatus,
+  ) {
     const result = await this.prisma.$transaction(async (tx) => {
       const order = await tx.salesOrder.findUnique({
-        where: { id: orderId }
+        where: { id: orderId },
       });
 
       if (!order) {
         throw new NotFoundException('Order not found');
       }
       if (order.organizationId !== organizationId) {
-        throw new ForbiddenException('Order does not belong to your organization');
+        throw new ForbiddenException(
+          'Order does not belong to your organization',
+        );
       }
 
       // Validate transitions
-      if (order.status === OrderStatus.CANCELLED || order.status === OrderStatus.REFUNDED) {
-        throw new BadRequestException('Cannot update a cancelled or refunded order');
+      if (
+        order.status === OrderStatus.CANCELLED ||
+        order.status === OrderStatus.REFUNDED
+      ) {
+        throw new BadRequestException(
+          'Cannot update a cancelled or refunded order',
+        );
       }
 
       if (newStatus === OrderStatus.ACCEPTED) {
-        if (order.status !== OrderStatus.PENDING) throw new BadRequestException('Order must be PENDING to accept');
+        if (order.status !== OrderStatus.PENDING)
+          throw new BadRequestException('Order must be PENDING to accept');
       } else if (newStatus === OrderStatus.PACKED) {
-        if (order.status !== OrderStatus.ACCEPTED) throw new BadRequestException('Order must be ACCEPTED to pack');
+        if (order.status !== OrderStatus.ACCEPTED)
+          throw new BadRequestException('Order must be ACCEPTED to pack');
       } else if (newStatus === OrderStatus.DELIVERED) {
-        if (order.status !== OrderStatus.PACKED) throw new BadRequestException('Order must be PACKED to deliver');
-        if (order.fulfillmentType !== 'DELIVERY') throw new BadRequestException('Only DELIVERY orders can be DELIVERED');
+        if (order.status !== OrderStatus.PACKED)
+          throw new BadRequestException('Order must be PACKED to deliver');
+        if (order.fulfillmentType !== 'DELIVERY')
+          throw new BadRequestException(
+            'Only DELIVERY orders can be DELIVERED',
+          );
       } else if (newStatus === OrderStatus.TAKEN) {
-        if (order.status !== OrderStatus.PACKED) throw new BadRequestException('Order must be PACKED to be marked as taken');
-        if (order.fulfillmentType !== 'TAKEAWAY') throw new BadRequestException('Only TAKEAWAY orders can be TAKEN');
+        if (order.status !== OrderStatus.PACKED)
+          throw new BadRequestException(
+            'Order must be PACKED to be marked as taken',
+          );
+        if (order.fulfillmentType !== 'TAKEAWAY')
+          throw new BadRequestException('Only TAKEAWAY orders can be TAKEN');
       } else {
         // Other transitions not currently part of the operational workflow
-        throw new BadRequestException(`Cannot manually transition to ${newStatus}`);
+        throw new BadRequestException(
+          `Cannot manually transition to ${newStatus}`,
+        );
       }
 
       const updatedOrder = await tx.salesOrder.update({
         where: { id: orderId },
         data: { status: newStatus },
-        include: { items: { include: { product: true } }, branch: true, customer: true }
+        include: {
+          items: { include: { product: true } },
+          branch: true,
+          customer: true,
+        },
       });
 
       await tx.auditLog.create({
@@ -537,21 +634,25 @@ export class OrdersService {
           action: 'order.update_status',
           resourceType: 'SalesOrder',
           resourceId: orderId,
-          changes: { oldStatus: order.status, newStatus } as any
-        }
+          changes: { oldStatus: order.status, newStatus } as any,
+        },
       });
 
       return updatedOrder;
     });
 
     if (result.customerId) {
-      this.notificationsService.createNotification({
-        recipientId: result.customerId,
-        type: 'RETAIL_ORDER_STATUS_CHANGED',
-        title: 'Order Status Updated',
-        body: `Your order ${result.orderNumber} is now ${newStatus}.`,
-        actionUrl: `/my-orders/${result.id}`,
-      }).catch(err => console.error('Failed to notify customer of order cancellation', err));
+      this.notificationsService
+        .createNotification({
+          recipientId: result.customerId,
+          type: 'RETAIL_ORDER_STATUS_CHANGED',
+          title: 'Order Status Updated',
+          body: `Your order ${result.orderNumber} is now ${newStatus}.`,
+          actionUrl: `/my-orders/${result.id}`,
+        })
+        .catch((err) =>
+          console.error('Failed to notify customer of order cancellation', err),
+        );
     }
 
     return result;

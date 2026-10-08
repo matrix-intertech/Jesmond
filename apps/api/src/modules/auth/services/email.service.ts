@@ -5,7 +5,8 @@ import * as nodemailer from 'nodemailer';
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private transporter: nodemailer.Transporter | null = null;
-  private readonly fromEmail = process.env.EMAIL_FROM || 'noreply@jesmond.local';
+  private readonly fromEmail =
+    process.env.EMAIL_FROM || 'noreply@jesmond.local';
 
   constructor() {
     if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
@@ -14,13 +15,18 @@ export class EmailService {
         host: process.env.SMTP_HOST,
         port: port,
         secure: port === 465, // true for 465, false for other ports
-        auth: process.env.SMTP_USER && process.env.SMTP_PASSWORD ? {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
-        } : undefined,
+        auth:
+          process.env.SMTP_USER && process.env.SMTP_PASSWORD
+            ? {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASSWORD,
+              }
+            : undefined,
       });
     } else {
-      this.logger.warn('SMTP_HOST or SMTP_PORT is not set. Emails will only be logged.');
+      this.logger.warn(
+        'SMTP_HOST or SMTP_PORT is not set. Emails will only be logged.',
+      );
     }
   }
 
@@ -43,7 +49,9 @@ export class EmailService {
     `;
 
     if (!this.transporter) {
-      this.logger.log(`[DEV MODE] Mock Email sent to ${email}. OTP is generated but hidden from logs in production.`);
+      this.logger.log(
+        `[DEV MODE] Mock Email sent to ${email}. OTP is generated but hidden from logs in production.`,
+      );
       // We log OTP in dev mode only if SMTP is not configured
       this.logger.debug(`[DEV MODE] OTP: ${otp}`);
       return true; // Return true in dev mode
@@ -75,18 +83,25 @@ export class EmailService {
   }): Promise<boolean> {
     const contactLines: string[] = [];
     if (options.contactPersonName) {
-      contactLines.push(`<p style="margin: 4px 0; color: #374151;"><strong>Contact Person:</strong> ${options.contactPersonName}</p>`);
+      contactLines.push(
+        `<p style="margin: 4px 0; color: #374151;"><strong>Contact Person:</strong> ${options.contactPersonName}</p>`,
+      );
     }
     if (options.contactPhone) {
-      contactLines.push(`<p style="margin: 4px 0; color: #374151;"><strong>Phone:</strong> ${options.contactPhone}</p>`);
+      contactLines.push(
+        `<p style="margin: 4px 0; color: #374151;"><strong>Phone:</strong> ${options.contactPhone}</p>`,
+      );
     }
     if (options.contactEmail) {
-      contactLines.push(`<p style="margin: 4px 0; color: #374151;"><strong>Email:</strong> ${options.contactEmail}</p>`);
+      contactLines.push(
+        `<p style="margin: 4px 0; color: #374151;"><strong>Email:</strong> ${options.contactEmail}</p>`,
+      );
     }
 
-    const contactBlock = contactLines.length > 0
-      ? `<div style="margin-top: 16px;">${contactLines.join('')}</div>`
-      : '';
+    const contactBlock =
+      contactLines.length > 0
+        ? `<div style="margin-top: 16px;">${contactLines.join('')}</div>`
+        : '';
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -115,7 +130,9 @@ export class EmailService {
     `;
 
     if (!this.transporter) {
-      this.logger.log(`[DEV MODE] Mock Approval Email sent to ${options.studentEmail} for property "${options.propertyName}".`);
+      this.logger.log(
+        `[DEV MODE] Mock Approval Email sent to ${options.studentEmail} for property "${options.propertyName}".`,
+      );
       return true;
     }
 
@@ -128,7 +145,10 @@ export class EmailService {
       });
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send approval email to ${options.studentEmail}`, error);
+      this.logger.error(
+        `Failed to send approval email to ${options.studentEmail}`,
+        error,
+      );
       return false;
     }
   }
@@ -154,7 +174,9 @@ export class EmailService {
     `;
 
     if (!this.transporter) {
-      this.logger.log(`[DEV MODE] Mock Password Reset Email sent to ${email}. OTP is generated but hidden from logs in production.`);
+      this.logger.log(
+        `[DEV MODE] Mock Password Reset Email sent to ${email}. OTP is generated but hidden from logs in production.`,
+      );
       this.logger.debug(`[DEV MODE] Password Reset OTP: ${otp}`);
       return true;
     }
@@ -168,7 +190,10 @@ export class EmailService {
       });
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${email}`, error);
+      this.logger.error(
+        `Failed to send password reset email to ${email}`,
+        error,
+      );
       return false;
     }
   }
@@ -196,7 +221,9 @@ export class EmailService {
     `;
 
     if (!this.transporter) {
-      this.logger.log(`[DEV MODE] Mock Application Removal Email sent to ${options.studentEmail} for property "${options.propertyName}".`);
+      this.logger.log(
+        `[DEV MODE] Mock Application Removal Email sent to ${options.studentEmail} for property "${options.propertyName}".`,
+      );
       return true;
     }
 
@@ -209,7 +236,10 @@ export class EmailService {
       });
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send application removal email to ${options.studentEmail}`, error);
+      this.logger.error(
+        `Failed to send application removal email to ${options.studentEmail}`,
+        error,
+      );
       return false;
     }
   }
@@ -234,7 +264,9 @@ export class EmailService {
     `;
 
     if (!this.transporter) {
-      this.logger.log(`[DEV MODE] Mock Application Withdrawal Email sent to ${options.providerEmail} for property "${options.propertyName}".`);
+      this.logger.log(
+        `[DEV MODE] Mock Application Withdrawal Email sent to ${options.providerEmail} for property "${options.propertyName}".`,
+      );
       return true;
     }
 
@@ -247,7 +279,10 @@ export class EmailService {
       });
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send application withdrawal email to ${options.providerEmail}`, error);
+      this.logger.error(
+        `Failed to send application withdrawal email to ${options.providerEmail}`,
+        error,
+      );
       return false;
     }
   }

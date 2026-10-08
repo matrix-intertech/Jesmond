@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -19,7 +30,9 @@ export class BranchesController {
   @RequirePermissions(RetailPermission.BRANCH_VIEW)
   async listBranches(@Request() req: any) {
     if (!req.user || !req.user.organizationId) {
-      throw new ForbiddenException('Organization context is required to access retail branches');
+      throw new ForbiddenException(
+        'Organization context is required to access retail branches',
+      );
     }
     return this.branchesService.listBranches(req.user.organizationId);
   }
@@ -28,7 +41,9 @@ export class BranchesController {
   @RequirePermissions(RetailPermission.BRANCH_VIEW)
   async getBranch(@Request() req: any, @Param('id') id: string) {
     if (!req.user || !req.user.organizationId) {
-      throw new ForbiddenException('Organization context is required to access retail branches');
+      throw new ForbiddenException(
+        'Organization context is required to access retail branches',
+      );
     }
     return this.branchesService.getBranch(req.user.organizationId, id);
   }
@@ -44,7 +59,11 @@ export class BranchesController {
 
   @Patch(':id')
   @RequirePermissions(RetailPermission.BRANCH_MANAGE)
-  async updateBranch(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+  async updateBranch(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: any,
+  ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
     }
@@ -61,7 +80,10 @@ export class BranchesController {
   }
 
   @Get(':id/employees')
-  @RequirePermissions(RetailPermission.BRANCH_VIEW, RetailPermission.EMPLOYEES_VIEW)
+  @RequirePermissions(
+    RetailPermission.BRANCH_VIEW,
+    RetailPermission.EMPLOYEES_VIEW,
+  )
   async getBranchEmployees(@Request() req: any, @Param('id') id: string) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');

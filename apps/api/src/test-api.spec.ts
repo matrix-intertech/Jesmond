@@ -24,17 +24,21 @@ describe('API Tests', () => {
   });
 
   it('should withdraw app', async () => {
-    const user = await prisma.user.findFirst({ where: { email: 'student@jesmond.demo' } });
+    const user = await prisma.user.findFirst({
+      where: { email: 'student@jesmond.demo' },
+    });
     if (!user) return console.log('no user');
     const resLogin = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .send({ email: 'student@jesmond.demo', password: 'Jesmond@Demo2026!' });
-      
+
     const token = resLogin.body.accessToken || resLogin.body.access_token;
     console.log(resLogin.body);
     expect(token).toBeDefined();
 
-    let appRecord = await prisma.application.findFirst({ where: { studentId: user.id } });
+    let appRecord = await prisma.application.findFirst({
+      where: { studentId: user.id },
+    });
     if (!appRecord) {
       const roomType = await prisma.roomType.findFirst();
       appRecord = await prisma.application.create({
@@ -45,7 +49,7 @@ describe('API Tests', () => {
           moveInDate: new Date(),
           durationMonths: 12,
           lockedPrice: 10000,
-        }
+        },
       });
     }
 
@@ -53,7 +57,7 @@ describe('API Tests', () => {
     const res = await request(app.getHttpServer())
       .post(`/api/v1/applications/${appRecord.id}/withdraw`)
       .set('Authorization', `Bearer ${token}`);
-    
+
     console.log(res.body);
     expect(res.status).toBe(201); // Created or 200 OK
   });

@@ -8,10 +8,13 @@ import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    rawBody: true,
+  });
 
-const expressApp = app.getHttpAdapter().getInstance();
-expressApp.set('trust proxy', 1);
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
 
   // 1. Request Logging via Pino
   app.useLogger(app.get(Logger));
@@ -48,7 +51,9 @@ expressApp.set('trust proxy', 1);
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000, // 15 minutes
-      max: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX, 10) : 1000, // limit each client IP
+      max: process.env.RATE_LIMIT_MAX
+        ? parseInt(process.env.RATE_LIMIT_MAX, 10)
+        : 1000, // limit each client IP
       standardHeaders: true,
       legacyHeaders: true,
       message: 'Too many requests, please try again later.',

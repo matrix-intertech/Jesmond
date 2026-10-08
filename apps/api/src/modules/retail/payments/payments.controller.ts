@@ -1,4 +1,13 @@
-import { Controller, Patch, Post, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Patch,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
@@ -14,11 +23,19 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Patch(':id/status')
-  async updateStatus(@Request() req: any, @Param('id') id: string, @Body('status') status: RetailPaymentStatus) {
+  async updateStatus(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body('status') status: RetailPaymentStatus,
+  ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');
     }
-    return this.paymentsService.updatePaymentStatus(req.user.organizationId, id, status);
+    return this.paymentsService.updatePaymentStatus(
+      req.user.organizationId,
+      id,
+      status,
+    );
   }
 
   @Post('retry')
@@ -31,7 +48,7 @@ export class PaymentsController {
       data.orderId,
       data.paymentMethod,
       data.terminalId,
-      data.providerRequestId
+      data.providerRequestId,
     );
   }
 }

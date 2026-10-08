@@ -44,6 +44,10 @@ export class LocationsController {
     @Query('stateId') stateId: string,
   ) {
     if (!lat || !lng || !stateId) return null;
-    return this.locationsService.getNearestSuburb(parseFloat(lat), parseFloat(lng), stateId);
+    return this.locationsService.getNearestSuburb(
+      parseFloat(lat),
+      parseFloat(lng),
+      stateId,
+    );
   }
 }

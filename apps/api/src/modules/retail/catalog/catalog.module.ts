@@ -6,6 +6,6 @@ import { PropertiesModule } from '../../properties/properties.module';
 @Module({
   imports: [PropertiesModule],
   providers: [CatalogService],
-  controllers: [CatalogController]
+  controllers: [CatalogController],
 })
 export class CatalogModule {}

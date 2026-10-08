@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { RetailPermission } from '../retail-permissions.enum';
 import { PERMISSIONS_KEY } from '../decorators/require-permissions.decorator';
@@ -9,14 +14,13 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class RetailPermissionGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private prisma: PrismaService
+    private prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.getAllAndOverride<RetailPermission[]>(PERMISSIONS_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredPermissions = this.reflector.getAllAndOverride<
+      RetailPermission[]
+    >(PERMISSIONS_KEY, [context.getHandler(), context.getClass()]);
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
@@ -34,15 +38,22 @@ export class RetailPermissionGuard implements CanActivate {
     // If not, we look it up.
     let orgStaff = user.orgStaff;
     if (!orgStaff) {
-       orgStaff = await this.prisma.orgStaff.findUnique({
-         where: { userId_organizationId: { userId: user.id, organizationId: user.organizationId } }
-       });
-       // Attach to request for downstream usage
-       request.user.orgStaff = orgStaff;
+      orgStaff = await this.prisma.orgStaff.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: user.id,
+            organizationId: user.organizationId,
+          },
+        },
+      });
+      // Attach to request for downstream usage
+      request.user.orgStaff = orgStaff;
     }
 
     if (!orgStaff) {
-      throw new ForbiddenException('Employee record not found for this organization');
+      throw new ForbiddenException(
+        'Employee record not found for this organization',
+      );
     }
 
     if (orgStaff.role === UserRole.ADMIN) {
@@ -51,8 +62,8 @@ export class RetailPermissionGuard implements CanActivate {
 
     // Check specific permissions
     const userPermissions: string[] = orgStaff.permissions || [];
-    const hasAllRequired = requiredPermissions.every((perm) =>
-      userPermissions.includes('*') || userPermissions.includes(perm)
+    const hasAllRequired = requiredPermissions.every(
+      (perm) => userPermissions.includes('*') || userPermissions.includes(perm),
     );
 
     if (!hasAllRequired) {

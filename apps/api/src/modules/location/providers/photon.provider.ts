@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { LocationProvider, LocationSearchOptions, LocationResult } from './location-provider.interface';
+import {
+  LocationProvider,
+  LocationSearchOptions,
+  LocationResult,
+} from './location-provider.interface';
 
 @Injectable()
 export class PhotonProvider implements LocationProvider {
@@ -8,7 +12,8 @@ export class PhotonProvider implements LocationProvider {
   private readonly countryCode: string;
 
   constructor() {
-    this.baseUrl = process.env.PHOTON_BASE_URL || 'https://photon.komoot.io/api';
+    this.baseUrl =
+      process.env.PHOTON_BASE_URL || 'https://photon.komoot.io/api';
     this.countryCode = process.env.PHOTON_COUNTRY_CODE || 'au'; // Default to Australia
   }
 
@@ -42,7 +47,10 @@ export class PhotonProvider implements LocationProvider {
     }
   }
 
-  async reverseGeocode(lat: number, lng: number): Promise<LocationResult | null> {
+  async reverseGeocode(
+    lat: number,
+    lng: number,
+  ): Promise<LocationResult | null> {
     try {
       const url = new URL(this.baseUrl.replace('/api', '/reverse'));
       url.searchParams.append('lat', lat.toString());
@@ -63,7 +71,10 @@ export class PhotonProvider implements LocationProvider {
     }
   }
 
-  private normalizeResult(data: any, expectedCountryCode: string): LocationResult[] {
+  private normalizeResult(
+    data: any,
+    expectedCountryCode: string,
+  ): LocationResult[] {
     if (!data || !data.features || !Array.isArray(data.features)) {
       return [];
     }
@@ -81,7 +92,11 @@ export class PhotonProvider implements LocationProvider {
       const countryCode = properties.countrycode?.toLowerCase() || '';
 
       // Filter out non-target countries
-      if (expectedCountryCode && countryCode && countryCode !== expectedCountryCode.toLowerCase()) {
+      if (
+        expectedCountryCode &&
+        countryCode &&
+        countryCode !== expectedCountryCode.toLowerCase()
+      ) {
         continue;
       }
 
@@ -89,13 +104,19 @@ export class PhotonProvider implements LocationProvider {
       const lat = geometry.coordinates[1];
 
       const name = properties.name || '';
-      const city = properties.city || properties.town || properties.village || '';
+      const city =
+        properties.city || properties.town || properties.village || '';
       const state = properties.state || '';
       const country = properties.country || '';
       const postcode = properties.postcode || '';
 
       // For Australian addresses, suburb is typically mapped to locality, suburb, or district
-      const suburb = properties.suburb || properties.locality || properties.district || city || '';
+      const suburb =
+        properties.suburb ||
+        properties.locality ||
+        properties.district ||
+        city ||
+        '';
 
       const id = properties.osm_id?.toString() || `${lat}-${lng}`;
 
@@ -122,7 +143,7 @@ export class PhotonProvider implements LocationProvider {
         suburb,
         postcode,
         type,
-        source: `photon-${properties.osm_type || 'node'}`
+        source: `photon-${properties.osm_type || 'node'}`,
       });
     }
 

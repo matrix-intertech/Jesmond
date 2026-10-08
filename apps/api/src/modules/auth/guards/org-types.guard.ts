@@ -8,10 +8,10 @@ export class OrgTypesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredTypes = this.reflector.getAllAndOverride<OrgType[]>(ORG_TYPES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredTypes = this.reflector.getAllAndOverride<OrgType[]>(
+      ORG_TYPES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
     if (!requiredTypes) {
       return true;
     }
@@ -27,7 +27,7 @@ export class OrgTypesGuard implements CanActivate {
 
     // Default to 'PROVIDER' if orgType is missing for legacy users (as done in frontend)
     const userOrgType = user.orgType || 'PROVIDER';
-    
+
     return requiredTypes.includes(userOrgType as OrgType);
   }
 }

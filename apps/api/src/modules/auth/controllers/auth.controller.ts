@@ -1,6 +1,25 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
-import { RegisterProviderDto, RegisterStudentDto, LoginDto, VerifyEmailDto, ResendOtpDto, Login2faDto, ForgotPasswordDto, VerifyResetOtpDto, ResetPasswordDto } from '../dtos/auth.dto';
+import {
+  RegisterProviderDto,
+  RegisterStudentDto,
+  LoginDto,
+  VerifyEmailDto,
+  ResendOtpDto,
+  Login2faDto,
+  ForgotPasswordDto,
+  VerifyResetOtpDto,
+  ResetPasswordDto,
+} from '../dtos/auth.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
@@ -81,4 +100,3 @@ export class AuthController {
     return { message: 'You have provider access', user: req.user };
   }
 }
-

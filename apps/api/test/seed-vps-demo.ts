@@ -85,7 +85,7 @@ async function main() {
       description: 'High performance laptop for students and professionals.',
       sellingPrice: 199900, // $1999.00
       costPrice: 150000,
-      taxRate: 0.10,
+      taxRate: 0.1,
       unit: 'piece',
       organizationId: org.id,
       categoryId: category.id,

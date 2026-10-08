@@ -1,4 +1,11 @@
-import { Controller, Get, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
@@ -10,7 +17,9 @@ export class CustomerOrdersController {
   @Get()
   async listMyOrders(@Request() req: any) {
     if (!req.user || !req.user.email) {
-      throw new ForbiddenException('User email context is required to access orders');
+      throw new ForbiddenException(
+        'User email context is required to access orders',
+      );
     }
     return this.ordersService.getCustomerOrders(req.user.email);
   }
@@ -18,7 +27,9 @@ export class CustomerOrdersController {
   @Get(':id')
   async getMyOrder(@Request() req: any, @Param('id') id: string) {
     if (!req.user || !req.user.email) {
-      throw new ForbiddenException('User email context is required to access orders');
+      throw new ForbiddenException(
+        'User email context is required to access orders',
+      );
     }
     return this.ordersService.getCustomerOrder(req.user.email, id);
   }

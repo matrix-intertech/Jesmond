@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -8,7 +13,14 @@ export class ProviderSettingsService {
   async getBusinessProfile(organizationId: string) {
     const org = await this.prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { id: true, name: true, type: true, abn: true, timezone: true, branding: true }
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        abn: true,
+        timezone: true,
+        branding: true,
+      },
     });
     if (!org) throw new NotFoundException('Organization not found');
     return org;
@@ -24,24 +36,35 @@ export class ProviderSettingsService {
           timezone: data.timezone,
           branding: data.branding,
         },
-        select: { id: true, name: true, type: true, abn: true, timezone: true, branding: true }
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          abn: true,
+          timezone: true,
+          branding: true,
+        },
       });
     } catch (e) {
-      throw new InternalServerErrorException('Failed to update business profile');
+      throw new InternalServerErrorException(
+        'Failed to update business profile',
+      );
     }
   }
 
   async getPropertyDefaults(organizationId: string) {
     const org = await this.prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { settings: true }
+      select: { settings: true },
     });
     if (!org) throw new NotFoundException('Organization not found');
     return org.settings || {};
   }
 
   async updatePropertyDefaults(orgId: string, data: any) {
-    const org = await this.prisma.organization.findUnique({ where: { id: orgId } });
+    const org = await this.prisma.organization.findUnique({
+      where: { id: orgId },
+    });
     if (!org) throw new NotFoundException('Organization not found');
 
     const currentSettings = (org.settings as object) || {};
@@ -50,25 +73,35 @@ export class ProviderSettingsService {
       propertyDefaults: {
         ...(currentSettings as any).propertyDefaults,
         ...data,
-      }
+      },
     };
 
     return await this.prisma.organization.update({
       where: { id: orgId },
-      data: { settings: updatedSettings as any }
+      data: { settings: updatedSettings as any },
     });
   }
 
   async getEnquiryPreferences(orgId: string) {
-    const org = await this.prisma.organization.findUnique({ where: { id: orgId }, select: { settings: true } });
+    const org = await this.prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { settings: true },
+    });
     if (!org) throw new NotFoundException('Organization not found');
 
     const settings = (org.settings as any) || {};
-    return settings.enquiryPreferences || { emailNotifications: true, summaryEmails: false };
+    return (
+      settings.enquiryPreferences || {
+        emailNotifications: true,
+        summaryEmails: false,
+      }
+    );
   }
 
   async updateEnquiryPreferences(orgId: string, data: any) {
-    const org = await this.prisma.organization.findUnique({ where: { id: orgId } });
+    const org = await this.prisma.organization.findUnique({
+      where: { id: orgId },
+    });
     if (!org) throw new NotFoundException('Organization not found');
 
     const currentSettings = (org.settings as object) || {};
@@ -77,13 +110,13 @@ export class ProviderSettingsService {
       enquiryPreferences: {
         ...(currentSettings as any).enquiryPreferences,
         ...data,
-      }
+      },
     };
 
     return await this.prisma.organization.update({
       where: { id: orgId },
       data: { settings: updatedSettings as any },
-      select: { settings: true }
+      select: { settings: true },
     });
   }
 }

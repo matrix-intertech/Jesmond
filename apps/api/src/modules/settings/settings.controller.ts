@@ -1,4 +1,14 @@
-import { Controller, Get, Patch, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ChangePasswordDto } from './dtos/settings.dto';
@@ -59,7 +69,10 @@ export class SettingsController {
   }
 
   @Post('privacy/delete-account')
-  async requestAccountDeletion(@Request() req: any, @Body() data: { reason?: string }) {
+  async requestAccountDeletion(
+    @Request() req: any,
+    @Body() data: { reason?: string },
+  ) {
     return this.settingsService.requestAccountDeletion(req.user.id, data);
   }
 

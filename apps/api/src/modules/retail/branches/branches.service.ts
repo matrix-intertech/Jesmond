@@ -1,4 +1,8 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 
@@ -6,7 +10,7 @@ import { RedisService } from '../../redis/redis.service';
 export class BranchesService {
   constructor(
     private prisma: PrismaService,
-    private redisService: RedisService
+    private redisService: RedisService,
   ) {}
 
   async listBranches(organizationId: string) {
@@ -40,8 +44,10 @@ export class BranchesService {
         address: data.address,
         phone: data.phone,
         isActive: data.isActive !== undefined ? data.isActive : true,
-        deliveryEnabled: data.deliveryEnabled !== undefined ? data.deliveryEnabled : false,
-        takeawayEnabled: data.takeawayEnabled !== undefined ? data.takeawayEnabled : true,
+        deliveryEnabled:
+          data.deliveryEnabled !== undefined ? data.deliveryEnabled : false,
+        takeawayEnabled:
+          data.takeawayEnabled !== undefined ? data.takeawayEnabled : true,
       },
     });
     await this.redisService.delByPattern('retail:marketplace:stores:*');
@@ -50,7 +56,7 @@ export class BranchesService {
 
   async updateBranch(organizationId: string, branchId: string, data: any) {
     const branch = await this.getBranch(organizationId, branchId);
-    
+
     const updated = await this.prisma.retailBranch.update({
       where: { id: branch.id },
       data: {
@@ -68,7 +74,7 @@ export class BranchesService {
 
   async deleteBranch(organizationId: string, branchId: string) {
     const branch = await this.getBranch(organizationId, branchId);
-    
+
     // Deactivate instead of physical delete to preserve history
     const updated = await this.prisma.retailBranch.update({
       where: { id: branch.id },

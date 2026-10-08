@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ApplicationsService } from '../applications/applications.service';
 import { AccountStatus, OrgStatus, UserRole } from '@prisma/client';
@@ -12,27 +17,35 @@ export class AdminService {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  private async notifyOrgAdminsPropertyStatus(propertyId: string, propertyName: string, newStatus: string) {
+  private async notifyOrgAdminsPropertyStatus(
+    propertyId: string,
+    propertyName: string,
+    newStatus: string,
+  ) {
     try {
       const property = await this.prisma.property.findUnique({
         where: { id: propertyId },
-        select: { organizationId: true }
+        select: { organizationId: true },
       });
       if (!property) return;
 
       const admins = await this.prisma.orgStaff.findMany({
         where: { organizationId: property.organizationId, role: 'ADMIN' },
-        select: { userId: true }
+        select: { userId: true },
       });
 
       for (const admin of admins) {
-        this.notificationsService.createNotification({
-          recipientId: admin.userId,
-          type: 'PROPERTY_STATUS_CHANGED',
-          title: 'Property Status Update',
-          body: `Your property "${propertyName}" status has been updated to ${newStatus}.`,
-          actionUrl: `/dashboard/properties/${propertyId}`,
-        }).catch(err => console.error('Failed to dispatch property notification', err));
+        this.notificationsService
+          .createNotification({
+            recipientId: admin.userId,
+            type: 'PROPERTY_STATUS_CHANGED',
+            title: 'Property Status Update',
+            body: `Your property "${propertyName}" status has been updated to ${newStatus}.`,
+            actionUrl: `/dashboard/properties/${propertyId}`,
+          })
+          .catch((err) =>
+            console.error('Failed to dispatch property notification', err),
+          );
       }
     } catch (e) {
       console.error('Error notifying org admins of property status', e);
@@ -47,7 +60,7 @@ export class AdminService {
         suburb: { select: { name: true, city: { select: { name: true } } } },
         media: { orderBy: { displayOrder: 'asc' }, take: 1 },
       },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
   }
 
@@ -59,7 +72,7 @@ export class AdminService {
         suburb: { select: { name: true, city: { select: { name: true } } } },
         media: { orderBy: { displayOrder: 'asc' }, take: 1 },
       },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
     });
   }
 
@@ -72,11 +85,14 @@ export class AdminService {
         media: { orderBy: { displayOrder: 'asc' } },
         roomTypes: {
           include: {
-            availabilityCalendar: { where: { date: { gte: new Date() } }, orderBy: { date: 'asc' } },
-            pricingHistory: { orderBy: { effectiveFrom: 'desc' }, take: 1 }
-          }
+            availabilityCalendar: {
+              where: { date: { gte: new Date() } },
+              orderBy: { date: 'asc' },
+            },
+            pricingHistory: { orderBy: { effectiveFrom: 'desc' }, take: 1 },
+          },
         },
-      }
+      },
     });
 
     if (!property) throw new NotFoundException('Property not found');
@@ -87,22 +103,31 @@ export class AdminService {
     const property = await this.prisma.property.findUnique({ where: { id } });
     if (!property) throw new NotFoundException('Property not found');
     if (property.status !== 'PENDING_APPROVAL') {
-      throw new BadRequestException('Only PENDING_APPROVAL properties can be approved.');
+      throw new BadRequestException(
+        'Only PENDING_APPROVAL properties can be approved.',
+      );
     }
 
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status: 'PUBLISHED' }
+      data: { status: 'PUBLISHED' },
     });
 
     await this.prisma.propertyVersion.create({
       data: {
         propertyId: id,
-        versionNum: (await this.prisma.propertyVersion.count({ where: { propertyId: id } })) + 1,
+        versionNum:
+          (await this.prisma.propertyVersion.count({
+            where: { propertyId: id },
+          })) + 1,
         payload: updated as any,
-        changes: { action: 'APPROVE', previousStatus: 'PENDING_APPROVAL', newStatus: 'PUBLISHED' },
+        changes: {
+          action: 'APPROVE',
+          previousStatus: 'PENDING_APPROVAL',
+          newStatus: 'PUBLISHED',
+        },
         authorId: adminId,
-      }
+      },
     });
 
     this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'PUBLISHED');
@@ -114,25 +139,39 @@ export class AdminService {
     const property = await this.prisma.property.findUnique({ where: { id } });
     if (!property) throw new NotFoundException('Property not found');
     if (property.status !== 'PENDING_APPROVAL') {
-      throw new BadRequestException('Only PENDING_APPROVAL properties can be rejected.');
+      throw new BadRequestException(
+        'Only PENDING_APPROVAL properties can be rejected.',
+      );
     }
 
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status: 'DRAFT' }
+      data: { status: 'DRAFT' },
     });
 
     await this.prisma.propertyVersion.create({
       data: {
         propertyId: id,
-        versionNum: (await this.prisma.propertyVersion.count({ where: { propertyId: id } })) + 1,
+        versionNum:
+          (await this.prisma.propertyVersion.count({
+            where: { propertyId: id },
+          })) + 1,
         payload: updated as any,
-        changes: { action: 'REJECT', previousStatus: 'PENDING_APPROVAL', newStatus: 'DRAFT', reason },
+        changes: {
+          action: 'REJECT',
+          previousStatus: 'PENDING_APPROVAL',
+          newStatus: 'DRAFT',
+          reason,
+        },
         authorId: adminId,
-      }
+      },
     });
 
-    this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'DRAFT (Rejected)');
+    this.notifyOrgAdminsPropertyStatus(
+      updated.id,
+      updated.name,
+      'DRAFT (Rejected)',
+    );
 
     return updated;
   }
@@ -141,12 +180,14 @@ export class AdminService {
     const property = await this.prisma.property.findUnique({ where: { id } });
     if (!property) throw new NotFoundException('Property not found');
     if (property.status !== 'PUBLISHED') {
-      throw new BadRequestException('Only PUBLISHED properties can be unpublished.');
+      throw new BadRequestException(
+        'Only PUBLISHED properties can be unpublished.',
+      );
     }
 
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status: 'UNLISTED' }
+      data: { status: 'UNLISTED' },
     });
 
     await this.applicationsService.cancelPropertyApplications(id);
@@ -154,11 +195,18 @@ export class AdminService {
     await this.prisma.propertyVersion.create({
       data: {
         propertyId: id,
-        versionNum: (await this.prisma.propertyVersion.count({ where: { propertyId: id } })) + 1,
+        versionNum:
+          (await this.prisma.propertyVersion.count({
+            where: { propertyId: id },
+          })) + 1,
         payload: updated as any,
-        changes: { action: 'UNPUBLISH', previousStatus: 'PUBLISHED', newStatus: 'UNLISTED' },
+        changes: {
+          action: 'UNPUBLISH',
+          previousStatus: 'PUBLISHED',
+          newStatus: 'UNLISTED',
+        },
         authorId: adminId,
-      }
+      },
     });
 
     this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'UNLISTED');
@@ -170,22 +218,31 @@ export class AdminService {
     const property = await this.prisma.property.findUnique({ where: { id } });
     if (!property) throw new NotFoundException('Property not found');
     if (property.status !== 'UNLISTED') {
-      throw new BadRequestException('Only UNLISTED properties can be republished.');
+      throw new BadRequestException(
+        'Only UNLISTED properties can be republished.',
+      );
     }
 
     const updated = await this.prisma.property.update({
       where: { id },
-      data: { status: 'PUBLISHED' }
+      data: { status: 'PUBLISHED' },
     });
 
     await this.prisma.propertyVersion.create({
       data: {
         propertyId: id,
-        versionNum: (await this.prisma.propertyVersion.count({ where: { propertyId: id } })) + 1,
+        versionNum:
+          (await this.prisma.propertyVersion.count({
+            where: { propertyId: id },
+          })) + 1,
         payload: updated as any,
-        changes: { action: 'REPUBLISH', previousStatus: 'UNLISTED', newStatus: 'PUBLISHED' },
+        changes: {
+          action: 'REPUBLISH',
+          previousStatus: 'UNLISTED',
+          newStatus: 'PUBLISHED',
+        },
         authorId: adminId,
-      }
+      },
     });
 
     this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'PUBLISHED');
@@ -193,10 +250,14 @@ export class AdminService {
     return updated;
   }
 
-  async updatePropertyVerificationStatus(propertyId: string, status: any, adminId: string) {
+  async updatePropertyVerificationStatus(
+    propertyId: string,
+    status: any,
+    adminId: string,
+  ) {
     const property = await this.prisma.property.findUnique({
       where: { id: propertyId },
-      include: { organization: true }
+      include: { organization: true },
     });
 
     if (!property) {
@@ -209,10 +270,14 @@ export class AdminService {
 
     const updatedProperty = await this.prisma.property.update({
       where: { id: propertyId },
-      data: { verificationStatus: status }
+      data: { verificationStatus: status },
     });
 
-    this.notifyOrgAdminsPropertyStatus(updatedProperty.id, updatedProperty.name, `Verification: ${status}`);
+    this.notifyOrgAdminsPropertyStatus(
+      updatedProperty.id,
+      updatedProperty.name,
+      `Verification: ${status}`,
+    );
 
     return updatedProperty;
   }
@@ -288,7 +353,9 @@ export class AdminService {
         role: u.role,
         accountStatus: u.accountStatus,
         profileType,
-        organization: org ? { id: org.id, name: org.name, type: org.type, status: org.status } : null,
+        organization: org
+          ? { id: org.id, name: org.name, type: org.type, status: org.status }
+          : null,
         createdAt: u.createdAt,
       };
     });
@@ -313,8 +380,13 @@ export class AdminService {
     if (!target) throw new NotFoundException('User not found');
 
     // Prevent disabling other admins
-    if (target.role === UserRole.ADMIN || target.role === UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('Cannot disable Admin or Super Admin accounts');
+    if (
+      target.role === UserRole.ADMIN ||
+      target.role === UserRole.SUPER_ADMIN
+    ) {
+      throw new ForbiddenException(
+        'Cannot disable Admin or Super Admin accounts',
+      );
     }
 
     // Prevent self-disable
@@ -336,7 +408,10 @@ export class AdminService {
       // For org staff (Hosts / Retailers): suspend the organization so it
       // disappears from all public queries that gate on status=VERIFIED.
       const orgStaff = target.orgStaffRoles?.[0];
-      if (orgStaff?.organization && orgStaff.organization.status === OrgStatus.VERIFIED) {
+      if (
+        orgStaff?.organization &&
+        orgStaff.organization.status === OrgStatus.VERIFIED
+      ) {
         const orgType = orgStaff.organization.type;
         if (orgType === 'PROVIDER' || orgType === 'RETAIL') {
           await tx.organization.update({
@@ -378,7 +453,10 @@ export class AdminService {
       // (it may have been suspended for other reasons — only restore if we know
       //  we put it into SUSPENDED state, i.e., still SUSPENDED).
       const orgStaff = target.orgStaffRoles?.[0];
-      if (orgStaff?.organization && orgStaff.organization.status === OrgStatus.SUSPENDED) {
+      if (
+        orgStaff?.organization &&
+        orgStaff.organization.status === OrgStatus.SUSPENDED
+      ) {
         const orgType = orgStaff.organization.type;
         if (orgType === 'PROVIDER' || orgType === 'RETAIL') {
           await tx.organization.update({

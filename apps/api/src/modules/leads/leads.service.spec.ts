@@ -15,7 +15,7 @@ describe('LeadsService', () => {
     },
     property: {
       findUnique: jest.fn(),
-    }
+    },
   };
 
   beforeEach(async () => {
@@ -33,11 +33,18 @@ describe('LeadsService', () => {
 
   describe('trackVisit', () => {
     it('Authenticated user + same visitorId + same property -> existing Lead updated', async () => {
-      mockPrisma.property.findUnique.mockResolvedValue({ organizationId: 'org1', id: 'prop1' });
+      mockPrisma.property.findUnique.mockResolvedValue({
+        organizationId: 'org1',
+        id: 'prop1',
+      });
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.lead.findFirst.mockResolvedValue({ id: 'lead1' });
 
-      await service.trackVisit({ visitorId: 'v1', propertyId: 'prop1', userId: 'u1' });
+      await service.trackVisit({
+        visitorId: 'v1',
+        propertyId: 'prop1',
+        userId: 'u1',
+      });
 
       expect(mockPrisma.lead.updateMany).toHaveBeenCalledWith({
         where: {
@@ -48,16 +55,23 @@ describe('LeadsService', () => {
         data: expect.objectContaining({ userId: 'u1' }),
       });
       expect(mockPrisma.lead.findFirst).toHaveBeenCalledWith({
-        where: { organizationId: 'org1', propertyId: 'prop1', userId: 'u1' }
+        where: { organizationId: 'org1', propertyId: 'prop1', userId: 'u1' },
       });
     });
 
     it('Authenticated user + different visitorId + same userId + same property -> existing Lead updated', async () => {
-      mockPrisma.property.findUnique.mockResolvedValue({ organizationId: 'org1', id: 'prop1' });
+      mockPrisma.property.findUnique.mockResolvedValue({
+        organizationId: 'org1',
+        id: 'prop1',
+      });
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.lead.findFirst.mockResolvedValue({ id: 'lead1' });
 
-      await service.trackVisit({ visitorId: 'v2', propertyId: 'prop1', userId: 'u1' });
+      await service.trackVisit({
+        visitorId: 'v2',
+        propertyId: 'prop1',
+        userId: 'u1',
+      });
 
       expect(mockPrisma.lead.updateMany).toHaveBeenCalledWith({
         where: {
@@ -70,11 +84,18 @@ describe('LeadsService', () => {
     });
 
     it('Different authenticated users + same property -> separate Leads', async () => {
-      mockPrisma.property.findUnique.mockResolvedValue({ organizationId: 'org1', id: 'prop1' });
+      mockPrisma.property.findUnique.mockResolvedValue({
+        organizationId: 'org1',
+        id: 'prop1',
+      });
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 0 });
       mockPrisma.lead.create.mockResolvedValue({ id: 'lead2' });
 
-      await service.trackVisit({ visitorId: 'v3', propertyId: 'prop1', userId: 'u2' });
+      await service.trackVisit({
+        visitorId: 'v3',
+        propertyId: 'prop1',
+        userId: 'u2',
+      });
 
       expect(mockPrisma.lead.updateMany).toHaveBeenCalledWith({
         where: {
@@ -88,11 +109,18 @@ describe('LeadsService', () => {
     });
 
     it('Same authenticated user + different properties -> separate Leads', async () => {
-      mockPrisma.property.findUnique.mockResolvedValue({ organizationId: 'org1', id: 'prop2' });
+      mockPrisma.property.findUnique.mockResolvedValue({
+        organizationId: 'org1',
+        id: 'prop2',
+      });
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 0 });
       mockPrisma.lead.create.mockResolvedValue({ id: 'lead3' });
 
-      await service.trackVisit({ visitorId: 'v1', propertyId: 'prop2', userId: 'u1' });
+      await service.trackVisit({
+        visitorId: 'v1',
+        propertyId: 'prop2',
+        userId: 'u1',
+      });
 
       expect(mockPrisma.lead.updateMany).toHaveBeenCalledWith({
         where: {
@@ -106,7 +134,10 @@ describe('LeadsService', () => {
     });
 
     it('Legacy Lead with userId = null -> existing visitorId behavior preserved', async () => {
-      mockPrisma.property.findUnique.mockResolvedValue({ organizationId: 'org1', id: 'prop1' });
+      mockPrisma.property.findUnique.mockResolvedValue({
+        organizationId: 'org1',
+        id: 'prop1',
+      });
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.lead.findFirst.mockResolvedValue({ id: 'lead4' });
 
@@ -121,7 +152,7 @@ describe('LeadsService', () => {
         data: expect.objectContaining({ userId: undefined }),
       });
       expect(mockPrisma.lead.findFirst).toHaveBeenCalledWith({
-        where: { organizationId: 'org1', propertyId: 'prop1', visitorId: 'v4' }
+        where: { organizationId: 'org1', propertyId: 'prop1', visitorId: 'v4' },
       });
     });
 
@@ -129,7 +160,11 @@ describe('LeadsService', () => {
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 1 });
       mockPrisma.lead.findFirst.mockResolvedValue({ id: 'lead5' });
 
-      await service.trackVisit({ visitorId: 'v5', organizationId: 'org2', userId: 'u5' });
+      await service.trackVisit({
+        visitorId: 'v5',
+        organizationId: 'org2',
+        userId: 'u5',
+      });
 
       expect(mockPrisma.lead.updateMany).toHaveBeenCalledWith({
         where: {
@@ -140,21 +175,28 @@ describe('LeadsService', () => {
         data: expect.objectContaining({ userId: 'u5' }),
       });
       expect(mockPrisma.lead.findFirst).toHaveBeenCalledWith({
-        where: { organizationId: 'org2', propertyId: null, userId: 'u5' }
+        where: { organizationId: 'org2', propertyId: null, userId: 'u5' },
       });
     });
 
     it('Concurrent creation/update behavior -> existing P2002 recovery behavior remains intact', async () => {
-      mockPrisma.property.findUnique.mockResolvedValue({ organizationId: 'org1', id: 'prop1' });
+      mockPrisma.property.findUnique.mockResolvedValue({
+        organizationId: 'org1',
+        id: 'prop1',
+      });
       mockPrisma.lead.updateMany.mockResolvedValue({ count: 0 });
       mockPrisma.lead.create.mockRejectedValue({ code: 'P2002' });
       mockPrisma.lead.findFirst.mockResolvedValue({ id: 'lead6' });
 
-      await service.trackVisit({ visitorId: 'v6', propertyId: 'prop1', userId: 'u6' });
+      await service.trackVisit({
+        visitorId: 'v6',
+        propertyId: 'prop1',
+        userId: 'u6',
+      });
 
       expect(mockPrisma.lead.create).toHaveBeenCalled();
       expect(mockPrisma.lead.findFirst).toHaveBeenCalledWith({
-        where: { organizationId: 'org1', propertyId: 'prop1', userId: 'u6' }
+        where: { organizationId: 'org1', propertyId: 'prop1', userId: 'u6' },
       });
     });
   });

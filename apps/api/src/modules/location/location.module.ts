@@ -10,6 +10,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [RedisModule, PrismaModule],
   controllers: [LocationController],
   providers: [LocationService, PhotonProvider],
-  exports: [LocationService]
+  exports: [LocationService],
 })
 export class LocationModule {}

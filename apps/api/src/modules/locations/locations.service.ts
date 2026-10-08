@@ -159,15 +159,15 @@ export class LocationsService {
         ORDER BY dist ASC
         LIMIT 1
       `;
-      
+
       if (!nearest || nearest.length === 0) return null;
-      
+
       return this.prisma.suburb.findUnique({
         where: { id: nearest[0].id },
         include: {
           city: true,
-          state: true
-        }
+          state: true,
+        },
       });
     } catch (e) {
       console.error('Failed nearest suburb query:', e);

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Param, Body, Query, UseGuards, Request, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -32,7 +42,11 @@ export class AdminController {
   }
 
   @Post('properties/:id/reject')
-  async rejectProperty(@Param('id') id: string, @Body() body: { reason?: string }, @Request() req: any) {
+  async rejectProperty(
+    @Param('id') id: string,
+    @Body() body: { reason?: string },
+    @Request() req: any,
+  ) {
     return this.adminService.rejectProperty(id, req.user.id, body.reason);
   }
 
@@ -50,9 +64,13 @@ export class AdminController {
   async updatePropertyVerificationStatus(
     @Param('id') id: string,
     @Body() body: { status: any },
-    @Request() req: any
+    @Request() req: any,
   ) {
-    return this.adminService.updatePropertyVerificationStatus(id, body.status, req.user.id);
+    return this.adminService.updatePropertyVerificationStatus(
+      id,
+      body.status,
+      req.user.id,
+    );
   }
 
   // ─── User Management ──────────────────────────────────────────────────────

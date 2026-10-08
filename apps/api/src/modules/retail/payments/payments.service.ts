@@ -1,6 +1,15 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RetailPaymentStatus, PaymentMethod, OrderStatus } from '@prisma/client';
+import {
+  RetailPaymentStatus,
+  PaymentMethod,
+  OrderStatus,
+} from '@prisma/client';
 import { TyroConnector } from '../pos/providers/tyro.connector';
 import { SquareConnector } from '../pos/providers/square.connector';
 import { StripeConnector } from '../pos/providers/stripe.connector';
@@ -12,18 +21,27 @@ export class PaymentsService {
 
   private getConnector(provider: string) {
     switch (provider.toUpperCase()) {
-      case 'TYRO': return new TyroConnector();
-      case 'SQUARE': return new SquareConnector();
-      case 'STRIPE': return new StripeConnector();
-      case 'ZELLER': return new ZellerConnector();
-      default: return null;
+      case 'TYRO':
+        return new TyroConnector();
+      case 'SQUARE':
+        return new SquareConnector();
+      case 'STRIPE':
+        return new StripeConnector();
+      case 'ZELLER':
+        return new ZellerConnector();
+      default:
+        return null;
     }
   }
 
-  async updatePaymentStatus(organizationId: string, paymentId: string, newStatus: RetailPaymentStatus) {
+  async updatePaymentStatus(
+    organizationId: string,
+    paymentId: string,
+    newStatus: RetailPaymentStatus,
+  ) {
     const payment = await this.prisma.retailPayment.findUnique({
       where: { id: paymentId },
-      include: { order: true }
+      include: { order: true },
     });
 
     if (!payment || payment.order.organizationId !== organizationId) {
@@ -33,14 +51,23 @@ export class PaymentsService {
     if (payment.status === 'REFUNDED' && newStatus === 'PAID') {
       throw new BadRequestException('Cannot transition from REFUNDED to PAID');
     }
-    if (payment.status === 'PAID' && ['PENDING', 'AUTHORIZED', 'CANCELLED'].includes(newStatus)) {
-      throw new BadRequestException(`Cannot transition payment from PAID to ${newStatus}`);
+    if (
+      payment.status === 'PAID' &&
+      ['PENDING', 'AUTHORIZED', 'CANCELLED'].includes(newStatus)
+    ) {
+      throw new BadRequestException(
+        `Cannot transition payment from PAID to ${newStatus}`,
+      );
     }
     if (payment.status === 'CANCELLED' && newStatus !== 'PENDING') {
-      throw new BadRequestException('A cancelled payment can only be reset to PENDING for re-processing');
+      throw new BadRequestException(
+        'A cancelled payment can only be reset to PENDING for re-processing',
+      );
     }
     if (payment.status === 'FAILED' && newStatus === 'PAID') {
-      throw new BadRequestException('Cannot directly mark a FAILED payment as PAID; use retry flow');
+      throw new BadRequestException(
+        'Cannot directly mark a FAILED payment as PAID; use retry flow',
+      );
     }
 
     const updated = await this.prisma.retailPayment.update({
@@ -55,8 +82,8 @@ export class PaymentsService {
         action: 'payment.status.update',
         resourceType: 'RetailPayment',
         resourceId: paymentId,
-        changes: { old: payment as any, new: updated as any }
-      }
+        changes: { old: payment as any, new: updated as any },
+      },
     });
 
     return updated;
@@ -73,21 +100,27 @@ export class PaymentsService {
       // 1. Look up sales order
       const order = await tx.salesOrder.findUnique({
         where: { id: orderId },
-        include: { payments: true }
+        include: { payments: true },
       });
 
       if (!order) {
         throw new NotFoundException('Order not found');
       }
       if (order.organizationId !== organizationId) {
-        throw new ForbiddenException('Order does not belong to your organization');
+        throw new ForbiddenException(
+          'Order does not belong to your organization',
+        );
       }
       if (order.status !== OrderStatus.PENDING) {
-        throw new BadRequestException('Payment can only be retried for PENDING orders');
+        throw new BadRequestException(
+          'Payment can only be retried for PENDING orders',
+        );
       }
 
       // Check if there is already a PAID payment
-      const alreadyPaid = order.payments.some(p => p.status === RetailPaymentStatus.PAID);
+      const alreadyPaid = order.payments.some(
+        (p) => p.status === RetailPaymentStatus.PAID,
+      );
       if (alreadyPaid) {
         throw new BadRequestException('Order is already paid');
       }
@@ -122,7 +155,9 @@ export class PaymentsService {
             throw new NotFoundException('Terminal not found');
           }
           if (terminal.branchId !== order.branchId) {
-            throw new BadRequestException('Terminal does not belong to the order branch');
+            throw new BadRequestException(
+              'Terminal does not belong to the order branch',
+            );
           }
 
           providerName = terminal.provider || 'STRIPE';
@@ -133,7 +168,7 @@ export class PaymentsService {
               amount: order.total,
               currency: 'AUD',
               providerTerminalId: terminal.externalId || terminal.id,
-              idempotencyKey: providerRequestId || `idem-${Date.now()}`
+              idempotencyKey: providerRequestId || `idem-${Date.now()}`,
             });
             transactionId = result.providerTransactionId;
           }
@@ -149,8 +184,9 @@ export class PaymentsService {
           providerRequestId,
           amount: order.total,
           status: paymentStatus,
-          reconciliationStatus: paymentMethod === PaymentMethod.CASH ? 'MATCHED' : 'PENDING'
-        }
+          reconciliationStatus:
+            paymentMethod === PaymentMethod.CASH ? 'MATCHED' : 'PENDING',
+        },
       });
 
       return payment;

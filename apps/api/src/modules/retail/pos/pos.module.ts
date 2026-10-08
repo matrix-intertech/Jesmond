@@ -5,6 +5,6 @@ import { PosSandboxController } from './pos.sandbox.controller';
 
 @Module({
   providers: [PosService, PosWebhookService],
-  controllers: [PosWebhookController, PosSandboxController]
+  controllers: [PosWebhookController, PosSandboxController],
 })
 export class PosModule {}

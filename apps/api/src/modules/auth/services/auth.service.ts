@@ -1,6 +1,20 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterProviderDto, RegisterStudentDto, LoginDto, VerifyEmailDto, ResendOtpDto, ForgotPasswordDto, VerifyResetOtpDto, ResetPasswordDto } from '../dtos/auth.dto';
+import {
+  RegisterProviderDto,
+  RegisterStudentDto,
+  LoginDto,
+  VerifyEmailDto,
+  ResendOtpDto,
+  ForgotPasswordDto,
+  VerifyResetOtpDto,
+  ResetPasswordDto,
+} from '../dtos/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserRole, AccountStatus, OrgType } from '@prisma/client';
@@ -16,47 +30,58 @@ export class AuthService {
     private readonly emailService: EmailService,
   ) {}
 
-
-
   private generateOtp(): string {
     return crypto.randomInt(100000, 999999).toString();
   }
 
   private async verifyTurnstileToken(token: string): Promise<void> {
     if (!token) {
-      throw new BadRequestException('Security verification failed. Please try again.');
+      throw new BadRequestException(
+        'Security verification failed. Please try again.',
+      );
     }
 
     const secretKey = process.env.TURNSTILE_SECRET_KEY;
     if (!secretKey) {
-      console.warn('TURNSTILE_SECRET_KEY is not configured. Bypassing check in development.');
+      console.warn(
+        'TURNSTILE_SECRET_KEY is not configured. Bypassing check in development.',
+      );
       if (process.env.NODE_ENV === 'production') {
-        throw new BadRequestException('Security verification failed. Please try again.');
+        throw new BadRequestException(
+          'Security verification failed. Please try again.',
+        );
       }
       return;
     }
 
     try {
-      const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            secret: secretKey,
+            response: token,
+          }),
         },
-        body: JSON.stringify({
-          secret: secretKey,
-          response: token,
-        }),
-      });
+      );
 
       const data = await response.json();
-      
+
       if (!data.success) {
-        throw new BadRequestException('Security verification failed. Please try again.');
+        throw new BadRequestException(
+          'Security verification failed. Please try again.',
+        );
       }
     } catch (error: any) {
       if (error instanceof BadRequestException) throw error;
       console.error('Turnstile verification error:', error.message);
-      throw new BadRequestException('Security verification failed. Please try again.');
+      throw new BadRequestException(
+        'Security verification failed. Please try again.',
+      );
     }
   }
 
@@ -110,6 +135,7 @@ export class AuthService {
             data: {
               name: dto.organizationName,
               type: dto.organizationType,
+              businessCategory: dto.businessCategory,
             },
           });
           return { user, org };
@@ -118,6 +144,7 @@ export class AuthService {
             data: {
               name: dto.organizationName,
               type: dto.organizationType,
+              businessCategory: dto.businessCategory,
               status: 'PENDING',
             },
           });
@@ -138,6 +165,7 @@ export class AuthService {
           data: {
             name: dto.organizationName,
             type: dto.organizationType,
+            businessCategory: dto.businessCategory,
             status: 'PENDING',
           },
         });
@@ -255,7 +283,10 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto, clientInfo?: { ipAddress?: string, userAgent?: string }) {
+  async login(
+    dto: LoginDto,
+    clientInfo?: { ipAddress?: string; userAgent?: string },
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
       include: {
@@ -269,7 +300,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (user.accountStatus === AccountStatus.SUSPENDED || user.accountStatus === AccountStatus.DEACTIVATED) {
+    if (
+      user.accountStatus === AccountStatus.SUSPENDED ||
+      user.accountStatus === AccountStatus.DEACTIVATED
+    ) {
       throw new UnauthorizedException('Account is suspended or deactivated');
     }
 
@@ -303,14 +337,21 @@ export class AuthService {
       },
     });
 
-    const activeRole = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
+    const activeRole =
+      user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
     const organizationId = activeRole?.organizationId;
     const orgType = activeRole?.organization?.type;
     const orgRole = activeRole?.role;
     const permissions = activeRole?.permissions || [];
     const retailBranchId = activeRole?.retailBranchId;
 
-    const payload = { sub: user.id, email: user.email, role: user.role, orgType, sessionId: session.id };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      orgType,
+      sessionId: session.id,
+    };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -330,7 +371,10 @@ export class AuthService {
     };
   }
 
-  async login2fa(dto: { mfaToken: string; code: string }, clientInfo?: { ipAddress?: string, userAgent?: string }) {
+  async login2fa(
+    dto: { mfaToken: string; code: string },
+    clientInfo?: { ipAddress?: string; userAgent?: string },
+  ) {
     let payload;
     try {
       payload = this.jwtService.verify(dto.mfaToken);
@@ -355,7 +399,10 @@ export class AuthService {
       throw new UnauthorizedException('MFA is not configured for this user');
     }
 
-    const isValid = authenticator.verify({ token: dto.code, secret: user.mfaSecret });
+    const isValid = authenticator.verify({
+      token: dto.code,
+      secret: user.mfaSecret,
+    });
     if (!isValid) {
       throw new UnauthorizedException('Invalid verification code');
     }
@@ -370,9 +417,17 @@ export class AuthService {
       },
     });
 
-    const finalPayload = { sub: user.id, email: user.email, role: user.role, sessionId: session.id };
+    const finalPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      sessionId: session.id,
+    };
     const access_token = this.jwtService.sign(finalPayload);
-    const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
+    const organizationId =
+      user.orgStaffRoles.length > 0
+        ? user.orgStaffRoles[0].organizationId
+        : undefined;
 
     return {
       access_token,
@@ -387,23 +442,31 @@ export class AuthService {
     };
   }
 
-  async verifyEmail(dto: VerifyEmailDto, clientInfo?: { ipAddress?: string, userAgent?: string }) {
+  async verifyEmail(
+    dto: VerifyEmailDto,
+    clientInfo?: { ipAddress?: string; userAgent?: string },
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
       include: { orgStaffRoles: true },
     });
 
     if (!user) throw new UnauthorizedException('Invalid verification code');
-    if (user.emailVerified) throw new ConflictException('Email already verified');
+    if (user.emailVerified)
+      throw new ConflictException('Email already verified');
 
     if (user.emailOtpAttempts >= 5) {
-      throw new UnauthorizedException('Maximum verification attempts reached. Please request a new code.');
+      throw new UnauthorizedException(
+        'Maximum verification attempts reached. Please request a new code.',
+      );
     }
     if (!user.emailVerificationToken || !user.emailVerificationExpiresAt) {
       throw new UnauthorizedException('No active verification code found.');
     }
     if (user.emailVerificationExpiresAt < new Date()) {
-      throw new UnauthorizedException('Verification code has expired. Please request a new code.');
+      throw new UnauthorizedException(
+        'Verification code has expired. Please request a new code.',
+      );
     }
 
     // Atomically increment attempts BEFORE comparing to prevent concurrent bypass
@@ -413,7 +476,9 @@ export class AuthService {
     });
 
     if (updatedUserAtomic.emailOtpAttempts > 5) {
-      throw new UnauthorizedException('Maximum verification attempts reached. Please request a new code.');
+      throw new UnauthorizedException(
+        'Maximum verification attempts reached. Please request a new code.',
+      );
     }
 
     const isValid = await bcrypt.compare(dto.otp, user.emailVerificationToken);
@@ -444,10 +509,25 @@ export class AuthService {
     });
 
     // Wait, the include in line 363 does not include organization! Let's do it cleanly:
-    const organizationId = user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0].organizationId : undefined;
-    const orgTypeResult = organizationId ? (await this.prisma.organization.findUnique({where: {id: organizationId}}))?.type : undefined;
+    const organizationId =
+      user.orgStaffRoles.length > 0
+        ? user.orgStaffRoles[0].organizationId
+        : undefined;
+    const orgTypeResult = organizationId
+      ? (
+          await this.prisma.organization.findUnique({
+            where: { id: organizationId },
+          })
+        )?.type
+      : undefined;
 
-    const payload = { sub: updatedUser.id, email: updatedUser.email, role: updatedUser.role, orgType: orgTypeResult, sessionId: session.id };
+    const payload = {
+      sub: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      orgType: orgTypeResult,
+      sessionId: session.id,
+    };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -470,13 +550,18 @@ export class AuthService {
       where: { email: dto.email.toLowerCase() },
     });
 
-    if (!user) return { message: 'If an account exists, a verification code was sent.' };
-    if (user.emailVerified) throw new ConflictException('Email already verified');
+    if (!user)
+      return { message: 'If an account exists, a verification code was sent.' };
+    if (user.emailVerified)
+      throw new ConflictException('Email already verified');
 
     if (user.emailOtpLastSentAt) {
-      const diffSeconds = (Date.now() - user.emailOtpLastSentAt.getTime()) / 1000;
+      const diffSeconds =
+        (Date.now() - user.emailOtpLastSentAt.getTime()) / 1000;
       if (diffSeconds < 60) {
-        throw new ConflictException(`Please wait ${Math.ceil(60 - diffSeconds)} seconds before requesting a new code.`);
+        throw new ConflictException(
+          `Please wait ${Math.ceil(60 - diffSeconds)} seconds before requesting a new code.`,
+        );
       }
     }
 
@@ -506,14 +591,20 @@ export class AuthService {
 
     if (!user) {
       // Do not leak account existence
-      return { message: 'If an account exists with this email, an OTP has been sent.' };
+      return {
+        message: 'If an account exists with this email, an OTP has been sent.',
+      };
     }
 
     if (user.passwordResetLastSentAt) {
-      const diffSeconds = (Date.now() - user.passwordResetLastSentAt.getTime()) / 1000;
+      const diffSeconds =
+        (Date.now() - user.passwordResetLastSentAt.getTime()) / 1000;
       if (diffSeconds < 60) {
         // Return success immediately to not leak account existence while preventing spam
-        return { message: 'If an account exists with this email, an OTP has been sent.' };
+        return {
+          message:
+            'If an account exists with this email, an OTP has been sent.',
+        };
       }
     }
 
@@ -533,7 +624,9 @@ export class AuthService {
 
     await this.emailService.sendPasswordResetOtp(user.email, otp);
 
-    return { message: 'If an account exists with this email, an OTP has been sent.' };
+    return {
+      message: 'If an account exists with this email, an OTP has been sent.',
+    };
   }
 
   async verifyResetOtp(dto: VerifyResetOtpDto) {
@@ -542,15 +635,17 @@ export class AuthService {
     });
 
     if (!user) throw new UnauthorizedException('Invalid or expired OTP.');
-    
+
     if (user.passwordResetOtpAttempts >= 5) {
-      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+      throw new UnauthorizedException(
+        'Maximum attempts reached. Please request a new code.',
+      );
     }
-    
+
     if (!user.passwordResetToken || !user.passwordResetExpiresAt) {
       throw new UnauthorizedException('Invalid or expired OTP.');
     }
-    
+
     if (user.passwordResetExpiresAt < new Date()) {
       throw new UnauthorizedException('Invalid or expired OTP.');
     }
@@ -561,7 +656,9 @@ export class AuthService {
     });
 
     if (updatedUserAtomic.passwordResetOtpAttempts > 5) {
-      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+      throw new UnauthorizedException(
+        'Maximum attempts reached. Please request a new code.',
+      );
     }
 
     const isValid = await bcrypt.compare(dto.otp, user.passwordResetToken);
@@ -579,15 +676,17 @@ export class AuthService {
     });
 
     if (!user) throw new UnauthorizedException('Invalid or expired OTP.');
-    
+
     if (user.passwordResetOtpAttempts >= 5) {
-      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+      throw new UnauthorizedException(
+        'Maximum attempts reached. Please request a new code.',
+      );
     }
-    
+
     if (!user.passwordResetToken || !user.passwordResetExpiresAt) {
       throw new UnauthorizedException('Invalid or expired OTP.');
     }
-    
+
     if (user.passwordResetExpiresAt < new Date()) {
       throw new UnauthorizedException('Invalid or expired OTP.');
     }
@@ -598,7 +697,9 @@ export class AuthService {
     });
 
     if (updatedUserAtomic.passwordResetOtpAttempts > 5) {
-      throw new UnauthorizedException('Maximum attempts reached. Please request a new code.');
+      throw new UnauthorizedException(
+        'Maximum attempts reached. Please request a new code.',
+      );
     }
 
     const isValid = await bcrypt.compare(dto.otp, user.passwordResetToken);

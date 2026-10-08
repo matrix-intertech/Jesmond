@@ -12,6 +12,18 @@ import { EmployeesModule } from './employees/employees.module';
 import { MarketplaceModule } from './marketplace/marketplace.module';
 
 @Module({
-  imports: [BusinessesModule, BranchesModule, TerminalsModule, CatalogModule, InventoryModule, CustomersModule, OrdersModule, PaymentsModule, PosModule, EmployeesModule, MarketplaceModule]
+  imports: [
+    BusinessesModule,
+    BranchesModule,
+    TerminalsModule,
+    CatalogModule,
+    InventoryModule,
+    CustomersModule,
+    OrdersModule,
+    PaymentsModule,
+    PosModule,
+    EmployeesModule,
+    MarketplaceModule,
+  ],
 })
 export class RetailModule {}

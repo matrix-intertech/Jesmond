@@ -6,9 +6,9 @@ import {
   ForbiddenException,
   UseGuards,
   NotImplementedException,
-} from "@nestjs/common";
-import { PosWebhookService } from "./pos.controller";
-import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+} from '@nestjs/common';
+import { PosWebhookService } from './pos.controller';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
 /**
  * SANDBOX-ONLY: POS Webhook Simulator
@@ -29,7 +29,7 @@ import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
  *
  * Production webhook verification is NEVER weakened by this file.
  */
-@Controller("retail/pos/sandbox")
+@Controller('retail/pos/sandbox')
 @UseGuards(JwtAuthGuard)
 export class PosSandboxController {
   constructor(private readonly webhookService: PosWebhookService) {}
@@ -40,35 +40,35 @@ export class PosSandboxController {
    */
   private assertSandboxAllowed(): void {
     // Layer 1: Hard block in production — fail closed
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV === 'production') {
       throw new ForbiddenException(
-        "Sandbox simulator is not available in production"
+        'Sandbox simulator is not available in production',
       );
     }
 
     // Layer 2: Require explicit opt-in via POS_SANDBOX_ENABLED
-    if (process.env.POS_SANDBOX_ENABLED !== "true") {
+    if (process.env.POS_SANDBOX_ENABLED !== 'true') {
       throw new ForbiddenException(
-        "POS sandbox is not enabled. Set POS_SANDBOX_ENABLED=true in a non-production environment to use this endpoint."
+        'POS sandbox is not enabled. Set POS_SANDBOX_ENABLED=true in a non-production environment to use this endpoint.',
       );
     }
   }
 
-  @Post("simulate")
+  @Post('simulate')
   async simulateWebhook(
     @Body()
     body: {
       provider: string;
       transactionId: string;
       success: boolean;
-    }
+    },
   ) {
     this.assertSandboxAllowed();
 
     const { provider, transactionId, success } = body;
     if (!provider || transactionId === undefined || success === undefined) {
       throw new BadRequestException(
-        "provider, transactionId, and success are required"
+        'provider, transactionId, and success are required',
       );
     }
 
@@ -83,13 +83,13 @@ export class PosSandboxController {
     // generate fake PAID/COMPLETED states.
 
     if (
-      providerUpper !== "STRIPE" &&
-      providerUpper !== "SQUARE" &&
-      providerUpper !== "TYRO" &&
-      providerUpper !== "ZELLER"
+      providerUpper !== 'STRIPE' &&
+      providerUpper !== 'SQUARE' &&
+      providerUpper !== 'TYRO' &&
+      providerUpper !== 'ZELLER'
     ) {
       throw new BadRequestException(
-        `Unsupported sandbox provider: ${provider}`
+        `Unsupported sandbox provider: ${provider}`,
       );
     }
 
@@ -101,7 +101,7 @@ export class PosSandboxController {
       eventId,
       eventType,
       transactionId,
-      success
+      success,
     );
 
     // ALL providers go through signature verification.
@@ -110,13 +110,13 @@ export class PosSandboxController {
     const syntheticReq = {
       headers: {},
       body: payload,
-      rawBody: Buffer.from(JSON.stringify(payload), "utf8"),
+      rawBody: Buffer.from(JSON.stringify(payload), 'utf8'),
     };
 
     // This call will throw NotImplementedException for all current connectors.
     // When a real integration is added, this will need real test-mode secrets
     // and proper HMAC signature generation.
-    this.webhookService.verifySignature(provider, syntheticReq, "sandbox-sig");
+    this.webhookService.verifySignature(provider, syntheticReq, 'sandbox-sig');
 
     // If verifySignature somehow passes (future real integration),
     // continue with the normal flow
@@ -124,7 +124,7 @@ export class PosSandboxController {
 
     if (!parsedEvent.eventId || !parsedEvent.type) {
       throw new BadRequestException(
-        "Simulator produced invalid event structure"
+        'Simulator produced invalid event structure',
       );
     }
 
@@ -132,22 +132,22 @@ export class PosSandboxController {
       provider,
       parsedEvent.eventId,
       parsedEvent.type,
-      parsedEvent.data
+      parsedEvent.data,
     );
   }
 
   private getEventType(provider: string, success: boolean): string {
     switch (provider) {
-      case "STRIPE":
+      case 'STRIPE':
         return success
-          ? "payment_intent.succeeded"
-          : "payment_intent.payment_failed";
-      case "SQUARE":
-        return "payment.created";
-      case "TYRO":
-        return success ? "transaction_completed" : "transaction_failed";
-      case "ZELLER":
-        return success ? "payment.success" : "payment.failed";
+          ? 'payment_intent.succeeded'
+          : 'payment_intent.payment_failed';
+      case 'SQUARE':
+        return 'payment.created';
+      case 'TYRO':
+        return success ? 'transaction_completed' : 'transaction_failed';
+      case 'ZELLER':
+        return success ? 'payment.success' : 'payment.failed';
       default:
         throw new BadRequestException(`Unsupported provider: ${provider}`);
     }
@@ -158,16 +158,16 @@ export class PosSandboxController {
     eventId: string,
     eventType: string,
     transactionId: string,
-    success: boolean
+    success: boolean,
   ): any {
     switch (provider) {
-      case "STRIPE":
+      case 'STRIPE':
         return {
           id: eventId,
           type: eventType,
           data: { object: { id: transactionId } },
         };
-      case "SQUARE":
+      case 'SQUARE':
         return {
           event_id: eventId,
           type: eventType,
@@ -175,14 +175,14 @@ export class PosSandboxController {
             object: {
               payment: {
                 id: transactionId,
-                status: success ? "COMPLETED" : "FAILED",
+                status: success ? 'COMPLETED' : 'FAILED',
               },
             },
           },
         };
-      case "TYRO":
+      case 'TYRO':
         return { id: eventId, eventType, transactionId };
-      case "ZELLER":
+      case 'ZELLER':
         return { id: eventId, eventType, transactionId };
       default:
         return { id: eventId, eventType, transactionId };

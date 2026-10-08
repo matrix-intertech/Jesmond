@@ -4,6 +4,6 @@ import { TerminalsController } from './terminals.controller';
 
 @Module({
   providers: [TerminalsService],
-  controllers: [TerminalsController]
+  controllers: [TerminalsController],
 })
 export class TerminalsModule {}

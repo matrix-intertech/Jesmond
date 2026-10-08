@@ -1,4 +1,10 @@
-import { Controller, Post, Get, UseGuards, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  UseGuards,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FeatureFlagService } from '../admin/feature-flag.service';
 
@@ -9,10 +15,13 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   @Post('create-checkout')
   async createCheckout() {
-    const isEnabled = await this.featureFlagService.isEnabled('PAYMENTS_BOOKING');
-    
+    const isEnabled =
+      await this.featureFlagService.isEnabled('PAYMENTS_BOOKING');
+
     if (!isEnabled) {
-      throw new ForbiddenException('Payments and booking are currently disabled.');
+      throw new ForbiddenException(
+        'Payments and booking are currently disabled.',
+      );
     }
 
     return { success: true, message: 'Checkout session created' };
@@ -20,7 +29,8 @@ export class PaymentsController {
 
   @Get('status')
   async getPaymentStatus() {
-    const isEnabled = await this.featureFlagService.isEnabled('PAYMENTS_BOOKING');
+    const isEnabled =
+      await this.featureFlagService.isEnabled('PAYMENTS_BOOKING');
     return { enabled: isEnabled };
   }
 }

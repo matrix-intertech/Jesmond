@@ -8,7 +8,7 @@ import { Suspense } from 'react';
 import Turnstile from '@/components/ui/Turnstile';
 
 function RegisterForm() {
- const [accountType, setAccountType] = useState<'student' | 'host' | 'retailer'>('student');
+ const [accountType, setAccountType] = useState<'student' | 'host' | 'business'>('student');
 
  const [name, setName] = useState('');
  const [countryCode, setCountryCode] = useState('+61');
@@ -21,6 +21,7 @@ function RegisterForm() {
  const [password, setPassword] = useState('');
  const [organizationName, setOrganizationName] = useState('');
  const [organizationType, setOrganizationType] = useState('PROVIDER');
+ const [businessCategory, setBusinessCategory] = useState('RETAIL');
  const [turnstileToken, setTurnstileToken] = useState('');
  const [error, setError] = useState('');
  const [loading, setLoading] = useState(false);
@@ -85,8 +86,8 @@ function RegisterForm() {
  setError('Passwords do not match.');
  return;
  }
- if (accountType === 'retailer' && !organizationName.trim()) {
- setError('Retail store name is required.');
+ if (accountType === 'business' && !organizationName.trim()) {
+ setError('Business Name is required.');
  return;
  }
 
@@ -105,7 +106,7 @@ function RegisterForm() {
 
  const payload = accountType === 'student'
  ? { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), ethnicity: ethnicity || undefined, dateOfBirth, turnstileToken }
- : { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), ethnicity: ethnicity || undefined, dateOfBirth, organizationName: accountType === 'retailer' ? organizationName.trim() : (firstName + ' ' + lastName), organizationType, turnstileToken };
+ : { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), ethnicity: ethnicity || undefined, dateOfBirth, organizationName: accountType === 'business' ? organizationName.trim() : (firstName + ' ' + lastName), organizationType, businessCategory: accountType === 'business' ? businessCategory : undefined, turnstileToken };
 
  const res = await fetch(endpoint, {
  method: 'POST',
@@ -306,7 +307,8 @@ function RegisterForm() {
  <div className="flex rounded-lg border border-border-strong overflow-hidden mb-6">
  <button
  type="button"
- onClick={() => { setAccountType('student'); setOrganizationType('PROVIDER'); }}
+ onClick={() => { setAccountType('student'); setOrganizationType('PROVIDER');
+ const [businessCategory, setBusinessCategory] = useState('RETAIL'); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
  accountType === 'student'
  ? 'bg-accent text-white'
@@ -317,7 +319,8 @@ function RegisterForm() {
  </button>
  <button
  type="button"
- onClick={() => { setAccountType('host'); setOrganizationType('PROVIDER'); }}
+ onClick={() => { setAccountType('host'); setOrganizationType('PROVIDER');
+ const [businessCategory, setBusinessCategory] = useState('RETAIL'); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
  accountType === 'host'
  ? 'bg-accent text-white'
@@ -328,15 +331,14 @@ function RegisterForm() {
  </button>
  <button
  type="button"
- onClick={() => { setAccountType('retailer'); setOrganizationType('RETAIL'); }}
+ onClick={() => { setAccountType('business'); setOrganizationType('RETAIL'); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
- accountType === 'retailer'
+ accountType === 'business'
  ? 'bg-accent text-white'
  : 'bg-surface text-text-secondary hover:bg-surface-muted'
  }`}
  >
- Retailer
- </button>
+ Business\n  </button>
  </div>
 <form className="space-y-5" onSubmit={handleRegister}>
  {error && (
@@ -362,10 +364,10 @@ function RegisterForm() {
  />
  </div>
 
- {accountType === 'retailer' && (
+ {accountType === 'business' && (
  <div>
  <label htmlFor="org-name" className="block text-sm font-medium text-text-primary mb-1">
- Retail Store Name
+ Business Name
  </label>
  <input
  id="org-name"
@@ -373,7 +375,7 @@ function RegisterForm() {
  type="text"
  required
  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
- placeholder="Retail Store Name"
+ placeholder="Business Name"
  value={organizationName}
  onChange={(e) => setOrganizationName(e.target.value)}
  />

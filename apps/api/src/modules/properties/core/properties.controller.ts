@@ -1,226 +1,392 @@
-import { Controller, Get, Query, BadRequestException, Post, Body, Param, UseGuards, Request, Delete, Put, UseInterceptors, UploadedFile, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  BadRequestException,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Request,
+  Delete,
+  Put,
+  UseInterceptors,
+  UploadedFile,
+  NotFoundException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PropertiesService } from './properties.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { OrgTypesGuard } from '../../auth/guards/org-types.guard';
 import { OrgTypes } from '../../auth/decorators/org-types.decorator';
-import { OrgType, PropertyType, PropertyOfferingType, FurnishingType } from '@prisma/client';
+import {
+  OrgType,
+  PropertyType,
+  PropertyOfferingType,
+  FurnishingType,
+} from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { CreatePropertyDto, CreateRoomTypeDto, UpdateAvailabilityDto, UpdatePropertyDto, UpdateRoomTypeDto, UpdateAmenitiesDto, CreateBuildingDto, CreateFloorDto, CreateRoomDto, UpdateEnquiryStatusDto } from '../dtos/property.dto';
+import {
+  CreatePropertyDto,
+  CreateRoomTypeDto,
+  UpdateAvailabilityDto,
+  UpdatePropertyDto,
+  UpdateRoomTypeDto,
+  UpdateAmenitiesDto,
+  CreateBuildingDto,
+  CreateFloorDto,
+  CreateRoomDto,
+  UpdateEnquiryStatusDto,
+} from '../dtos/property.dto';
 
 @Controller('properties')
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post()
   async createProperty(@Body() dto: CreatePropertyDto, @Request() req: any) {
     if (!req.user?.organizationId) {
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     }
     return this.propertiesService.createProperty(dto, req.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Get('my')
   async getMyProperties(@Request() req: any) {
     if (!req.user?.organizationId) {
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     }
     return this.propertiesService.getMyProperties(req.user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id')
-  async updateProperty(@Param('id') id: string, @Body() dto: UpdatePropertyDto, @Request() req: any) {
+  async updateProperty(
+    @Param('id') id: string,
+    @Body() dto: UpdatePropertyDto,
+    @Request() req: any,
+  ) {
     if (!req.user?.organizationId) {
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     }
     return this.propertiesService.updateProperty(id, req.user, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Get('my/:id')
   async getMyProperty(@Param('id') id: string, @Request() req: any) {
     await this.propertiesService.verifyPropertyAccess(id, req.user, false);
     if (!req.user?.organizationId) {
-      throw new BadRequestException('User is not associated with an organization.');
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     }
     return this.propertiesService.getPropertyForProvider(id, req.user, true);
   }
 
   // --- Media Endpoints ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/media')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadMedia(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async uploadMedia(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     if (!file) throw new BadRequestException('No file provided');
-    
+
     // Quick validate image
     if (!file.mimetype.startsWith('image/')) {
       throw new BadRequestException('Only image files are allowed');
     }
-    
+
     return this.propertiesService.addMedia(id, req.user, file);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/media/:mediaId')
-  async deleteMedia(@Param('id') id: string, @Param('mediaId') mediaId: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async deleteMedia(
+    @Param('id') id: string,
+    @Param('mediaId') mediaId: string,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.deleteMedia(id, req.user, mediaId);
   }
 
   // --- Room Endpoints ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/rooms')
-  async createRoomType(@Param('id') id: string, @Body() dto: CreateRoomTypeDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async createRoomType(
+    @Param('id') id: string,
+    @Body() dto: CreateRoomTypeDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.createRoomType(id, req.user, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/rooms/:roomId')
-  async updateRoomType(@Param('id') id: string, @Param('roomId') roomId: string, @Body() dto: UpdateRoomTypeDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async updateRoomType(
+    @Param('id') id: string,
+    @Param('roomId') roomId: string,
+    @Body() dto: UpdateRoomTypeDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.updateRoomType(id, req.user, roomId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/rooms/:roomId')
-  async deleteRoomType(@Param('id') id: string, @Param('roomId') roomId: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async deleteRoomType(
+    @Param('id') id: string,
+    @Param('roomId') roomId: string,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.deleteRoomType(id, req.user, roomId);
   }
 
   // --- Buildings ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/buildings')
-  async createBuilding(@Param('id') id: string, @Body() dto: CreateBuildingDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async createBuilding(
+    @Param('id') id: string,
+    @Body() dto: CreateBuildingDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.addBuilding(id, req.user, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/buildings/:buildingId')
-  async updateBuilding(@Param('id') id: string, @Param('buildingId') buildingId: string, @Body() dto: CreateBuildingDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async updateBuilding(
+    @Param('id') id: string,
+    @Param('buildingId') buildingId: string,
+    @Body() dto: CreateBuildingDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.updateBuilding(id, req.user, buildingId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/buildings/:buildingId')
-  async deleteBuilding(@Param('id') id: string, @Param('buildingId') buildingId: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async deleteBuilding(
+    @Param('id') id: string,
+    @Param('buildingId') buildingId: string,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.deleteBuilding(id, req.user, buildingId);
   }
 
   // --- Floors ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/buildings/:buildingId/floors')
-  async createFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Body() dto: CreateFloorDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async createFloor(
+    @Param('id') id: string,
+    @Param('buildingId') buildingId: string,
+    @Body() dto: CreateFloorDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.addFloor(id, req.user, buildingId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/buildings/:buildingId/floors/:floorId')
-  async updateFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Param('floorId') floorId: string, @Body() dto: CreateFloorDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
-    return this.propertiesService.updateFloor(id, req.user, buildingId, floorId, dto);
+  async updateFloor(
+    @Param('id') id: string,
+    @Param('buildingId') buildingId: string,
+    @Param('floorId') floorId: string,
+    @Body() dto: CreateFloorDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
+    return this.propertiesService.updateFloor(
+      id,
+      req.user,
+      buildingId,
+      floorId,
+      dto,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/buildings/:buildingId/floors/:floorId')
-  async deleteFloor(@Param('id') id: string, @Param('buildingId') buildingId: string, @Param('floorId') floorId: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
-    return this.propertiesService.deleteFloor(id, req.user, buildingId, floorId);
+  async deleteFloor(
+    @Param('id') id: string,
+    @Param('buildingId') buildingId: string,
+    @Param('floorId') floorId: string,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
+    return this.propertiesService.deleteFloor(
+      id,
+      req.user,
+      buildingId,
+      floorId,
+    );
   }
 
   // --- Actual Rooms ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/room-types/:roomTypeId/rooms')
-  async createRoom(@Param('id') id: string, @Param('roomTypeId') roomTypeId: string, @Body() dto: CreateRoomDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async createRoom(
+    @Param('id') id: string,
+    @Param('roomTypeId') roomTypeId: string,
+    @Body() dto: CreateRoomDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.addRoom(id, req.user, roomTypeId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/room-types/:roomTypeId/rooms/:roomId')
-  async deleteRoom(@Param('id') id: string, @Param('roomTypeId') roomTypeId: string, @Param('roomId') roomId: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async deleteRoom(
+    @Param('id') id: string,
+    @Param('roomTypeId') roomTypeId: string,
+    @Param('roomId') roomId: string,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.deleteRoom(id, req.user, roomTypeId, roomId);
   }
 
   // --- Amenities ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/amenities')
-  async updateAmenities(@Param('id') id: string, @Body() dto: UpdateAmenitiesDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async updateAmenities(
+    @Param('id') id: string,
+    @Body() dto: UpdateAmenitiesDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.updateAmenities(id, req.user, dto.amenities);
   }
 
   // --- Availability Endpoints ---
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/rooms/:roomId/availability')
   async updateAvailability(
     @Param('id') id: string,
     @Param('roomId') roomId: string,
     @Body() dto: UpdateAvailabilityDto,
-    @Request() req: any
+    @Request() req: any,
   ) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.updateAvailability(id, req.user, roomId, dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/submit')
   async submitProperty(@Param('id') id: string, @Request() req: any) {
     await this.propertiesService.verifyPropertyAccess(id, req.user, true);
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.submitProperty(id, req.user, req.user.id);
   }
 
@@ -257,7 +423,7 @@ export class PropertiesController {
     // 1. Pagination Validation
     const safePage = page === 'undefined' ? undefined : page;
     const safeLimit = limit === 'undefined' ? undefined : limit;
-    
+
     const parsedPage = safePage ? parseInt(safePage, 10) : 1;
     const parsedLimit = safeLimit ? parseInt(safeLimit, 10) : 20;
 
@@ -265,7 +431,9 @@ export class PropertiesController {
       throw new BadRequestException('Invalid page parameter. Must be >= 1');
     }
     if (isNaN(parsedLimit) || parsedLimit < 1 || parsedLimit > 100) {
-      throw new BadRequestException('Invalid limit parameter. Must be between 1 and 100');
+      throw new BadRequestException(
+        'Invalid limit parameter. Must be between 1 and 100',
+      );
     }
 
     // 2. Price Validation
@@ -284,20 +452,31 @@ export class PropertiesController {
         throw new BadRequestException('Invalid maxPrice parameter.');
       }
     }
-    if (parsedMinPrice !== undefined && parsedMaxPrice !== undefined && parsedMinPrice > parsedMaxPrice) {
-      throw new BadRequestException('minPrice cannot be greater than maxPrice.');
+    if (
+      parsedMinPrice !== undefined &&
+      parsedMaxPrice !== undefined &&
+      parsedMinPrice > parsedMaxPrice
+    ) {
+      throw new BadRequestException(
+        'minPrice cannot be greater than maxPrice.',
+      );
     }
 
     // 3. Bounds Validation
     let effectiveBounds = bounds;
-    if (bounds === 'undefined' || bounds === 'undefined,undefined,undefined,undefined') {
+    if (
+      bounds === 'undefined' ||
+      bounds === 'undefined,undefined,undefined,undefined'
+    ) {
       effectiveBounds = undefined;
     }
 
     if (effectiveBounds) {
-      const parts = effectiveBounds.split(',').map(p => parseFloat(p.trim()));
+      const parts = effectiveBounds.split(',').map((p) => parseFloat(p.trim()));
       if (parts.length !== 4 || parts.some(isNaN)) {
-        throw new BadRequestException('Bounds must contain exactly 4 valid numbers: sw_lat,sw_lng,ne_lat,ne_lng');
+        throw new BadRequestException(
+          'Bounds must contain exactly 4 valid numbers: sw_lat,sw_lng,ne_lat,ne_lng',
+        );
       }
       const [swLat, swLng, neLat, neLng] = parts;
       if (swLat > neLat) {
@@ -306,7 +485,9 @@ export class PropertiesController {
       if (swLng > neLng && (swLng > 180 || neLng < -180)) {
         // Allow date-line crossing if valid, but otherwise enforce standard ordering.
         // For Australia, standard ordering is fine.
-        throw new BadRequestException('sw_lng cannot be greater than ne_lng for this region');
+        throw new BadRequestException(
+          'sw_lng cannot be greater than ne_lng for this region',
+        );
       }
     }
 
@@ -314,16 +495,22 @@ export class PropertiesController {
     const effectiveRoomType = roomType || type;
     const effectiveMoveIn = moveIn || availability || semester;
 
-    const normalizeString = (val?: string) => (val && val.trim() !== '' ? val : undefined);
+    const normalizeString = (val?: string) =>
+      val && val.trim() !== '' ? val : undefined;
     const parseNumber = (val?: string) => {
       if (!val || val.trim() === '') return undefined;
       const parsed = parseInt(val, 10);
       return isNaN(parsed) ? undefined : parsed;
     };
-    const validateEnum = <T extends Record<string, string>>(val: string | undefined, enumObj: T): T[keyof T] | undefined => {
+    const validateEnum = <T extends Record<string, string>>(
+      val: string | undefined,
+      enumObj: T,
+    ): T[keyof T] | undefined => {
       const normalized = normalizeString(val);
       if (!normalized) return undefined;
-      return Object.values(enumObj).includes(normalized as any) ? (normalized as T[keyof T]) : undefined;
+      return Object.values(enumObj).includes(normalized)
+        ? (normalized as T[keyof T])
+        : undefined;
     };
 
     const effectiveSort = normalizeString(sortBy || sort);
@@ -333,27 +520,50 @@ export class PropertiesController {
 
     if (latitude !== undefined) {
       parsedLatitude = parseFloat(latitude);
-      if (isNaN(parsedLatitude) || parsedLatitude < -90 || parsedLatitude > 90) {
-        throw new BadRequestException('Invalid latitude parameter. Must be between -90 and 90');
+      if (
+        isNaN(parsedLatitude) ||
+        parsedLatitude < -90 ||
+        parsedLatitude > 90
+      ) {
+        throw new BadRequestException(
+          'Invalid latitude parameter. Must be between -90 and 90',
+        );
       }
     }
 
     if (longitude !== undefined) {
       parsedLongitude = parseFloat(longitude);
-      if (isNaN(parsedLongitude) || parsedLongitude < -180 || parsedLongitude > 180) {
-        throw new BadRequestException('Invalid longitude parameter. Must be between -180 and 180');
+      if (
+        isNaN(parsedLongitude) ||
+        parsedLongitude < -180 ||
+        parsedLongitude > 180
+      ) {
+        throw new BadRequestException(
+          'Invalid longitude parameter. Must be between -180 and 180',
+        );
       }
     }
 
     if (radiusKm !== undefined) {
       parsedRadiusKm = parseFloat(radiusKm);
-      if (isNaN(parsedRadiusKm) || parsedRadiusKm <= 0 || parsedRadiusKm > 20000) {
-        throw new BadRequestException('Invalid radiusKm parameter. Must be greater than 0');
+      if (
+        isNaN(parsedRadiusKm) ||
+        parsedRadiusKm <= 0 ||
+        parsedRadiusKm > 20000
+      ) {
+        throw new BadRequestException(
+          'Invalid radiusKm parameter. Must be greater than 0',
+        );
       }
     }
 
-    if (effectiveSort === 'distance' && (parsedLatitude === undefined || parsedLongitude === undefined)) {
-      throw new BadRequestException('sortBy distance requires latitude and longitude parameters');
+    if (
+      effectiveSort === 'distance' &&
+      (parsedLatitude === undefined || parsedLongitude === undefined)
+    ) {
+      throw new BadRequestException(
+        'sortBy distance requires latitude and longitude parameters',
+      );
     }
 
     return this.propertiesService.search({
@@ -366,15 +576,21 @@ export class PropertiesController {
       maxPrice: parseNumber(maxPrice),
       roomType: normalizeString(effectiveRoomType),
       moveIn: normalizeString(effectiveMoveIn),
-      amenities: amenities && amenities.trim() !== '' ? amenities.split(',').map(a => a.trim()).filter(Boolean) : undefined,
+      amenities:
+        amenities && amenities.trim() !== ''
+          ? amenities
+              .split(',')
+              .map((a) => a.trim())
+              .filter(Boolean)
+          : undefined,
       bounds: normalizeString(effectiveBounds),
       page: parsedPage,
       limit: parsedLimit,
       sort: effectiveSort,
       sortOrder: normalizeString(sortOrder) as 'asc' | 'desc' | undefined,
-      propertyType: validateEnum(propertyType, PropertyType) as string | undefined,
-      furnishingType: validateEnum(furnishingType, FurnishingType) as string | undefined,
-      offeringType: validateEnum(offeringType, PropertyOfferingType) as string | undefined,
+      propertyType: validateEnum(propertyType, PropertyType),
+      furnishingType: validateEnum(furnishingType, FurnishingType),
+      offeringType: validateEnum(offeringType, PropertyOfferingType),
       minBedrooms: parseNumber(minBedrooms),
       minBathrooms: parseNumber(minBathrooms),
       minimumStay: parseNumber(minimumStay),
@@ -390,7 +606,15 @@ export class PropertiesController {
   @Post('public/:id/enquiries')
   async createEnquiry(
     @Param('id') id: string,
-    @Body() body: { message: string; roomTypeId?: string; seekerName?: string; seekerEmail?: string; seekerPhone?: string; studentId?: string }
+    @Body()
+    body: {
+      message: string;
+      roomTypeId?: string;
+      seekerName?: string;
+      seekerEmail?: string;
+      seekerPhone?: string;
+      studentId?: string;
+    },
   ) {
     if (!body?.message || typeof body.message !== 'string') {
       throw new BadRequestException('Message is required and must be a string');
@@ -403,8 +627,15 @@ export class PropertiesController {
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Post('my/:id/residents')
-  async addResident(@Param('id') id: string, @Body() dto: any, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async addResident(
+    @Param('id') id: string,
+    @Body() dto: any,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.addResident(id, req.user, dto);
   }
 
@@ -412,8 +643,16 @@ export class PropertiesController {
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/residents/:residentId')
-  async updateResident(@Param('id') id: string, @Param('residentId') residentId: string, @Body() dto: any, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async updateResident(
+    @Param('id') id: string,
+    @Param('residentId') residentId: string,
+    @Body() dto: any,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.updateResident(id, req.user, residentId, dto);
   }
 
@@ -421,8 +660,15 @@ export class PropertiesController {
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Delete('my/:id/residents/:residentId')
-  async deleteResident(@Param('id') id: string, @Param('residentId') residentId: string, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async deleteResident(
+    @Param('id') id: string,
+    @Param('residentId') residentId: string,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.deleteResident(id, req.user, residentId);
   }
 
@@ -431,8 +677,15 @@ export class PropertiesController {
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('my/:id/house-rules')
-  async updateHouseRules(@Param('id') id: string, @Body() dto: any, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+  async updateHouseRules(
+    @Param('id') id: string,
+    @Body() dto: any,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.updateHouseRule(id, req.user, dto);
   }
 
@@ -442,7 +695,10 @@ export class PropertiesController {
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Get('enquiries')
   async getProviderEnquiries(@Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
     return this.propertiesService.getProviderEnquiries(req.user);
   }
 
@@ -450,8 +706,19 @@ export class PropertiesController {
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Put('enquiries/:enquiryId/status')
-  async updateEnquiryStatus(@Param('enquiryId') enquiryId: string, @Body() dto: UpdateEnquiryStatusDto, @Request() req: any) {
-    if (!req.user?.organizationId) throw new BadRequestException('User is not associated with an organization.');
-    return this.propertiesService.updateEnquiryStatus(enquiryId, req.user, dto.status);
+  async updateEnquiryStatus(
+    @Param('enquiryId') enquiryId: string,
+    @Body() dto: UpdateEnquiryStatusDto,
+    @Request() req: any,
+  ) {
+    if (!req.user?.organizationId)
+      throw new BadRequestException(
+        'User is not associated with an organization.',
+      );
+    return this.propertiesService.updateEnquiryStatus(
+      enquiryId,
+      req.user,
+      dto.status,
+    );
   }
 }

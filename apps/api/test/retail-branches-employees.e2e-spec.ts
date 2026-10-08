@@ -22,7 +22,8 @@ describe('Retail Branch & Employee Management (e2e)', () => {
   let tokenC: string;
 
   beforeAll(async () => {
-    process.env.DATABASE_URL = "postgresql://postgres:Jesmond@localhost:5432/jesmond_test?schema=public";
+    process.env.DATABASE_URL =
+      'postgresql://postgres:Jesmond@localhost:5432/jesmond_test?schema=public';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [PrismaModule, RetailModule],
@@ -48,27 +49,127 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     await prisma.$executeRawUnsafe('TRUNCATE TABLE "Organization" CASCADE');
     await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
 
-    orgA = await prisma.organization.create({ data: { name: 'Org A', type: 'RETAIL' } });
-    orgB = await prisma.organization.create({ data: { name: 'Org B', type: 'RETAIL' } });
+    orgA = await prisma.organization.create({
+      data: { name: 'Org A', type: 'RETAIL' },
+    });
+    orgB = await prisma.organization.create({
+      data: { name: 'Org B', type: 'RETAIL' },
+    });
     const hash = await bcrypt.hash('password123', 10);
 
-    userA = await prisma.user.create({ data: { email: 'usera@test.com', emailVerified: true, firstName: 'A', lastName: 'A', role: 'ORG_STAFF', accountStatus: 'ACTIVE', password: hash } });
-    await prisma.orgStaff.create({ data: { userId: userA.id, organizationId: orgA.id, role: 'ADMIN' } });
+    userA = await prisma.user.create({
+      data: {
+        email: 'usera@test.com',
+        emailVerified: true,
+        firstName: 'A',
+        lastName: 'A',
+        role: 'ORG_STAFF',
+        accountStatus: 'ACTIVE',
+        password: hash,
+      },
+    });
+    await prisma.orgStaff.create({
+      data: { userId: userA.id, organizationId: orgA.id, role: 'ADMIN' },
+    });
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 7);
 
-    const sessionA = await prisma.session.create({ data: { userId: userA.id, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummyTokenA', expiresAt: futureDate } });
-    tokenA = jwtService.sign({ sub: userA.id, email: userA.email, role: userA.role, orgId: orgA.id, orgRoles: ['ADMIN'], sessionId: sessionA.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    const sessionA = await prisma.session.create({
+      data: {
+        userId: userA.id,
+        ipAddress: '127.0.0.1',
+        deviceInfo: 'test',
+        refreshToken: 'dummyTokenA',
+        expiresAt: futureDate,
+      },
+    });
+    tokenA = jwtService.sign(
+      {
+        sub: userA.id,
+        email: userA.email,
+        role: userA.role,
+        orgId: orgA.id,
+        orgRoles: ['ADMIN'],
+        sessionId: sessionA.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
-    userB = await prisma.user.create({ data: { email: 'userb@test.com', emailVerified: true, firstName: 'B', lastName: 'B', role: 'ORG_STAFF', accountStatus: 'ACTIVE', password: hash } });
-    await prisma.orgStaff.create({ data: { userId: userB.id, organizationId: orgB.id, role: 'ADMIN' } });
-    const sessionB = await prisma.session.create({ data: { userId: userB.id, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummyTokenB', expiresAt: futureDate } });
-    tokenB = jwtService.sign({ sub: userB.id, email: userB.email, role: userB.role, orgId: orgB.id, orgRoles: ['ADMIN'], sessionId: sessionB.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    userB = await prisma.user.create({
+      data: {
+        email: 'userb@test.com',
+        emailVerified: true,
+        firstName: 'B',
+        lastName: 'B',
+        role: 'ORG_STAFF',
+        accountStatus: 'ACTIVE',
+        password: hash,
+      },
+    });
+    await prisma.orgStaff.create({
+      data: { userId: userB.id, organizationId: orgB.id, role: 'ADMIN' },
+    });
+    const sessionB = await prisma.session.create({
+      data: {
+        userId: userB.id,
+        ipAddress: '127.0.0.1',
+        deviceInfo: 'test',
+        refreshToken: 'dummyTokenB',
+        expiresAt: futureDate,
+      },
+    });
+    tokenB = jwtService.sign(
+      {
+        sub: userB.id,
+        email: userB.email,
+        role: userB.role,
+        orgId: orgB.id,
+        orgRoles: ['ADMIN'],
+        sessionId: sessionB.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
-    userC = await prisma.user.create({ data: { email: 'userc@test.com', emailVerified: true, firstName: 'C', lastName: 'C', role: 'ORG_STAFF', accountStatus: 'ACTIVE', password: hash } });
-    await prisma.orgStaff.create({ data: { userId: userC.id, organizationId: orgA.id, role: 'ORG_STAFF', permissions: ['*'] } });
-    const sessionC = await prisma.session.create({ data: { userId: userC.id, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummyTokenC', expiresAt: futureDate } });
-    tokenC = jwtService.sign({ sub: userC.id, email: userC.email, role: userC.role, orgId: orgA.id, orgRoles: [], permissions: ['*'], sessionId: sessionC.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    userC = await prisma.user.create({
+      data: {
+        email: 'userc@test.com',
+        emailVerified: true,
+        firstName: 'C',
+        lastName: 'C',
+        role: 'ORG_STAFF',
+        accountStatus: 'ACTIVE',
+        password: hash,
+      },
+    });
+    await prisma.orgStaff.create({
+      data: {
+        userId: userC.id,
+        organizationId: orgA.id,
+        role: 'ORG_STAFF',
+        permissions: ['*'],
+      },
+    });
+    const sessionC = await prisma.session.create({
+      data: {
+        userId: userC.id,
+        ipAddress: '127.0.0.1',
+        deviceInfo: 'test',
+        refreshToken: 'dummyTokenC',
+        expiresAt: futureDate,
+      },
+    });
+    tokenC = jwtService.sign(
+      {
+        sub: userC.id,
+        email: userC.email,
+        role: userC.role,
+        orgId: orgA.id,
+        orgRoles: [],
+        permissions: ['*'],
+        sessionId: sessionC.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
   });
 
   let branchAId: string;
@@ -77,19 +178,28 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/retail/branches')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ name: 'Branch A', phone: '123456', address: '123 Test St', isActive: true });
+      .send({
+        name: 'Branch A',
+        phone: '123456',
+        address: '123 Test St',
+        isActive: true,
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.name).toBe('Branch A');
     branchAId = res.body.id;
 
-    const dbBranch = await prisma.retailBranch.findUnique({ where: { id: branchAId } });
+    const dbBranch = await prisma.retailBranch.findUnique({
+      where: { id: branchAId },
+    });
     expect(dbBranch).toBeDefined();
     expect(dbBranch?.organizationId).toBe(orgA.id);
   });
 
   it('2. should enforce cross-organization branch isolation', async () => {
-    const branchA = await prisma.retailBranch.create({ data: { name: 'Branch A', organizationId: orgA.id } });
+    const branchA = await prisma.retailBranch.create({
+      data: { name: 'Branch A', organizationId: orgA.id },
+    });
 
     const resUpdate = await request(app.getHttpServer())
       .patch(`/api/v1/retail/branches/${branchA.id}`)
@@ -106,8 +216,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
   });
 
   it('3. should list branches', async () => {
-    await prisma.retailBranch.create({ data: { name: 'Branch 1', organizationId: orgA.id } });
-    await prisma.retailBranch.create({ data: { name: 'Branch 2', organizationId: orgB.id } });
+    await prisma.retailBranch.create({
+      data: { name: 'Branch 1', organizationId: orgA.id },
+    });
+    await prisma.retailBranch.create({
+      data: { name: 'Branch 2', organizationId: orgB.id },
+    });
 
     const res = await request(app.getHttpServer())
       .get('/api/v1/retail/branches')
@@ -119,7 +233,9 @@ describe('Retail Branch & Employee Management (e2e)', () => {
   });
 
   it('4. should update and delete branch', async () => {
-    const branch = await prisma.retailBranch.create({ data: { name: 'To Update', organizationId: orgA.id } });
+    const branch = await prisma.retailBranch.create({
+      data: { name: 'To Update', organizationId: orgA.id },
+    });
 
     const updateRes = await request(app.getHttpServer())
       .patch(`/api/v1/retail/branches/${branch.id}`)
@@ -134,33 +250,52 @@ describe('Retail Branch & Employee Management (e2e)', () => {
       .set('Authorization', `Bearer ${tokenA}`);
 
     expect(deleteRes.status).toBe(200);
-    const dbBranch = await prisma.retailBranch.findUnique({ where: { id: branch.id } });
+    const dbBranch = await prisma.retailBranch.findUnique({
+      where: { id: branch.id },
+    });
     expect(dbBranch?.isActive).toBe(false);
   });
 
   let employeeAId: string;
 
   it('5. should create employee and enforce cross-org branch isolation', async () => {
-    const branchB = await prisma.retailBranch.create({ data: { name: 'Branch B', organizationId: orgB.id } });
+    const branchB = await prisma.retailBranch.create({
+      data: { name: 'Branch B', organizationId: orgB.id },
+    });
 
     const resFail = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'newemp@test.com', firstName: 'New', role: 'ORG_STAFF', branchId: branchB.id });
+      .send({
+        email: 'newemp@test.com',
+        firstName: 'New',
+        role: 'ORG_STAFF',
+        branchId: branchB.id,
+      });
 
     expect(resFail.status).toBe(403);
 
-    const branchA = await prisma.retailBranch.create({ data: { name: 'Branch A', organizationId: orgA.id } });
+    const branchA = await prisma.retailBranch.create({
+      data: { name: 'Branch A', organizationId: orgA.id },
+    });
 
     const resSuccess = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'newemp@test.com', firstName: 'New', role: 'ORG_STAFF', branchId: branchA.id });
+      .send({
+        email: 'newemp@test.com',
+        firstName: 'New',
+        role: 'ORG_STAFF',
+        branchId: branchA.id,
+      });
 
     expect(resSuccess.status).toBe(201);
     employeeAId = resSuccess.body.orgStaff.id;
 
-    const dbStaff = await prisma.orgStaff.findUnique({ where: { id: employeeAId }, include: { user: true } });
+    const dbStaff = await prisma.orgStaff.findUnique({
+      where: { id: employeeAId },
+      include: { user: true },
+    });
     expect(dbStaff?.organizationId).toBe(orgA.id);
     expect(dbStaff?.retailBranchId).toBe(branchA.id);
     expect(dbStaff?.user.email).toBe('newemp@test.com');
@@ -170,7 +305,11 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'isolate@test.com', firstName: 'Isolate', role: 'ORG_STAFF' });
+      .send({
+        email: 'isolate@test.com',
+        firstName: 'Isolate',
+        role: 'ORG_STAFF',
+      });
 
     const empId = newEmp.body.orgStaff.id;
 
@@ -207,14 +346,20 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     // UserA + UserC + new EmpA
     expect(res.body.length).toBe(3);
     expect(res.body.map((e: any) => e.user.email)).toContain('empa@test.com');
-    expect(res.body.map((e: any) => e.user.email)).not.toContain('empb@test.com');
+    expect(res.body.map((e: any) => e.user.email)).not.toContain(
+      'empb@test.com',
+    );
   });
 
   it('8. should update and delete employee', async () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'update@test.com', firstName: 'Update', role: 'ORG_STAFF' });
+      .send({
+        email: 'update@test.com',
+        firstName: 'Update',
+        role: 'ORG_STAFF',
+      });
 
     const empId = newEmp.body.orgStaff.id;
 
@@ -226,7 +371,10 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     expect(updateRes.status).toBe(200);
     expect(updateRes.body.role).toBe('ADMIN');
 
-    const dbStaff = await prisma.orgStaff.findUnique({ where: { id: empId }, include: { user: true } });
+    const dbStaff = await prisma.orgStaff.findUnique({
+      where: { id: empId },
+      include: { user: true },
+    });
     expect(dbStaff?.user.accountStatus).toBe('SUSPENDED');
 
     const deleteRes = await request(app.getHttpServer())
@@ -234,20 +382,37 @@ describe('Retail Branch & Employee Management (e2e)', () => {
       .set('Authorization', `Bearer ${tokenA}`);
 
     expect(deleteRes.status).toBe(200);
-    const dbStaffDel = await prisma.orgStaff.findUnique({ where: { id: empId }, include: { user: true } });
+    const dbStaffDel = await prisma.orgStaff.findUnique({
+      where: { id: empId },
+      include: { user: true },
+    });
     expect(dbStaffDel?.user.accountStatus).toBe('DEACTIVATED');
   });
 
   it('9. SECURITY: should prevent cross-organization retail inventory IDOR/BOLA', async () => {
     // 1. Setup Branch & Product for Org A
-    const branchA = await prisma.retailBranch.create({ data: { name: 'Inv Branch A', organizationId: orgA.id } });
+    const branchA = await prisma.retailBranch.create({
+      data: { name: 'Inv Branch A', organizationId: orgA.id },
+    });
     const productA = await prisma.product.create({
-      data: { name: 'Prod A', sku: 'SKU_A', sellingPrice: 10, organizationId: orgA.id, imageUrl: "http://example.com/image.png" }
+      data: {
+        name: 'Prod A',
+        sku: 'SKU_A',
+        sellingPrice: 10,
+        organizationId: orgA.id,
+        imageUrl: 'http://example.com/image.png',
+      },
     });
 
     // Setup Product for Org B
     const productB = await prisma.product.create({
-      data: { name: 'Prod B', sku: 'SKU_B', sellingPrice: 15, organizationId: orgB.id, imageUrl: "http://example.com/image.png" }
+      data: {
+        name: 'Prod B',
+        sku: 'SKU_B',
+        sellingPrice: 15,
+        organizationId: orgB.id,
+        imageUrl: 'http://example.com/image.png',
+      },
     });
 
     // Org A user adjusts their own inventory (Branch A, Product A) -> Success
@@ -279,11 +444,19 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     expect(productHackRes.status).toBe(403);
 
     // Verify Org A inventory is unchanged
-    const dbInv = await prisma.inventory.findUnique({ where: { branchId_productId: { branchId: branchA.id, productId: productA.id } } });
+    const dbInv = await prisma.inventory.findUnique({
+      where: {
+        branchId_productId: { branchId: branchA.id, productId: productA.id },
+      },
+    });
     expect(dbInv?.quantity).toBe(10);
 
     // Verify no inventory record created for Product B in Branch A
-    const dbInvB = await prisma.inventory.findUnique({ where: { branchId_productId: { branchId: branchA.id, productId: productB.id } } });
+    const dbInvB = await prisma.inventory.findUnique({
+      where: {
+        branchId_productId: { branchId: branchA.id, productId: productB.id },
+      },
+    });
     expect(dbInvB).toBeNull();
   });
 
@@ -291,7 +464,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/retail/branches')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ name: 'Admin Bypass Branch', phone: '123', address: '123', isActive: true });
+      .send({
+        name: 'Admin Bypass Branch',
+        phone: '123',
+        address: '123',
+        isActive: true,
+      });
 
     expect(res.status).toBe(201);
   });
@@ -301,7 +479,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'perm@test.com', firstName: 'Perm', role: 'ORG_STAFF', permissions: ['EMPLOYEES_VIEW'] });
+      .send({
+        email: 'perm@test.com',
+        firstName: 'Perm',
+        role: 'ORG_STAFF',
+        permissions: ['EMPLOYEES_VIEW'],
+      });
 
     expect(newEmp.status).toBe(201);
     const empId = newEmp.body.orgStaff.id;
@@ -321,13 +504,36 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'noperm@test.com', firstName: 'NoPerm', role: 'ORG_STAFF', permissions: [] });
+      .send({
+        email: 'noperm@test.com',
+        firstName: 'NoPerm',
+        role: 'ORG_STAFF',
+        permissions: [],
+      });
 
     const userId = newEmp.body.id;
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 7);
-    const session = await prisma.session.create({ data: { userId, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummy', expiresAt: futureDate } });
-    const empToken = jwtService.sign({ sub: userId, email: 'noperm@test.com', role: 'ORG_STAFF', orgId: orgA.id, orgRoles: [], sessionId: session.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    const session = await prisma.session.create({
+      data: {
+        userId,
+        ipAddress: '127.0.0.1',
+        deviceInfo: 'test',
+        refreshToken: 'dummy',
+        expiresAt: futureDate,
+      },
+    });
+    const empToken = jwtService.sign(
+      {
+        sub: userId,
+        email: 'noperm@test.com',
+        role: 'ORG_STAFF',
+        orgId: orgA.id,
+        orgRoles: [],
+        sessionId: session.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
     // Attempt to access a protected route
     const res = await request(app.getHttpServer())
@@ -341,13 +547,36 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'oneperm@test.com', firstName: 'OnePerm', role: 'ORG_STAFF', permissions: ['BRANCH_VIEW'] });
+      .send({
+        email: 'oneperm@test.com',
+        firstName: 'OnePerm',
+        role: 'ORG_STAFF',
+        permissions: ['BRANCH_VIEW'],
+      });
 
     const userId = newEmp.body.id;
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 7);
-    const session = await prisma.session.create({ data: { userId, ipAddress: '127.0.0.1', deviceInfo: 'test', refreshToken: 'dummy', expiresAt: futureDate } });
-    const empToken = jwtService.sign({ sub: userId, email: 'oneperm@test.com', role: 'ORG_STAFF', orgId: orgA.id, orgRoles: [], sessionId: session.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    const session = await prisma.session.create({
+      data: {
+        userId,
+        ipAddress: '127.0.0.1',
+        deviceInfo: 'test',
+        refreshToken: 'dummy',
+        expiresAt: futureDate,
+      },
+    });
+    const empToken = jwtService.sign(
+      {
+        sub: userId,
+        email: 'oneperm@test.com',
+        role: 'ORG_STAFF',
+        orgId: orgA.id,
+        orgRoles: [],
+        sessionId: session.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
     // Can access Branches
     const resAllow = await request(app.getHttpServer())
@@ -366,7 +595,9 @@ describe('Retail Branch & Employee Management (e2e)', () => {
 
   it('14. SECURITY: Admin of Org A cannot access branches of Org B', async () => {
     // Create Branch B
-    const branchB = await prisma.retailBranch.create({ data: { name: 'Branch B', organizationId: orgB.id } });
+    const branchB = await prisma.retailBranch.create({
+      data: { name: 'Branch B', organizationId: orgB.id },
+    });
 
     // Admin A tries to GET Branch B (which they don't own)
     const res = await request(app.getHttpServer())
@@ -389,13 +620,20 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/retail/branches')
       .set('Authorization', `Bearer ${tokenC}`)
-      .send({ name: 'Legacy Branch', phone: '123', address: '123', isActive: true });
+      .send({
+        name: 'Legacy Branch',
+        phone: '123',
+        address: '123',
+        isActive: true,
+      });
 
     expect(res.status).toBe(201);
   });
 
   it('16. Legacy wildcard Retail Admin can update a branch', async () => {
-    const branch = await prisma.retailBranch.create({ data: { name: 'To Update Legacy', organizationId: orgA.id } });
+    const branch = await prisma.retailBranch.create({
+      data: { name: 'To Update Legacy', organizationId: orgA.id },
+    });
 
     const res = await request(app.getHttpServer())
       .patch(`/api/v1/retail/branches/${branch.id}`)
@@ -410,7 +648,11 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenC}`)
-      .send({ email: 'legacyemp@test.com', firstName: 'LegacyEmp', role: 'ORG_STAFF' });
+      .send({
+        email: 'legacyemp@test.com',
+        firstName: 'LegacyEmp',
+        role: 'ORG_STAFF',
+      });
 
     expect(res.status).toBe(201);
   });
@@ -419,7 +661,11 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenC}`)
-      .send({ email: 'legacymanage@test.com', firstName: 'LegacyManage', role: 'ORG_STAFF' });
+      .send({
+        email: 'legacymanage@test.com',
+        firstName: 'LegacyManage',
+        role: 'ORG_STAFF',
+      });
 
     const empId = newEmp.body.orgStaff.id;
 
@@ -442,7 +688,12 @@ describe('Retail Branch & Employee Management (e2e)', () => {
     const newEmp = await request(app.getHttpServer())
       .post('/api/v1/retail/employees')
       .set('Authorization', `Bearer ${tokenC}`)
-      .send({ email: 'legacyperms@test.com', firstName: 'LegacyPerms', role: 'ORG_STAFF', permissions: [] });
+      .send({
+        email: 'legacyperms@test.com',
+        firstName: 'LegacyPerms',
+        role: 'ORG_STAFF',
+        permissions: [],
+      });
 
     const empId = newEmp.body.orgStaff.id;
 
@@ -456,7 +707,9 @@ describe('Retail Branch & Employee Management (e2e)', () => {
   });
 
   it('20. Legacy wildcard Admin from Org A cannot access Branch resources belonging to Org B', async () => {
-    const branchB = await prisma.retailBranch.create({ data: { name: 'Branch B Legacy Test', organizationId: orgB.id } });
+    const branchB = await prisma.retailBranch.create({
+      data: { name: 'Branch B Legacy Test', organizationId: orgB.id },
+    });
 
     const getRes = await request(app.getHttpServer())
       .get(`/api/v1/retail/branches/${branchB.id}`)
@@ -471,5 +724,4 @@ describe('Retail Branch & Employee Management (e2e)', () => {
 
     expect(patchRes.status).toBe(403);
   });
-
 });

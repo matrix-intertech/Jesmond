@@ -29,6 +29,11 @@ import { AgencyPermissionsService } from './services/agency-permissions.service'
     AgencyService,
     AgencyPermissionsService,
   ],
-  exports: [OrganizationsService, OrgStaffService, AgencyService, AgencyPermissionsService],
+  exports: [
+    OrganizationsService,
+    OrgStaffService,
+    AgencyService,
+    AgencyPermissionsService,
+  ],
 })
 export class OrganizationsModule {}

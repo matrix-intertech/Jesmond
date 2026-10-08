@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { MarketplaceService } from './marketplace.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CheckoutDto } from './dto/checkout.dto';
@@ -12,11 +21,13 @@ export class MarketplaceController {
     @Query('lat') lat?: string,
     @Query('lng') lng?: string,
     @Query('radius') radius?: string,
+    @Query('category') category?: string,
   ) {
     return this.marketplaceService.listStores(
       lat ? parseFloat(lat) : undefined,
       lng ? parseFloat(lng) : undefined,
-      radius ? parseFloat(radius) : undefined
+      radius ? parseFloat(radius) : undefined,
+      category,
     );
   }
 
@@ -27,7 +38,11 @@ export class MarketplaceController {
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
-  async checkout(@Request() req: any, @Body(new ValidationPipe({ whitelist: true, transform: true })) body: CheckoutDto) {
+  async checkout(
+    @Request() req: any,
+    @Body(new ValidationPipe({ whitelist: true, transform: true }))
+    body: CheckoutDto,
+  ) {
     return this.marketplaceService.checkout(req.user.id, body);
   }
 

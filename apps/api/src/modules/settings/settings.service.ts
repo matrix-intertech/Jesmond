@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as qrcode from 'qrcode';
 import * as bcrypt from 'bcrypt';
@@ -14,23 +20,39 @@ export class SettingsService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
-        id: true, email: true, firstName: true, lastName: true, role: true, accountStatus: true,
-        phone: true, countryCode: true, ethnicity: true, dateOfBirth: true,
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        accountStatus: true,
+        phone: true,
+        countryCode: true,
+        ethnicity: true,
+        dateOfBirth: true,
         allowPublicContactDetails: true,
         orgStaffRoles: {
           where: { deletedAt: null },
           include: { organization: true },
-        }
-      }
+        },
+      },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const requiredFields = ['phone', 'countryCode', 'ethnicity', 'dateOfBirth'] as const;
-    const missingFields: string[] = requiredFields.filter(f => !user[f]);
+    const requiredFields = [
+      'phone',
+      'countryCode',
+      'ethnicity',
+      'dateOfBirth',
+    ] as const;
+    const missingFields: string[] = requiredFields.filter((f) => !user[f]);
 
     const activeRole = user.orgStaffRoles?.[0];
     if (activeRole?.organization?.type === 'RETAIL') {
-      if (!activeRole.organization.name || activeRole.organization.name.trim() === '') {
+      if (
+        !activeRole.organization.name ||
+        activeRole.organization.name.trim() === ''
+      ) {
         missingFields.push('retailStoreName');
       }
     }
@@ -51,31 +73,55 @@ export class SettingsService {
       if (data.firstName !== undefined) updateData.firstName = data.firstName;
       if (data.lastName !== undefined) updateData.lastName = data.lastName;
       if (data.phone !== undefined) updateData.phone = data.phone;
-      if (data.countryCode !== undefined) updateData.countryCode = data.countryCode;
-      if (data.ethnicity !== undefined) updateData.ethnicity = data.ethnicity || null;
-      if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null;
-      if (data.allowPublicContactDetails !== undefined) updateData.allowPublicContactDetails = Boolean(data.allowPublicContactDetails);
+      if (data.countryCode !== undefined)
+        updateData.countryCode = data.countryCode;
+      if (data.ethnicity !== undefined)
+        updateData.ethnicity = data.ethnicity || null;
+      if (data.dateOfBirth !== undefined)
+        updateData.dateOfBirth = data.dateOfBirth
+          ? new Date(data.dateOfBirth)
+          : null;
+      if (data.allowPublicContactDetails !== undefined)
+        updateData.allowPublicContactDetails = Boolean(
+          data.allowPublicContactDetails,
+        );
 
       const updated = await this.prisma.user.update({
         where: { id: userId },
         data: updateData,
         select: {
-          id: true, email: true, firstName: true, lastName: true, role: true, accountStatus: true,
-          phone: true, countryCode: true, ethnicity: true, dateOfBirth: true,
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          accountStatus: true,
+          phone: true,
+          countryCode: true,
+          ethnicity: true,
+          dateOfBirth: true,
           allowPublicContactDetails: true,
           orgStaffRoles: {
             where: { deletedAt: null },
             include: { organization: true },
-          }
-        }
+          },
+        },
       });
 
-      const requiredFields = ['phone', 'countryCode', 'ethnicity', 'dateOfBirth'] as const;
-      const missingFields: string[] = requiredFields.filter(f => !updated[f]);
+      const requiredFields = [
+        'phone',
+        'countryCode',
+        'ethnicity',
+        'dateOfBirth',
+      ] as const;
+      const missingFields: string[] = requiredFields.filter((f) => !updated[f]);
 
       const activeRole = updated.orgStaffRoles?.[0];
       if (activeRole?.organization?.type === 'RETAIL') {
-        if (!activeRole.organization.name || activeRole.organization.name.trim() === '') {
+        if (
+          !activeRole.organization.name ||
+          activeRole.organization.name.trim() === ''
+        ) {
           missingFields.push('retailStoreName');
         }
       }
@@ -96,16 +142,23 @@ export class SettingsService {
     const [user, sessions] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: userId },
-        select: { mfaEnabled: true }
+        select: { mfaEnabled: true },
       }),
       this.prisma.session.findMany({
         where: { userId, isRevoked: false },
         orderBy: { createdAt: 'desc' },
-        select: { id: true, ipAddress: true, deviceInfo: true, createdAt: true, expiresAt: true, isRevoked: true }
-      })
+        select: {
+          id: true,
+          ipAddress: true,
+          deviceInfo: true,
+          createdAt: true,
+          expiresAt: true,
+          isRevoked: true,
+        },
+      }),
     ]);
 
-    const mappedSessions = sessions.map(s => {
+    const mappedSessions = sessions.map((s) => {
       const device = parseUserAgent(s.deviceInfo);
       return {
         id: s.id,
@@ -125,7 +178,10 @@ export class SettingsService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const isPasswordValid = await bcrypt.compare(data.currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      data.currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new BadRequestException('Incorrect current password');
     }
@@ -133,7 +189,7 @@ export class SettingsService {
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
     await this.prisma.user.update({
       where: { id: userId },
-      data: { password: hashedPassword }
+      data: { password: hashedPassword },
     });
 
     return { success: true, message: 'Password successfully changed' };
@@ -142,7 +198,8 @@ export class SettingsService {
   async setup2fa(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
-    if (user.mfaEnabled) throw new BadRequestException('MFA is already enabled');
+    if (user.mfaEnabled)
+      throw new BadRequestException('MFA is already enabled');
 
     const secret = authenticator.generateSecret();
     const otpauth = authenticator.keyuri(user.email, 'Jesmond', secret);
@@ -151,7 +208,7 @@ export class SettingsService {
     // For now, save to the user record but keep mfaEnabled false.
     await this.prisma.user.update({
       where: { id: userId },
-      data: { mfaSecret: secret }
+      data: { mfaSecret: secret },
     });
 
     const qrDataUrl = await qrcode.toDataURL(otpauth);
@@ -160,15 +217,20 @@ export class SettingsService {
 
   async verify2fa(userId: string, code: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.mfaSecret) throw new BadRequestException('MFA setup not initiated');
-    if (user.mfaEnabled) throw new BadRequestException('MFA is already enabled');
+    if (!user || !user.mfaSecret)
+      throw new BadRequestException('MFA setup not initiated');
+    if (user.mfaEnabled)
+      throw new BadRequestException('MFA is already enabled');
 
-    const isValid = authenticator.verify({ token: code, secret: user.mfaSecret });
+    const isValid = authenticator.verify({
+      token: code,
+      secret: user.mfaSecret,
+    });
     if (!isValid) throw new UnauthorizedException('Invalid verification code');
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { mfaEnabled: true }
+      data: { mfaEnabled: true },
     });
 
     return { success: true, message: 'MFA successfully enabled' };
@@ -180,25 +242,30 @@ export class SettingsService {
       throw new BadRequestException('MFA is not enabled');
     }
 
-    const isValid = authenticator.verify({ token: code, secret: user.mfaSecret });
+    const isValid = authenticator.verify({
+      token: code,
+      secret: user.mfaSecret,
+    });
     if (!isValid) throw new UnauthorizedException('Invalid verification code');
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { mfaEnabled: false, mfaSecret: null }
+      data: { mfaEnabled: false, mfaSecret: null },
     });
 
     return { success: true, message: 'MFA successfully disabled' };
   }
 
   async revokeSession(userId: string, sessionId: string) {
-    const session = await this.prisma.session.findUnique({ where: { id: sessionId } });
+    const session = await this.prisma.session.findUnique({
+      where: { id: sessionId },
+    });
     if (!session || session.userId !== userId) {
       throw new NotFoundException('Session not found');
     }
     await this.prisma.session.update({
       where: { id: sessionId },
-      data: { isRevoked: true }
+      data: { isRevoked: true },
     });
     return { success: true };
   }
@@ -206,7 +273,11 @@ export class SettingsService {
   async getNotifications(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { emailNotifications: true, smsNotifications: true, pushNotifications: true }
+      select: {
+        emailNotifications: true,
+        smsNotifications: true,
+        pushNotifications: true,
+      },
     });
     return user;
   }
@@ -219,14 +290,22 @@ export class SettingsService {
         smsNotifications: data.smsNotifications,
         pushNotifications: data.pushNotifications,
       },
-      select: { emailNotifications: true, smsNotifications: true, pushNotifications: true }
+      select: {
+        emailNotifications: true,
+        smsNotifications: true,
+        pushNotifications: true,
+      },
     });
   }
 
   async requestAccountDeletion(userId: string, data: { reason?: string }) {
-    const existing = await this.prisma.accountDeletionRequest.findUnique({ where: { userId } });
+    const existing = await this.prisma.accountDeletionRequest.findUnique({
+      where: { userId },
+    });
     if (existing && existing.status === 'PENDING') {
-      throw new BadRequestException('A deletion request is already pending for this account.');
+      throw new BadRequestException(
+        'A deletion request is already pending for this account.',
+      );
     }
 
     if (existing) {
@@ -236,8 +315,8 @@ export class SettingsService {
     return await this.prisma.accountDeletionRequest.create({
       data: {
         userId,
-        reason: data.reason
-      }
+        reason: data.reason,
+      },
     });
   }
 
@@ -247,10 +326,16 @@ export class SettingsService {
       include: {
         orgStaffRoles: { include: { organization: true } },
         sessions: {
-          select: { deviceInfo: true, ipAddress: true, createdAt: true, expiresAt: true, isRevoked: true }
+          select: {
+            deviceInfo: true,
+            ipAddress: true,
+            createdAt: true,
+            expiresAt: true,
+            isRevoked: true,
+          },
         },
         accountDeletionRequest: true,
-      }
+      },
     });
 
     if (!user) throw new NotFoundException('User not found');

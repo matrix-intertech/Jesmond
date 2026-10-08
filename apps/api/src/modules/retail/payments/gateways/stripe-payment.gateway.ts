@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PaymentGateway, CreatePaymentIntentParams } from './payment-gateway.interface';
+import {
+  PaymentGateway,
+  CreatePaymentIntentParams,
+} from './payment-gateway.interface';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -15,7 +18,9 @@ export class StripePaymentGateway implements PaymentGateway {
       });
       this.logger.log('Stripe initialized.');
     } else {
-      this.logger.warn('STRIPE_SECRET_KEY not found. Stripe is NOT_CONFIGURED.');
+      this.logger.warn(
+        'STRIPE_SECRET_KEY not found. Stripe is NOT_CONFIGURED.',
+      );
     }
   }
 
@@ -23,7 +28,10 @@ export class StripePaymentGateway implements PaymentGateway {
     return this.stripe !== null;
   }
 
-  async createPaymentIntent(params: CreatePaymentIntentParams, idempotencyKey?: string) {
+  async createPaymentIntent(
+    params: CreatePaymentIntentParams,
+    idempotencyKey?: string,
+  ) {
     if (!this.stripe) {
       throw new Error('Stripe is not configured.');
     }
@@ -33,14 +41,17 @@ export class StripePaymentGateway implements PaymentGateway {
       options.idempotencyKey = idempotencyKey;
     }
 
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount: params.amount,
-      currency: params.currency,
-      metadata: params.metadata,
-      automatic_payment_methods: {
-        enabled: true,
+    const paymentIntent = await this.stripe.paymentIntents.create(
+      {
+        amount: params.amount,
+        currency: params.currency,
+        metadata: params.metadata,
+        automatic_payment_methods: {
+          enabled: true,
+        },
       },
-    }, options);
+      options,
+    );
 
     return {
       id: paymentIntent.id,

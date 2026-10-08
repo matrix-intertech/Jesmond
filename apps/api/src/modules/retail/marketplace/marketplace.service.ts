@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { FulfillmentType, OrderSource, OrderStatus } from '@prisma/client';
@@ -10,11 +15,16 @@ export class MarketplaceService {
   constructor(
     private prisma: PrismaService,
     private redisService: RedisService,
-    private paymentSettingsService: PaymentSettingsService
+    private paymentSettingsService: PaymentSettingsService,
   ) {}
 
-  async listStores(lat?: number, lng?: number, radius?: number) {
-    const cacheKey = `retail:marketplace:stores:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}`;
+  async listStores(
+    lat?: number,
+    lng?: number,
+    radius?: number,
+    category?: string,
+  ) {
+    const cacheKey = `retail:marketplace:stores:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}`;
     const cached = await this.redisService.get<any[]>(cacheKey);
     if (cached) {
       return cached;
@@ -26,6 +36,7 @@ export class MarketplaceService {
         organization: {
           status: 'VERIFIED',
           type: 'RETAIL',
+          businessCategory: category ? (category as any) : undefined,
         },
       },
       include: {
@@ -33,17 +44,18 @@ export class MarketplaceService {
           select: {
             name: true,
             branding: true,
+            businessCategory: true,
           },
         },
       },
     });
 
-    const mappedStores = stores.map(store => ({
+    const mappedStores = stores.map((store) => ({
       ...store,
       availability: {
         available: store.isActive,
         label: store.isActive ? 'Available' : 'Currently Unavailable',
-      }
+      },
     }));
 
     await this.redisService.set(cacheKey, mappedStores, 45); // 45 seconds TTL
@@ -57,6 +69,11 @@ export class MarketplaceService {
   async getStoreCatalog(branchId: string) {
     const branch = await this.prisma.retailBranch.findUnique({
       where: { id: branchId },
+      include: {
+        organization: {
+          select: { name: true, businessCategory: true },
+        },
+      },
     });
     if (!branch) {
       throw new NotFoundException('Store not found');
@@ -78,8 +95,11 @@ export class MarketplaceService {
       orderBy: { name: 'asc' },
     });
 
-    const catalog = products.map(product => {
-      const inv = product.inventory && product.inventory.length > 0 ? product.inventory[0] : null;
+    const catalog = products.map((product) => {
+      const inv =
+        product.inventory && product.inventory.length > 0
+          ? product.inventory[0]
+          : null;
       const quantity = inv ? inv.quantity : 0;
       const reservedQuantity = inv ? inv.reservedQuantity : 0;
       const availableQuantity = Math.max(0, quantity - reservedQuantity);
@@ -93,12 +113,18 @@ export class MarketplaceService {
           available: isBranchActive && availableQuantity > 0,
           outOfStock: isBranchActive && availableQuantity <= 0,
           quantity: availableQuantity,
-          label: !isBranchActive ? 'Currently Unavailable' : (availableQuantity > 0 ? 'Available' : 'Out of Stock')
+          label: !isBranchActive
+            ? 'Currently Unavailable'
+            : availableQuantity > 0
+              ? 'Available'
+              : 'Out of Stock',
         },
       };
     });
 
-    const paymentSettings = await this.paymentSettingsService.getSettings(branch.organizationId);
+    const paymentSettings = await this.paymentSettingsService.getSettings(
+      branch.organizationId,
+    );
 
     return {
       branch,
@@ -115,7 +141,9 @@ export class MarketplaceService {
     }
 
     if (fulfillmentType === 'DELIVERY' && !deliveryAddress) {
-      throw new BadRequestException('Delivery address is required for DELIVERY fulfillment');
+      throw new BadRequestException(
+        'Delivery address is required for DELIVERY fulfillment',
+      );
     }
 
     if (fulfillmentType !== 'DELIVERY') {
@@ -134,7 +162,7 @@ export class MarketplaceService {
     if (!branch) {
       throw new NotFoundException('Store not found');
     }
-    
+
     if (!branch.isActive) {
       throw new BadRequestException('Branch is currently unavailable');
     }
@@ -148,15 +176,19 @@ export class MarketplaceService {
 
     // Check if idempotent request already succeeded
     const existingOrder = await this.prisma.salesOrder.findFirst({
-      where: { organizationId: branch.organizationId, idempotencyKey }
+      where: { organizationId: branch.organizationId, idempotencyKey },
     });
-    
+
     if (existingOrder) {
       // If the customer payload was entirely different for the same key, it's a conflict
       if (existingOrder.customerId) {
         // verify it belongs to same user
-        const user = await this.prisma.user.findUnique({ where: { id: userId } });
-        const existingCustomer = await this.prisma.retailCustomer.findUnique({ where: { id: existingOrder.customerId } });
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+        });
+        const existingCustomer = await this.prisma.retailCustomer.findUnique({
+          where: { id: existingOrder.customerId },
+        });
         if (existingCustomer && user && existingCustomer.email !== user.email) {
           throw new BadRequestException('Idempotency key conflict');
         }
@@ -185,104 +217,128 @@ export class MarketplaceService {
 
     try {
       return await this.prisma.$transaction(async (tx) => {
-      // Double check idempotency inside transaction
-      const existingTx = await tx.salesOrder.findFirst({
-        where: { organizationId: branch.organizationId, idempotencyKey }
-      });
-      if (existingTx) return existingTx;
-
-      let subtotal = 0;
-      const orderItems = [];
-
-      const productIds = Array.from(new Set(items.map((i: any) => i.productId))) as string[];
-      const fetchedProducts = await tx.product.findMany({
-        where: {
-          id: { in: productIds },
-          organizationId: branch.organizationId,
-          isActive: true,
-        },
-      });
-      const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
-
-      for (const item of items) {
-        const product = productMap.get(item.productId);
-        if (!product) {
-          throw new BadRequestException(`Product ${item.productId} is unavailable`);
-        }
-
-        const inv = await tx.inventory.findUnique({
-          where: { branchId_productId: { branchId, productId: item.productId } },
+        // Double check idempotency inside transaction
+        const existingTx = await tx.salesOrder.findFirst({
+          where: { organizationId: branch.organizationId, idempotencyKey },
         });
+        if (existingTx) return existingTx;
 
-        if (!inv || (inv.quantity - inv.reservedQuantity) < item.quantity) {
-          throw new BadRequestException(`Insufficient inventory for product ${product.name}`);
-        }
+        let subtotal = 0;
+        const orderItems = [];
 
-        // Atomically increment reserved quantity
-        const result = await tx.inventory.updateMany({
+        const productIds = Array.from(
+          new Set(items.map((i: any) => i.productId)),
+        ) as string[];
+        const fetchedProducts = await tx.product.findMany({
           where: {
-             branchId,
-             productId: item.productId,
-             quantity: { gte: inv.reservedQuantity + item.quantity } // Ensure enough left
-          },
-          data: {
-             reservedQuantity: { increment: item.quantity },
+            id: { in: productIds },
+            organizationId: branch.organizationId,
+            isActive: true,
           },
         });
+        const productMap = new Map(fetchedProducts.map((p) => [p.id, p]));
 
-        if (result.count === 0) {
-          throw new BadRequestException(`Insufficient inventory for product ${product.name} (checked out concurrently)`);
+        for (const item of items) {
+          const product = productMap.get(item.productId);
+          if (!product) {
+            throw new BadRequestException(
+              `Product ${item.productId} is unavailable`,
+            );
+          }
+
+          const inv = await tx.inventory.findUnique({
+            where: {
+              branchId_productId: { branchId, productId: item.productId },
+            },
+          });
+
+          if (!inv || inv.quantity - inv.reservedQuantity < item.quantity) {
+            throw new BadRequestException(
+              `Insufficient inventory for product ${product.name}`,
+            );
+          }
+
+          // Atomically increment reserved quantity
+          const result = await tx.inventory.updateMany({
+            where: {
+              branchId,
+              productId: item.productId,
+              quantity: { gte: inv.reservedQuantity + item.quantity }, // Ensure enough left
+            },
+            data: {
+              reservedQuantity: { increment: item.quantity },
+            },
+          });
+
+          if (result.count === 0) {
+            throw new BadRequestException(
+              `Insufficient inventory for product ${product.name} (checked out concurrently)`,
+            );
+          }
+
+          const lineTotal = product.sellingPrice * item.quantity;
+          subtotal += lineTotal;
+
+          orderItems.push({
+            productId: product.id,
+            quantity: item.quantity,
+            unitPrice: product.sellingPrice,
+            lineTotal,
+          });
         }
 
-        const lineTotal = product.sellingPrice * item.quantity;
-        subtotal += lineTotal;
+        const tax = 0;
+        const deliveryFee = fulfillmentType === 'DELIVERY' ? 500 : 0;
+        const total = subtotal + tax + deliveryFee;
 
-        orderItems.push({
-          productId: product.id,
-          quantity: item.quantity,
-          unitPrice: product.sellingPrice,
-          lineTotal,
-        });
-      }
-
-      const tax = 0;
-      const deliveryFee = fulfillmentType === 'DELIVERY' ? 500 : 0; 
-      const total = subtotal + tax + deliveryFee;
-
-      const order = await tx.salesOrder.create({
-        data: {
-          orderNumber: `ORD-${Date.now()}`,
-          organizationId: branch.organizationId,
-          branchId,
-          customerId: customer.id,
-          status: 'PENDING',
-          subtotal,
-          tax,
-          total,
-          deliveryFee,
-          fulfillmentType,
-          deliveryAddress: deliveryAddress ? (deliveryAddress as any) : undefined,
-          idempotencyKey,
-          source: 'ONLINE',
-          items: {
-            create: orderItems,
+        const order = await tx.salesOrder.create({
+          data: {
+            orderNumber: `ORD-${Date.now()}`,
+            organizationId: branch.organizationId,
+            branchId,
+            customerId: customer.id,
+            status: 'PENDING',
+            subtotal,
+            tax,
+            total,
+            deliveryFee,
+            fulfillmentType,
+            deliveryAddress: deliveryAddress
+              ? (deliveryAddress as any)
+              : undefined,
+            idempotencyKey,
+            source: 'ONLINE',
+            items: {
+              create: orderItems,
+            },
           },
-        },
-      });
+        });
 
-      return order;
-    });
+        return order;
+      });
     } catch (error: any) {
-      if (error.code === 'P2002' && error.meta?.target?.includes('idempotencyKey')) {
+      if (
+        error.code === 'P2002' &&
+        error.meta?.target?.includes('idempotencyKey')
+      ) {
         const existingOrder = await this.prisma.salesOrder.findFirst({
-          where: { organizationId: branch.organizationId, idempotencyKey }
+          where: { organizationId: branch.organizationId, idempotencyKey },
         });
         if (existingOrder) {
           // Verify customer match
           if (existingOrder.customerId) {
-            const user = await this.prisma.user.findUnique({ where: { id: userId } });
-            const existingCustomer = await this.prisma.retailCustomer.findUnique({ where: { id: existingOrder.customerId as string } });
-            if (existingCustomer && user && existingCustomer.email !== user.email) {
+            const user = await this.prisma.user.findUnique({
+              where: { id: userId },
+            });
+            const existingCustomer =
+              await this.prisma.retailCustomer.findUnique({
+                where: { id: existingOrder.customerId },
+              });
+            if (
+              existingCustomer &&
+              user &&
+              existingCustomer.email !== user.email
+            ) {
               throw new BadRequestException('Idempotency key conflict');
             }
           }
@@ -293,7 +349,6 @@ export class MarketplaceService {
     }
   }
 
-
   async getOrder(userId: string, orderId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('User not found');
@@ -302,19 +357,21 @@ export class MarketplaceService {
       where: { id: orderId },
       include: {
         items: {
-          include: { product: true }
+          include: { product: true },
         },
         payments: true,
         branch: {
-          select: { name: true, organization: { select: { name: true } } }
-        }
-      }
+          select: { name: true, organization: { select: { name: true } } },
+        },
+      },
     });
 
     if (!order) throw new NotFoundException('Order not found');
 
     // Securely match customer to user
-    const customer = await this.prisma.retailCustomer.findUnique({ where: { id: order.customerId as string } });
+    const customer = await this.prisma.retailCustomer.findUnique({
+      where: { id: order.customerId as string },
+    });
     if (!customer || customer.email !== user.email) {
       throw new ForbiddenException('Order belongs to a different user');
     }

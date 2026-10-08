@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { FeatureFlagService } from './feature-flag.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -27,10 +35,14 @@ export class AdminFeaturesController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Patch(':key')
   async updateFeatureState(
-    @Param('key') key: string, 
-    @Body() body: { enabled: boolean }, 
-    @Request() req: any
+    @Param('key') key: string,
+    @Body() body: { enabled: boolean },
+    @Request() req: any,
   ) {
-    return this.featureFlagService.setFeatureState(key, body.enabled, req.user.id);
+    return this.featureFlagService.setFeatureState(
+      key,
+      body.enabled,
+      req.user.id,
+    );
   }
 }

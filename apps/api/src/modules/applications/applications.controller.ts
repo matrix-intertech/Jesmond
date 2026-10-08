@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Param,
+} from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -13,24 +21,30 @@ export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.STUDENT)
   @Post()
   async createApplication(
-    @Body() body: { propertyId: string; roomTypeId: string; moveInDate: string; durationMonths: number },
-    @Request() req: any
+    @Body()
+    body: {
+      propertyId: string;
+      roomTypeId: string;
+      moveInDate: string;
+      durationMonths: number;
+    },
+    @Request() req: any,
   ) {
     return this.applicationsService.createApplication(
       req.user.id,
       body.propertyId,
       body.roomTypeId,
       body.moveInDate,
-      body.durationMonths
+      body.durationMonths,
     );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.STUDENT)
   @Get('my')
   async getMyApplications(@Request() req: any) {
@@ -38,26 +52,34 @@ export class ApplicationsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF)
   @Get('provider')
   async getProviderApplications(@Request() req: any) {
-    return this.applicationsService.getProviderApplications(req.user.organizationId);
+    return this.applicationsService.getProviderApplications(
+      req.user.organizationId,
+    );
   }
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF)
   @Get('provider/:id')
   async getProviderApplication(@Param('id') id: string, @Request() req: any) {
-    return this.applicationsService.getProviderApplication(req.user.organizationId, id);
+    return this.applicationsService.getProviderApplication(
+      req.user.organizationId,
+      id,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-@OrgTypes(OrgType.PROVIDER)
+  @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF)
   @Post(':id/approve')
   async approveApplication(@Param('id') id: string, @Request() req: any) {
-    return this.applicationsService.approveApplication(req.user.organizationId, id);
+    return this.applicationsService.approveApplication(
+      req.user.organizationId,
+      id,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
@@ -65,7 +87,10 @@ export class ApplicationsController {
   @Roles(UserRole.ORG_STAFF)
   @Post(':id/reject')
   async rejectApplication(@Param('id') id: string, @Request() req: any) {
-    return this.applicationsService.rejectApplication(req.user.organizationId, id);
+    return this.applicationsService.rejectApplication(
+      req.user.organizationId,
+      id,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)

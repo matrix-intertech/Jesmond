@@ -18,7 +18,7 @@ import { AccountStatus } from '@prisma/client';
   cors: {
     origin: '*',
   },
-  namespace: '/chat'
+  namespace: '/chat',
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -27,12 +27,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private chatService: ChatService,
     private jwtService: JwtService,
-    private prisma: PrismaService
+    private prisma: PrismaService,
   ) {}
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token || client.handshake.headers['authorization']?.split(' ')[1];
+      const token =
+        client.handshake.auth.token ||
+        client.handshake.headers['authorization']?.split(' ')[1];
       if (!token) {
         client.disconnect();
         return;
@@ -42,10 +44,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       // DB-backed user validation
       const user = await this.prisma.user.findUnique({
-        where: { id: decoded.sub }
+        where: { id: decoded.sub },
       });
 
-      if (!user || user.deletedAt !== null || user.accountStatus !== AccountStatus.ACTIVE) {
+      if (
+        !user ||
+        user.deletedAt !== null ||
+        user.accountStatus !== AccountStatus.ACTIVE
+      ) {
         client.disconnect();
         return;
       }
@@ -66,7 +72,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('sendMessage')
   async handleSendMessage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { conversationId: string; encryptedPayload: string; iv: string }
+    @MessageBody()
+    data: { conversationId: string; encryptedPayload: string; iv: string },
   ) {
     const userId = client.data.userId;
     if (!userId) return { status: 'error', message: 'Unauthorized' };
@@ -74,10 +81,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       // Re-verify user status during active websocket operations to prevent disconnected sessions
       const user = await this.prisma.user.findUnique({
-        where: { id: userId }
+        where: { id: userId },
       });
 
-      if (!user || user.deletedAt !== null || user.accountStatus !== AccountStatus.ACTIVE) {
+      if (
+        !user ||
+        user.deletedAt !== null ||
+        user.accountStatus !== AccountStatus.ACTIVE
+      ) {
         client.disconnect();
         return { status: 'error', message: 'Unauthorized' };
       }
@@ -86,13 +97,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.conversationId,
         userId,
         data.encryptedPayload,
-        data.iv
+        data.iv,
       );
 
       // We need to notify all participants of the conversation
-      const conversation = await this.chatService.getConversation(data.conversationId, userId);
+      const conversation = await this.chatService.getConversation(
+        data.conversationId,
+        userId,
+      );
 
-      conversation.participants.forEach(p => {
+      conversation.participants.forEach((p) => {
         this.server.to(`user_${p.userId}`).emit('newMessage', message);
       });
 
@@ -105,7 +119,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('readConversation')
   async handleReadConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { conversationId: string }
+    @MessageBody() data: { conversationId: string },
   ) {
     const userId = client.data.userId;
     if (!userId) return { status: 'error', message: 'Unauthorized' };

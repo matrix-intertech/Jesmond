@@ -25,14 +25,22 @@ describe('Retail Backend Auth & Isolation QA', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [BranchesController, CatalogController, InventoryController, OrdersController],
+      controllers: [
+        BranchesController,
+        CatalogController,
+        InventoryController,
+        OrdersController,
+      ],
       providers: [
         { provide: BranchesService, useValue: mockBranchesService },
         { provide: CatalogService, useValue: mockCatalogService },
         { provide: InventoryService, useValue: mockInventoryService },
         { provide: OrdersService, useValue: mockOrdersService },
         { provide: StorageService, useValue: { uploadFile: jest.fn() } },
-        { provide: PrismaService, useValue: { orgStaff: { findUnique: jest.fn() } } },
+        {
+          provide: PrismaService,
+          useValue: { orgStaff: { findUnique: jest.fn() } },
+        },
       ],
     }).compile();
 
@@ -48,30 +56,52 @@ describe('Retail Backend Auth & Isolation QA', () => {
 
   describe('1. Valid Authenticated Context', () => {
     it('should successfully pass organizationId from req.user to service', async () => {
-      mockBranchesService.getBranch.mockResolvedValue({ id: 'branch-1', organizationId: 'org-A' });
+      mockBranchesService.getBranch.mockResolvedValue({
+        id: 'branch-1',
+        organizationId: 'org-A',
+      });
       const req = { user: { id: 'user-1', organizationId: 'org-A' } };
-      
+
       await branchesController.getBranch(req, 'branch-1');
-      expect(mockBranchesService.getBranch).toHaveBeenCalledWith('org-A', 'branch-1');
+      expect(mockBranchesService.getBranch).toHaveBeenCalledWith(
+        'org-A',
+        'branch-1',
+      );
     });
   });
 
   describe('2. Missing Organization Context', () => {
     it('should throw ForbiddenException for BranchesController', async () => {
       const req = { user: { id: 'user-1' } }; // Missing organizationId
-      await expect(branchesController.getBranch(req, 'branch-1')).rejects.toThrow(ForbiddenException);
+      await expect(
+        branchesController.getBranch(req, 'branch-1'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw ForbiddenException for CatalogController', async () => {
       const req = { user: { id: 'user-1' } }; // Missing organizationId
-      await expect(catalogController.createProduct(req, { sku: '123', name: 'Test', sellingPrice: 10 })).rejects.toThrow(ForbiddenException);
+      await expect(
+        catalogController.createProduct(req, {
+          sku: '123',
+          name: 'Test',
+          sellingPrice: 10,
+        }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
   describe('3. Missing Authenticated User ID', () => {
     it('should throw UnauthorizedException for InventoryController adjustment', async () => {
       const req = { user: { organizationId: 'org-A' } }; // Missing id
-      await expect(inventoryController.adjustInventory(req, 'branch-1', 'prod-1', 5, 'Restock')).rejects.toThrow(UnauthorizedException);
+      await expect(
+        inventoryController.adjustInventory(
+          req,
+          'branch-1',
+          'prod-1',
+          5,
+          'Restock',
+        ),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -85,14 +115,22 @@ describe('Retail Backend Auth & Isolation QA', () => {
       });
 
       const req = { user: { id: 'user-A', organizationId: 'org-A' } };
-      await expect(branchesController.getBranch(req, 'branch-1')).rejects.toThrow(ForbiddenException);
+      await expect(
+        branchesController.getBranch(req, 'branch-1'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
   describe('5. No Fallbacks', () => {
     it('should never substitute org-1 when req.user is undefined', async () => {
       const req = { user: undefined };
-      await expect(ordersController.createOrder(req, { branchId: 'b-1', terminalId: 't-1', items: [] })).rejects.toThrow(ForbiddenException);
+      await expect(
+        ordersController.createOrder(req, {
+          branchId: 'b-1',
+          terminalId: 't-1',
+          items: [],
+        }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

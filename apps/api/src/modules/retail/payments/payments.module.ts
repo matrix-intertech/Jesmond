@@ -10,6 +10,6 @@ import { MarketplaceModule } from '../marketplace/marketplace.module';
   imports: [forwardRef(() => MarketplaceModule)],
   providers: [PaymentsService, PaymentSettingsService, StripePaymentGateway],
   controllers: [PaymentsController, PaymentSettingsController],
-  exports: [PaymentsService, PaymentSettingsService, StripePaymentGateway]
+  exports: [PaymentsService, PaymentSettingsService, StripePaymentGateway],
 })
 export class PaymentsModule {}

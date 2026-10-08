@@ -12,7 +12,12 @@ import { AdminSettingsService } from './admin-settings.service';
 
 @Module({
   imports: [PrismaModule, ApplicationsModule, NotificationsModule],
-  controllers: [AdminController, AdminFeaturesController, AdminApplicationsController, AdminSettingsController],
+  controllers: [
+    AdminController,
+    AdminFeaturesController,
+    AdminApplicationsController,
+    AdminSettingsController,
+  ],
   providers: [AdminService, FeatureFlagService, AdminSettingsService],
   exports: [AdminService, FeatureFlagService, AdminSettingsService],
 })
