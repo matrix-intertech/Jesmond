@@ -7,15 +7,15 @@ test.describe('Retail Marketplace Phase 1 (e2e)', () => {
     const retailLink = page.getByRole('link', { name: 'Retail' }).first();
     await expect(retailLink).toBeVisible();
     await retailLink.click();
-    await expect(page).toHaveURL(/\/retail/);
+    await expect(page).toHaveURL(/\/businesses/);
     await expect(page.getByText('Retail Marketplace')).toBeVisible();
     await expect(page.getByRole('heading', { name: /Discover Student Essentials/i })).toBeVisible();
   });
 
   test('Store Discovery: displays stores or empty state', async ({ page }) => {
-    await page.goto('/retail');
+    await page.goto('/businesses');
     const noStores = page.getByText('No stores available');
-    const storeCards = page.locator('a[href^="/retail/store/"]');
+    const storeCards = page.locator('a[href^="/businesses/store/"]');
     const count = await storeCards.count();
     const isNoStoresVisible = await noStores.isVisible();
     expect(count > 0 || isNoStoresVisible).toBeTruthy();
@@ -23,10 +23,10 @@ test.describe('Retail Marketplace Phase 1 (e2e)', () => {
 
   test('Store Catalog: full page load and display assertions', async ({ page }) => {
     // 1. Open /retail
-    await page.goto('/retail');
+    await page.goto('/businesses');
 
     // If stores are available, click the first one
-    const storeCards = page.locator('a[href^="/retail/store/"]');
+    const storeCards = page.locator('a[href^="/businesses/store/"]');
     const storeCount = await storeCards.count();
 
     if (storeCount > 0) {
@@ -60,21 +60,21 @@ test.describe('Retail Marketplace Phase 1 (e2e)', () => {
   });
 
   test('Cart Interactions: Add to cart, quantity limits, clear cart, prevent cross-store mix', async ({ page }) => {
-    await page.goto('/retail');
+    await page.goto('/businesses');
     // Check if drawer exists in DOM (hidden)
     const cartHeader = page.getByRole('heading', { name: 'Your Cart' });
     expect(cartHeader).toBeDefined();
   });
 
   test('Checkout Security: redirects to login if unauthenticated', async ({ page }) => {
-    await page.goto('/retail/checkout');
-    await expect(page).toHaveURL(/\/login\?redirect=\/retail\/checkout/);
+    await page.goto('/businesses/checkout');
+    await expect(page).toHaveURL(/\/login\?redirect=\/businesses\/checkout/);
   });
 
   test('Checkout Flow: Delivery, Takeaway, disabled fulfillment option, checkout failure, insufficient inventory', async ({ page }) => {
     // Tests logical assertions of the UI components based on mocked/expected API conditions
     // (This ensures Playwright evaluates the frontend code logic for these states)
-    await page.goto('/retail/checkout');
+    await page.goto('/businesses/checkout');
     // For unauthenticated users, it bounces. Real testing requires auth setup and seeded DB.
     // However, we verify the route exists and is protected.
   });

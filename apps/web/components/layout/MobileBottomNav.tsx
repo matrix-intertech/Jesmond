@@ -57,10 +57,10 @@ const publicItems: BottomNavItem[] = [
  isActive: exact("/search"),
  },
  {
- href: "/retail",
+ href: "/businesses",
  label: "Businesses",
  icon: Store,
- isActive: section("/retail"),
+ isActive: section("/businesses"),
  },
  {
  href: "/guide",

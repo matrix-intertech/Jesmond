@@ -13,7 +13,14 @@ interface FeaturedPropertyData {
  imageUrl: string | null;
 }
 
-export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedPropertyData | null }) {
+export function HeroSection({ featuredProperty, verifiedPropertyCount = 0 }: { featuredProperty?: FeaturedPropertyData | null, verifiedPropertyCount?: number }) {
+  const formatPropertyCount = (count: number) => {
+    if (count < 100) return null;
+    const rounded = Math.floor(count / 100) * 100;
+    if (rounded < 1000) return `${rounded}+`;
+    return `${(rounded / 1000).toFixed(rounded % 1000 === 0 ? 0 : 1).replace('.0', '')}k+`;
+  };
+  const displayCount = formatPropertyCount(verifiedPropertyCount);
  return (
  <section className="relative w-full min-h-[600px] lg:h-[720px] flex flex-col justify-center pb-24 lg:pb-0 pt-24 mt-16">
 
@@ -68,25 +75,19 @@ export function HeroSection({ featuredProperty }: { featuredProperty?: FeaturedP
  </motion.p>
 
  {/* Trust Metrics */}
+ {displayCount && (
  <motion.div
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  transition={{ duration: 1, delay: 0.4 }}
- className="flex max-w-full justify-start gap-6 sm:gap-12 items-center mt-2 bg-primary/40 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/10 shadow-xl"
+ className="inline-flex max-w-full justify-start items-center mt-2 bg-primary/40 backdrop-blur-md rounded-2xl p-4 sm:px-8 sm:py-5 border border-white/10 shadow-xl"
  >
- <div className="text-left">
- <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">12k+</p>
- <p className="text-[10px] sm:text-xs text-white/70 font-semibold tracking-widest uppercase mt-1">Verified Rooms</p>
- </div>
- <div className="w-px h-12 bg-surface/20" />
- <div className="text-left">
- <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight flex items-center justify-start gap-1">
- 4.9
- <svg className="w-5 h-5 text-brand-orange pb-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
- </p>
- <p className="text-[10px] sm:text-xs text-white/70 font-semibold tracking-widest uppercase mt-1">Student Rating</p>
+ <div className="text-center sm:text-left">
+ <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{displayCount}</p>
+ <p className="text-[10px] sm:text-xs text-white/70 font-semibold tracking-widest uppercase mt-1">Verified Properties</p>
  </div>
  </motion.div>
+ )}
  </div>
 
  {/* Right Side: Badges */}

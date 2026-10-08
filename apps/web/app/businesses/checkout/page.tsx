@@ -42,13 +42,13 @@ export default function CheckoutPage() {
  useEffect(() => {
  // 1. Auth Check
  if (!isAuthenticated()) {
- router.push(`/login?redirect=/retail/checkout`);
+ router.push(`/login?redirect=/businesses/checkout`);
  return;
  }
 
  // 2. Empty Cart Check
  if (!branchId || items.length === 0) {
- router.push('/retail');
+ router.push('/businesses');
  return;
  }
 
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
    setClientSecret(order.clientSecret);
  } else {
    clearCart();
-   router.push(`/retail/order/${order.id}`);
+   router.push(`/businesses/order/${order.id}`);
  }
  } else {
  const errData = await res.json();
@@ -142,7 +142,7 @@ export default function CheckoutPage() {
 
  return (
  <div className="flex-1 max-w-[1000px] w-full mx-auto px-6 sm:px-12 py-12">
- <Link href={`/retail/store/${branchId}`} className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
+ <Link href={`/businesses/store/${branchId}`} className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
  <ArrowLeft size={18} /> Back to Catalog
  </Link>
 

@@ -64,7 +64,7 @@ export default async function StoreDetailPage({
 
   return (
     <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-8">
-      <Link href="/retail" className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
+      <Link href="/businesses" className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
         <ArrowLeft size={18} /> Back to Businesses
       </Link>
 

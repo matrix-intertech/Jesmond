@@ -57,7 +57,7 @@ export default function OrderSuccessPage({
           <AlertTriangle className="text-red-500 mx-auto mb-4" size={48} />
           <h1 className="text-2xl font-bold mb-4">Error Loading Order</h1>
           <p className="text-text-secondary mb-6">{error}</p>
-          <Link href="/retail" className="text-accent hover:underline font-bold">Return to Store</Link>
+          <Link href="/businesses" className="text-accent hover:underline font-bold">Return to Store</Link>
         </div>
       </div>
     );
@@ -109,7 +109,7 @@ export default function OrderSuccessPage({
 
         <div className="flex flex-col gap-3 mt-8">
           <Link
-            href="/retail"
+            href="/businesses"
             className="w-full py-3.5 bg-accent hover:bg-accent text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-orange-500/20"
           >
             <ShoppingBag size={18} /> Continue Shopping

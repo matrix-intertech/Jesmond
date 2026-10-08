@@ -35,9 +35,9 @@ export function RetailStoreList({ initialStores, currentCategory }: RetailStoreL
 
   const handleCategoryChange = (catId: string) => {
     if (catId === 'ALL') {
-      router.push('/retail');
+      router.push('/businesses');
     } else {
-      router.push(`/retail?category=${catId}`);
+      router.push(`/businesses?category=${catId}`);
     }
   };
 

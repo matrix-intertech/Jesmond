@@ -24,8 +24,9 @@ async function getStores(category?: string) {
   }
 }
 
-export default async function BusinessesDiscoveryPage({ searchParams }: { searchParams: { category?: string } }) {
-  const currentCategory = searchParams.category || 'ALL';
+export default async function BusinessesDiscoveryPage({ searchParams }: { searchParams: Promise<{ category?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const currentCategory = resolvedSearchParams.category || 'ALL';
   const stores = await getStores(currentCategory);
 
   return (

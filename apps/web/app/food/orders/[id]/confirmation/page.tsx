@@ -91,7 +91,7 @@ export default function FoodOrderConfirmationPage() {
         </div>
         <h1 className="text-2xl font-bold text-primary mb-2">Order Not Found</h1>
         <p className="text-text-secondary mb-8">{error || 'This order could not be loaded.'}</p>
-        <Link href="/retail" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-bold hover:shadow-lg transition-all">
+        <Link href="/businesses" className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-xl font-bold hover:shadow-lg transition-all">
           Browse Businesses
         </Link>
       </div>
@@ -109,7 +109,7 @@ export default function FoodOrderConfirmationPage() {
   return (
     <div className="flex-1 max-w-[800px] w-full mx-auto px-6 sm:px-12 py-12">
       <div className="flex justify-between items-center mb-8">
-        <Link href="/retail" className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium">
+        <Link href="/businesses" className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium">
           <ArrowLeft size={18} /> Browse Businesses
         </Link>
         <button 

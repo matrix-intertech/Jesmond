@@ -31,7 +31,7 @@ export default function FoodCheckoutPage() {
     }
 
     if (!branchId || items.length === 0) {
-      router.push('/retail');
+      router.push('/businesses');
       return;
     }
   }, [branchId, items, router]);
@@ -100,7 +100,7 @@ export default function FoodCheckoutPage() {
 
   return (
     <div className="flex-1 max-w-[1000px] w-full mx-auto px-6 sm:px-12 py-12">
-      <Link href={`/retail/store/${branchId}`} className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
+      <Link href={`/businesses/store/${branchId}`} className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
         <ArrowLeft size={18} /> Back to Menu
       </Link>
 

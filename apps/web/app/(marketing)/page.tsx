@@ -19,13 +19,21 @@ export const dynamic = 'force-dynamic';
 
 export default async function Homepage() {
  let platformSettings = null;
+  let verifiedPropertyCount = 0;
  let featuredData = null;
 
  try {
  console.log(">>> Homepage: Fetching platform settings... DATABASE_URL:", process.env.DATABASE_URL?.substring(0, 15) + "...");
- platformSettings = await prisma.platformSettings.findUnique({
+ const [platformSettingsResult, countResult] = await Promise.all([
+    prisma.platformSettings.findUnique({
  where: { id: 'singleton' }
- });
+    }),
+    prisma.property.count({
+      where: { status: 'PUBLISHED', verificationStatus: 'VERIFIED' }
+    })
+  ]);
+  platformSettings = platformSettingsResult;
+  verifiedPropertyCount = countResult;
  console.log(">>> Homepage: platformSettings featuredPropertyId =", platformSettings?.featuredPropertyId);
 
  if (platformSettings?.featuredPropertyId) {
@@ -58,7 +66,7 @@ export default async function Homepage() {
  <GlobalNav />
 
  {/* 1. First Impression & Aspiration */}
- <HeroSection featuredProperty={featuredData} />
+ <HeroSection featuredProperty={featuredData} verifiedPropertyCount={verifiedPropertyCount} />
 
  {/* 2. Destination Selection (Data Hub) */}
  <MapPreviewSection />

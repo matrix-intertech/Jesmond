@@ -28,7 +28,7 @@ export function StoreCard({ store }: StoreCardProps) {
   const isCommerce = category === 'RETAIL';
 
   return (
-    <Link href={`/retail/store/${store.id}`} className="group block">
+    <Link href={`/businesses/store/${store.id}`} className="group block">
       <div className="bg-surface rounded-2xl p-6 border border-border-strong/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">

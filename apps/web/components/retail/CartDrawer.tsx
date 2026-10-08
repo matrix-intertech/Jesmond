@@ -134,7 +134,7 @@ export function CartDrawer() {
  <button
  onClick={() => {
  setIsCartOpen(false);
- router.push("/retail/checkout");
+ router.push("/businesses/checkout");
  }}
  className="w-full py-4 bg-accent text-white rounded-xl font-bold text-lg hover:bg-accent transition-colors shadow-lg shadow-orange-500/20 flex justify-center items-center gap-2"
  >

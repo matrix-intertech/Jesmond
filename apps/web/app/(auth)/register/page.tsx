@@ -21,7 +21,7 @@ function RegisterForm() {
  const [password, setPassword] = useState('');
  const [organizationName, setOrganizationName] = useState('');
  const [organizationType, setOrganizationType] = useState('PROVIDER');
- const [businessCategory, setBusinessCategory] = useState('RETAIL');
+ const [businessCategory, setBusinessCategory] = useState('');
  const [turnstileToken, setTurnstileToken] = useState('');
  const [error, setError] = useState('');
  const [loading, setLoading] = useState(false);
@@ -331,14 +331,15 @@ function RegisterForm() {
  </button>
  <button
  type="button"
- onClick={() => { setAccountType('business'); setOrganizationType('RETAIL'); }}
+ onClick={() => { setAccountType('business'); setOrganizationType('RETAIL'); setBusinessCategory(''); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
  accountType === 'business'
  ? 'bg-accent text-white'
  : 'bg-surface text-text-secondary hover:bg-surface-muted'
  }`}
  >
- Business\n  </button>
+ Business
+  </button>
  </div>
 <form className="space-y-5" onSubmit={handleRegister}>
  {error && (
@@ -364,23 +365,47 @@ function RegisterForm() {
  />
  </div>
 
- {accountType === 'business' && (
- <div>
- <label htmlFor="org-name" className="block text-sm font-medium text-text-primary mb-1">
- Business Name
- </label>
- <input
- id="org-name"
- name="organizationName"
- type="text"
- required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
- placeholder="Business Name"
- value={organizationName}
- onChange={(e) => setOrganizationName(e.target.value)}
- />
- </div>
- )}
+
+  {accountType === 'business' && (
+  <div>
+  <label htmlFor="org-name" className="block text-sm font-medium text-text-primary mb-1">
+  Business Name
+  </label>
+  <input
+  id="org-name"
+  name="organizationName"
+  type="text"
+  required
+  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+  placeholder="Business Name"
+  value={organizationName}
+  onChange={(e) => setOrganizationName(e.target.value)}
+  />
+  </div>
+  )}
+
+  {accountType === 'business' && (
+  <div>
+  <label htmlFor="business-category" className="block text-sm font-medium text-text-primary mb-1">
+  Business Type
+  </label>
+  <select
+  id="business-category"
+  name="businessCategory"
+  required
+  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm bg-surface"
+  value={businessCategory}
+  onChange={(e) => setBusinessCategory(e.target.value)}
+  >
+  <option value="" disabled hidden>Select business type</option>
+  <option value="RETAIL">Retail</option>
+  <option value="FOOD">Food</option>
+  <option value="MECHANICS">Mechanics</option>
+  <option value="SERVICES">Services</option>
+  <option value="RENTALS">Rentals</option>
+  </select>
+  </div>
+  )}
 
  <div>
  <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-1">
