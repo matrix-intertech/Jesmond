@@ -6,7 +6,7 @@ import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.g
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
 
-@Controller('v1/food/business/orders')
+@Controller('food/business/orders')
 @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
 export class BusinessOrdersController {
   constructor(private readonly ordersService: OrdersService) {}

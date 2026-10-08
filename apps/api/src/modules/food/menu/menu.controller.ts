@@ -23,7 +23,7 @@ import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.g
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
 
-@Controller('v1/food/menu')
+@Controller('food/menu')
 export class MenuController {
   constructor(private readonly menuService: MenuService) {}
 
