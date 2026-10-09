@@ -59,16 +59,34 @@ export class AppointmentsService {
         where: { id: data.serviceId },
       });
       if (!service) throw new BadRequestException('Service not found');
+      if (!service.isActive) throw new BadRequestException('Service is not active');
+      if (service.branchId !== data.branchId) throw new BadRequestException('Service does not belong to this branch');
+
+      const branch = await tx.retailBranch.findUnique({ where: { id: data.branchId } });
+      if (!branch) throw new BadRequestException('Branch not found');
+      if (branch.organizationId !== service.organizationId) throw new BadRequestException('Branch organization mismatch');
+
+      const org = await tx.organization.findUnique({ where: { id: branch.organizationId } });
+      if (!org || (org.businessCategory !== 'MECHANICS' && org.businessCategory !== 'SERVICES')) {
+        throw new BadRequestException('Business is not eligible for appointments');
+      }
+
+      if (data.startTime < new Date()) {
+        throw new BadRequestException('Appointment cannot be in the past');
+      }
+
+      const durationDiffMins = Math.round((data.endTime.getTime() - data.startTime.getTime()) / 60000);
+      if (durationDiffMins !== service.durationMins) {
+        throw new BadRequestException(`Invalid appointment duration. Expected ${service.durationMins} mins, got ${durationDiffMins} mins`);
+      }
 
       // 3. Validate capacity for requested time by checking existing appointments
       const overlappingAppointments = await tx.appointment.count({
         where: {
           serviceId: data.serviceId,
           status: { in: ['PENDING_APPROVAL', 'CONFIRMED', 'IN_PROGRESS'] },
-          OR: [
-            { startTime: { lt: data.endTime, gte: data.startTime } },
-            { endTime: { gt: data.startTime, lte: data.endTime } }
-          ]
+          startTime: { lt: data.endTime },
+          endTime: { gt: data.startTime }
         }
       });
       
@@ -217,15 +235,53 @@ export class AppointmentsService {
         throw new BadRequestException('Staff member is not qualified for this service');
       }
 
-      // 3. Re-check conflicts for the specific staff member
+      // Verify staff member belongs to the organization and branch
+      const staff = await tx.orgStaff.findUnique({
+        where: { id: staffId },
+        include: { branches: true }
+      });
+      if (!staff || staff.organizationId !== organizationId) {
+        throw new ForbiddenException('Staff member does not belong to this organization');
+      }
+      const isAssigned = staff.retailBranchId === appointment.branchId || staff.branches.some(b => b.branchId === appointment.branchId);
+      if (!isAssigned) {
+        throw new ForbiddenException('Staff member is not assigned to this branch');
+      }
+
+      // 3. Re-check working hours, time off, and conflicts
+      const dayOfWeek = appointment.startTime.getUTCDay();
+      const startMins = appointment.startTime.getUTCHours() * 60 + appointment.startTime.getUTCMinutes();
+      const endMins = appointment.endTime.getUTCHours() * 60 + appointment.endTime.getUTCMinutes();
+
+      const workingHours = await tx.staffWorkingHours.findMany({
+        where: { staffId, dayOfWeek }
+      });
+      let isWorking = false;
+      for (const w of workingHours) {
+        const [sH, sM] = w.startTime.split(':').map(Number);
+        const [eH, eM] = w.endTime.split(':').map(Number);
+        if (startMins >= sH * 60 + sM && endMins <= eH * 60 + eM) {
+          isWorking = true;
+          break;
+        }
+      }
+      if (!isWorking) throw new BadRequestException('Staff member is outside working hours');
+
+      const timeOff = await tx.staffTimeOff.findFirst({
+        where: {
+          staffId,
+          startTime: { lt: appointment.endTime },
+          endTime: { gt: appointment.startTime }
+        }
+      });
+      if (timeOff) throw new BadRequestException('Staff member is on time off');
+
       const staffConflict = await tx.appointment.findFirst({
         where: {
           staffId,
           status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
-          OR: [
-            { startTime: { lt: appointment.endTime, gte: appointment.startTime } },
-            { endTime: { gt: appointment.startTime, lte: appointment.endTime } }
-          ]
+          startTime: { lt: appointment.endTime },
+          endTime: { gt: appointment.startTime }
         }
       });
 
