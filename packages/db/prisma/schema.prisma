@@ -80,10 +80,11 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  notifications     Notification[]     @relation("UserNotifications")
-  pushSubscriptions PushSubscription[]
-  FoodOrder         FoodOrder[]
+  notifications          Notification[]           @relation("UserNotifications")
+  pushSubscriptions      PushSubscription[]
+  FoodOrder              FoodOrder[]
   FoodOrderStatusHistory FoodOrderStatusHistory[]
+  appointments           Appointment[]
 
   @@index([email])
 }
@@ -141,6 +142,10 @@ model Organization {
   FoodMenu  FoodMenu[]
   FoodOrder FoodOrder[]
 
+  // Appointments
+  businessServices BusinessService[]
+  appointments     Appointment[]
+
   @@index([abn])
 }
 
@@ -192,6 +197,12 @@ model OrgStaff {
   managedProperties PropertyManager[]
   branches          OrgStaffBranch[]
   leadAssignments   LeadAssignment[]
+
+  // Appointments
+  serviceAssignments StaffServiceAssignment[]
+  workingHours       StaffWorkingHours[]
+  timeOff            StaffTimeOff[]
+  appointments       Appointment[]
 
   customRoleId String?
   customRole   AgencyCustomRole? @relation(fields: [customRoleId], references: [id])
@@ -1105,6 +1116,10 @@ model RetailBranch {
   updatedAt DateTime    @updatedAt
   FoodOrder FoodOrder[]
 
+  // Appointments
+  businessServices BusinessService[]
+  appointments     Appointment[]
+
   @@index([organizationId])
 }
 
@@ -1714,7 +1729,7 @@ model FoodOrder {
   total           Int // In cents
   idempotencyKey  String?                  @unique
 
-  items FoodOrderItem[]
+  items         FoodOrderItem[]
   statusHistory FoodOrderStatusHistory[]
 
   createdAt DateTime @default(now())
@@ -1758,17 +1773,165 @@ enum FoodOrderFulfillmentType {
 }
 
 model FoodOrderStatusHistory {
-  id             String          @id @default(uuid())
-  foodOrderId    String
-  foodOrder      FoodOrder       @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
-  fromStatus     FoodOrderStatus?
-  toStatus       FoodOrderStatus
+  id              String           @id @default(uuid())
+  foodOrderId     String
+  foodOrder       FoodOrder        @relation(fields: [foodOrderId], references: [id], onDelete: Cascade)
+  fromStatus      FoodOrderStatus?
+  toStatus        FoodOrderStatus
   changedByUserId String?
-  changedByUser   User?          @relation(fields: [changedByUserId], references: [id])
+  changedByUser   User?            @relation(fields: [changedByUserId], references: [id])
 
-  createdAt      DateTime        @default(now())
+  createdAt DateTime @default(now())
 
   @@index([foodOrderId])
   @@index([changedByUserId])
 }
 
+// ---------------------------------------------------------
+// APPOINTMENTS & SCHEDULING
+// ---------------------------------------------------------
+
+model BusinessService {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  branchId       String
+  branch         RetailBranch @relation(fields: [branchId], references: [id])
+
+  name             String
+  description      String?
+  durationMins     Int
+  bufferBeforeMins Int     @default(0)
+  bufferAfterMins  Int     @default(0)
+  price            Int     @default(0) // In cents
+  currency         String  @default("AUD")
+  isActive         Boolean @default(true)
+
+  appointments     Appointment[]
+  staffAssignments StaffServiceAssignment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([organizationId])
+  @@index([branchId])
+}
+
+model StaffServiceAssignment {
+  id        String          @id @default(uuid())
+  staffId   String
+  staff     OrgStaff        @relation(fields: [staffId], references: [id])
+  serviceId String
+  service   BusinessService @relation(fields: [serviceId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffId, serviceId])
+  @@index([serviceId])
+}
+
+model StaffWorkingHours {
+  id      String   @id @default(uuid())
+  staffId String
+  staff   OrgStaff @relation(fields: [staffId], references: [id])
+
+  dayOfWeek Int // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime String // "09:00" (24h format, business timezone)
+  endTime   String // "17:00"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId])
+  @@index([staffId, dayOfWeek])
+}
+
+model StaffTimeOff {
+  id      String   @id @default(uuid())
+  staffId String
+  staff   OrgStaff @relation(fields: [staffId], references: [id])
+
+  startTime DateTime // UTC
+  endTime   DateTime // UTC
+  reason    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId])
+  @@index([startTime, endTime])
+}
+
+model Appointment {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  branchId       String
+  branch         RetailBranch @relation(fields: [branchId], references: [id])
+  customerId     String
+  customer       User         @relation(fields: [customerId], references: [id])
+
+  serviceId String
+  service   BusinessService @relation(fields: [serviceId], references: [id])
+
+  staffId String?
+  staff   OrgStaff? @relation(fields: [staffId], references: [id])
+
+  status AppointmentStatus @default(PENDING_APPROVAL)
+
+  startTime DateTime // UTC
+  endTime   DateTime // UTC
+  timezone  String // Business timezone at time of booking
+
+  customerNotes      String?
+  rejectionReason    String?
+  cancellationReason String?
+
+  // Snapshots
+  serviceName  String
+  durationMins Int
+  price        Int    @default(0)
+  currency     String @default("AUD")
+
+  idempotencyKey String? @unique
+
+  statusHistory AppointmentStatusHistory[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([organizationId])
+  @@index([branchId])
+  @@index([customerId])
+  @@index([serviceId])
+  @@index([staffId])
+  @@index([status])
+  @@index([startTime, endTime])
+}
+
+enum AppointmentStatus {
+  PENDING_APPROVAL
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELLED
+  NO_SHOW
+}
+
+model AppointmentStatusHistory {
+  id            String      @id @default(uuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  status      AppointmentStatus
+  reason      String?
+  changedById String? // Could be User or OrgStaff ID
+
+  createdAt DateTime @default(now())
+
+  @@index([appointmentId])
+}

@@ -30,7 +30,7 @@ export default async function StatesPage({
  let error = false;
 
  try {
- const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+ const apiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
  const queryStr = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
  const res = await fetch(`${apiUrl}/api/v1/locations/states${queryStr}`, {
  cache: 'no-store',

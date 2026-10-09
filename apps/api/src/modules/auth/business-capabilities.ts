@@ -7,6 +7,7 @@ export enum BusinessCapability {
   MENU = 'MENU',
   MENU_ITEMS = 'MENU_ITEMS',
   POS = 'POS',
+  APPOINTMENTS = 'APPOINTMENTS',
 }
 
 export const CategoryCapabilities: Record<string, BusinessCapability[]> = {
@@ -23,7 +24,7 @@ export const CategoryCapabilities: Record<string, BusinessCapability[]> = {
     BusinessCapability.MENU_ITEMS,
     BusinessCapability.ORDERS,
   ],
-  MECHANICS: [],
-  SERVICES: [],
+  MECHANICS: [BusinessCapability.APPOINTMENTS],
+  SERVICES: [BusinessCapability.APPOINTMENTS],
   RENTALS: [],
 };

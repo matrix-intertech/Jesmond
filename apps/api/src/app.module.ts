@@ -24,6 +24,7 @@ import { AppService } from './app.service';
 
 import { RedisModule } from './modules/redis/redis.module';
 import { FoodModule } from './modules/food/food.module';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import { FoodModule } from './modules/food/food.module';
     ChatModule,
     LeadsModule,
     OrganizationsModule,
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

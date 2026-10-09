@@ -4,6 +4,7 @@ import { Store, Navigation, Clock, ArrowLeft, Phone, MapPin } from "lucide-react
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicFoodMenu from "@/components/food/PublicFoodMenu";
+import BusinessAppointments from "@/components/appointments/BusinessAppointments";
 
 async function getStoreCatalog(branchId: string) {
   try {
@@ -156,6 +157,16 @@ export default async function StoreDetailPage({
       {category === 'FOOD' && (
         <div className="mt-12">
           <PublicFoodMenu branchId={branch.id} businessName={branch.name || branch.organization?.name || 'Food Business'} />
+        </div>
+      )}
+
+      {(category === 'MECHANICS' || category === 'SERVICES') && (
+        <div className="mt-12">
+          <BusinessAppointments 
+            branchId={branch.id} 
+            businessName={branch.name || branch.organization?.name || 'Business'} 
+            timezone={branch.organization?.timezone}
+          />
         </div>
       )}
     </div>

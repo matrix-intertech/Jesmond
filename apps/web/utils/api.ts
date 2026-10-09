@@ -1,8 +1,8 @@
 export function getApiUrl(): string {
   if (typeof window !== 'undefined') {
-    return '';
+    return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
 }
 
 export async function handleApiError(response: Response, onAuthError?: () => void): Promise<'ok' | 'unauthorized' | 'forbidden' | 'error' | 'notfound'> {

@@ -11,3 +11,8 @@ test-results
 playwright-report
 *.log
 docker-compose*.yml
+*.sql
+**/node_modules
+**/.next
+playwright-report/
+**/.turbo
