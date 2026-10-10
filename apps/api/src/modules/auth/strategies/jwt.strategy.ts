@@ -87,6 +87,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const organizationId = activeRole?.organizationId;
     const orgType = activeRole?.organization?.type;
+    const businessCategory = activeRole?.organization?.businessCategory;
     const orgRole = activeRole?.role;
     const permissions = activeRole?.permissions || [];
     const retailBranchId = activeRole?.retailBranchId;
@@ -97,6 +98,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       role: user.role,
       organizationId,
       orgType,
+      businessCategory,
       orgRole,
       permissions,
       retailBranchId,

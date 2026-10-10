@@ -143,8 +143,9 @@ model Organization {
   FoodOrder FoodOrder[]
 
   // Appointments
-  businessServices BusinessService[]
-  appointments     Appointment[]
+  businessServices  BusinessService[]
+  serviceCategories ServiceCategory[]
+  appointments      Appointment[]
 
   @@index([abn])
 }
@@ -1791,12 +1792,35 @@ model FoodOrderStatusHistory {
 // APPOINTMENTS & SCHEDULING
 // ---------------------------------------------------------
 
+model ServiceCategory {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+
+  services BusinessService[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+}
+
 model BusinessService {
   id             String       @id @default(uuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   branchId       String
   branch         RetailBranch @relation(fields: [branchId], references: [id])
+
+  categoryId String?
+  category   ServiceCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   name             String
   description      String?
@@ -1816,6 +1840,7 @@ model BusinessService {
 
   @@index([organizationId])
   @@index([branchId])
+  @@index([categoryId])
 }
 
 model StaffServiceAssignment {

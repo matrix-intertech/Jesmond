@@ -21,6 +21,7 @@ export default function BusinessAppointments({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
@@ -199,9 +200,42 @@ export default function BusinessAppointments({
           
           {/* Services List */}
           <div>
-            <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-3">1. Select Service</h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">1. Select Service</h3>
+              {/* Category Pills if categories exist */}
+              {Array.from(new Set(services.map((s) => s.category?.name).filter(Boolean))).length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[11px] font-medium text-text-muted self-center mr-1">Filter:</span>
+                  {['All', ...Array.from(new Set(services.map((s) => s.category?.name).filter(Boolean)))].map((catName) => (
+                    <button
+                      key={catName}
+                      type="button"
+                      onClick={() => {
+                        if (catName === 'All') {
+                          setSelectedCategoryFilter('ALL');
+                        } else {
+                          setSelectedCategoryFilter(catName as string);
+                        }
+                      }}
+                      className={`px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors ${
+                        (catName === 'All' && selectedCategoryFilter === 'ALL') || selectedCategoryFilter === catName
+                          ? 'bg-accent text-white'
+                          : 'bg-surface-muted text-text-secondary hover:text-primary border border-border-strong'
+                      }`}
+                    >
+                      {catName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {services.map((svc) => (
+              {services
+                .filter((svc) => {
+                  if (selectedCategoryFilter === 'ALL') return true;
+                  return svc.category?.name === selectedCategoryFilter;
+                })
+                .map((svc) => (
                 <button
                   key={svc.id}
                   onClick={() => setSelectedService(svc.id)}
@@ -211,10 +245,21 @@ export default function BusinessAppointments({
                       : 'border-border-strong hover:border-text-secondary bg-surface-muted'
                   }`}
                 >
-                  <div className="font-bold text-primary text-lg">{svc.name}</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-bold text-primary text-lg">{svc.name}</div>
+                    {svc.category?.name && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-navy/10 text-brand-navy shrink-0">
+                        {svc.category.name}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-4 mt-2 text-sm text-text-secondary">
-                    <span className="flex items-center gap-1.5"><Clock size={14}/> {svc.durationMins} mins</span>
-                    {svc.price > 0 && <span className="font-semibold text-brand-navy">${svc.price.toFixed(2)}</span>}
+                    <span className="flex items-center gap-1.5"><Clock size={14}/> {svc.durationMins || svc.durationMinutes} mins</span>
+                    {svc.price > 0 && (
+                      <span className="font-semibold text-brand-navy">
+                        ${(Number(svc.price) > 500 ? Number(svc.price) / 100 : Number(svc.price)).toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </button>
               ))}

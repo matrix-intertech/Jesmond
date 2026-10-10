@@ -341,6 +341,7 @@ export class AuthService {
       user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
     const organizationId = activeRole?.organizationId;
     const orgType = activeRole?.organization?.type;
+    const businessCategory = activeRole?.organization?.businessCategory;
     const orgRole = activeRole?.role;
     const permissions = activeRole?.permissions || [];
     const retailBranchId = activeRole?.retailBranchId;
@@ -364,6 +365,7 @@ export class AuthService {
         role: user.role,
         organizationId,
         orgType,
+        businessCategory,
         orgRole,
         permissions,
         retailBranchId,

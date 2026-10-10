@@ -16,7 +16,16 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import { ApproveAppointmentDto, RejectAppointmentDto, UpdateAppointmentStatusDto } from '../dtos/appointment.dto';
+import {
+  ApproveAppointmentDto,
+  RejectAppointmentDto,
+  UpdateAppointmentStatusDto,
+  CreateBusinessServiceDto,
+  UpdateBusinessServiceDto,
+  CreateServiceCategoryDto,
+  UpdateServiceCategoryDto,
+  AssignServiceCategoryDto,
+} from '../dtos/appointment.dto';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
@@ -118,5 +127,168 @@ export class BusinessAppointmentsController {
       id,
       req.user.organizationId,
     );
+  }
+
+  // Services Management
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('services')
+  async getServices(
+    @Request() req: any,
+    @Query('branchId') branchId?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.getBusinessServices(req.user.organizationId, branchId, categoryId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('services')
+  async createService(
+    @Request() req: any,
+    @Body() dto: CreateBusinessServiceDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.createBusinessService(req.user.organizationId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Put('services/:id')
+  async updateService(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Body() dto: UpdateBusinessServiceDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.updateBusinessService(req.user.organizationId, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('services/:id/delete')
+  async deleteService(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.deleteBusinessService(req.user.organizationId, id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Put('services/:id/category')
+  async assignCategory(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Body() dto: AssignServiceCategoryDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.assignServiceCategory(
+      req.user.organizationId,
+      id,
+      dto.categoryId ?? null,
+    );
+  }
+
+  // Category Management
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('categories')
+  async getCategories(
+    @Request() req: any,
+    @Query('includeInactive') includeInactive?: string,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.getServiceCategories(
+      req.user.organizationId,
+      includeInactive === 'true',
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('categories')
+  async createCategory(
+    @Request() req: any,
+    @Body() dto: CreateServiceCategoryDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.createServiceCategory(req.user.organizationId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Put('categories/:id')
+  async updateCategory(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Body() dto: UpdateServiceCategoryDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.updateServiceCategory(req.user.organizationId, id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('categories/:id/delete')
+  async deleteCategory(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.deleteServiceCategory(req.user.organizationId, id);
+  }
+
+  // Staff and Professionals
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('staff')
+  async getStaff(@Request() req: any) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.getBusinessStaff(req.user.organizationId);
+  }
+
+  // Customers
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('customers')
+  async getCustomers(@Request() req: any) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.getBusinessCustomers(req.user.organizationId);
   }
 }

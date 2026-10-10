@@ -7,7 +7,10 @@ export type BusinessCapability =
   | 'MENU'
   | 'MENU_ITEMS'
   | 'POS'
-  | 'APPOINTMENTS';
+  | 'APPOINTMENTS'
+  | 'APPOINTMENT_SERVICES'
+  | 'APPOINTMENT_STAFF'
+  | 'APPOINTMENT_CUSTOMERS';
 
 export const CategoryCapabilities: Record<string, BusinessCapability[]> = {
   RETAIL: [
@@ -19,8 +22,18 @@ export const CategoryCapabilities: Record<string, BusinessCapability[]> = {
     'POS',
   ],
   FOOD: [], // Food commerce is not implemented in this phase
-  MECHANICS: ['APPOINTMENTS'],
-  SERVICES: ['APPOINTMENTS'],
+  MECHANICS: [
+    'APPOINTMENTS',
+    'APPOINTMENT_SERVICES',
+    'APPOINTMENT_STAFF',
+    'APPOINTMENT_CUSTOMERS',
+  ],
+  SERVICES: [
+    'APPOINTMENTS',
+    'APPOINTMENT_SERVICES',
+    'APPOINTMENT_STAFF',
+    'APPOINTMENT_CUSTOMERS',
+  ],
   RENTALS: [],
 };
 
