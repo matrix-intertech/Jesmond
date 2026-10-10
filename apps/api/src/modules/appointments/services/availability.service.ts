@@ -51,9 +51,25 @@ export class AvailabilityService {
     const timeOffs = await this.prisma.staffTimeOff.findMany({
       where: {
         staffId: { in: staffIds },
-        startTime: { lt: endOfDay },
-        endTime: { gt: startOfDay }
-      }
+        deletedAt: null,
+        OR: [
+          // Non-recurring blocks overlapping the day
+          {
+            recurrence: 'NONE',
+            startTime: { lt: endOfDay },
+            endTime: { gt: startOfDay },
+          },
+          // Recurring blocks starting on or before this day, and either no recurrenceEnd or recurrenceEnd >= startOfDay
+          {
+            recurrence: { in: ['DAILY', 'WEEKLY', 'CUSTOM'] },
+            startTime: { lt: endOfDay },
+            OR: [
+              { recurrenceEnd: null },
+              { recurrenceEnd: { gte: startOfDay } },
+            ],
+          },
+        ],
+      },
     });
 
     // 4. Fetch existing appointments for the service OR the staff
@@ -94,12 +110,42 @@ export class AvailabilityService {
         const slotEnd = new Date(startOfDay);
         slotEnd.setUTCMinutes(slotEndMins);
 
-        // Check against time-off
-        const hasTimeOff = timeOffs.some(to => 
-          to.staffId === wh.staffId && 
-          to.startTime < slotEnd && 
-          to.endTime > slotStart
-        );
+        // Check against time-off (including recurring blocks)
+        const hasTimeOff = timeOffs.some(to => {
+          if (to.staffId !== wh.staffId) return false;
+
+          if (to.recurrence === 'NONE') {
+            return to.startTime < slotEnd && to.endTime > slotStart;
+          }
+
+          // Recurring block (DAILY, WEEKLY)
+          // 1. Must be on or after original start date, and on or before recurrenceEnd if defined
+          if (slotEnd <= to.startTime) return false;
+          if (to.recurrenceEnd && slotStart >= to.recurrenceEnd) return false;
+
+          const blockTz = to.timezone || timezone || 'Australia/Sydney';
+          const blockLocal = this.getLocalDayAndMins(to.startTime, blockTz);
+          const blockLocalEnd = this.getLocalDayAndMins(to.endTime, blockTz);
+          const slotLocal = this.getLocalDayAndMins(slotStart, blockTz);
+
+          if (to.recurrence === 'WEEKLY') {
+            // Must occur on the same local weekday in the business timezone
+            if (blockLocal.dayOfWeek !== slotLocal.dayOfWeek) return false;
+          }
+
+          // Compare local time-of-day window (minutes from local midnight)
+          const bStartMins = blockLocal.mins;
+          let bEndMins = blockLocalEnd.mins;
+          if (bEndMins <= bStartMins && to.endTime.getTime() > to.startTime.getTime()) {
+            // Crossed midnight locally
+            bEndMins += 1440;
+          }
+
+          let sStartMins = slotLocal.mins;
+          let sEndMins = sStartMins + totalSlotMins;
+
+          return sStartMins < bEndMins && sEndMins > bStartMins;
+        });
 
         // Check against appointments (whether specific to this staff or general service capacity limit)
         // If appointment doesn't have staffId yet (PENDING), it consumes 1 generic capacity
@@ -142,5 +188,36 @@ export class AvailabilityService {
       date,
       availableSlots: availableSlots.map(s => ({ startTime: s.startTime, endTime: s.endTime })).sort((a, b) => a.startTime.localeCompare(b.startTime)),
     };
+  }
+
+  private getLocalDayAndMins(date: Date, tz: string): { dayOfWeek: number; mins: number } {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        hourCycle: 'h23',
+        weekday: 'short',
+        hour: 'numeric',
+        minute: 'numeric',
+      }).formatToParts(date);
+      const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+      const dayMap: Record<string, number> = {
+        Sun: 0,
+        Mon: 1,
+        Tue: 2,
+        Wed: 3,
+        Thu: 4,
+        Fri: 5,
+        Sat: 6,
+      };
+      const dayOfWeek = dayMap[map.weekday] ?? date.getUTCDay();
+      const mins = parseInt(map.hour, 10) * 60 + parseInt(map.minute, 10);
+      return { dayOfWeek, mins };
+    } catch {
+      // Fallback to UTC if timezone is invalid
+      return {
+        dayOfWeek: date.getUTCDay(),
+        mins: date.getUTCHours() * 60 + date.getUTCMinutes(),
+      };
+    }
   }
 }

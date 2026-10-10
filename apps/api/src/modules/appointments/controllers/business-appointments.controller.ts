@@ -25,6 +25,9 @@ import {
   CreateServiceCategoryDto,
   UpdateServiceCategoryDto,
   AssignServiceCategoryDto,
+  CreateTimeOffDto,
+  UpdateTimeOffDto,
+  CreateOfflineAppointmentDto,
 } from '../dtos/appointment.dto';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
@@ -290,5 +293,96 @@ export class BusinessAppointmentsController {
       throw new ForbiddenException('User is not associated with an organization');
     }
     return this.appointmentsService.getBusinessCustomers(req.user.organizationId);
+  }
+
+  // Time Off & Availability Blocks (Phase 5)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('time-off')
+  async getTimeOffBlocks(
+    @Request() req: any,
+    @Query('staffId') staffId?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.getTimeOffBlocks(req.user.organizationId, {
+      staffId,
+      startDate,
+      endDate,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('time-off')
+  async createTimeOffBlock(
+    @Request() req: any,
+    @Body() dto: CreateTimeOffDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.createTimeOffBlock(
+      req.user.organizationId,
+      req.user.id,
+      dto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Put('time-off/:id')
+  async updateTimeOffBlock(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Body() dto: UpdateTimeOffDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.updateTimeOffBlock(
+      req.user.organizationId,
+      id,
+      dto,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('time-off/:id/delete')
+  async deleteTimeOffBlock(
+    @Param('id') id: string,
+    @Request() req: any,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.deleteTimeOffBlock(req.user.organizationId, id);
+  }
+
+  // Offline / Walk-in Appointment Creation (Phase 5 Workflow B)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('offline')
+  async createOfflineAppointment(
+    @Request() req: any,
+    @Body() dto: CreateOfflineAppointmentDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.createOfflineAppointment(
+      req.user.organizationId,
+      req.user.id,
+      dto,
+    );
   }
 }

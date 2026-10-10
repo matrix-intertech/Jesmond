@@ -183,3 +183,113 @@ export class AssignServiceCategoryDto {
   @IsNotEmpty()
   categoryId?: string | null;
 }
+
+export class CreateTimeOffDto {
+  @IsString()
+  @IsNotEmpty()
+  staffId: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  startTime: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  endTime: string;
+
+  @IsString()
+  @IsOptional()
+  timezone?: string;
+
+  @IsEnum(['LEAVE', 'BREAK', 'OFFLINE_WORK', 'COMMITMENT', 'OTHER'])
+  @IsOptional()
+  type?: 'LEAVE' | 'BREAK' | 'OFFLINE_WORK' | 'COMMITMENT' | 'OTHER';
+
+  @IsString()
+  @IsOptional()
+  reason?: string;
+
+  @IsEnum(['NONE', 'DAILY', 'WEEKLY'], {
+    message: 'recurrence must be one of: NONE, DAILY, WEEKLY (CUSTOM recurrence is not supported in Phase 5)',
+  })
+  @IsOptional()
+  recurrence?: 'NONE' | 'DAILY' | 'WEEKLY';
+
+  @IsDateString()
+  @IsOptional()
+  recurrenceEnd?: string;
+}
+
+export class UpdateTimeOffDto {
+  @IsDateString()
+  @IsOptional()
+  startTime?: string;
+
+  @IsDateString()
+  @IsOptional()
+  endTime?: string;
+
+  @IsString()
+  @IsOptional()
+  timezone?: string;
+
+  @IsEnum(['LEAVE', 'BREAK', 'OFFLINE_WORK', 'COMMITMENT', 'OTHER'])
+  @IsOptional()
+  type?: 'LEAVE' | 'BREAK' | 'OFFLINE_WORK' | 'COMMITMENT' | 'OTHER';
+
+  @IsString()
+  @IsOptional()
+  reason?: string;
+
+  @IsEnum(['NONE', 'DAILY', 'WEEKLY'], {
+    message: 'recurrence must be one of: NONE, DAILY, WEEKLY (CUSTOM recurrence is not supported in Phase 5)',
+  })
+  @IsOptional()
+  recurrence?: 'NONE' | 'DAILY' | 'WEEKLY';
+
+  @IsDateString()
+  @IsOptional()
+  recurrenceEnd?: string;
+}
+
+export class CreateOfflineAppointmentDto {
+  @IsString()
+  @IsNotEmpty()
+  branchId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  serviceId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  staffId: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  startTime: string;
+
+  @IsDateString()
+  @IsNotEmpty()
+  endTime: string;
+
+  @IsString()
+  @IsOptional()
+  timezone?: string;
+
+  @IsString()
+  @IsOptional()
+  customerName?: string;
+
+  @IsString()
+  @IsOptional()
+  customerPhone?: string;
+
+  @IsString()
+  @IsOptional()
+  customerEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
+}

@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AppointmentStatus, Prisma } from '@prisma/client';
+import { AppointmentStatus, Prisma, UserRole } from '@prisma/client';
 
 import { NotificationsService } from '../../notifications/notifications.service';
 
@@ -372,14 +372,53 @@ export class AppointmentsService {
       if (!isWorking)
         throw new BadRequestException('Staff member is outside working hours');
 
-      const timeOff = await tx.staffTimeOff.findFirst({
+      const activeTimeOffs = await tx.staffTimeOff.findMany({
         where: {
           staffId,
-          startTime: { lt: appointment.endTime },
-          endTime: { gt: appointment.startTime },
+          deletedAt: null,
+          OR: [
+            {
+              recurrence: 'NONE',
+              startTime: { lt: appointment.endTime },
+              endTime: { gt: appointment.startTime },
+            },
+            {
+              recurrence: { in: ['DAILY', 'WEEKLY', 'CUSTOM'] },
+              startTime: { lt: appointment.endTime },
+              OR: [
+                { recurrenceEnd: null },
+                { recurrenceEnd: { gte: appointment.startTime } },
+              ],
+            },
+          ],
         },
       });
-      if (timeOff) throw new BadRequestException('Staff member is on time off');
+
+      const conflictingTimeOff = activeTimeOffs.find((to) => {
+        if (to.recurrence === 'NONE') return true;
+
+        if (appointment.endTime <= to.startTime) return false;
+        if (to.recurrenceEnd && appointment.startTime >= to.recurrenceEnd) return false;
+
+        if (to.recurrence === 'WEEKLY') {
+          if (to.startTime.getUTCDay() !== appointment.startTime.getUTCDay()) return false;
+        }
+
+        const bStartMins = to.startTime.getUTCHours() * 60 + to.startTime.getUTCMinutes();
+        const bEndMins = to.endTime.getUTCHours() * 60 + to.endTime.getUTCMinutes();
+
+        if (bStartMins < bEndMins) {
+          return startMins < bEndMins && endMins > bStartMins;
+        } else {
+          return startMins < bEndMins || endMins > bStartMins;
+        }
+      });
+
+      if (conflictingTimeOff) {
+        throw new BadRequestException(
+          `Staff member is on unavailable block (${conflictingTimeOff.type}${conflictingTimeOff.reason ? `: ${conflictingTimeOff.reason}` : ''})`,
+        );
+      }
 
       const staffConflict = await tx.appointment.findFirst({
         where: {
@@ -606,6 +645,7 @@ export class AppointmentsService {
     const timeOffs = await this.prisma.staffTimeOff.findMany({
       where: {
         staffId: { in: staffIds },
+        deletedAt: null,
         startTime: { lt: endTime },
         endTime: { gt: startTime },
       },
@@ -1219,5 +1259,465 @@ export class AppointmentsService {
     }
 
     return Array.from(customerMap.values());
+  }
+
+  // 15. Time Off / Availability Blocks Management (Phase 5)
+  async getTimeOffBlocks(
+    organizationId: string,
+    filters?: { staffId?: string; startDate?: string; endDate?: string },
+  ) {
+    const where: Prisma.StaffTimeOffWhereInput = {
+      organizationId,
+      deletedAt: null,
+    };
+
+    if (filters?.staffId) {
+      where.staffId = filters.staffId;
+    }
+
+    if (filters?.startDate || filters?.endDate) {
+      where.AND = [];
+      if (filters?.startDate) {
+        where.AND.push({ endTime: { gte: new Date(filters.startDate) } });
+      }
+      if (filters?.endDate) {
+        where.AND.push({ startTime: { lte: new Date(filters.endDate) } });
+      }
+    }
+
+    return this.prisma.staffTimeOff.findMany({
+      where,
+      orderBy: { startTime: 'asc' },
+      include: {
+        staff: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async createTimeOffBlock(
+    organizationId: string,
+    createdById: string,
+    data: {
+      staffId: string;
+      startTime: string;
+      endTime: string;
+      timezone?: string;
+      type?: 'LEAVE' | 'BREAK' | 'OFFLINE_WORK' | 'COMMITMENT' | 'OTHER';
+      reason?: string;
+      recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'CUSTOM';
+      recurrenceEnd?: string;
+    },
+  ) {
+    const start = new Date(data.startTime);
+    const end = new Date(data.endTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid start or end time format');
+    }
+
+    if (start >= end) {
+      throw new BadRequestException('Start time must be strictly before end time');
+    }
+
+    if (data.recurrence === 'CUSTOM') {
+      throw new BadRequestException(
+        'CUSTOM recurrence rules are not currently supported. Please use NONE, DAILY, or WEEKLY.',
+      );
+    }
+
+    // Verify staff belongs to this organization
+    const staff = await this.prisma.orgStaff.findUnique({
+      where: { id: data.staffId },
+      include: {
+        user: { select: { firstName: true, lastName: true } },
+      },
+    });
+
+    if (!staff || staff.organizationId !== organizationId || staff.deletedAt) {
+      throw new ForbiddenException('Staff member does not belong to this organization');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Concurrency lock on staff member
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${data.staffId}))`;
+
+      // Conflict Check: Check for overlapping CONFIRMED or IN_PROGRESS appointments
+      const conflictingAppt = await tx.appointment.findFirst({
+        where: {
+          staffId: data.staffId,
+          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+          startTime: { lt: end },
+          endTime: { gt: start },
+        },
+        include: {
+          customer: { select: { firstName: true, lastName: true } },
+        },
+      });
+
+      if (conflictingAppt) {
+        const custName = conflictingAppt.customer
+          ? `${conflictingAppt.customer.firstName} ${conflictingAppt.customer.lastName}`
+          : 'Customer';
+        throw new BadRequestException(
+          `Cannot block time: conflicting appointment "${conflictingAppt.serviceName}" for ${custName} exists between ${conflictingAppt.startTime.toISOString()} and ${conflictingAppt.endTime.toISOString()}`,
+        );
+      }
+
+      // Create the time off block
+      return tx.staffTimeOff.create({
+        data: {
+          organizationId,
+          staffId: data.staffId,
+          startTime: start,
+          endTime: end,
+          timezone: data.timezone || 'Australia/Sydney',
+          type: data.type || 'LEAVE',
+          reason: data.reason?.trim() || null,
+          recurrence: data.recurrence || 'NONE',
+          recurrenceEnd: data.recurrenceEnd ? new Date(data.recurrenceEnd) : null,
+          createdById,
+        },
+        include: {
+          staff: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+  }
+
+  async updateTimeOffBlock(
+    organizationId: string,
+    id: string,
+    data: {
+      startTime?: string;
+      endTime?: string;
+      timezone?: string;
+      type?: 'LEAVE' | 'BREAK' | 'OFFLINE_WORK' | 'COMMITMENT' | 'OTHER';
+      reason?: string;
+      recurrence?: 'NONE' | 'DAILY' | 'WEEKLY' | 'CUSTOM';
+      recurrenceEnd?: string;
+    },
+  ) {
+    const existing = await this.prisma.staffTimeOff.findUnique({
+      where: { id },
+    });
+
+    if (!existing || existing.organizationId !== organizationId || existing.deletedAt) {
+      throw new NotFoundException('Time off block not found');
+    }
+
+    const start = data.startTime ? new Date(data.startTime) : existing.startTime;
+    const end = data.endTime ? new Date(data.endTime) : existing.endTime;
+
+    if (start >= end) {
+      throw new BadRequestException('Start time must be strictly before end time');
+    }
+
+    if (data.recurrence === 'CUSTOM') {
+      throw new BadRequestException(
+        'CUSTOM recurrence rules are not currently supported. Please use NONE, DAILY, or WEEKLY.',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // Concurrency lock on staff member
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${existing.staffId}))`;
+
+      // Revalidate conflicts if time window changed
+      if (data.startTime || data.endTime) {
+        const conflict = await tx.appointment.findFirst({
+          where: {
+            staffId: existing.staffId,
+            status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+            startTime: { lt: end },
+            endTime: { gt: start },
+          },
+        });
+
+        if (conflict) {
+          throw new BadRequestException(
+            `Cannot update time off: conflicting appointment exists between ${conflict.startTime.toISOString()} and ${conflict.endTime.toISOString()}`,
+          );
+        }
+      }
+
+      return tx.staffTimeOff.update({
+        where: { id },
+        data: {
+          ...(data.startTime ? { startTime: start } : {}),
+          ...(data.endTime ? { endTime: end } : {}),
+          ...(data.timezone ? { timezone: data.timezone } : {}),
+          ...(data.type ? { type: data.type } : {}),
+          ...(data.reason !== undefined ? { reason: data.reason?.trim() || null } : {}),
+          ...(data.recurrence ? { recurrence: data.recurrence } : {}),
+          ...(data.recurrenceEnd !== undefined
+            ? { recurrenceEnd: data.recurrenceEnd ? new Date(data.recurrenceEnd) : null }
+            : {}),
+        },
+        include: {
+          staff: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+  }
+
+  async deleteTimeOffBlock(organizationId: string, id: string) {
+    const existing = await this.prisma.staffTimeOff.findUnique({
+      where: { id },
+    });
+
+    if (!existing || existing.organizationId !== organizationId || existing.deletedAt) {
+      throw new NotFoundException('Time off block not found');
+    }
+
+    // Soft delete inside transaction with advisory lock
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${existing.staffId}))`;
+      await tx.staffTimeOff.update({
+        where: { id },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+    });
+
+    return { success: true, message: 'Time off block removed successfully' };
+  }
+
+  // 16. Offline Appointment Booking (Workflow B)
+  async createOfflineAppointment(
+    organizationId: string,
+    createdById: string,
+    data: {
+      branchId: string;
+      serviceId: string;
+      staffId: string;
+      startTime: string;
+      endTime: string;
+      timezone?: string;
+      customerName?: string;
+      customerPhone?: string;
+      customerEmail?: string;
+      notes?: string;
+    },
+  ) {
+    const start = new Date(data.startTime);
+    const end = new Date(data.endTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      throw new BadRequestException('Invalid start or end time format');
+    }
+
+    if (start >= end) {
+      throw new BadRequestException('Start time must be strictly before end time');
+    }
+
+    // 1. Verify service belongs to organization
+    const service = await this.prisma.businessService.findUnique({
+      where: { id: data.serviceId },
+    });
+    if (!service || service.organizationId !== organizationId || service.deletedAt) {
+      throw new BadRequestException('Invalid service for this organization');
+    }
+
+    // 2. Verify branch belongs to organization
+    const branch = await this.prisma.retailBranch.findUnique({
+      where: { id: data.branchId },
+    });
+    if (!branch || branch.organizationId !== organizationId) {
+      throw new BadRequestException('Invalid branch for this organization');
+    }
+
+    // 3. Verify staff belongs to organization and is assigned to service
+    const staff = await this.prisma.orgStaff.findUnique({
+      where: { id: data.staffId },
+      include: { user: true },
+    });
+    if (!staff || staff.organizationId !== organizationId || staff.deletedAt) {
+      throw new ForbiddenException('Staff member does not belong to this organization');
+    }
+
+    const assignment = await this.prisma.staffServiceAssignment.findUnique({
+      where: {
+        staffId_serviceId: {
+          staffId: data.staffId,
+          serviceId: data.serviceId,
+        },
+      },
+    });
+    if (!assignment) {
+      throw new BadRequestException('Staff member is not assigned to this service');
+    }
+
+    // 4. Concurrency lock on staff schedule using advisory lock
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${data.staffId}))`;
+
+      // Check conflict with confirmed appointments
+      const apptConflict = await tx.appointment.findFirst({
+        where: {
+          staffId: data.staffId,
+          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+          startTime: { lt: end },
+          endTime: { gt: start },
+        },
+      });
+
+      if (apptConflict) {
+        throw new BadRequestException(
+          `Staff member already has a confirmed appointment between ${apptConflict.startTime.toISOString()} and ${apptConflict.endTime.toISOString()}`,
+        );
+      }
+
+      // Check conflict with staff time-off blocks (including recurring)
+      const activeTimeOffs = await tx.staffTimeOff.findMany({
+        where: {
+          staffId: data.staffId,
+          deletedAt: null,
+          OR: [
+            {
+              recurrence: 'NONE',
+              startTime: { lt: end },
+              endTime: { gt: start },
+            },
+            {
+              recurrence: { in: ['DAILY', 'WEEKLY', 'CUSTOM'] },
+              startTime: { lt: end },
+              OR: [
+                { recurrenceEnd: null },
+                { recurrenceEnd: { gte: start } },
+              ],
+            },
+          ],
+        },
+      });
+
+      const offStartMins = start.getUTCHours() * 60 + start.getUTCMinutes();
+      const offEndMins = end.getUTCHours() * 60 + end.getUTCMinutes();
+
+      const timeOffConflict = activeTimeOffs.find((to) => {
+        if (to.recurrence === 'NONE') return true;
+
+        if (end <= to.startTime) return false;
+        if (to.recurrenceEnd && start >= to.recurrenceEnd) return false;
+
+        if (to.recurrence === 'WEEKLY') {
+          if (to.startTime.getUTCDay() !== start.getUTCDay()) return false;
+        }
+
+        const bStartMins = to.startTime.getUTCHours() * 60 + to.startTime.getUTCMinutes();
+        const bEndMins = to.endTime.getUTCHours() * 60 + to.endTime.getUTCMinutes();
+
+        if (bStartMins < bEndMins) {
+          return offStartMins < bEndMins && offEndMins > bStartMins;
+        } else {
+          return offStartMins < bEndMins || offEndMins > bStartMins;
+        }
+      });
+
+      if (timeOffConflict) {
+        throw new BadRequestException(
+          `Staff member is on unavailable block (${timeOffConflict.type}) between ${timeOffConflict.startTime.toISOString()} and ${timeOffConflict.endTime.toISOString()}`,
+        );
+      }
+
+      // 5. Customer resolution (Find or create walk-in customer user profile)
+      let customerId: string;
+      const email = data.customerEmail?.trim().toLowerCase();
+      if (email) {
+        let cust = await tx.user.findUnique({ where: { email } });
+        if (!cust) {
+          cust = await tx.user.create({
+            data: {
+              email,
+              firstName: data.customerName?.split(' ')[0] || 'Walk-in',
+              lastName: data.customerName?.split(' ').slice(1).join(' ') || 'Customer',
+              phone: data.customerPhone || null,
+              role: UserRole.STUDENT,
+              password: 'OFFLINE_WALKIN_PLACEHOLDER',
+            },
+          });
+        }
+        customerId = cust.id;
+      } else {
+        // Fallback to creator user id for guest/walk-in record
+        customerId = createdById;
+      }
+
+      // 6. Create confirmed appointment
+      const offlineAppt = await tx.appointment.create({
+        data: {
+          organizationId,
+          branchId: data.branchId,
+          serviceId: data.serviceId,
+          staffId: data.staffId,
+          customerId,
+          startTime: start,
+          endTime: end,
+          timezone: data.timezone || 'Australia/Sydney',
+          customerNotes: data.notes
+            ? `[Offline Booking] ${data.notes} (Customer: ${data.customerName || 'Walk-in'})`
+            : `[Offline Booking] Customer: ${data.customerName || 'Walk-in'}${data.customerPhone ? `, Phone: ${data.customerPhone}` : ''}`,
+          status: 'CONFIRMED',
+          serviceName: service.name,
+          durationMins: service.durationMins,
+          price: service.price,
+          currency: service.currency,
+          statusHistory: {
+            create: {
+              status: 'CONFIRMED',
+              reason: 'Offline/Walk-in booking entered by staff',
+              changedById: createdById,
+            },
+          },
+        },
+        include: {
+          customer: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
+          service: { select: { id: true, name: true, durationMins: true } },
+          staff: {
+            include: {
+              user: { select: { firstName: true, lastName: true } },
+            },
+          },
+          branch: { select: { id: true, name: true } },
+        },
+      });
+
+      return offlineAppt;
+    });
   }
 }

@@ -388,6 +388,26 @@ const navConfig: NavItem[] = [
     roles: ["ORG_STAFF"],
   },
   {
+    requiredCapabilities: ["APPOINTMENT_STAFF"],
+    href: "/portal/business/availability",
+    label: "Availability & Time Off",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+      </svg>
+    ),
+    roles: ["ORG_STAFF"],
+  },
+  {
     requiredCapabilities: ["APPOINTMENT_CUSTOMERS"],
     href: "/portal/business/customers",
     label: "Customers",

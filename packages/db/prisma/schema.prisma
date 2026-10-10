@@ -146,6 +146,7 @@ model Organization {
   businessServices  BusinessService[]
   serviceCategories ServiceCategory[]
   appointments      Appointment[]
+  timeOffBlocks     StaffTimeOff[]
 
   @@index([abn])
 }
@@ -1873,20 +1874,48 @@ model StaffWorkingHours {
   @@index([staffId, dayOfWeek])
 }
 
+enum TimeOffType {
+  LEAVE
+  BREAK
+  OFFLINE_WORK
+  COMMITMENT
+  OTHER
+}
+
+enum RecurrenceRule {
+  NONE
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
 model StaffTimeOff {
-  id      String   @id @default(uuid())
-  staffId String
-  staff   OrgStaff @relation(fields: [staffId], references: [id])
+  id             String         @id @default(uuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  staffId        String
+  staff          OrgStaff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
-  startTime DateTime // UTC
-  endTime   DateTime // UTC
-  reason    String?
+  startTime      DateTime       // UTC
+  endTime        DateTime       // UTC
+  timezone       String         @default("Australia/Sydney")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  type           TimeOffType    @default(LEAVE)
+  reason         String?
 
+  recurrence     RecurrenceRule @default(NONE)
+  recurrenceEnd  DateTime?      // UTC end for recurring series
+
+  createdById    String?
+  deletedAt      DateTime?
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([organizationId])
   @@index([staffId])
   @@index([startTime, endTime])
+  @@index([deletedAt])
 }
 
 model Appointment {

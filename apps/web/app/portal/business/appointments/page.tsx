@@ -274,14 +274,23 @@ export default function BusinessAppointmentsDashboard() {
           title="Appointments Management"
           description="Review requests, assign qualified professionals, and oversee business scheduling."
         />
-        <button
-          onClick={fetchAppointments}
-          disabled={loading}
-          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors"
-        >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => router.push("/portal/business/availability")}
+            className="flex items-center gap-2 px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors shadow-xs"
+          >
+            <CalendarIcon size={16} className="text-accent" />
+            Manage Availability
+          </button>
+          <button
+            onClick={fetchAppointments}
+            disabled={loading}
+            className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors"
+          >
+            <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (
