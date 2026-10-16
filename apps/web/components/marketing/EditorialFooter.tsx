@@ -16,7 +16,7 @@ export function EditorialFooter() {
  <Image src="/assets/logo_footer.png" alt="Jesmond" width={512} height={396} className="w-[190px] h-auto object-contain" />
  </Link>
  <p className="text-sm text-text-secondary font-light leading-relaxed max-w-[190px] mb-8 mt-2 text-left">
- Australia's premium student accommodation platform. Designed for certainty, built for student success.
+ Australia's premium places and living platform. Designed for certainty, built for your journey.
  </p>
  </div>
 

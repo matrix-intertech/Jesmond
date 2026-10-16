@@ -28,7 +28,7 @@ export function HeroSection({ featuredProperty, verifiedPropertyCount = 0 }: { f
  <div className="absolute inset-0 z-0 w-full h-full overflow-hidden">
  <Image
  src={featuredProperty?.imageUrl || "/assets/user_hero_bg.jpg"}
- alt="Jesmond Student Accommodation"
+ alt="Jesmond Places"
  fill
  sizes="100vw"
  className="object-cover object-[center_60%]"
@@ -62,7 +62,7 @@ export function HeroSection({ featuredProperty, verifiedPropertyCount = 0 }: { f
  className="max-w-full text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold text-white tracking-tight leading-[1.05] mb-6 sm:max-w-3xl drop-shadow-lg"
  style={{ fontFamily: 'var(--font-outfit)' }}
  >
- Find your perfect student home.
+ Find your perfect place.
  </motion.h1>
 
  <motion.p
@@ -71,7 +71,7 @@ export function HeroSection({ featuredProperty, verifiedPropertyCount = 0 }: { f
  transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
  className="max-w-full text-base sm:text-xl text-white/90 mb-8 sm:mb-10 sm:max-w-2xl leading-relaxed font-light drop-shadow-md"
  >
- Discover verified purpose-built student accommodation. Book securely with zero hidden fees.
+ Discover places that suit your needs. Explore listings and connect with businesses across Australia.
  </motion.p>
 
  {/* Trust Metrics */}

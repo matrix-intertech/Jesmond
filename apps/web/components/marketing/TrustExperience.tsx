@@ -12,7 +12,7 @@ const TRUST_PILLARS = [
  },
  {
  title: "Zero Hidden Fees.",
- description: "Transparent pricing is our mandate. The weekly rent you see is exactly what you pay. We don't charge booking fees or student surcharges.",
+ description: "Transparent pricing is our mandate. The weekly rent you see is exactly what you pay. We don't charge booking fees or hidden surcharges.",
  icon: (
  <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
  )
@@ -40,14 +40,14 @@ export function TrustExperience() {
  transition={{ duration: 0.6 }}
  >
  <h2 className="text-accent font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
- Built for students
+ Built for certainty
  </h2>
  <h3 className="text-3xl sm:text-[2.5rem] lg:text-[3.5rem] font-bold text-primary tracking-tight leading-[1.1] mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
  Backed by certainty.
  </h3>
  <p className="text-lg text-text-secondary leading-relaxed max-w-2xl mx-auto">
  Moving to a new city is stressful enough. Booking your accommodation shouldn't be.
- We've built Australia's most trusted student housing platform.
+ We've built Australia's most trusted places and living platform.
  </p>
  </motion.div>
  </div>

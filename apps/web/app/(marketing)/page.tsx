@@ -11,8 +11,10 @@ import { prisma } from "@jesmond/db";
 
 export const metadata = {
  title: {
- absolute: "Jesmond | Premium Student Accommodation in Australia",
- },
+ absolute: "Jesmond | Find Your Perfect Place in Australia",
+  },
+  description:
+    "Discover verified places, properties, local retail, and essential services across Australia with Jesmond.",
 };
 
 export const dynamic = 'force-dynamic';

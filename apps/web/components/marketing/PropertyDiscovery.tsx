@@ -137,7 +137,7 @@ export function PropertyDiscovery() {
  </h2>
  <p className="text-base text-text-secondary font-light">
  We don't list everything. We only list the best.
- Discover verified properties designed specifically for student success.
+ Discover verified places and living spaces designed for comfort and lifestyle.
  </p>
  </div>
 

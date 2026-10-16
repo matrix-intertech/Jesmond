@@ -33,11 +33,11 @@ export function FinalConversion() {
  className="text-4xl sm:text-[3rem] lg:text-[4.5rem] font-bold text-white tracking-[-0.04em] leading-[1.1] mb-6"
  style={{ fontFamily: 'var(--font-outfit)' }}
  >
- Find your perfect <br className="hidden md:block" /> accommodation.
+ Find your perfect <br className="hidden md:block" /> place.
  </h2>
  <p className="text-xl text-white/70 font-light max-w-2xl mx-auto leading-relaxed">
- Secure your housing early and arrive with confidence.
- The simplest way to discover premium, verified student living in Australia.
+ Discover places that suit your lifestyle and needs.
+ The simplest way to explore verified listings and living in Australia.
  </p>
  </motion.div>
 
