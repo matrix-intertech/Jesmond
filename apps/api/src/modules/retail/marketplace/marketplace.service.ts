@@ -23,21 +23,313 @@ export class MarketplaceService {
     lng?: number,
     radius?: number,
     category?: string,
+    q?: string,
+    suburb?: string,
+    verifiedOnly?: boolean,
+    openNow?: boolean,
+    page?: number,
+    limit?: number,
   ) {
-    const cacheKey = `retail:marketplace:stores:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}`;
-    const cached = await this.redisService.get<any[]>(cacheKey);
-    if (cached) {
-      return cached;
+    const searchQuery = (q ?? '').trim();
+    const hasSearch = searchQuery.length > 0;
+    const cleanSuburb = typeof suburb === 'string' ? suburb.trim() : '';
+    const hasSuburb = cleanSuburb.length > 0 && cleanSuburb !== 'ALL';
+    const isFiltered = (category && category !== 'ALL') || hasSuburb || verifiedOnly !== undefined || openNow !== undefined;
+    const isPaginated = page !== undefined || limit !== undefined;
+
+    // ----------------------------------------------------------------
+    // Classic fast-path for unparameterised/legacy calls (e.g. unit tests,
+    // callers passing only lat, lng, radius, category).
+    // Returns plain Array for 100% backward compatibility.
+    // ----------------------------------------------------------------
+    if (!hasSearch && !hasSuburb && verifiedOnly === undefined && openNow === undefined && !isPaginated) {
+      const cacheKey = `retail:marketplace:stores:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}`;
+      const cached = await this.redisService.get<any[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+
+      const stores = await this.prisma.retailBranch.findMany({
+        where: {
+          organization: {
+            deletedAt: null,
+            status: 'VERIFIED',
+            type: 'RETAIL',
+            businessCategory: category ? (category as any) : undefined,
+          },
+        },
+        include: {
+          organization: {
+            select: {
+              name: true,
+              branding: true,
+              businessCategory: true,
+            },
+          },
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      });
+
+      const mappedStores = stores.map((store) => ({
+        ...store,
+        matchedMenuItems: [] as any[],
+        availability: {
+          available: store.isActive,
+          label: store.isActive ? 'Available' : 'Currently Unavailable',
+        },
+      }));
+
+      await this.redisService.set(cacheKey, mappedStores, 45);
+      return mappedStores;
     }
 
-    // Return active branches. In a real app with PostGIS we'd calculate distance.
-    const stores = await this.prisma.retailBranch.findMany({
-      where: {
-        organization: {
-          status: 'VERIFIED',
-          type: 'RETAIL',
-          businessCategory: category ? (category as any) : undefined,
+    // ----------------------------------------------------------------
+    // Extended search & filter path
+    // ----------------------------------------------------------------
+    // Safe pagination validation at service layer:
+    // Non-integer, zero, negative, NaN fallback safely (page -> 1, limit -> 20, max limit -> 100)
+    const pageNum = typeof page === 'number' && Number.isInteger(page) && page >= 1 ? page : 1;
+    const limitNum = typeof limit === 'number' && Number.isInteger(limit) && limit >= 1 ? Math.min(100, limit) : 20;
+
+    // Build organization-level filter:
+    // - Always exclude soft-deleted organizations (deletedAt: null)
+    // - Always exclude SUSPENDED and REJECTED organizations
+    // - When verifiedOnly === true, restrict to VERIFIED organizations
+    // - When verifiedOnly === false (default), include VERIFIED and PENDING
+    const orgWhere: any = {
+      type: 'RETAIL',
+      deletedAt: null,
+      status: verifiedOnly === true ? 'VERIFIED' : { in: ['VERIFIED', 'PENDING'] },
+    };
+    if (category && category !== 'ALL') {
+      orgWhere.businessCategory = category as any;
+    }
+
+    // Build branch-level filter
+    const branchWhere: any = { organization: orgWhere };
+    // Default requirement: "Open now: ON"
+    if (openNow === true) {
+      branchWhere.isActive = true;
+    }
+    if (hasSuburb) {
+      // Known limitation: RetailBranch schema does not link to the structured Suburb model (unlike Property.suburbId);
+      // address substring matching is used on the freeform address text.
+      branchWhere.address = { contains: cleanSuburb, mode: 'insensitive' };
+    }
+
+    // Cache unsearched filtered queries
+    const cacheKey = !hasSearch
+      ? `retail:marketplace:stores:v3:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}:sb=${cleanSuburb || 'all'}:vf=${verifiedOnly ? 1 : 0}:on=${openNow === false ? 0 : 1}:p=${pageNum}:l=${limitNum}`
+      : null;
+
+    if (cacheKey) {
+      const cached = await this.redisService.get<any>(cacheKey);
+      if (cached) return cached;
+    }
+
+    // Simple path — no keyword search
+    if (!hasSearch) {
+      const skip = (pageNum - 1) * limitNum;
+      const [stores, totalCount] = await Promise.all([
+        this.prisma.retailBranch.findMany({
+          where: branchWhere,
+          include: {
+            organization: {
+              select: {
+                name: true,
+                branding: true,
+                businessCategory: true,
+              },
+            },
+          },
+          skip,
+          take: limitNum,
+          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+        }),
+        typeof this.prisma.retailBranch.count === 'function'
+          ? this.prisma.retailBranch.count({ where: branchWhere })
+          : Promise.resolve(0),
+      ]);
+
+      const mappedStores = stores.map((store) => ({
+        ...store,
+        matchedMenuItems: [] as any[],
+        availability: {
+          available: store.isActive,
+          label: store.isActive ? 'Available' : 'Currently Unavailable',
         },
+      }));
+
+      const total = totalCount || mappedStores.length;
+      const result = {
+        data: mappedStores,
+        meta: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      };
+
+      if (cacheKey) {
+        await this.redisService.set(cacheKey, result, 45);
+      }
+      return result;
+    }
+
+    // ----------------------------------------------------------------
+    // Search path — find matching branch IDs from multiple dimensions:
+    // 1. Business / branch name, address, organization name
+    // 2. Food menu items (dish name & description)
+    // 3. Food menu categories / cuisines
+    // 4. Business services & relevant keywords
+    // 5. Retail products (name, description, SKU)
+    //
+    // Concurrent execution with Promise.all across independent queries.
+    // ----------------------------------------------------------------
+    const ilike = () => ({ contains: searchQuery, mode: 'insensitive' as const });
+
+    const [
+      directMatches,
+      menuItemMatches,
+      foodCategoryMatches,
+      serviceMatches,
+      productMatches,
+    ] = await Promise.all([
+      // Phase 1: direct branch / org matches
+      this.prisma.retailBranch.findMany({
+        where: {
+          ...branchWhere,
+          OR: [
+            { name: ilike() },
+            { address: ilike() },
+            { organization: { ...orgWhere, name: ilike() } },
+          ],
+        },
+        select: { id: true },
+      }),
+
+      // Phase 2a: restaurant menu items (dishes & descriptions)
+      this.prisma.foodMenuItem.findMany({
+        where: {
+          isActive: true,
+          OR: [{ name: ilike() }, { description: ilike() }],
+          category: {
+            isActive: true,
+            menu: {
+              isActive: true,
+              branch: branchWhere,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          category: {
+            select: {
+              menu: { select: { branchId: true } },
+            },
+          },
+        },
+      }),
+
+      // Phase 2b: food menu categories (cuisines, meal categories)
+      this.prisma.foodMenuCategory.findMany({
+        where: {
+          isActive: true,
+          OR: [{ name: ilike() }, { description: ilike() }],
+          menu: {
+            isActive: true,
+            branch: branchWhere,
+          },
+        },
+        select: {
+          menu: { select: { branchId: true } },
+        },
+      }),
+
+      // Phase 2c: business services (mechanics, cleaning, consulting, etc.)
+      this.prisma.businessService.findMany({
+        where: {
+          isActive: true,
+          deletedAt: null,
+          OR: [{ name: ilike() }, { description: ilike() }],
+          branch: branchWhere,
+        },
+        select: { branchId: true },
+      }),
+
+      // Phase 2d: retail products (SKU, product name & description)
+      this.prisma.product.findMany({
+        where: {
+          isActive: true,
+          OR: [{ name: ilike() }, { description: ilike() }, { sku: ilike() }],
+          organization: orgWhere,
+        },
+        select: {
+          organization: {
+            select: {
+              RetailBranch: {
+                where: branchWhere,
+                select: { id: true },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const matchedBranchIds = new Set<string>();
+    for (const b of directMatches) {
+      matchedBranchIds.add(b.id);
+    }
+
+    // Group menu items by branchId for inclusion on restaurant cards
+    const menuItemsByBranch = new Map<string, any[]>();
+    for (const item of menuItemMatches) {
+      const branchId = item.category.menu.branchId;
+      matchedBranchIds.add(branchId);
+      if (!menuItemsByBranch.has(branchId)) {
+        menuItemsByBranch.set(branchId, []);
+      }
+      menuItemsByBranch.get(branchId)!.push({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+      });
+    }
+
+    for (const c of foodCategoryMatches) {
+      matchedBranchIds.add(c.menu.branchId);
+    }
+
+    for (const svc of serviceMatches) {
+      matchedBranchIds.add(svc.branchId);
+    }
+
+    for (const prod of productMatches) {
+      for (const b of prod.organization.RetailBranch) {
+        matchedBranchIds.add(b.id);
+      }
+    }
+
+    if (matchedBranchIds.size === 0) {
+      return { data: [], meta: { total: 0, page: pageNum, limit: limitNum, totalPages: 0 } };
+    }
+
+    // Deterministic ID sorting before pagination slicing ensures stable, non-overlapping pages
+    const allIds = Array.from(matchedBranchIds).sort((a, b) => a.localeCompare(b));
+    const total = allIds.length;
+    const skip = (pageNum - 1) * limitNum;
+    const paginatedIds = allIds.slice(skip, skip + limitNum);
+
+    const fullBranches = await this.prisma.retailBranch.findMany({
+      where: {
+        id: { in: paginatedIds },
+        ...branchWhere,
       },
       include: {
         organization: {
@@ -48,18 +340,27 @@ export class MarketplaceService {
           },
         },
       },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     });
 
-    const mappedStores = stores.map((store) => ({
+    const mappedStores = fullBranches.map((store) => ({
       ...store,
+      matchedMenuItems: menuItemsByBranch.get(store.id) ?? [],
       availability: {
         available: store.isActive,
         label: store.isActive ? 'Available' : 'Currently Unavailable',
       },
     }));
 
-    await this.redisService.set(cacheKey, mappedStores, 45); // 45 seconds TTL
-    return mappedStores;
+    return {
+      data: mappedStores,
+      meta: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    };
   }
 
   async invalidateStoreCache() {
