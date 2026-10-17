@@ -28,6 +28,7 @@ import {
   CreateTimeOffDto,
   UpdateTimeOffDto,
   CreateOfflineAppointmentDto,
+  AddBusinessStaffDto,
 } from '../dtos/appointment.dto';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
@@ -281,6 +282,17 @@ export class BusinessAppointmentsController {
       throw new ForbiddenException('User is not associated with an organization');
     }
     return this.appointmentsService.getBusinessStaff(req.user.organizationId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post('staff')
+  async addStaff(@Request() req: any, @Body() dto: AddBusinessStaffDto) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('User is not associated with an organization');
+    }
+    return this.appointmentsService.addBusinessStaff(req.user.organizationId, dto);
   }
 
   // Customers

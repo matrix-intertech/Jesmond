@@ -7,8 +7,13 @@ import {
   IsNumber,
   IsBoolean,
   IsArray,
+  IsEmail,
   ValidateIf,
+  ValidateNested,
+  Min,
+  Max,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { AppointmentStatus } from '@prisma/client';
 
 export class CreateAppointmentDto {
@@ -292,4 +297,53 @@ export class CreateOfflineAppointmentDto {
   @IsString()
   @IsOptional()
   notes?: string;
+}
+
+export class WorkingHoursEntryDto {
+  @IsNumber()
+  @Min(0)
+  @Max(6)
+  dayOfWeek: number;
+
+  @IsString()
+  @IsNotEmpty()
+  startTime: string; // "09:00" 24h format
+
+  @IsString()
+  @IsNotEmpty()
+  endTime: string; // "17:00" 24h format
+
+  @IsBoolean()
+  isWorking: boolean;
+}
+
+export class AddBusinessStaffDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  /** Optional: IDs of existing BusinessServices this staff member is qualified for */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  serviceIds?: string[];
+
+  /** Optional: weekly working hours. Only days with isWorking=true are stored. */
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorkingHoursEntryDto)
+  @IsOptional()
+  workingHours?: WorkingHoursEntryDto[];
 }

@@ -8,6 +8,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppointmentStatus, Prisma, UserRole } from '@prisma/client';
 
 import { NotificationsService } from '../../notifications/notifications.service';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AppointmentsService {
@@ -1211,6 +1213,161 @@ export class AppointmentsService {
         workingHours: {
           orderBy: { dayOfWeek: 'asc' },
         },
+      },
+    });
+  }
+
+  // 13b. Add Staff Member to Business
+  async addBusinessStaff(
+    organizationId: string,
+    data: {
+      email: string;
+      firstName: string;
+      lastName?: string;
+      phone?: string;
+      serviceIds?: string[];
+      workingHours?: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+        isWorking: boolean;
+      }>;
+    },
+  ) {
+    const normalizedEmail = data.email.trim().toLowerCase();
+
+    // Validate supplied serviceIds belong to this organization
+    if (data.serviceIds && data.serviceIds.length > 0) {
+      const validServices = await this.prisma.businessService.findMany({
+        where: { id: { in: data.serviceIds }, organizationId, deletedAt: null },
+        select: { id: true },
+      });
+      const validIds = new Set(validServices.map((s) => s.id));
+      const invalid = data.serviceIds.filter((id) => !validIds.has(id));
+      if (invalid.length > 0) {
+        throw new BadRequestException(
+          `Invalid or inactive service(s) for this organization: ${invalid.join(', ')}`,
+        );
+      }
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Find or create user account
+      let targetUser = await tx.user.findUnique({ where: { email: normalizedEmail } });
+
+      if (targetUser) {
+        // Check for existing active membership in this org
+        const existingStaff = await tx.orgStaff.findUnique({
+          where: { userId_organizationId: { userId: targetUser.id, organizationId } },
+        });
+        if (existingStaff && !existingStaff.deletedAt) {
+          throw new BadRequestException(
+            'A staff member with this email is already a member of your organization.',
+          );
+        }
+        if (existingStaff && existingStaff.deletedAt) {
+          // Re-activate the soft-deleted record
+          const reactivated = await tx.orgStaff.update({
+            where: { id: existingStaff.id },
+            data: { deletedAt: null },
+          });
+          await this._assignServicesAndHours(tx, reactivated.id, data);
+          return this._fetchStaffProfile(tx, reactivated.id);
+        }
+      } else {
+        // Create a new pending-verification account with a random irreversible password.
+        // The staff member must set their own password via the forgot-password flow.
+        const randomPassword = crypto.randomBytes(32).toString('hex');
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+        targetUser = await tx.user.create({
+          data: {
+            email: normalizedEmail,
+            password: hashedPassword,
+            firstName: data.firstName.trim(),
+            lastName: (data.lastName ?? data.firstName).trim(),
+            phone: data.phone?.trim() || null,
+            role: UserRole.ORG_STAFF,
+            accountStatus: 'PENDING_VERIFICATION' as any,
+          },
+        });
+      }
+
+      // 2. Create OrgStaff record
+      const orgStaff = await tx.orgStaff.create({
+        data: { userId: targetUser.id, organizationId, role: UserRole.ORG_STAFF },
+      });
+
+      // 3. Assign services and working hours
+      await this._assignServicesAndHours(tx, orgStaff.id, data);
+
+      return this._fetchStaffProfile(tx, orgStaff.id);
+    });
+  }
+
+  private async _assignServicesAndHours(
+    tx: Prisma.TransactionClient,
+    orgStaffId: string,
+    data: {
+      serviceIds?: string[];
+      workingHours?: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+        isWorking: boolean;
+      }>;
+    },
+  ) {
+    if (data.serviceIds && data.serviceIds.length > 0) {
+      for (const serviceId of data.serviceIds) {
+        await tx.staffServiceAssignment.upsert({
+          where: { staffId_serviceId: { staffId: orgStaffId, serviceId } },
+          create: { staffId: orgStaffId, serviceId },
+          update: {},
+        });
+      }
+    }
+    if (data.workingHours && data.workingHours.length > 0) {
+      await tx.staffWorkingHours.deleteMany({ where: { staffId: orgStaffId } });
+      const toCreate = data.workingHours
+        .filter((wh) => wh.isWorking)
+        .map((wh) => ({
+          staffId: orgStaffId,
+          dayOfWeek: wh.dayOfWeek,
+          startTime: wh.startTime,
+          endTime: wh.endTime,
+        }));
+      if (toCreate.length > 0) {
+        await tx.staffWorkingHours.createMany({ data: toCreate });
+      }
+    }
+  }
+
+  private async _fetchStaffProfile(
+    tx: Prisma.TransactionClient,
+    orgStaffId: string,
+  ) {
+    return tx.orgStaff.findUnique({
+      where: { id: orgStaffId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            accountStatus: true,
+          },
+        },
+        serviceAssignments: {
+          include: {
+            service: {
+              select: { id: true, name: true, durationMins: true, price: true },
+            },
+          },
+        },
+        workingHours: { orderBy: { dayOfWeek: 'asc' } },
       },
     });
   }
