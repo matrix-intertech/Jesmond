@@ -1,10 +1,12 @@
 import { getApiUrl } from "@/utils/api";
+import { getSiteUrl } from "@/utils/site";
 import { ProductCard } from "@/components/retail/ProductCard";
 import { Store, Navigation, Clock, ArrowLeft, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicFoodMenu from "@/components/food/PublicFoodMenu";
 import BusinessAppointments from "@/components/appointments/BusinessAppointments";
+import { JsonLd, getLocalBusinessSchema, getBreadcrumbSchema } from "@/components/seo/JsonLd";
 
 async function getStoreCatalog(branchId: string) {
   try {
@@ -27,23 +29,37 @@ export async function generateMetadata({ params }: { params: Promise<{ branchId:
     const { branchId } = await params;
     const data = await getStoreCatalog(branchId);
     const name = data?.branch?.name || data?.branch?.organization?.name;
-    if (!name) return { title: "Business Profile" };
+    if (!name) return { title: "Business Profile | Jesmond" };
 
     const category = data?.branch?.organization?.businessCategory || 'RETAIL';
+    const address = data?.branch?.address ? ` located at ${data.branch.address}` : '';
 
-    if (category === 'FOOD') {
-      return {
-        title: `${name} | Food & Menu | Jesmond`,
-        description: `View the menu and details for ${name}.`,
-      };
-    }
+    const title = category === 'FOOD'
+      ? `${name} | Food & Menu | Jesmond`
+      : `${name} — Local Business | Jesmond`;
+
+    const description = `View details, menu, and availability for ${name}${address} on Jesmond.`;
 
     return {
-      title: `${name} — Local Business`,
-      description: `View details for ${name}.`,
+      title,
+      description,
+      alternates: {
+        canonical: `/businesses/store/${branchId}`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `/businesses/store/${branchId}`,
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
     };
   } catch {
-    return { title: "Business Profile" };
+    return { title: "Business Profile | Jesmond" };
   }
 }
 
@@ -63,8 +79,38 @@ export default async function StoreDetailPage({
   const category = branch.organization?.businessCategory || 'RETAIL';
   const isCommerce = category === 'RETAIL';
 
+  // Server-side fetching for food menu or appointments to eliminate CSR indexing black holes
+  let initialMenus = null;
+  if (category === 'FOOD') {
+    try {
+      const menuRes = await fetch(`${getApiUrl()}/api/v1/food/menu/public/${branch.id}`, { cache: 'no-store' });
+      if (menuRes.ok) initialMenus = await menuRes.json();
+    } catch (e) {
+      // Graceful fallback to client fetch
+    }
+  }
+
+  let initialServices = null;
+  if (category === 'MECHANICS' || category === 'SERVICES') {
+    try {
+      const servicesRes = await fetch(`${getApiUrl()}/api/v1/appointments/services?branchId=${branch.id}`, { cache: 'no-store' });
+      if (servicesRes.ok) initialServices = await servicesRes.json();
+    } catch (e) {
+      // Graceful fallback to client fetch
+    }
+  }
+
+  const siteUrl = getSiteUrl();
+  const businessSchema = getLocalBusinessSchema(branch, siteUrl);
+  const breadcrumbsSchema = getBreadcrumbSchema([
+    { name: "Home", url: `${siteUrl}/` },
+    { name: "Businesses", url: `${siteUrl}/businesses` },
+    { name: branch.name || branch.organization?.name || "Business", url: `${siteUrl}/businesses/store/${branch.id}` },
+  ]);
+
   return (
     <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-8">
+      <JsonLd data={[businessSchema, breadcrumbsSchema]} />
       <Link href="/businesses" className="inline-flex items-center gap-2 text-text-secondary hover:text-accent transition-colors font-medium mb-8">
         <ArrowLeft size={18} /> Back to Businesses
       </Link>
@@ -110,7 +156,7 @@ export default async function StoreDetailPage({
         </div>
 
         <div className="mt-8 flex flex-col gap-3 border-t border-border-strong/50 pt-8 relative">
-          <h3 className="font-semibold text-primary">Business Information</h3>
+          <h2 className="text-lg font-semibold text-primary">Business Information</h2>
           {branch.address && (
             <div className="flex items-center gap-2 text-text-secondary">
               <MapPin size={18} className="text-accent" />
@@ -156,7 +202,11 @@ export default async function StoreDetailPage({
 
       {category === 'FOOD' && (
         <div className="mt-12">
-          <PublicFoodMenu branchId={branch.id} businessName={branch.name || branch.organization?.name || 'Food Business'} />
+          <PublicFoodMenu
+            branchId={branch.id}
+            businessName={branch.name || branch.organization?.name || 'Food Business'}
+            initialMenus={initialMenus || undefined}
+          />
         </div>
       )}
 
@@ -166,6 +216,7 @@ export default async function StoreDetailPage({
             branchId={branch.id} 
             businessName={branch.name || branch.organization?.name || 'Business'} 
             timezone={branch.organization?.timezone}
+            initialServices={initialServices || undefined}
           />
         </div>
       )}

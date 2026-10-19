@@ -9,13 +9,17 @@ export const dynamic = "force-dynamic";
 export const metadata = {
  title: "Student Accommodation by City",
  description: "Find verified student accommodation in cities across Australia.",
+ alternates: {
+  canonical: "/states",
+ },
 };
 
 
 interface CityWithState {
  id: string;
  name: string;
- state: { name: string } | null;
+ normalizedName?: string | null;
+ state: { name: string; normalizedName?: string | null } | null;
 }
 
 export default async function CitiesPage() {
@@ -68,8 +72,15 @@ export default async function CitiesPage() {
  </div>
  ) : (
  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
- {cities.map((city: CityWithState) => (
- <Link key={city.id} href={`/cities/${city.name.toLowerCase()}`} className="group bg-surface border border-border-strong rounded-[24px] p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-border-strong transition-all duration-300 flex flex-col justify-between h-full">
+ {cities.map((city: CityWithState) => {
+  const stateSlug = city.state
+   ? (city.state.normalizedName || city.state.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')
+   : '';
+  const citySlug = (city.normalizedName || city.name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
+  const href = stateSlug ? `/states/${stateSlug}/${citySlug}` : '/states';
+
+  return (
+   <Link key={city.id} href={href} className="group bg-surface border border-border-strong rounded-[24px] p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-border-strong transition-all duration-300 flex flex-col justify-between h-full">
  <div>
  <h2 className="text-2xl font-bold text-primary mb-2 group-hover:text-accent transition-colors">{city.name}</h2>
  <p className="text-text-secondary font-medium">{city.state?.name ?? 'Australia'}</p>
@@ -83,7 +94,8 @@ export default async function CitiesPage() {
  </div>
  </div>
  </Link>
- ))}
+  );
+ })}
  </div>
  )}
  </main>

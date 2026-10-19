@@ -119,7 +119,7 @@ export class MarketplaceService {
 
     // Cache unsearched filtered queries
     const cacheKey = !hasSearch
-      ? `retail:marketplace:stores:v3:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}:sb=${cleanSuburb || 'all'}:vf=${verifiedOnly ? 1 : 0}:on=${openNow === false ? 0 : 1}:p=${pageNum}:l=${limitNum}`
+      ? `retail:marketplace:stores:v3:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}:sb=${cleanSuburb || 'all'}:vf=${verifiedOnly ? 1 : 0}:on=${openNow === true ? 1 : openNow === false ? 0 : 'all'}:p=${pageNum}:l=${limitNum}`
       : null;
 
     if (cacheKey) {

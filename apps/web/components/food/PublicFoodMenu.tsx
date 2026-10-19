@@ -30,16 +30,27 @@ interface FoodMenu {
   categories: FoodMenuCategory[];
 }
 
-export default function PublicFoodMenu({ branchId, businessName }: { branchId: string; businessName?: string }) {
-  const [loading, setLoading] = useState(true);
+export default function PublicFoodMenu({
+  branchId,
+  businessName,
+  initialMenus,
+}: {
+  branchId: string;
+  businessName?: string;
+  initialMenus?: FoodMenu[];
+}) {
+  const [loading, setLoading] = useState(!initialMenus || initialMenus.length === 0);
   const [error, setError] = useState<string | null>(null);
-  const [menus, setMenus] = useState<FoodMenu[]>([]);
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [menus, setMenus] = useState<FoodMenu[]>(initialMenus || []);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(
+    initialMenus && initialMenus.length > 0 ? initialMenus[0].id : null
+  );
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   const foodCart = useFoodCart();
 
   useEffect(() => {
+    if (initialMenus && initialMenus.length > 0) return;
     async function fetchMenu() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/menu/public/${branchId}`);
@@ -58,7 +69,7 @@ export default function PublicFoodMenu({ branchId, businessName }: { branchId: s
       }
     }
     fetchMenu();
-  }, [branchId]);
+  }, [branchId, initialMenus]);
 
   const handleAddToCart = (item: FoodMenuItem) => {
     foodCart.addItem(branchId, businessName || 'Food Business', {

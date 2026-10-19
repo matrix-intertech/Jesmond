@@ -376,6 +376,27 @@ describe('Business Directory QA', () => {
           }),
         }),
       );
+
+      // 3. Open now: undefined (omitted / default for public crawlers)
+      mockPrisma.retailBranch.findMany.mockResolvedValueOnce([]);
+      await service.listStores(
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        undefined,
+        'ALL',
+        false,
+        undefined, // openNow: undefined (default)
+      );
+
+      expect(mockPrisma.retailBranch.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.not.objectContaining({
+            isActive: true,
+          }),
+        }),
+      );
     });
 
     it('Pagination input validation: handles invalid, negative, NaN, and excessive limits safely', async () => {

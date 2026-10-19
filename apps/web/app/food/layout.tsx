@@ -1,23 +1,15 @@
-"use client";
+import type { Metadata } from "next";
+import FoodLayoutClient from "./FoodLayoutClient";
 
-import { FoodCartProvider } from "@/providers/FoodCartProvider";
-import { FoodCartDrawer } from "@/components/food/FoodCartDrawer";
-import { GlobalNav } from "@/components/marketing/GlobalNav";
+export const metadata: Metadata = {
+  title: "Food Orders",
+  robots: { index: false, follow: false },
+};
 
 export default function FoodLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <FoodCartProvider>
-      <div className="min-h-screen bg-surface-lavender flex flex-col">
-        <GlobalNav />
-        <div className="pt-[104px] flex-1 flex flex-col">
-          {children}
-        </div>
-        <FoodCartDrawer />
-      </div>
-    </FoodCartProvider>
-  );
+  return <FoodLayoutClient>{children}</FoodLayoutClient>;
 }

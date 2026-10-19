@@ -1,5 +1,11 @@
-"use client";
+import type { Metadata } from "next";
+import StudentLayoutClient from "../student/StudentLayoutClient";
 
-import StudentLayout from "../student/layout";
+export const metadata: Metadata = {
+  title: "Messages",
+  robots: { index: false, follow: false },
+};
 
-export default StudentLayout;
+export default function StudentGroupLayout({ children }: { children: React.ReactNode }) {
+  return <StudentLayoutClient>{children}</StudentLayoutClient>;
+}

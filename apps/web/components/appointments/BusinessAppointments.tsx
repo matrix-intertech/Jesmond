@@ -11,18 +11,22 @@ export default function BusinessAppointments({
   branchId,
   businessName,
   timezone = 'Australia/Sydney',
+  initialServices,
 }: {
   branchId: string;
   businessName: string;
   timezone?: string;
+  initialServices?: any[];
 }) {
   const router = useRouter();
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState<any[]>(initialServices || []);
+  const [loading, setLoading] = useState(!initialServices || initialServices.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
-  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(
+    initialServices && initialServices.length > 0 ? initialServices[0].id : null
+  );
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
@@ -39,6 +43,7 @@ export default function BusinessAppointments({
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (initialServices && initialServices.length > 0) return;
     async function fetchServices() {
       try {
         const res = await fetch(`${getApiUrl()}/api/v1/appointments/services?branchId=${branchId}`);
@@ -55,7 +60,7 @@ export default function BusinessAppointments({
       }
     }
     fetchServices();
-  }, [branchId]);
+  }, [branchId, initialServices]);
 
   useEffect(() => {
     if (!selectedService || !selectedDate) {

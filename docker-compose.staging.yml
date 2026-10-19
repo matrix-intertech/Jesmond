@@ -1,0 +1,83 @@
+services:
+
+  jesmond-staging-db:
+    image: postgres:15-alpine
+    container_name: jesmond-staging-db
+    environment:
+      POSTGRES_USER: jesmond_app
+      POSTGRES_PASSWORD: staging_password
+      POSTGRES_DB: jesmond_staging
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - jesmond-staging-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - jesmond-staging-network
+
+  jesmond-staging-redis:
+    image: redis:7-alpine
+    container_name: jesmond-staging-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - jesmond-staging-redis-data:/data
+    networks:
+      - jesmond-staging-network
+
+  jesmond-staging-api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: jesmond-staging-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3303:3001"
+    env_file:
+      - .env.staging
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: jesmond-staging-redis
+      REDIS_PORT: 6379
+      DATABASE_URL: "postgresql://jesmond_app:staging_password@jesmond-staging-db:5432/jesmond_staging?schema=public"
+    depends_on:
+      - jesmond-staging-db
+      - jesmond-staging-redis
+    networks:
+      - jesmond-staging-network
+
+  jesmond-staging-web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3303
+        NEXT_PUBLIC_R2_PUBLIC_URL: http://localhost:3303
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ""
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ""
+        NEXT_PUBLIC_SITE_URL: http://localhost:3302
+        NEXT_PUBLIC_APP_ENV: staging
+    container_name: jesmond-staging-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3302:3000"
+    env_file:
+      - .env.staging
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://jesmond-staging-api:3001
+      NEXT_PUBLIC_R2_PUBLIC_URL: http://localhost:3303
+    depends_on:
+      - jesmond-staging-api
+    networks:
+      - jesmond-staging-network
+
+networks:
+  jesmond-staging-network:
+    driver: bridge
+
+volumes:
+  jesmond-staging-db-data:
+  jesmond-staging-redis-data:

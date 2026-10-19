@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="jesmond-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EA580C" />
+      <stop offset="100%" stop-color="#C2410C" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#jesmond-grad)" />
+  <path d="M38 18 H44 V36 C44 42.6 39.6 46 32 46 C25.4 46 21 42.6 21 37 H27 C27 39.5 29.2 41 32 41 C35.2 41 38 39.2 38 36 Z" fill="#FFFFFF" />
+</svg>

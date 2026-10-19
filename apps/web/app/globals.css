@@ -6,6 +6,7 @@
   /* Foundations */
   --background: #F8FAFC;
   --foreground: #17124D;
+  --font-outfit: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Brand Specific (RGB for alpha support in tailwind) */
   --brand-indigo: 47 26 168;   /* #2F1AA8 */

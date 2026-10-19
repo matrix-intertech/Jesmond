@@ -8,6 +8,7 @@ import Link from "next/link";
 const DESTINATIONS = [
  {
  slug: "melbourne",
+ stateSlug: "victoria",
  city: "Melbourne",
  state: "VIC",
  studentPop: "350k+",
@@ -25,6 +26,7 @@ const DESTINATIONS = [
  },
  {
  slug: "sydney",
+ stateSlug: "new-south-wales",
  city: "Sydney",
  state: "NSW",
  studentPop: "320k+",
@@ -42,6 +44,7 @@ const DESTINATIONS = [
  },
  {
  slug: "brisbane",
+ stateSlug: "queensland",
  city: "Brisbane",
  state: "QLD",
  studentPop: "150k+",
@@ -184,7 +187,7 @@ export function StudyDestinations() {
  <div className="bg-surface/95 backdrop-blur-2xl rounded-xl p-6 lg:p-8 shadow-2xl">
  <div className="flex justify-between items-center mb-6">
  <h4 className="text-lg font-bold text-primary tracking-tight">Top Universities in {activeDest.city}</h4>
- <Link href={`/cities/${activeDest.slug}`} className="text-sm font-semibold text-accent hover:text-accent flex items-center gap-1">
+ <Link href={`/states/${activeDest.stateSlug}/${activeDest.slug}`} className="text-sm font-semibold text-accent hover:text-accent flex items-center gap-1">
  Explore City <span aria-hidden="true">&rarr;</span>
  </Link>
  </div>

@@ -5,6 +5,15 @@ import { Briefcase } from "lucide-react";
 export const metadata = {
   title: "Local Businesses | Jesmond",
   description: "Discover and search local businesses — food, retail, services and more.",
+  alternates: {
+    canonical: "/businesses",
+  },
+  openGraph: {
+    title: "Local Businesses | Jesmond",
+    description: "Discover and search local businesses — food, retail, services and more.",
+    url: "/businesses",
+    type: "website",
+  },
 };
 
 export const dynamic = "force-dynamic";
@@ -35,9 +44,13 @@ async function getStores(params: SearchParams) {
       url.searchParams.set("verifiedOnly", "false");
     }
 
-    // Default state: Open now is ON
-    const openNow = params.openNow !== "false" ? "true" : "false";
-    url.searchParams.set("openNow", openNow);
+    // Default state: Open now filter is OFF (show all eligible businesses regardless of hours)
+    // Only apply the open-now filter when explicitly set to "true"
+    if (params.openNow === "true") {
+      url.searchParams.set("openNow", "true");
+    } else if (params.openNow === "false") {
+      url.searchParams.set("openNow", "false");
+    }
     url.searchParams.set("limit", "20");
 
     const res = await fetch(url.toString(), { cache: "no-store" });
@@ -90,7 +103,7 @@ export default async function BusinessesDiscoveryPage({
         currentPage={currentPage}
         initialQ={resolvedParams.q || ""}
         initialVerifiedOnly={resolvedParams.verifiedOnly === "true"}
-        initialOpenNow={resolvedParams.openNow !== "false"}
+        initialOpenNow={resolvedParams.openNow === "true"}
       />
     </div>
   );

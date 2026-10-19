@@ -141,7 +141,7 @@ export function RetailStoreList({
     const urlCat = urlParams.get("category") || "ALL";
     const urlSuburb = urlParams.get("suburb") || "ALL";
     const urlVerified = urlParams.get("verifiedOnly") === "true";
-    const urlOpen = urlParams.get("openNow") !== "false";
+    const urlOpen = urlParams.get("openNow") === "true";
     const rawPage = parseInt(urlParams.get("page") || "1", 10);
     const urlP = Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1;
 
@@ -240,7 +240,7 @@ export function RetailStoreList({
       category:     category !== "ALL" ? category : null,
       suburb:       suburb !== "ALL" ? suburb : null,
       verifiedOnly: verifiedOnly ? "true" : null,   // default=false (OFF), only in URL when true
-      openNow:      !openNow ? "false" : null,      // default=true (ON), only in URL when false
+      openNow:      openNow ? "true" : null,        // default=false (OFF), only in URL when true
       page:         page > 1 ? String(page) : null,
     });
   }, [activeQ, category, suburb, verifiedOnly, openNow, page]);   // eslint-disable-line react-hooks/exhaustive-deps
@@ -252,7 +252,7 @@ export function RetailStoreList({
   const handleOpenNowToggle   = ()            => { setOpenNow((o) => !o); setPage(1); };
   const handleClearAll        = () => {
     setSearchInput(""); setActiveQ(""); setCategory("ALL"); setSuburb("ALL");
-    setVerifiedOnly(false); setOpenNow(true); setPage(1);
+    setVerifiedOnly(false); setOpenNow(false); setPage(1);
   };
 
   const showingSearch = activeQ.length > 0;
@@ -355,7 +355,7 @@ export function RetailStoreList({
           </button>
 
           {/* Clear all */}
-          {(showingSearch || category !== "ALL" || suburb !== "ALL" || verifiedOnly || !openNow) && (
+          {(showingSearch || category !== "ALL" || suburb !== "ALL" || verifiedOnly || openNow) && (
             <button
               onClick={handleClearAll}
               className="px-3 py-2 text-sm font-semibold text-text-secondary hover:text-primary transition-colors underline underline-offset-2"
