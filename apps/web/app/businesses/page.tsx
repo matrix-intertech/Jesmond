@@ -3,16 +3,26 @@ import { RetailStoreList } from "@/components/retail/RetailStoreList";
 import { Briefcase } from "lucide-react";
 
 export const metadata = {
-  title: "Local Businesses",
-  description: "Discover and search local businesses — food, retail, services and more.",
+  title: {
+    absolute: "Local Student Businesses & Services Directory | Jesmond",
+  },
+  description:
+    "Discover verified local businesses near Australian university campuses, including student-friendly cafes, grocers, retail shops, and essential services.",
   alternates: {
     canonical: "/businesses",
   },
   openGraph: {
-    title: "Local Businesses | Jesmond",
-    description: "Discover and search local businesses — food, retail, services and more.",
+    title: "Local Student Businesses & Services Directory | Jesmond",
+    description:
+      "Discover verified local businesses near Australian university campuses, including student-friendly cafes, grocers, retail shops, and essential services.",
     url: "/businesses",
     type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Local Student Businesses & Services Directory | Jesmond",
+    description:
+      "Discover verified local businesses near Australian university campuses, including student-friendly cafes, grocers, retail shops, and essential services.",
   },
 };
 

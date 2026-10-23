@@ -545,9 +545,18 @@ function RegisterForm() {
 }
 
 export default function RegisterPage() {
- return (
- <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
- <RegisterForm />
- </Suspense>
- );
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle text-center">
+            <h1 className="text-3xl font-extrabold text-primary font-outfit">Create your Jesmond account</h1>
+            <p className="text-sm text-text-secondary">Loading registration form...</p>
+          </div>
+        </div>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
+  );
 }

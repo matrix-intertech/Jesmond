@@ -24,9 +24,6 @@ export const metadata: Metadata = {
   },
   description:
     "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "Jesmond | Student Accommodation, Retail & Local Services",
     description:

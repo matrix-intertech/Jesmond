@@ -1,21 +1,26 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Terms of Service",
-  description: "Terms and conditions governing the use of the Jesmond marketplace platform.",
+  title: {
+    absolute: "Terms of Service & User Agreement | Jesmond",
+  },
+  description:
+    "Review the terms, policies, and conditions governing student accommodation bookings and partner listings on Jesmond.",
   alternates: {
     canonical: "/terms",
   },
   openGraph: {
-    title: "Terms of Service | Jesmond",
-    description: "Terms and conditions governing the use of the Jesmond marketplace platform.",
+    title: "Terms of Service & User Agreement | Jesmond",
+    description:
+      "Review the terms, policies, and conditions governing student accommodation bookings and partner listings on Jesmond.",
     url: "/terms",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Terms of Service | Jesmond",
-    description: "Terms and conditions governing the use of the Jesmond platform.",
+    title: "Terms of Service & User Agreement | Jesmond",
+    description:
+      "Review the terms, policies, and conditions governing student accommodation bookings and partner listings on Jesmond.",
   },
 };
 

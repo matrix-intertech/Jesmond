@@ -64,7 +64,12 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
   }, []);
 
   if (!isAuthorized) {
-    return <div className="min-h-screen bg-surface-muted flex items-center justify-center">Loading dashboard...</div>;
+    return (
+      <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
+        <h1 className="text-xl font-semibold text-primary mb-2">Student Portal</h1>
+        <p className="text-sm text-text-secondary">Loading student account...</p>
+      </div>
+    );
   }
 
   return (

@@ -111,8 +111,9 @@ export default function PortalLayoutClient({
 
   if (!isAuthorized) {
     return (
-      <div className="min-h-screen bg-surface-muted flex items-center justify-center">
-        Loading dashboard...
+      <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
+        <h1 className="text-xl font-semibold text-primary mb-2">Partner Portal</h1>
+        <p className="text-sm text-text-secondary">Loading dashboard...</p>
       </div>
     );
   }

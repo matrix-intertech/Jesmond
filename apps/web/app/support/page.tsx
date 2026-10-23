@@ -1,6 +1,7 @@
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
+import { JsonLd, getFaqSchema } from "@/components/seo/JsonLd";
 
 export const metadata = {
   title: {
@@ -33,8 +34,28 @@ export default function SupportPage() {
     { title: "Payments", desc: "Rent, bond, fees, invoices, and billing history.", icon: "credit-card" }
   ];
 
+  const supportFaqs = [
+    {
+      question: "How do I apply for student accommodation on Jesmond?",
+      answer: "Browse listings in your target city, select your preferred room type, and click 'Apply Now'. You will be guided through a secure digital application where you can upload your passport and student confirmation of enrolment.",
+    },
+    {
+      question: "Are accommodation providers on Jesmond verified?",
+      answer: "Yes. Every property provider undergoes strict identity and property checks, including Australian Business Number (ABN) verification and title authorization, ensuring a scam-free experience.",
+    },
+    {
+      question: "How are rental bonds handled in Australia?",
+      answer: "Rental bonds are legally lodged with independent statutory government authorities (such as the RTBA in Victoria or RBO in New South Wales). You receive an official receipt directly from the state authority.",
+    },
+    {
+      question: "What should I do if I need to cancel my accommodation booking?",
+      answer: "Review your provider's cancellation terms in your tenancy agreement. If you experience visa refusal, most Purpose-Built Student Accommodation (PBSA) providers offer full refund policies upon providing official proof.",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-surface-muted">
+      <JsonLd data={getFaqSchema(supportFaqs)} />
       <GlobalNav />
       <main className="pb-24">
 
@@ -90,6 +111,23 @@ export default function SupportPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Frequently Asked Questions */}
+        <section className="max-w-[1000px] mx-auto px-6 mt-20">
+          <div className="bg-surface rounded-[24px] p-8 md:p-12 border border-border-strong shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <h2 className="text-3xl font-semibold text-primary mb-6" style={{ fontFamily: 'var(--font-outfit)' }}>
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-6">
+              {supportFaqs.map((faq, index) => (
+                <div key={index} className="border-b border-border-subtle pb-4">
+                  <h3 className="text-lg font-semibold text-primary">{faq.question}</h3>
+                  <p className="mt-2 text-text-secondary leading-relaxed">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

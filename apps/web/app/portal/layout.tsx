@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import PortalLayoutClient from "./PortalLayoutClient";
 
 export const metadata: Metadata = {
-  title: "Partner Portal",
+  title: {
+    absolute: "Partner Portal & Management Dashboard | Jesmond",
+  },
+  description: "Manage student accommodation listings, tenant applications, and retail operations on Jesmond.",
   robots: { index: false, follow: false },
 };
 

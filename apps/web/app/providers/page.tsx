@@ -7,8 +7,11 @@ import EmptyState from "../../components/ui/EmptyState";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
- title: "Student Accommodation Providers",
- description: "Browse verified accommodation providers listed on Jesmond across Australia.",
+  title: "Student Accommodation Providers",
+  description: "Browse verified accommodation providers listed on Jesmond across Australia.",
+  alternates: {
+    canonical: "/providers",
+  },
 };
 
 

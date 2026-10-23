@@ -74,7 +74,14 @@ export default function StudentSavedPage() {
  }
  };
 
- if (loading) return <div className="p-10 text-center">Loading saved properties...</div>;
+  if (loading) {
+    return (
+      <div className="flex-1 max-w-7xl w-full mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-6">Saved Properties</h1>
+        <div className="p-10 text-center text-text-secondary">Loading saved properties...</div>
+      </div>
+    );
+  }
 
  return (
  <div className="flex-1 max-w-7xl w-full mx-auto py-8">

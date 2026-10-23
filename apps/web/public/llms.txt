@@ -1,0 +1,34 @@
+# Jesmond — Australian Student Accommodation & Services Platform
+
+> Jesmond connects university students with verified accommodation, local retail, and essential services across Australia.
+
+## Website & Organization
+- Website: https://jesmond.com.au
+- Organization: Jesmond Australia Pty Ltd
+- Headquarters: Sydney, New South Wales, Australia
+- Service Coverage: Major Australian university cities including Sydney, Melbourne, Brisbane, Adelaide, Perth, Canberra, Hobart, and Darwin.
+
+## Core Marketplace Services
+- **Student Accommodation Discovery**: Search, compare, and apply for verified Purpose-Built Student Accommodation (PBSA), private studios, and student apartments near major university campuses.
+- **Provider Verification**: Accommodation providers vetted for Australian Business Number (ABN/ACN), identity, and property management authorization to promote trusted, reliable listings.
+- **Local Retail & Food Directory**: Discover verified student-friendly local grocers, cafes, bookstores, and essential community services adjacent to campus housing.
+
+## Key Public Guides & Resources
+- [Find Accommodation](https://jesmond.com.au/search): Search student properties with filters for city, university, budget, and room type.
+- [Accommodation Guide](https://jesmond.com.au/guide): Comprehensive guide to student housing types, tenancy agreements, and statutory rental bonds in Australia.
+- [Cost of Living Guide](https://jesmond.com.au/cost): Official financial capacity requirements (AUD $29,710/yr under May 2024 Home Affairs regulations), weekly student budgets, and city cost comparisons.
+- [International Student Guide](https://jesmond.com.au/international): Guidance for international arrivals, PBSA benefits, and booking from overseas.
+- [Moving to Australia](https://jesmond.com.au/moving): Relocation checklist, biosecurity regulations, banking, Tax File Numbers (TFN), and transit cards.
+- [Student Safety Guide](https://jesmond.com.au/safety): Emergency contacts (000), campus security protocols, beach safety, and rental scam prevention.
+- [Student Visa 500 Resources](https://jesmond.com.au/visa): Subclass 500 criteria, Genuine Student requirements, and 48-hour fortnightly work rights.
+- [Provider Pricing](https://jesmond.com.au/pricing): Transparent listing plans and features for accommodation providers.
+- [Help & Support Center](https://jesmond.com.au/support): Student assistance, booking support, and platform documentation.
+- [Contact Jesmond](https://jesmond.com.au/contact): Contact support desks, provider relations, and head office.
+
+## Geographic & Educational Coverage
+- [Explore Australian States](https://jesmond.com.au/states): Directory of student housing by state and territory (NSW, VIC, QLD, WA, SA, TAS, ACT, NT).
+- [Explore Student Cities](https://jesmond.com.au/cities): Accommodation directory by major university city.
+- [Universities Directory](https://jesmond.com.au/universities): Accommodation listings organized by university campus.
+
+## Regulatory & Tenancy Context
+In Australia, residential tenancy legislation is regulated at the state and territory level. All rental bonds must be lodged with statutory state authorities (e.g., RTBA in Victoria, RBO in New South Wales, RTA in Queensland). International students holding a valid Student Visa (Subclass 500) are legally entitled to work up to 48 hours per fortnight during active semester periods under Australian Fair Work standards.

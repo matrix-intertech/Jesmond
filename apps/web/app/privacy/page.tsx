@@ -1,21 +1,26 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Privacy Policy",
-  description: "How Jesmond collects, uses, discloses, and protects your personal data in accordance with Australian privacy laws.",
+  title: {
+    absolute: "Privacy Policy & Data Protection | Jesmond",
+  },
+  description:
+    "Learn how Jesmond collects, uses, discloses, and protects personal data in accordance with the Australian Privacy Principles (APPs).",
   alternates: {
     canonical: "/privacy",
   },
   openGraph: {
-    title: "Privacy Policy | Jesmond",
-    description: "How Jesmond collects, uses, discloses, and protects your personal data.",
+    title: "Privacy Policy & Data Protection | Jesmond",
+    description:
+      "Learn how Jesmond collects, uses, discloses, and protects personal data in accordance with the Australian Privacy Principles (APPs).",
     url: "/privacy",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Privacy Policy | Jesmond",
-    description: "How Jesmond collects, uses, and protects your personal data.",
+    title: "Privacy Policy & Data Protection | Jesmond",
+    description:
+      "Learn how Jesmond collects, uses, discloses, and protects personal data in accordance with the Australian Privacy Principles (APPs).",
   },
 };
 

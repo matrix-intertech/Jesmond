@@ -201,13 +201,18 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
- return (
- <Suspense fallback={
- <div className="min-h-screen flex items-center justify-center bg-surface-muted">
- <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
- </div>
- }>
- <ResetPasswordForm />
- </Suspense>
- );
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col items-center justify-center bg-surface-muted py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 bg-surface p-10 rounded-xl shadow-lg border border-border-subtle text-center">
+            <h1 className="text-3xl font-extrabold text-primary font-outfit">Reset Password</h1>
+            <p className="text-sm text-text-secondary">Loading password reset form...</p>
+          </div>
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
+  );
 }

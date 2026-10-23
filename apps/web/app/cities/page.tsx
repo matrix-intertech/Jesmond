@@ -7,11 +7,27 @@ import EmptyState from "../../components/ui/EmptyState";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
- title: "Student Accommodation by City",
- description: "Find verified student accommodation in cities across Australia.",
- alternates: {
-  canonical: "/states",
- },
+  title: {
+    absolute: "Explore Student Accommodation by City | Jesmond Australia",
+  },
+  description:
+    "Explore verified student accommodation, apartments, and shared rooms across major Australian student cities including Sydney, Melbourne, Brisbane, and Perth.",
+  alternates: {
+    canonical: "/cities",
+  },
+  openGraph: {
+    title: "Explore Student Accommodation by City | Jesmond Australia",
+    description:
+      "Explore verified student accommodation, apartments, and shared rooms across major Australian student cities including Sydney, Melbourne, Brisbane, and Perth.",
+    url: "/cities",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Explore Student Accommodation by City | Jesmond Australia",
+    description:
+      "Explore verified student accommodation, apartments, and shared rooms across major Australian student cities.",
+  },
 };
 
 
