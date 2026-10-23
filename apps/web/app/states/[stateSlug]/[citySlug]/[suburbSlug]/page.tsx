@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
     include: { city: true, state: true }
   }) : null;
 
-  if (!suburb) return { title: "Suburb Not Found | Jesmond" };
+  if (!suburb) return { title: "Suburb Not Found" };
 
   const propertyCount = await prisma.property.count({
     where: { suburbId: suburb.id, status: 'PUBLISHED' },
@@ -54,11 +54,12 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
 
   const hasProperties = propertyCount > 0;
   const canonicalPath = `/states/${stateSlug}/${citySlug}/${suburbSlug}`;
-  const title = `Student Accommodation in ${suburb.name}, ${suburb.city?.name || ''}, ${suburb.state.name} | Jesmond`;
+  const pageTitle = `Student Accommodation in ${suburb.name}, ${suburb.city?.name || ''}, ${suburb.state.name}`;
+  const fullTitle = `${pageTitle} | Jesmond`;
   const description = `Find verified student housing and properties in ${suburb.name}, ${suburb.city?.name || ''}, ${suburb.state.name}.`;
 
   return {
-    title,
+    title: pageTitle,
     description,
     alternates: {
       canonical: canonicalPath,
@@ -68,14 +69,14 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
       follow: true,
     },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: canonicalPath,
       type: "website",
     },
     twitter: {
       card: "summary",
-      title,
+      title: fullTitle,
       description,
     },
   };

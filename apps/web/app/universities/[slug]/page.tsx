@@ -23,26 +23,27 @@ interface CampusWithLocation {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const uni = await prisma.university.findUnique({ where: { slug } });
-  if (!uni) return { title: "University Not Found | Jesmond" };
+  if (!uni) return { title: "University Not Found" };
 
-  const title = `${uni.name} — Student Accommodation | Jesmond`;
+  const pageTitle = `${uni.name} — Student Accommodation`;
+  const fullTitle = `${uni.name} — Student Accommodation | Jesmond`;
   const description = `Find verified student accommodation, apartments, and shared living near ${uni.name} campuses across Australia.`;
 
   return {
-    title,
+    title: pageTitle,
     description,
     alternates: {
       canonical: `/universities/${slug}`,
     },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: `/universities/${slug}`,
       type: "website",
     },
     twitter: {
       card: "summary",
-      title,
+      title: fullTitle,
       description,
     },
   };

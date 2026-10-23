@@ -3,7 +3,7 @@ import { RetailStoreList } from "@/components/retail/RetailStoreList";
 import { Briefcase } from "lucide-react";
 
 export const metadata = {
-  title: "Local Businesses | Jesmond",
+  title: "Local Businesses",
   description: "Discover and search local businesses — food, retail, services and more.",
   alternates: {
     canonical: "/businesses",

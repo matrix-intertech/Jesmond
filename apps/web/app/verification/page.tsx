@@ -1,7 +1,7 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Provider Verification Process | Trust & Safety | Jesmond",
+  title: "Provider Verification Process | Trust & Safety",
   description: "Learn how Jesmond verifies student accommodation providers to ensure safe, legitimate, and student-ready housing.",
   alternates: {
     canonical: "/verification",

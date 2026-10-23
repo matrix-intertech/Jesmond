@@ -1,7 +1,7 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Terms of Service | Jesmond",
+  title: "Terms of Service",
   description: "Terms and conditions governing the use of the Jesmond marketplace platform.",
   alternates: {
     canonical: "/terms",

@@ -2,7 +2,7 @@ import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Moving to Australia | International Student Checklist | Jesmond",
+  title: "Moving to Australia | International Student Checklist",
   description: "Essential checklist and relocation guide for international students moving to Australia.",
   alternates: {
     canonical: "/moving",

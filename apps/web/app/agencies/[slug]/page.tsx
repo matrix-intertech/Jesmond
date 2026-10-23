@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps) {
     });
     if (!res.ok) {
       return {
-        title: 'Agency Details | Jesmond',
+        title: 'Agency Details',
       };
     }
     const agency: AgencyDetail = await res.json();
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: PageProps) {
     const logoUrl = agency.branding?.logoUrl;
 
     return {
-      title: `${name} — Real Estate Agency | Jesmond`,
+      title: `${name} — Real Estate Agency`,
       description,
       alternates: {
         canonical: `/agencies/${slug}`,
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps) {
     };
   } catch {
     return {
-      title: 'Agency Details | Jesmond',
+      title: 'Agency Details',
     };
   }
 }

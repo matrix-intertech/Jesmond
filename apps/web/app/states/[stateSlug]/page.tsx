@@ -22,26 +22,27 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
     }
   });
 
-  if (!state) return { title: "State Not Found | Jesmond" };
+  if (!state) return { title: "State Not Found" };
 
-  const title = `${state.name} Student Accommodation | Jesmond`;
+  const pageTitle = `${state.name} Student Accommodation`;
+  const fullTitle = `${state.name} Student Accommodation | Jesmond`;
   const description = `Find verified student accommodation, apartments, and shared living in ${state.name}, Australia.`;
 
   return {
-    title,
+    title: pageTitle,
     description,
     alternates: {
       canonical: `/states/${stateSlug}`,
     },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: `/states/${stateSlug}`,
       type: "website",
     },
     twitter: {
       card: "summary",
-      title,
+      title: fullTitle,
       description,
     },
   };

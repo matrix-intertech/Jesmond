@@ -16,7 +16,7 @@ export function isProductionEnvironment(): boolean {
   }
 
   // Only considered production if explicitly configured as production or pointing directly to verified production domain
-  return appEnv === 'production' || (siteUrl === 'https://jesmond.matrixspaces.com' && process.env.NODE_ENV === 'production');
+  return appEnv === 'production' || ((siteUrl === 'https://jesmond.com.au' || siteUrl === 'https://jesmond.matrixspaces.com') && process.env.NODE_ENV === 'production');
 }
 
 export function getSiteUrl(): string {
@@ -26,7 +26,7 @@ export function getSiteUrl(): string {
   if (envUrl) {
     const cleanUrl = envUrl.replace(/\/+$/, '');
     // In staging or development, never allow silent inheritance/leakage of the production domain
-    if (!isProd && cleanUrl.includes('jesmond.matrixspaces.com')) {
+    if (!isProd && (cleanUrl.includes('jesmond.com.au') || cleanUrl.includes('jesmond.matrixspaces.com'))) {
       const appEnv = (process.env.NEXT_PUBLIC_APP_ENV || process.env.APP_ENV || '').toLowerCase();
       return appEnv === 'staging' ? 'http://localhost:3302' : 'http://localhost:3000';
     }
@@ -35,7 +35,7 @@ export function getSiteUrl(): string {
 
   // Only use verified production domain if explicitly in production environment
   if (isProd) {
-    return 'https://jesmond.matrixspaces.com';
+    return 'https://jesmond.com.au';
   }
 
   // Staging or development fallback (never emit production canonical when not verified production)

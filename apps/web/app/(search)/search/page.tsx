@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { SearchClient } from '@/components/search/SearchClient';
 
 export const metadata = {
-  title: "Search Student Accommodation | Jesmond",
+  title: "Search Student Accommodation",
   description: "Search and filter student accommodation and properties across Australia.",
   robots: {
     index: false,

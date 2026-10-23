@@ -2,7 +2,9 @@ import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 import Link from "next/link";
 
 export const metadata = {
-  title: "List Your Property | Partner with Jesmond",
+  title: {
+    absolute: "List Your Property | Partner with Jesmond",
+  },
   description: "Partner with Jesmond to list your verified student accommodation and reach thousands of domestic and international students.",
   alternates: {
     canonical: "/list",

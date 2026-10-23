@@ -3,7 +3,7 @@ import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Provider Pricing | Transparent Accommodation Listing Plans | Jesmond",
+  title: "Provider Pricing | Transparent Accommodation Listing Plans",
   description: "Transparent pricing for student accommodation providers listing on Jesmond. No hidden fees or lock-in contracts.",
   alternates: {
     canonical: "/pricing",
@@ -16,7 +16,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Provider Pricing | Jesmond",
+    title: "Provider Pricing | Transparent Accommodation Listing Plans | Jesmond",
     description: "Transparent pricing for student accommodation providers listing on Jesmond.",
   },
 };

@@ -5,7 +5,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Student Accommodation by City | Jesmond",
+  title: "Student Accommodation by City",
   description: "Find verified student accommodation in Australian cities.",
   robots: {
     index: false,

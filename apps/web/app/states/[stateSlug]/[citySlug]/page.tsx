@@ -33,26 +33,27 @@ export async function generateMetadata({ params }: { params: Promise<{ stateSlug
     include: { state: true }
   }) : null;
 
-  if (!city) return { title: "City Not Found | Jesmond" };
+  if (!city) return { title: "City Not Found" };
 
-  const title = `${city.name}, ${city.state.name} Student Accommodation | Jesmond`;
+  const pageTitle = `${city.name}, ${city.state.name} Student Accommodation`;
+  const fullTitle = `${city.name}, ${city.state.name} Student Accommodation | Jesmond`;
   const description = `Find verified student accommodation, apartments, and shared rooms in ${city.name}, ${city.state.name}.`;
 
   return {
-    title,
+    title: pageTitle,
     description,
     alternates: {
       canonical: `/states/${stateSlug}/${citySlug}`,
     },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: `/states/${stateSlug}/${citySlug}`,
       type: "website",
     },
     twitter: {
       card: "summary",
-      title,
+      title: fullTitle,
       description,
     },
   };

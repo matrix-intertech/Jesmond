@@ -29,37 +29,38 @@ export async function generateMetadata({ params }: { params: Promise<{ branchId:
     const { branchId } = await params;
     const data = await getStoreCatalog(branchId);
     const name = data?.branch?.name || data?.branch?.organization?.name;
-    if (!name) return { title: "Business Profile | Jesmond" };
+    if (!name) return { title: "Business Profile" };
 
     const category = data?.branch?.organization?.businessCategory || 'RETAIL';
     const address = data?.branch?.address ? ` located at ${data.branch.address}` : '';
 
-    const title = category === 'FOOD'
-      ? `${name} | Food & Menu | Jesmond`
-      : `${name} — Local Business | Jesmond`;
+    const pageTitle = category === 'FOOD'
+      ? `${name} | Food & Menu`
+      : `${name} — Local Business`;
+    const fullTitle = `${pageTitle} | Jesmond`;
 
     const description = `View details, menu, and availability for ${name}${address} on Jesmond.`;
 
     return {
-      title,
+      title: pageTitle,
       description,
       alternates: {
         canonical: `/businesses/store/${branchId}`,
       },
       openGraph: {
-        title,
+        title: fullTitle,
         description,
         url: `/businesses/store/${branchId}`,
         type: "website",
       },
       twitter: {
         card: "summary_large_image",
-        title,
+        title: fullTitle,
         description,
       },
     };
   } catch {
-    return { title: "Business Profile | Jesmond" };
+    return { title: "Business Profile" };
   }
 }
 

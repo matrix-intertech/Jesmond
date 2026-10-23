@@ -10,7 +10,7 @@ import { getSiteUrl } from "@/utils/site";
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Universities & Campuses | Student Accommodation | Jesmond",
+  title: "Universities & Campuses | Student Accommodation",
   description: "Browse Australian universities and find verified student accommodation near your campus.",
   alternates: {
     canonical: "/universities",

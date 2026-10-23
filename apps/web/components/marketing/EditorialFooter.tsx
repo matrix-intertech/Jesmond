@@ -40,7 +40,7 @@ export function EditorialFooter() {
               <li><Link href="/states/queensland/brisbane" className="hover:text-primary transition-colors">Brisbane</Link></li>
               <li><Link href="/states/western-australia/perth" className="hover:text-primary transition-colors">Perth</Link></li>
               <li><Link href="/states/south-australia/adelaide" className="hover:text-primary transition-colors">Adelaide</Link></li>
-              <li><Link href="/states/australian-capital-territory/canberra" className="hover:text-primary transition-colors">Canberra</Link></li>
+              <li><Link href="/states/australian-capital-territory" className="hover:text-primary transition-colors">Canberra</Link></li>
             </ul>
           </div>
 
@@ -50,10 +50,10 @@ export function EditorialFooter() {
             <ul className="flex flex-col gap-4 text-sm text-text-secondary font-medium">
               <li><Link href="/universities/unimelb" className="hover:text-primary transition-colors">University of Melbourne</Link></li>
               <li><Link href="/universities/monash" className="hover:text-primary transition-colors">Monash University</Link></li>
-              <li><Link href="/universities/unsw" className="hover:text-primary transition-colors">UNSW Sydney</Link></li>
-              <li><Link href="/universities/uts" className="hover:text-primary transition-colors">UTS</Link></li>
-              <li><Link href="/universities/rmit" className="hover:text-primary transition-colors">RMIT University</Link></li>
-              <li><Link href="/universities/qut" className="hover:text-primary transition-colors">QUT</Link></li>
+              <li><Link href="/search?university=UNSW%20Sydney" className="hover:text-primary transition-colors">UNSW Sydney</Link></li>
+              <li><Link href="/search?university=UTS" className="hover:text-primary transition-colors">UTS</Link></li>
+              <li><Link href="/search?university=RMIT%20University" className="hover:text-primary transition-colors">RMIT University</Link></li>
+              <li><Link href="/search?university=QUT" className="hover:text-primary transition-colors">QUT</Link></li>
             </ul>
           </div>
 

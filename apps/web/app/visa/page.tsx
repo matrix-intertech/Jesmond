@@ -1,7 +1,7 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Student Visa Resources | Subclass 500 Guide | Jesmond",
+  title: "Student Visa Resources | Subclass 500 Guide",
   description: "Essential information, requirements, and work rights for the Subclass 500 Student Visa in Australia.",
   alternates: {
     canonical: "/visa",

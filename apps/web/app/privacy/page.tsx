@@ -1,7 +1,7 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Privacy Policy | Jesmond",
+  title: "Privacy Policy",
   description: "How Jesmond collects, uses, discloses, and protects your personal data in accordance with Australian privacy laws.",
   alternates: {
     canonical: "/privacy",

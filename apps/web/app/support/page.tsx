@@ -3,7 +3,9 @@ import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Help & Support | Jesmond Assistance Center",
+  title: {
+    absolute: "Help & Support | Jesmond Assistance Center",
+  },
   description: "Get help with finding student accommodation, managing your bookings, account settings, and using Jesmond.",
   alternates: {
     canonical: "/support",

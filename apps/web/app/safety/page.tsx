@@ -1,7 +1,7 @@
 import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 
 export const metadata = {
-  title: "Student Safety Guide | Emergency Contacts & Campus Security | Jesmond",
+  title: "Student Safety Guide | Emergency Contacts & Campus Security",
   description: "Important safety information, emergency contacts, campus security, and tips for international students in Australia.",
   alternates: {
     canonical: "/safety",

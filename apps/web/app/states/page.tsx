@@ -10,7 +10,7 @@ import { prisma } from "@jesmond/db";
 export const revalidate = 3600;
 
 export const metadata = {
-  title: "Explore Australian States | Student Accommodation | Jesmond",
+  title: "Explore Australian States | Student Accommodation",
   description: "Find verified student housing, apartments, and shared living across Australian states and territories.",
   alternates: {
     canonical: "/states",

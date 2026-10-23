@@ -14,7 +14,7 @@ export default function ComingSoon({ featureName }: { featureName: string }) {
  </svg>
  </div>
  <h1 className="text-3xl font-bold text-primary mb-4" style={{ fontFamily: 'var(--font-outfit)' }}>
- Coming Soon
+ {featureName ? `${featureName} — Coming Soon` : "Coming Soon"}
  </h1>
  <p className="text-lg text-text-secondary mb-8">
  The {featureName} feature is currently unavailable. Please check back soon.

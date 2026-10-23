@@ -5,6 +5,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 
+const SEEDED_UNIVERSITIES = new Set(["unimelb", "monash", "usyd"]);
+
+function getUniversityHref(slug: string, name: string): string {
+  if (SEEDED_UNIVERSITIES.has(slug)) {
+    return `/universities/${slug}`;
+  }
+  return `/search?university=${encodeURIComponent(name)}`;
+}
+
 const DESTINATIONS = [
  {
  slug: "melbourne",
@@ -196,7 +205,7 @@ export function StudyDestinations() {
  {activeDest.universities.map((uni) => (
  <Link
  key={uni.slug}
- href={`/universities/${uni.slug}`}
+ href={getUniversityHref(uni.slug, uni.name)}
  className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border-subtle hover:border-brand-purple hover:bg-accent/10/50 transition-colors"
  >
  <div className="mb-2 sm:mb-0">

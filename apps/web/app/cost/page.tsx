@@ -2,7 +2,7 @@ import { StaticPageLayout } from "../../components/ui/StaticPageLayout";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Cost of Living in Australia | Jesmond",
+  title: "Cost of Living in Australia",
   description: "A comprehensive guide to understanding the cost of living for international students in Australia.",
   alternates: {
     canonical: "/cost",
