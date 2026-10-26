@@ -49,17 +49,19 @@ export function FinalConversion() {
  transition={{ duration: 0.6, delay: 0.2 }}
  className="flex flex-col sm:flex-row items-stretch sm:items-center w-full sm:w-auto gap-4 mb-24"
  >
- <Link href="/search">
- <button className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-white rounded-xl px-10 py-5 text-lg font-semibold shadow-xl shadow-accent/20 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2">
+ <Link
+ href="/search"
+ className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-white rounded-xl px-10 py-5 text-lg font-semibold shadow-xl shadow-accent/20 transition-all duration-300 active:scale-95 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-white"
+ >
  Find Accommodation
- <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
- </button>
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
  </Link>
 
- <Link href="/universities">
- <button className="w-full sm:w-auto bg-surface/10 hover:bg-surface/20 text-white backdrop-blur-md border border-white/20 rounded-xl px-10 py-5 text-lg font-semibold shadow-sm transition-all duration-300 active:scale-95 flex items-center justify-center">
+ <Link
+ href="/universities"
+ className="w-full sm:w-auto bg-surface/10 hover:bg-surface/20 text-white backdrop-blur-md border border-white/20 rounded-xl px-10 py-5 text-lg font-semibold shadow-sm transition-all duration-300 active:scale-95 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-white"
+ >
  Explore Universities
- </button>
  </Link>
  </motion.div>
 

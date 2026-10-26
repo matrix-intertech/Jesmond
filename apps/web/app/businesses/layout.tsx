@@ -17,9 +17,9 @@ export default function RetailLayout({
  <div className="min-h-screen bg-surface-lavender flex flex-col">
  {/* We reuse the GlobalNav, it is fixed to top, so we add padding */}
  <GlobalNav />
- <div className="pt-[104px] flex-1 flex flex-col">
+ <main id="main-content" tabIndex={-1} className="pt-[104px] flex-1 flex flex-col outline-none">
  {children}
- </div>
+ </main>
  <CartDrawer />
  <FoodCartDrawer />
  </div>

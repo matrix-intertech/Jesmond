@@ -89,7 +89,7 @@ function ResetPasswordForm() {
 
  {status === 'success' ? (
  <div className="mt-8 space-y-6">
- <div className="bg-green-50 text-green-700 p-4 rounded-md border border-green-200 text-center">
+ <div role="status" aria-live="polite" className="bg-green-50 text-green-700 p-4 rounded-md border border-green-200 text-center">
  {message}
  </div>
  <div className="text-center">
@@ -101,13 +101,13 @@ function ResetPasswordForm() {
  ) : (
  <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
  {status === 'error' && (
- <div className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
+ <div role="alert" aria-live="assertive" className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
  {message}
  </div>
  )}
 
  {message && status === 'idle' && (
- <div className="bg-info-bg text-primary text-sm text-center p-3 rounded-lg border border-border-strong">
+ <div role="status" aria-live="polite" className="bg-info-bg text-primary text-sm text-center p-3 rounded-lg border border-border-strong">
  {message}
  </div>
  )}
@@ -119,6 +119,7 @@ function ResetPasswordForm() {
  id="email"
  name="email"
  type="email"
+ autoComplete="email"
  required
  readOnly={!!initialEmail}
  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong bg-surface-lavender focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
@@ -133,6 +134,7 @@ function ResetPasswordForm() {
  id="otp"
  name="otp"
  type="text"
+ autoComplete="one-time-code"
  required
  maxLength={6}
  pattern="[0-9]{6}"
@@ -150,6 +152,7 @@ function ResetPasswordForm() {
  id="new-password"
  name="new-password"
  type="password"
+ autoComplete="new-password"
  required
  minLength={8}
  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
@@ -164,6 +167,7 @@ function ResetPasswordForm() {
  id="confirm-password"
  name="confirm-password"
  type="password"
+ autoComplete="new-password"
  required
  minLength={8}
  className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"

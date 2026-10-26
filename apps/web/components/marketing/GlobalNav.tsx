@@ -58,14 +58,23 @@ export function GlobalNav() {
  return () => window.removeEventListener("scroll", handleScroll);
  }, []);
 
- // Lock body scroll when mobile menu is open
+ // Lock body scroll and handle Escape key when mobile menu or chat is open
  useEffect(() => {
  if (isMobileMenuOpen) {
  document.body.style.overflow = 'hidden';
  } else {
  document.body.style.overflow = 'unset';
  }
- }, [isMobileMenuOpen]);
+
+ const handleKeyDown = (e: KeyboardEvent) => {
+ if (e.key === 'Escape') {
+ if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+ if (isChatOpen) setIsChatOpen(false);
+ }
+ };
+ window.addEventListener('keydown', handleKeyDown);
+ return () => window.removeEventListener('keydown', handleKeyDown);
+ }, [isMobileMenuOpen, isChatOpen]);
 
  const navLinks = [
  { label: "Businesses", href: "/businesses" },
@@ -77,6 +86,7 @@ export function GlobalNav() {
  return (
  <>
  <motion.nav
+ aria-label="Main Navigation"
  initial={{ y: -100 }}
  animate={{ y: 0 }}
  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -108,8 +118,8 @@ export function GlobalNav() {
 
  {/* Actions (Saved, Login, Sign Up) */}
  <div className="hidden lg:flex items-center gap-6">
- <Link href="/student/saved" className="text-accent hover:text-accent transition-colors">
- <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <Link href="/student/saved" aria-label="Saved Properties" className="text-accent hover:text-accent transition-colors">
+ <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
  </svg>
  </Link>
@@ -119,6 +129,9 @@ export function GlobalNav() {
  <div className="relative">
  <button
  onClick={() => setIsChatOpen(!isChatOpen)}
+ aria-label="Open chat messages"
+ aria-expanded={isChatOpen}
+ aria-haspopup="dialog"
  className={`inline-flex items-center gap-1.5 text-sm font-semibold transition-colors px-2 ${
  isMessagesActive || isChatOpen ? "text-accent" : "text-primary hover:text-accent"
  }`}
@@ -170,7 +183,9 @@ export function GlobalNav() {
 
  {/* Mobile Menu Trigger */}
  <button
- aria-label="Toggle Navigation Menu"
+ aria-label={isMobileMenuOpen ? "Close Navigation Menu" : "Open Navigation Menu"}
+ aria-expanded={isMobileMenuOpen}
+ aria-controls="mobile-navigation-menu"
  className="xl:hidden relative z-50 p-2 text-primary"
  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
  >
@@ -197,6 +212,10 @@ export function GlobalNav() {
  <AnimatePresence>
  {isMobileMenuOpen && (
  <motion.div
+ id="mobile-navigation-menu"
+ role="dialog"
+ aria-modal="true"
+ aria-label="Mobile Navigation"
  initial={{ opacity: 0, y: -20 }}
  animate={{ opacity: 1, y: 0 }}
  exit={{ opacity: 0, y: -20 }}

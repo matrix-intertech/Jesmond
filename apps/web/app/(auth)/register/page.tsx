@@ -304,11 +304,11 @@ function RegisterForm() {
 
 
  {/* Account Type Selector */}
- <div className="flex rounded-lg border border-border-strong overflow-hidden mb-6">
+ <div role="group" aria-label="Account type" className="flex rounded-lg border border-border-strong overflow-hidden mb-6">
  <button
  type="button"
- onClick={() => { setAccountType('student'); setOrganizationType('PROVIDER');
- const [businessCategory, setBusinessCategory] = useState('RETAIL'); }}
+ aria-pressed={accountType === 'student'}
+ onClick={() => { setAccountType('student'); setOrganizationType('PROVIDER'); setBusinessCategory('RETAIL'); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
  accountType === 'student'
  ? 'bg-accent text-white'
@@ -319,8 +319,8 @@ function RegisterForm() {
  </button>
  <button
  type="button"
- onClick={() => { setAccountType('host'); setOrganizationType('PROVIDER');
- const [businessCategory, setBusinessCategory] = useState('RETAIL'); }}
+ aria-pressed={accountType === 'host'}
+ onClick={() => { setAccountType('host'); setOrganizationType('PROVIDER'); setBusinessCategory('RETAIL'); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
  accountType === 'host'
  ? 'bg-accent text-white'
@@ -331,6 +331,7 @@ function RegisterForm() {
  </button>
  <button
  type="button"
+ aria-pressed={accountType === 'business'}
  onClick={() => { setAccountType('business'); setOrganizationType('RETAIL'); setBusinessCategory(''); }}
  className={`flex-1 py-3 text-sm font-semibold transition ${
  accountType === 'business'
@@ -343,7 +344,7 @@ function RegisterForm() {
  </div>
 <form className="space-y-5" onSubmit={handleRegister}>
  {error && (
- <div className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
+ <div role="alert" aria-live="assertive" className="bg-error/10 text-error text-sm text-center p-3 rounded-lg border border-red-200">
  {error}
  </div>
  )}
@@ -357,6 +358,7 @@ function RegisterForm() {
  id="name"
  name="name"
  type="text"
+ autoComplete="name"
  required
  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
  placeholder="Full Name"
@@ -446,6 +448,7 @@ function RegisterForm() {
  id="phone"
  name="phone"
  type="tel"
+ autoComplete="tel-national"
  required
  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
  placeholder="4XXXXXXXX"
@@ -482,6 +485,7 @@ function RegisterForm() {
  id="dob"
  name="dob"
  type="date"
+ autoComplete="bday"
  required
  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
  value={dateOfBirth}
@@ -515,6 +519,7 @@ function RegisterForm() {
  id="confirm-password"
  name="confirm-password"
  type="password"
+ autoComplete="new-password"
  required
  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
  placeholder="Confirm Password"

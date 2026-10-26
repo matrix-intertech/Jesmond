@@ -27,7 +27,7 @@ export function StaticPageLayout({ title, subtitle, children }: StaticPageLayout
  </section>
 
  {/* Content */}
- <main className="max-w-[800px] mx-auto px-6 py-16 lg:py-24">
+ <main id="main-content" tabIndex={-1} className="max-w-[800px] mx-auto px-6 py-16 lg:py-24 outline-none">
  <div className="bg-surface rounded-[24px] p-8 md:p-12 lg:p-16 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-border-strong">
  {/* Manually mimicking prose styling for generic content */}
  <div className="space-y-6 text-text-secondary leading-relaxed text-lg [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-primary [&>h2]:mt-10 [&>h2]:mb-4 [&>h3]:text-xl [&>h3]:font-semibold [&>h3]:text-primary [&>h3]:mt-8 [&>h3]:mb-3 [&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:mb-2 [&>a]:text-accent hover:[&>a]:text-accent [&>a]:underline">

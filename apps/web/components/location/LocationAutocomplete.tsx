@@ -18,6 +18,7 @@ export interface LocationResult {
 }
 
 interface LocationAutocompleteProps {
+ id?: string;
  value?: LocationResult | null;
  onChange: (location: LocationResult | null) => void;
  placeholder?: string;
@@ -26,6 +27,7 @@ interface LocationAutocompleteProps {
 }
 
 export function LocationAutocomplete({
+ id = 'location-search',
  value,
  onChange,
  placeholder = 'Search suburb, address or postcode',
@@ -173,10 +175,12 @@ export function LocationAutocomplete({
  <div className="relative flex items-center">
  <MapPin className="absolute left-3 w-5 h-5 text-text-muted" />
  <input
+ id={id}
  ref={inputRef}
  type="text"
  className="w-full pl-10 pr-10 py-3 bg-surface border border-border-strong rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent transition-all"
  placeholder={placeholder}
+ aria-label={placeholder}
  value={query}
  onChange={e => {
  setQuery(e.target.value);
@@ -193,9 +197,11 @@ export function LocationAutocomplete({
  role="combobox"
  aria-expanded={isOpen}
  aria-controls="location-suggestions"
+ aria-autocomplete="list"
+ aria-activedescendant={selectedIndex >= 0 ? `location-option-${selectedIndex}` : undefined}
  />
  {isLoading ? (
- <Loader2 className="absolute right-3 w-5 h-5 text-primary animate-spin" />
+ <Loader2 className="absolute right-3 w-5 h-5 text-primary animate-spin" aria-hidden="true" />
  ) : query ? (
  <button
  type="button"
@@ -203,7 +209,7 @@ export function LocationAutocomplete({
  className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-secondary transition-colors"
  aria-label="Clear location"
  >
- <X className="w-4 h-4" />
+ <X className="w-4 h-4" aria-hidden="true" />
  </button>
  ) : null}
  </div>
@@ -214,9 +220,10 @@ export function LocationAutocomplete({
  className="absolute z-50 w-full mt-2 bg-surface border border-border-subtle rounded-xl shadow-lg overflow-hidden"
  >
  {results.length > 0 ? (
- <ul className="max-h-60 overflow-auto py-1">
+ <ul role="listbox" aria-label="Location suggestions" className="max-h-60 overflow-auto py-1">
  {results.map((result, index) => (
  <li
+ id={`location-option-${index}`}
  key={result.id}
  onClick={() => handleSelect(result)}
  className={`px-4 py-3 flex items-start cursor-pointer transition-colors ${
@@ -225,7 +232,7 @@ export function LocationAutocomplete({
  role="option"
  aria-selected={index === selectedIndex}
  >
- <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-text-muted'}`} />
+ <MapPin className={`w-5 h-5 mr-3 mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-text-muted'}`} aria-hidden="true" />
  <div className="flex flex-col">
  <span className="text-sm font-medium text-text-primary line-clamp-1">{result.label}</span>
  <span className="text-xs text-text-secondary capitalize">{result.type.replace('_', ' ')} • {result.postcode || result.state || result.country}</span>

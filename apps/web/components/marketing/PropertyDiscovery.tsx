@@ -142,20 +142,26 @@ export function PropertyDiscovery() {
  </div>
 
  {/* Quick Discovery Tabs */}
- <div className="flex gap-1.5 p-1 bg-secondary/50 rounded-full border border-border-strong w-full overflow-x-auto hide-scrollbar sm:w-fit shrink-0">
+ <div role="tablist" aria-label="Quick Discovery" className="flex gap-1.5 p-1 bg-secondary/50 rounded-full border border-border-strong w-full overflow-x-auto hide-scrollbar sm:w-fit shrink-0">
  <button
+ role="tab"
+ aria-selected={activeTab === 'top_rated'}
  onClick={() => { setActiveTab('top_rated'); setAppliedBounds(null); }}
  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'top_rated' ? 'bg-surface text-primary font-semibold' : 'text-text-secondary hover:text-primary font-medium'}`}
  >
  Top Rated
  </button>
  <button
+ role="tab"
+ aria-selected={activeTab === 'closest_to_campus'}
  onClick={() => { setActiveTab('closest_to_campus'); setAppliedBounds(null); }}
  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'closest_to_campus' ? 'bg-surface text-primary font-semibold' : 'text-text-secondary hover:text-primary font-medium'}`}
  >
  Closest to Campus
  </button>
  <button
+ role="tab"
+ aria-selected={activeTab === 'available_now'}
  onClick={() => { setActiveTab('available_now'); setAppliedBounds(null); }}
  className={`px-4 py-2 rounded-full text-xs transition-colors shadow-sm ${activeTab === 'available_now' ? 'bg-surface text-primary font-semibold' : 'text-text-secondary hover:text-primary font-medium'}`}
  >
@@ -226,7 +232,9 @@ export function PropertyDiscovery() {
  <div className="p-4 flex flex-col flex-grow justify-between bg-surface relative">
  <div className="flex justify-between items-start mb-4 border-b border-border-subtle pb-4">
  <div>
+ <Link href={`/property/${property.id}`} className="hover:underline focus:outline-none focus:ring-2 focus:ring-accent rounded">
  <h3 className="text-xl font-bold text-primary tracking-tight mb-1 line-clamp-1">{property.name}</h3>
+ </Link>
  <p className="text-xs text-text-secondary">{property.suburb}</p>
  </div>
  <div className="text-right flex-shrink-0 ml-2">
@@ -278,10 +286,12 @@ export function PropertyDiscovery() {
  </span>
  </div>
 
- <Link href={`/property/${property.id}`} className="w-full mt-auto">
- <button className="w-full py-3 bg-surface hover:bg-surface-muted text-primary border border-border-strong rounded-xl text-sm font-bold transition-colors">
+ <Link
+ href={`/property/${property.id}`}
+ aria-label={`View details for ${property.name}, ${property.suburb}`}
+ className="w-full mt-auto block text-center py-3 bg-surface hover:bg-surface-muted text-primary border border-border-strong rounded-xl text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+ >
  View details
- </button>
  </Link>
  </div>
  </div>

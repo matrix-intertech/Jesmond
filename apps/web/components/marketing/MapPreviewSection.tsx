@@ -69,12 +69,15 @@ export function MapPreviewSection() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 min-h-[600px]">
 
         {/* Hub Selector (Col 1-4) */}
-        <div className="col-span-1 lg:col-span-4 flex flex-col gap-3">
+        <div role="tablist" aria-label="Australian study hubs" className="col-span-1 lg:col-span-4 flex flex-col gap-3">
           {HUBS.map((hub) => {
             const isActive = activeHub.id === hub.id;
             return (
               <button
                 key={hub.id}
+                role="tab"
+                aria-selected={isActive}
+                aria-controls="hub-data-panel"
                 onClick={() => setActiveHub(hub)}
                 className={`flex flex-col text-left p-6 rounded-[24px] transition-all duration-500 ${
                   isActive
@@ -99,7 +102,12 @@ export function MapPreviewSection() {
         </div>
 
         {/* Dynamic Data Panel (Col 5-12) */}
-        <div className="col-span-1 lg:col-span-8 relative rounded-[24px] overflow-hidden bg-surface border border-border-strong shadow-xl shadow-slate-200/50 flex flex-col">
+        <div
+          id="hub-data-panel"
+          role="tabpanel"
+          aria-label={`${activeHub.name} statistics`}
+          className="col-span-1 lg:col-span-8 relative rounded-[24px] overflow-hidden bg-surface border border-border-strong shadow-xl shadow-slate-200/50 flex flex-col"
+        >
 
           <AnimatePresence mode="wait">
             <motion.div
@@ -114,7 +122,8 @@ export function MapPreviewSection() {
               <div className="absolute inset-0 bg-primary/5 z-10 pointer-events-none" />
               <Image
                 src="/assets/map_bg.png"
-                alt="Map Background"
+                alt=""
+                aria-hidden="true"
                 fill
                 sizes="100vw"
                 className="object-cover opacity-20 grayscale"
@@ -163,7 +172,7 @@ export function MapPreviewSection() {
               >
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div>
-                    <h4 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">Major Universities</h4>
+                    <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-4">Major Universities</h3>
                     <div className="flex flex-wrap gap-2">
                       {activeHub.unis.map((uni) => (
                         <span key={uni} className="px-4 py-2 bg-primary/5 text-text-primary rounded-lg text-sm font-medium border border-brand-navy/10 backdrop-blur-sm">
@@ -178,7 +187,7 @@ export function MapPreviewSection() {
                     className="bg-accent hover:bg-accent text-white rounded-xl px-8 py-4 text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all flex items-center justify-center gap-2 flex-shrink-0"
                   >
                     Explore {activeHub.name}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                   </Link>

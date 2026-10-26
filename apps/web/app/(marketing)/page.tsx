@@ -82,33 +82,35 @@ export default async function Homepage() {
   const websiteSchema = getWebSiteSchema(siteUrl);
 
   return (
-    <main className="min-h-screen bg-surface-muted selection:bg-brand-orange selection:text-white">
+    <div className="min-h-screen bg-surface-muted selection:bg-brand-orange selection:text-white flex flex-col">
       <JsonLd data={[orgSchema, websiteSchema]} />
       <GlobalNav />
 
-      {/* 1. First Impression & Aspiration */}
-      <HeroSection featuredProperty={featuredData} verifiedPropertyCount={verifiedPropertyCount} />
+      <main id="main-content" tabIndex={-1} className="flex-1 outline-none">
+        {/* 1. First Impression & Aspiration */}
+        <HeroSection featuredProperty={featuredData} verifiedPropertyCount={verifiedPropertyCount} />
 
-      {/* 2. Destination Selection (Data Hub) */}
-      <MapPreviewSection />
+        {/* 2. Destination Selection (Data Hub) */}
+        <MapPreviewSection />
 
-      {/* 3. Narrative Bridge (Quick Filter) */}
-      <QuickDiscoveryStrip />
+        {/* 3. Narrative Bridge (Quick Filter) */}
+        <QuickDiscoveryStrip />
 
-      {/* 4. Emotional Proof (Featured Properties) */}
-      <PropertyDiscovery />
+        {/* 4. Emotional Proof (Featured Properties) */}
+        <PropertyDiscovery />
 
-      {/* 5. Destination Deep Dive (Progressive Disclosure) */}
-      <StudyDestinations />
+        {/* 5. Destination Deep Dive (Progressive Disclosure) */}
+        <StudyDestinations />
 
-      {/* 6. Security & Trust (Editorial Statistics) */}
-      <TrustExperience />
+        {/* 6. Security & Trust (Editorial Statistics) */}
+        <TrustExperience />
 
-      {/* 7. Conversion (Calm Action) */}
-      <FinalConversion />
+        {/* 7. Conversion (Calm Action) */}
+        <FinalConversion />
+      </main>
 
       {/* 8. Conclusion (Editorial Sitemap) */}
       <EditorialFooter />
-    </main>
+    </div>
   );
 }

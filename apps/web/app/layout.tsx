@@ -72,6 +72,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-accent focus:text-white focus:font-bold focus:rounded-lg focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-white transition-all"
+        >
+          Skip to main content
+        </a>
         <PushNotificationInitializer />
         <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
         <StudentMobileBottomNavGate />

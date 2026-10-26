@@ -23,7 +23,7 @@ export default async function SearchPage({
   const resolvedParams = await searchParams;
   // Pass the raw searchParams down to the client layout where URL syncing occurs
   return (
-    <main className="min-h-screen bg-surface-muted flex flex-col h-screen overflow-hidden pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-surface-muted flex flex-col h-screen overflow-hidden pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0 outline-none">
       {/* Top Header / Filter Bar */}
       <header className="min-h-20 shrink-0 border-b border-border-strong bg-surface px-3 py-3 shadow-sm sm:px-6 lg:flex lg:items-center">
         <div className="mx-auto flex w-full max-w-[1440px] items-center gap-3 sm:gap-4 lg:justify-between">
@@ -33,7 +33,7 @@ export default async function SearchPage({
 
           <div className="min-w-0 flex-1 lg:mx-8 lg:max-w-2xl">
             <div className="h-12 bg-surface-muted rounded-full flex items-center px-4 gap-3 text-text-secondary hover:bg-secondary/50 transition-colors cursor-pointer border border-border-strong/50">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               <span className="text-sm font-medium flex-grow truncate">{resolvedParams.city || 'Search Melbourne, Sydney...'}</span>
               <div className="hidden md:flex gap-2">
                 <span className="px-3 py-1 bg-surface rounded-full text-xs font-semibold shadow-sm">Dates</span>

@@ -86,7 +86,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       {property.organizationId && (
         <LeadTracker organizationId={property.organizationId} propertyId={property.id} />
       )}
-      <main className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 pt-32 pb-12 min-h-[70vh]">
+      <main id="main-content" tabIndex={-1} className="max-w-[1440px] mx-auto px-6 sm:px-12 lg:px-16 pt-32 pb-12 min-h-[70vh] outline-none">
         <Link href="/search" className="text-sm font-semibold text-accent hover:underline mb-8 inline-block">&larr; Back to Search</Link>
         <div className="flex justify-between items-start mb-8">
           <div>

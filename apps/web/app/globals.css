@@ -22,7 +22,7 @@
   --primary-foreground: 255 255 255;
   --secondary: 245 242 255; /* Light Lavender #F5F2FF */
   --secondary-foreground: 23 18 77; /* #17124D */
-  --accent: 217 27 181; /* Magenta */
+  --accent: 194 19 161; /* Vibrant Magenta (WCAG AA 5.38:1 contrast compliant) */
   --accent-foreground: 255 255 255;
 
   /* Inputs */
@@ -41,7 +41,7 @@
   /* Text */
   --text-primary: #17124D;
   --text-secondary: #5F5A78;
-  --text-muted: #8E8A9F;
+  --text-muted: #6B6680;
 
   /* Borders */
   --border-subtle: #F1F5F9;
@@ -110,5 +110,21 @@ a {
     -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
     -webkit-text-fill-color: var(--input-fg) !important;
     transition: background-color 5000s ease-in-out 0s;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--brand-magenta));
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

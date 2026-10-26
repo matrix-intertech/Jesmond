@@ -63,8 +63,9 @@ export function HeroSearchBar() {
 
  {/* Distance Filter (Only enabled when location selected) */}
  <div className="w-full md:w-48 relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
- <label className="block text-[10px] font-bold text-text-primary mb-0.5">Distance</label>
+ <label htmlFor="hero-distance-filter" className="block text-[10px] font-bold text-text-primary mb-0.5">Distance</label>
  <select
+ id="hero-distance-filter"
  value={radiusKm}
  onChange={(e) => setRadiusKm(e.target.value)}
  disabled={!location}
@@ -86,10 +87,11 @@ export function HeroSearchBar() {
  {/* Secondary Filters Row */}
  <div className="w-full flex flex-col md:flex-row items-center gap-3">
  <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
- {/* Property Type */}
+  {/* Property Type */}
  <div className="relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
- <label className="block text-[10px] font-bold text-text-primary mb-0.5">Property Type</label>
+ <label htmlFor="hero-property-type-filter" className="block text-[10px] font-bold text-text-primary mb-0.5">Property Type</label>
  <select
+ id="hero-property-type-filter"
  value={roomType}
  onChange={(e) => setRoomType(e.target.value)}
  className="w-full bg-transparent text-primary outline-none text-sm font-medium cursor-pointer appearance-none"
@@ -100,14 +102,15 @@ export function HeroSearchBar() {
  <option value="Shared">Shared</option>
  </select>
  <div className="absolute right-3 top-1/2 mt-1 pointer-events-none text-text-muted">
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+ <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
  </div>
  </div>
 
  {/* Move In */}
  <div className="relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
- <label className="block text-[10px] font-bold text-text-primary mb-0.5">Move In</label>
+ <label htmlFor="hero-move-in-date" className="block text-[10px] font-bold text-text-primary mb-0.5">Move In</label>
  <input
+ id="hero-move-in-date"
  type="date"
  value={moveIn}
  onChange={(e) => setMoveIn(e.target.value)}
@@ -117,8 +120,9 @@ export function HeroSearchBar() {
 
  {/* Price Range */}
  <div className="relative border border-border-strong rounded-lg p-2.5 focus-within:border-brand-navy transition-colors bg-surface">
- <label className="block text-[10px] font-bold text-text-primary mb-0.5">Price Range</label>
+ <label htmlFor="hero-price-range-filter" className="block text-[10px] font-bold text-text-primary mb-0.5">Price Range</label>
  <select
+ id="hero-price-range-filter"
  value={priceRange}
  onChange={(e) => setPriceRange(e.target.value)}
  className="w-full bg-transparent text-primary outline-none text-sm font-medium cursor-pointer appearance-none"
@@ -131,7 +135,7 @@ export function HeroSearchBar() {
  <option value="over500">$500+/wk</option>
  </select>
  <div className="absolute right-3 top-1/2 mt-1 pointer-events-none text-text-muted">
- <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+ <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
  </div>
  </div>
  </div>
@@ -139,9 +143,10 @@ export function HeroSearchBar() {
  {/* Search Button */}
  <button
  onClick={handleSearch}
- className="w-full md:w-auto h-[62px] bg-accent hover:bg-accent text-white rounded-lg px-8 flex items-center justify-center gap-2 shrink-0 transition-all active:scale-95 shadow-md"
+ aria-label="Search Properties"
+ className="w-full md:w-auto h-[62px] bg-accent hover:bg-accent text-white rounded-lg px-8 flex items-center justify-center gap-2 shrink-0 transition-all active:scale-95 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent"
  >
- <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+ <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
  </svg>
  <span className="font-semibold text-sm">Search Properties</span>

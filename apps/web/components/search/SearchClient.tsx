@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { SafeImage } from "../ui/SafeImage";
 import dynamic from "next/dynamic";
@@ -132,13 +133,35 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
  <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-2 hide-scrollbar">
  {initialParams.locationLabel && (
- <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })} className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy">
+ <button
+ onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })}
+ aria-label={`Remove location filter ${initialParams.locationLabel}`}
+ className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy"
+ >
  📍 {initialParams.locationLabel} ✕
  </button>
  )}
- <button onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}>Under $200/wk</button>
- <button onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })} className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}>Studio</button>
- <button onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })} className="px-4 py-2 bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-brand-purple transition-colors">Clear</button>
+ <button
+ onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })}
+ aria-pressed={initialParams.maxPrice === '200'}
+ className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}
+ >
+ Under $200/wk
+ </button>
+ <button
+ onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })}
+ aria-pressed={initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio'}
+ className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}
+ >
+ Studio
+ </button>
+ <button
+ onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })}
+ aria-label="Clear all active search filters"
+ className="px-4 py-2 bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-brand-purple transition-colors"
+ >
+ Clear
+ </button>
  </div>
  </div>
 
@@ -193,27 +216,32 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
  const verified = prop.provider?.verified;
 
  return (
- <div
+ <article
  key={prop.id}
- onClick={() => router.push(`/property/${prop.id}`)}
  onMouseEnter={() => setHoveredPropertyId(prop.id)}
  onMouseLeave={() => setHoveredPropertyId(null)}
- className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-surface sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-border-strong hover:border-accent transition group relative cursor-pointer"
+ className="flex min-w-0 flex-col gap-4 rounded-[20px] bg-surface sm:flex-row sm:gap-6 sm:rounded-[24px] overflow-hidden border border-border-strong hover:border-accent transition group relative"
  >
  <div className="absolute top-4 right-4 z-20">
  <SaveButton propertyId={prop.id} />
  </div>
  <div className="relative w-full sm:w-[300px] h-[240px] sm:h-auto shrink-0 bg-surface-muted">
+ <Link href={`/property/${prop.id}`} className="block w-full h-full focus:outline-none focus:ring-2 focus:ring-accent focus:ring-inset" aria-label={`View details for ${prop.name}`}>
  <SafeImage src={image} alt={prop.name} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover" />
+ </Link>
  {verified && (
- <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm">
+ <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded shadow-sm pointer-events-none" aria-hidden="true">
  Verified
  </div>
  )}
  </div>
  <div className="flex flex-grow flex-col justify-between p-4 sm:p-6">
  <div>
- <h3 className="text-xl font-bold text-primary mb-1">{prop.name}</h3>
+ <h3 className="text-xl font-bold text-primary mb-1">
+ <Link href={`/property/${prop.id}`} className="hover:underline focus:underline focus:outline-none">
+ {prop.name}
+ </Link>
+ </h3>
  <p className="text-sm font-medium text-text-secondary mb-1">{location}</p>
  {prop.distance !== undefined && (
  <p className="text-xs font-bold text-accent mb-3">{prop.distance.toFixed(1)} km away</p>
@@ -231,21 +259,21 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
  <div className="flex items-center gap-4 text-sm text-text-secondary font-medium">
  {hasBed && (
  <span className="flex items-center gap-1.5" title="Bedrooms">
- <BedDouble className="h-4 w-4" />
+ <BedDouble className="h-4 w-4" aria-hidden="true" />
  <span>{c.bedrooms}</span>
  </span>
  )}
 
  {hasBath && (
  <span className="flex items-center gap-1.5" title="Bathrooms">
- <Bath className="h-4 w-4" />
+ <Bath className="h-4 w-4" aria-hidden="true" />
  <span>{c.bathrooms}</span>
  </span>
  )}
 
  {hasCar && (
  <span className="flex items-center gap-1.5" title="Parking Spaces">
- <CarFront className="h-4 w-4" />
+ <CarFront className="h-4 w-4" aria-hidden="true" />
  <span>{c.parkingSpaces}</span>
  </span>
  )}
@@ -255,9 +283,12 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
  </div>
  <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
  <p className="text-2xl font-bold text-primary tracking-tight">${prop.lowestPricePerWeek}<span className="text-sm font-medium text-text-secondary">/wk</span></p>
+ <Link href={`/property/${prop.id}`} className="inline-flex items-center text-sm font-semibold text-accent hover:underline focus:outline-none focus:ring-2 focus:ring-accent rounded px-1">
+ View Details
+ </Link>
  </div>
  </div>
- </div>
+ </article>
  );
  })}
  </div>
@@ -265,25 +296,27 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
 
  {/* Pagination Controls */}
  {!isLoading && !error && meta.totalPages > 1 && (
- <div className="mt-auto flex items-center justify-between gap-3 border-t border-border-strong px-4 pb-8 pt-4 sm:px-10">
+ <nav aria-label="Search results pagination" className="mt-auto flex items-center justify-between gap-3 border-t border-border-strong px-4 pb-8 pt-4 sm:px-10">
  <button
  disabled={meta.page <= 1}
+ aria-label="Previous page"
  onClick={() => updateSearchState({ page: String(meta.page - 1) })}
  className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
  >
  Previous
  </button>
- <span className="text-sm font-medium text-text-secondary">
+ <span aria-current="page" className="text-sm font-medium text-text-secondary">
  Page {meta.page} of {meta.totalPages}
  </span>
  <button
  disabled={meta.page >= meta.totalPages}
+ aria-label="Next page"
  onClick={() => updateSearchState({ page: String(meta.page + 1) })}
  className="px-4 py-2 border border-border-strong rounded-lg text-sm font-medium text-text-primary hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
  >
  Next
  </button>
- </div>
+ </nav>
  )}
  </div>
 
