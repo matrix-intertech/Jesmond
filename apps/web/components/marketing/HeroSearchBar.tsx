@@ -69,7 +69,7 @@ export function HeroSearchBar() {
  value={radiusKm}
  onChange={(e) => setRadiusKm(e.target.value)}
  disabled={!location}
- className="w-full bg-transparent text-primary outline-none text-sm font-medium cursor-pointer appearance-none disabled:opacity-50"
+ className="w-full min-h-[28px] bg-transparent text-primary outline-none text-base sm:text-sm font-medium cursor-pointer appearance-none disabled:opacity-50"
  >
  <option value="1">Within 1 km</option>
  <option value="2">Within 2 km</option>
@@ -94,7 +94,7 @@ export function HeroSearchBar() {
  id="hero-property-type-filter"
  value={roomType}
  onChange={(e) => setRoomType(e.target.value)}
- className="w-full bg-transparent text-primary outline-none text-sm font-medium cursor-pointer appearance-none"
+ className="w-full min-h-[28px] bg-transparent text-primary outline-none text-base sm:text-sm font-medium cursor-pointer appearance-none"
  >
  <option value="">Any</option>
  <option value="Studio">Studio</option>
@@ -114,7 +114,7 @@ export function HeroSearchBar() {
  type="date"
  value={moveIn}
  onChange={(e) => setMoveIn(e.target.value)}
- className="w-full bg-transparent text-primary placeholder-text-muted outline-none text-sm font-medium cursor-pointer"
+ className="w-full min-h-[28px] bg-transparent text-primary placeholder-text-muted outline-none text-base sm:text-sm font-medium cursor-pointer"
  />
  </div>
 
@@ -125,7 +125,7 @@ export function HeroSearchBar() {
  id="hero-price-range-filter"
  value={priceRange}
  onChange={(e) => setPriceRange(e.target.value)}
- className="w-full bg-transparent text-primary outline-none text-sm font-medium cursor-pointer appearance-none"
+ className="w-full min-h-[28px] bg-transparent text-primary outline-none text-base sm:text-sm font-medium cursor-pointer appearance-none"
  >
  <option value="">Any</option>
  <option value="under200">Under $200/wk</option>

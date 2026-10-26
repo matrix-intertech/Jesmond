@@ -57,7 +57,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   const resolvedParams = await params;
   let property;
 
-  const res = await fetch(`${getApiUrl()}/api/v1/properties/public/${resolvedParams.id}`, { cache: 'no-store' });
+  let res;
+  try {
+    res = await fetch(`${getApiUrl()}/api/v1/properties/public/${resolvedParams.id}`, { cache: 'no-store' });
+  } catch (err) {
+    throw new Error(`Failed to fetch property details: ${err instanceof Error ? err.message : String(err)}`);
+  }
 
   if (res.status === 404 || res.status === 400) {
     return notFound();

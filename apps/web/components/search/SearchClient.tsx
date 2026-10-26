@@ -136,7 +136,7 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
  <button
  onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null })}
  aria-label={`Remove location filter ${initialParams.locationLabel}`}
- className="px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy"
+ className="px-4 py-2.5 min-h-[44px] inline-flex items-center border rounded-full text-sm font-semibold whitespace-nowrap transition-colors bg-primary text-white border-brand-navy focus:outline-none focus:ring-2 focus:ring-accent"
  >
  📍 {initialParams.locationLabel} ✕
  </button>
@@ -144,21 +144,21 @@ export function SearchClient({ initialParams }: { initialParams: any }) {
  <button
  onClick={() => updateSearchState({ maxPrice: initialParams.maxPrice === '200' ? null : '200', minPrice: null })}
  aria-pressed={initialParams.maxPrice === '200'}
- className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}
+ className={`px-4 py-2.5 min-h-[44px] inline-flex items-center border rounded-full text-sm font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${initialParams.maxPrice === '200' ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}
  >
  Under $200/wk
  </button>
  <button
  onClick={() => updateSearchState({ roomType: (initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? null : 'studio' })}
  aria-pressed={initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio'}
- className={`px-4 py-2 border rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}
+ className={`px-4 py-2.5 min-h-[44px] inline-flex items-center border rounded-full text-sm font-semibold whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${(initialParams.roomType === 'studio' || initialParams.roomType === 'Studio' || initialParams.type === 'studio') ? 'bg-primary text-white border-brand-navy' : 'bg-surface border-border-strong text-text-primary hover:border-brand-purple'}`}
  >
  Studio
  </button>
  <button
  onClick={() => updateSearchState({ latitude: null, longitude: null, radiusKm: null, locationLabel: null, sortBy: null, sortOrder: null, maxPrice: null, minPrice: null, roomType: null, type: null, university: null, uni: null, moveIn: null, availability: null, city: null, page: null })}
  aria-label="Clear all active search filters"
- className="px-4 py-2 bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-brand-purple transition-colors"
+ className="px-4 py-2.5 min-h-[44px] inline-flex items-center bg-surface border border-border-strong rounded-full text-sm font-semibold text-text-primary whitespace-nowrap hover:border-brand-purple transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
  >
  Clear
  </button>

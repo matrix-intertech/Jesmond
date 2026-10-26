@@ -233,7 +233,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
  {showEnquiry && (
  <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/50 p-4" role="dialog" aria-modal="true" aria-labelledby="enquiry-modal-title">
  <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-4 sm:p-6">
- <button onClick={() => setShowEnquiry(false)} aria-label="Close enquiry dialog" className="absolute top-4 right-4 text-text-muted hover:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent rounded p-1">✕</button>
+ <button onClick={() => setShowEnquiry(false)} aria-label="Close enquiry dialog" className="absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted hover:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent rounded-lg text-lg">✕</button>
  <h2 id="enquiry-modal-title" className="text-2xl font-bold mb-4">{showContactDetails && providerContact ? 'Send Enquiry' : 'Request Contact Details'}</h2>
  {success && <div role="status" aria-live="polite" className="bg-emerald-100 text-emerald-700 p-3 rounded mb-4">{success}</div>}
  {error && <div role="alert" aria-live="assertive" className="bg-rose-100 text-rose-700 p-3 rounded mb-4">{error}</div>}
@@ -277,7 +277,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
  {showApply && (
  <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-primary/50 p-4" role="dialog" aria-modal="true" aria-labelledby="reserve-modal-title">
  <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-4 sm:p-6">
- <button onClick={() => { setShowApply(null); setApplicationResult(null); }} aria-label="Close reservation dialog" className="absolute top-4 right-4 text-text-muted hover:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent rounded p-1">✕</button>
+ <button onClick={() => { setShowApply(null); setApplicationResult(null); }} aria-label="Close reservation dialog" className="absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted hover:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent rounded-lg text-lg">✕</button>
 
  {applicationResult ? (
  <div className="text-center py-4">

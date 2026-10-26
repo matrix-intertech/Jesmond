@@ -122,7 +122,7 @@ function ResetPasswordForm() {
  autoComplete="email"
  required
  readOnly={!!initialEmail}
- className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong bg-surface-lavender focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="mt-1 appearance-none rounded block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong bg-surface-lavender focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  value={email}
  onChange={(e) => setEmail(e.target.value)}
  />
@@ -139,7 +139,7 @@ function ResetPasswordForm() {
  maxLength={6}
  pattern="[0-9]{6}"
  inputMode="numeric"
- className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="mt-1 appearance-none rounded block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  placeholder="123456"
  value={otp}
  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
@@ -155,7 +155,7 @@ function ResetPasswordForm() {
  autoComplete="new-password"
  required
  minLength={8}
- className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="mt-1 appearance-none rounded block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  value={newPassword}
  onChange={(e) => setNewPassword(e.target.value)}
  />
@@ -170,7 +170,7 @@ function ResetPasswordForm() {
  autoComplete="new-password"
  required
  minLength={8}
- className="mt-1 appearance-none rounded block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="mt-1 appearance-none rounded block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  value={confirmPassword}
  onChange={(e) => setConfirmPassword(e.target.value)}
  />
@@ -181,7 +181,7 @@ function ResetPasswordForm() {
  <button
  type="submit"
  disabled={status === 'loading'}
- className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
+ className="group relative w-full flex justify-center items-center py-2.5 px-4 min-h-[44px] border border-transparent text-base sm:text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {status === 'loading' ? 'Resetting...' : 'Reset Password'}
  </button>

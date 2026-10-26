@@ -297,4 +297,46 @@ test.describe('Accessibility & Agentic Browsing Verification Pass', () => {
     }
   });
 
+  test('10. Mobile Touch Target Sizing & Narrow Viewport (320px) Overflow Check', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    // Verify zero horizontal overflow on 320px narrow viewport
+    const docWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    const scrollWidth = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.body.scrollWidth));
+    expect(scrollWidth).toBeLessThanOrEqual(docWidth + 1);
+
+    // Verify mobile hamburger menu button target size >= 44x44
+    const menuBtn = page.locator('button[aria-controls="mobile-navigation-menu"]');
+    const box = await menuBtn.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+
+    // Verify search filter buttons have minimum 44px height on /search
+    await page.goto('/search', { waitUntil: 'domcontentloaded' });
+    const filterBtn = page.locator('button', { hasText: 'Under $200/wk' }).first();
+    const filterBox = await filterBtn.boundingBox();
+    expect(filterBox).not.toBeNull();
+    if (filterBox) {
+      expect(filterBox.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test('11. Prefers-Reduced-Motion & Form Input Zoom Prevention (text-base)', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+
+    // Verify input font-size is at least 16px on mobile (prevents iOS auto-zoom)
+    const emailInput = page.locator('#email-address');
+    await expect(emailInput).toBeVisible();
+    const fontSize = await emailInput.evaluate((el) => {
+      return parseFloat(window.getComputedStyle(el).fontSize);
+    });
+    expect(fontSize).toBeGreaterThanOrEqual(16);
+  });
+
 });

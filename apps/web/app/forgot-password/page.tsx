@@ -71,9 +71,10 @@ export default function ForgotPasswordPage() {
  id="email-address"
  name="email"
  type="email"
+            inputMode="email"
  autoComplete="email"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent focus:z-10 sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent focus:z-10 text-base sm:text-sm"
  placeholder="Email address"
  value={email}
  onChange={(e) => setEmail(e.target.value)}
@@ -84,14 +85,14 @@ export default function ForgotPasswordPage() {
  <button
  type="submit"
  disabled={status === 'loading'}
- className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
+ className="group relative w-full flex justify-center items-center py-2.5 px-4 min-h-[44px] border border-transparent text-base sm:text-sm font-medium rounded-md text-white bg-accent hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-purple disabled:opacity-50 disabled:cursor-not-allowed"
  >
  {status === 'loading' ? 'Sending...' : 'Send OTP'}
  </button>
  </div>
 
  <div className="text-center mt-4">
- <Link href="/login" className="text-sm font-medium text-primary hover:text-accent">
+ <Link href="/login" className="inline-flex items-center justify-center min-h-[44px] px-3 text-sm font-medium text-primary hover:text-accent">
  Back to Login
  </Link>
  </div>

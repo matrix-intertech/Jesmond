@@ -206,7 +206,7 @@ export function LocationAutocomplete({
  <button
  type="button"
  onClick={handleClear}
- className="absolute right-3 p-1 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-secondary transition-colors"
+ className="absolute right-2 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-full hover:bg-surface-muted text-text-muted hover:text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent transition-colors"
  aria-label="Clear location"
  >
  <X className="w-4 h-4" aria-hidden="true" />
@@ -214,7 +214,10 @@ export function LocationAutocomplete({
  ) : null}
  </div>
 
- {isOpen && (query.length >= 3) && (
+ <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {isOpen && results.length > 0 ? `${results.length} location suggestions found. Use arrow keys to navigate.` : ''}
+      </div>
+      {isOpen && (query.length >= 3) && (
  <div
  id="location-suggestions"
  className="absolute z-50 w-full mt-2 bg-surface border border-border-subtle rounded-xl shadow-lg overflow-hidden"

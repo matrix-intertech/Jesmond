@@ -249,10 +249,10 @@ export default function MobileBottomNav({ role }: MobileBottomNavProps) {
  <Link
  href={item.href}
  aria-current={active ? "page" : undefined}
- className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-semibold transition-colors ${
+ className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-accent ${
  active
- ? "bg-accent/10 text-accent"
- : "text-text-secondary hover:bg-surface-lavender hover:text-primary"
+                    ? "bg-surface-lavender text-accent font-bold"
+                    : "text-text-secondary hover:bg-surface-lavender hover:text-primary font-medium"
  }`}
  >
  <div className="relative">

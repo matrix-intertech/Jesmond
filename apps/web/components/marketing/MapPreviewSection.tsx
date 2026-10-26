@@ -93,7 +93,7 @@ export function MapPreviewSection() {
                     <motion.div layoutId="active-indicator" className="w-2 h-2 rounded-full bg-accent/100" />
                   )}
                 </div>
-                <p className={`text-sm ${isActive ? "text-text-muted" : "text-text-secondary"}`}>
+                <p className={`text-sm ${isActive ? "text-slate-300" : "text-text-secondary"}`}>
                   {hub.tagline}
                 </p>
               </button>

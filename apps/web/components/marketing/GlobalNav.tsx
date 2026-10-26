@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,8 @@ import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 export function GlobalNav() {
  const [isScrolled, setIsScrolled] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
+  const mobileDialogRef = useRef<HTMLDivElement>(null);
  const [isChatOpen, setIsChatOpen] = useState(false);
  const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
  const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string }>({ isAuth: false });
@@ -58,23 +60,57 @@ export function GlobalNav() {
  return () => window.removeEventListener("scroll", handleScroll);
  }, []);
 
- // Lock body scroll and handle Escape key when mobile menu or chat is open
- useEffect(() => {
- if (isMobileMenuOpen) {
- document.body.style.overflow = 'hidden';
- } else {
- document.body.style.overflow = 'unset';
- }
+ // Lock body scroll and handle Escape key & focus management when mobile menu or chat is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      const timer = setTimeout(() => {
+        const firstFocusable = mobileDialogRef.current?.querySelector<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        firstFocusable?.focus();
+      }, 50);
 
- const handleKeyDown = (e: KeyboardEvent) => {
- if (e.key === 'Escape') {
- if (isMobileMenuOpen) setIsMobileMenuOpen(false);
- if (isChatOpen) setIsChatOpen(false);
- }
- };
- window.addEventListener('keydown', handleKeyDown);
- return () => window.removeEventListener('keydown', handleKeyDown);
- }, [isMobileMenuOpen, isChatOpen]);
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setIsMobileMenuOpen(false);
+          mobileMenuTriggerRef.current?.focus();
+        } else if (e.key === 'Tab' && mobileDialogRef.current) {
+          const focusables: HTMLElement[] = Array.from(
+            mobileDialogRef.current.querySelectorAll(
+              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+          );
+          if (!focusables.length) return;
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    const handleChatKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isChatOpen) {
+        setIsChatOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleChatKeyDown);
+    return () => window.removeEventListener('keydown', handleChatKeyDown);
+  }, [isMobileMenuOpen, isChatOpen]);
 
  const navLinks = [
  { label: "Businesses", href: "/businesses" },
@@ -183,11 +219,19 @@ export function GlobalNav() {
 
  {/* Mobile Menu Trigger */}
  <button
- aria-label={isMobileMenuOpen ? "Close Navigation Menu" : "Open Navigation Menu"}
- aria-expanded={isMobileMenuOpen}
- aria-controls="mobile-navigation-menu"
- className="xl:hidden relative z-50 p-2 text-primary"
- onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          ref={mobileMenuTriggerRef}
+          aria-label={isMobileMenuOpen ? "Close Navigation Menu" : "Open Navigation Menu"}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation-menu"
+          className="xl:hidden relative z-50 min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+          onClick={() => {
+            if (isMobileMenuOpen) {
+              setIsMobileMenuOpen(false);
+              mobileMenuTriggerRef.current?.focus();
+            } else {
+              setIsMobileMenuOpen(true);
+            }
+          }}
  >
  <motion.div animate={isMobileMenuOpen ? "open" : "closed"} className="flex flex-col gap-1.5 w-6">
  <motion.span
@@ -212,7 +256,8 @@ export function GlobalNav() {
  <AnimatePresence>
  {isMobileMenuOpen && (
  <motion.div
- id="mobile-navigation-menu"
+          ref={mobileDialogRef}
+          id="mobile-navigation-menu"
  role="dialog"
  aria-modal="true"
  aria-label="Mobile Navigation"

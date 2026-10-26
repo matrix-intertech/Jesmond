@@ -360,7 +360,7 @@ function RegisterForm() {
  type="text"
  autoComplete="name"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  placeholder="Full Name"
  value={name}
  onChange={(e) => setName(e.target.value)}
@@ -378,7 +378,7 @@ function RegisterForm() {
   name="organizationName"
   type="text"
   required
-  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+  className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
   placeholder="Business Name"
   value={organizationName}
   onChange={(e) => setOrganizationName(e.target.value)}
@@ -395,7 +395,7 @@ function RegisterForm() {
   id="business-category"
   name="businessCategory"
   required
-  className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm bg-surface"
+  className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm bg-surface"
   value={businessCategory}
   onChange={(e) => setBusinessCategory(e.target.value)}
   >
@@ -419,7 +419,7 @@ function RegisterForm() {
  type="email"
  autoComplete="email"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  placeholder="Email address"
  value={email}
  onChange={(e) => setEmail(e.target.value)}
@@ -446,11 +446,12 @@ function RegisterForm() {
  <label htmlFor="phone" className="block text-sm font-medium text-text-primary mb-1">Phone Number</label>
  <input
  id="phone"
+                inputMode="tel"
  name="phone"
  type="tel"
  autoComplete="tel-national"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  placeholder="4XXXXXXXX"
  value={phone}
  onChange={(e) => setPhone(e.target.value)}
@@ -487,7 +488,7 @@ function RegisterForm() {
  type="date"
  autoComplete="bday"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  value={dateOfBirth}
  onChange={(e) => setDateOfBirth(e.target.value)}
  />
@@ -504,7 +505,7 @@ function RegisterForm() {
  type="password"
  autoComplete="new-password"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  placeholder="Password"
  value={password}
  onChange={(e) => setPassword(e.target.value)}
@@ -521,7 +522,7 @@ function RegisterForm() {
  type="password"
  autoComplete="new-password"
  required
- className="appearance-none rounded relative block w-full px-3 py-2 border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent sm:text-sm"
+ className="appearance-none rounded relative block w-full px-3.5 py-2.5 min-h-[44px] border border-border-strong focus:outline-none focus:ring-brand-purple focus:border-accent text-base sm:text-sm"
  placeholder="Confirm Password"
  value={confirmPassword}
  onChange={(e) => setConfirmPassword(e.target.value)}
