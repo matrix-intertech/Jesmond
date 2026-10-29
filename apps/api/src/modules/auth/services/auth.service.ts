@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -24,6 +25,8 @@ const { authenticator } = require('otplib');
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
@@ -106,6 +109,7 @@ export class AuthService {
     const otpHash = await bcrypt.hash(otp, 10);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
+    const isNewUser = !existingUser;
     let result;
 
     if (existingUser) {
@@ -205,6 +209,28 @@ export class AuthService {
 
     await this.emailService.sendVerificationOtp(result.user.email, otp);
 
+    if (isNewUser) {
+      try {
+        await this.emailService.sendAccountCreationNotification({
+          id: result.user.id,
+          email: result.user.email,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+          phone: result.user.phone,
+          countryCode: result.user.countryCode,
+          role: result.user.role,
+          timezone: result.user.timezone,
+          createdAt: result.user.createdAt,
+          location: null,
+        });
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        this.logger.error(
+          `Failed to dispatch account creation notification for user ID ${result.user.id}: ${errMsg}`,
+        );
+      }
+    }
+
     return {
       message: 'Verification code sent',
       requiresEmailVerification: true,
@@ -232,6 +258,7 @@ export class AuthService {
     const otpHash = await bcrypt.hash(otp, 10);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
+    const isNewUser = !existingUser;
     let user;
 
     if (existingUser) {
@@ -275,6 +302,28 @@ export class AuthService {
     }
 
     await this.emailService.sendVerificationOtp(user.email, otp);
+
+    if (isNewUser) {
+      try {
+        await this.emailService.sendAccountCreationNotification({
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          countryCode: user.countryCode,
+          role: user.role,
+          timezone: user.timezone,
+          createdAt: user.createdAt,
+          location: null,
+        });
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        this.logger.error(
+          `Failed to dispatch account creation notification for user ID ${user.id}: ${errMsg}`,
+        );
+      }
+    }
 
     return {
       message: 'Verification code sent',

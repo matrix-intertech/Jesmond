@@ -33,7 +33,11 @@ describe('BusinessCategory QA', () => {
         { provide: JwtService, useValue: { sign: jest.fn() } },
         {
           provide: EmailService,
-          useValue: { sendMail: jest.fn(), sendVerificationOtp: jest.fn() },
+          useValue: {
+            sendMail: jest.fn(),
+            sendVerificationOtp: jest.fn(),
+            sendAccountCreationNotification: jest.fn().mockResolvedValue(true),
+          },
         },
       ],
     }).compile();
