@@ -50,7 +50,11 @@ export class MarketplaceController {
       category,
       q ? q.trim() : undefined,
       suburb ? suburb.trim() : undefined,
-      verifiedOnly === 'true' ? true : verifiedOnly === 'false' ? false : undefined,
+      verifiedOnly === 'true'
+        ? true
+        : verifiedOnly === 'false'
+          ? false
+          : undefined,
       openNow === 'true' ? true : openNow === 'false' ? false : undefined,
       parsedPage,
       parsedLimit,

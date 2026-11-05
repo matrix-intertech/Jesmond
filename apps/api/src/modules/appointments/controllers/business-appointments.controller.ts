@@ -48,9 +48,14 @@ export class BusinessAppointmentsController {
     @Query('branchId') branchId?: string,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.getBusinessAppointments(req.user.organizationId, branchId);
+    return this.appointmentsService.getBusinessAppointments(
+      req.user.organizationId,
+      branchId,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
@@ -62,9 +67,14 @@ export class BusinessAppointmentsController {
     @Query('branchId') branchId?: string,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.getPendingRequests(req.user.organizationId, branchId);
+    return this.appointmentsService.getPendingRequests(
+      req.user.organizationId,
+      branchId,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
@@ -123,10 +133,7 @@ export class BusinessAppointmentsController {
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
   @Get(':id/eligible-staff')
-  async getEligibleStaff(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
+  async getEligibleStaff(@Param('id') id: string, @Request() req: any) {
     return this.appointmentsService.getEligibleStaffForAppointment(
       id,
       req.user.organizationId,
@@ -144,9 +151,15 @@ export class BusinessAppointmentsController {
     @Query('categoryId') categoryId?: string,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.getBusinessServices(req.user.organizationId, branchId, categoryId);
+    return this.appointmentsService.getBusinessServices(
+      req.user.organizationId,
+      branchId,
+      categoryId,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
@@ -158,9 +171,14 @@ export class BusinessAppointmentsController {
     @Body() dto: CreateBusinessServiceDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.createBusinessService(req.user.organizationId, dto);
+    return this.appointmentsService.createBusinessService(
+      req.user.organizationId,
+      dto,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
@@ -173,23 +191,31 @@ export class BusinessAppointmentsController {
     @Body() dto: UpdateBusinessServiceDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.updateBusinessService(req.user.organizationId, id, dto);
+    return this.appointmentsService.updateBusinessService(
+      req.user.organizationId,
+      id,
+      dto,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
   @Post('services/:id/delete')
-  async deleteService(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
+  async deleteService(@Param('id') id: string, @Request() req: any) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.deleteBusinessService(req.user.organizationId, id);
+    return this.appointmentsService.deleteBusinessService(
+      req.user.organizationId,
+      id,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
@@ -202,7 +228,9 @@ export class BusinessAppointmentsController {
     @Body() dto: AssignServiceCategoryDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.assignServiceCategory(
       req.user.organizationId,
@@ -221,7 +249,9 @@ export class BusinessAppointmentsController {
     @Query('includeInactive') includeInactive?: string,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.getServiceCategories(
       req.user.organizationId,
@@ -238,9 +268,14 @@ export class BusinessAppointmentsController {
     @Body() dto: CreateServiceCategoryDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.createServiceCategory(req.user.organizationId, dto);
+    return this.appointmentsService.createServiceCategory(
+      req.user.organizationId,
+      dto,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
@@ -253,23 +288,31 @@ export class BusinessAppointmentsController {
     @Body() dto: UpdateServiceCategoryDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.updateServiceCategory(req.user.organizationId, id, dto);
+    return this.appointmentsService.updateServiceCategory(
+      req.user.organizationId,
+      id,
+      dto,
+    );
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
   @Post('categories/:id/delete')
-  async deleteCategory(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
+  async deleteCategory(@Param('id') id: string, @Request() req: any) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.deleteServiceCategory(req.user.organizationId, id);
+    return this.appointmentsService.deleteServiceCategory(
+      req.user.organizationId,
+      id,
+    );
   }
 
   // Staff and Professionals
@@ -279,7 +322,9 @@ export class BusinessAppointmentsController {
   @Get('staff')
   async getStaff(@Request() req: any) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.getBusinessStaff(req.user.organizationId);
   }
@@ -290,9 +335,14 @@ export class BusinessAppointmentsController {
   @Post('staff')
   async addStaff(@Request() req: any, @Body() dto: AddBusinessStaffDto) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.addBusinessStaff(req.user.organizationId, dto);
+    return this.appointmentsService.addBusinessStaff(
+      req.user.organizationId,
+      dto,
+    );
   }
 
   // Customers
@@ -302,9 +352,13 @@ export class BusinessAppointmentsController {
   @Get('customers')
   async getCustomers(@Request() req: any) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.getBusinessCustomers(req.user.organizationId);
+    return this.appointmentsService.getBusinessCustomers(
+      req.user.organizationId,
+    );
   }
 
   // Time Off & Availability Blocks (Phase 5)
@@ -319,7 +373,9 @@ export class BusinessAppointmentsController {
     @Query('endDate') endDate?: string,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.getTimeOffBlocks(req.user.organizationId, {
       staffId,
@@ -332,12 +388,11 @@ export class BusinessAppointmentsController {
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
   @Post('time-off')
-  async createTimeOffBlock(
-    @Request() req: any,
-    @Body() dto: CreateTimeOffDto,
-  ) {
+  async createTimeOffBlock(@Request() req: any, @Body() dto: CreateTimeOffDto) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.createTimeOffBlock(
       req.user.organizationId,
@@ -356,7 +411,9 @@ export class BusinessAppointmentsController {
     @Body() dto: UpdateTimeOffDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.updateTimeOffBlock(
       req.user.organizationId,
@@ -369,14 +426,16 @@ export class BusinessAppointmentsController {
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
   @Post('time-off/:id/delete')
-  async deleteTimeOffBlock(
-    @Param('id') id: string,
-    @Request() req: any,
-  ) {
+  async deleteTimeOffBlock(@Param('id') id: string, @Request() req: any) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
-    return this.appointmentsService.deleteTimeOffBlock(req.user.organizationId, id);
+    return this.appointmentsService.deleteTimeOffBlock(
+      req.user.organizationId,
+      id,
+    );
   }
 
   // Offline / Walk-in Appointment Creation (Phase 5 Workflow B)
@@ -389,7 +448,9 @@ export class BusinessAppointmentsController {
     @Body() dto: CreateOfflineAppointmentDto,
   ) {
     if (!req.user.organizationId) {
-      throw new ForbiddenException('User is not associated with an organization');
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
     }
     return this.appointmentsService.createOfflineAppointment(
       req.user.organizationId,

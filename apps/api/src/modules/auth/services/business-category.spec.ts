@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { EmailService } from './email.service';
+import { WhatsAppAuthOtpService } from './whatsapp-auth-otp.service';
 import { OrgType, BusinessCategory } from '@prisma/client';
 
 describe('BusinessCategory QA', () => {
@@ -37,6 +38,14 @@ describe('BusinessCategory QA', () => {
             sendMail: jest.fn(),
             sendVerificationOtp: jest.fn(),
             sendAccountCreationNotification: jest.fn().mockResolvedValue(true),
+          },
+        },
+        {
+          provide: WhatsAppAuthOtpService,
+          useValue: {
+            sendRegistrationOtp: jest.fn().mockResolvedValue({ sent: true, channel: 'whatsapp' }),
+            sendLoginOtp: jest.fn().mockResolvedValue({ sent: true, channel: 'whatsapp' }),
+            sendPasswordResetOtp: jest.fn().mockResolvedValue({ sent: true, channel: 'whatsapp' }),
           },
         },
       ],
@@ -98,23 +107,23 @@ describe('BusinessCategory QA', () => {
       for (const cat of categories) {
         jest.clearAllMocks();
         const dto = {
-          email: `test_\${cat}@example.com`,
+          email: `test_${cat}@example.com`,
           password: 'password123',
           firstName: 'Test',
           lastName: 'User',
           countryCode: '+1',
           phone: '1234567890',
           dateOfBirth: '2000-01-01',
-          organizationName: `Test Org \${cat}`,
+          organizationName: `Test Org ${cat}`,
           organizationType: OrgType.RETAIL,
           businessCategory: cat,
         };
 
         prismaService.user.findUnique.mockResolvedValue(null);
         prismaService.organization.create.mockResolvedValue({
-          id: `org-\${cat}`,
+          id: `org-${cat}`,
         });
-        prismaService.user.create.mockResolvedValue({ id: `user-\${cat}` });
+        prismaService.user.create.mockResolvedValue({ id: `user-${cat}` });
 
         await authService.registerProvider(dto);
 

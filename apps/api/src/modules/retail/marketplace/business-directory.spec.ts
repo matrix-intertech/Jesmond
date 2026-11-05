@@ -3,6 +3,9 @@ import { MarketplaceService } from './marketplace.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { PaymentSettingsService } from '../payments/payment-settings.service';
+import { RetailOrderWhatsAppService } from '../orders/retail-order-whatsapp.service';
+import { RetailOrderEmailService } from '../orders/retail-order-email.service';
+import { RetailOrderWhatsAppService } from '../orders/retail-order-whatsapp.service';
 
 describe('Business Directory QA', () => {
   let service: MarketplaceService;
@@ -48,6 +51,18 @@ describe('Business Directory QA', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: RedisService, useValue: mockRedis },
         { provide: PaymentSettingsService, useValue: mockPaymentSettings },
+        {
+          provide: RetailOrderWhatsAppService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+          },
+        },
+        {
+          provide: RetailOrderEmailService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+          },
+        },
       ],
     }).compile();
 
@@ -206,7 +221,8 @@ describe('Business Directory QA', () => {
       // Phase 1 direct matches: none
       mockPrisma.retailBranch.findMany
         .mockResolvedValueOnce([]) // direct matches
-        .mockResolvedValueOnce([   // full branches fetch
+        .mockResolvedValueOnce([
+          // full branches fetch
           {
             id: 'rest-branch-1',
             name: 'Taj Mahal Jesmond',
@@ -405,25 +421,46 @@ describe('Business Directory QA', () => {
 
       // Test negative page and 0 limit -> defaults to page 1, limit 20
       const res1 = await service.listStores(
-        undefined, undefined, undefined, 'ALL', undefined, 'ALL', false, true,
-        -5 as any,
-        0 as any,
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        undefined,
+        'ALL',
+        false,
+        true,
+        -5,
+        0,
       );
       expect(res1.meta.page).toBe(1);
       expect(res1.meta.limit).toBe(20);
 
       // Test NaN inputs -> defaults to page 1, limit 20
       const res2 = await service.listStores(
-        undefined, undefined, undefined, 'ALL', undefined, 'ALL', false, true,
-        NaN as any,
-        NaN as any,
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        undefined,
+        'ALL',
+        false,
+        true,
+        NaN,
+        NaN,
       );
       expect(res2.meta.page).toBe(1);
       expect(res2.meta.limit).toBe(20);
 
       // Test excessive limit -> capped at 100
       const res3 = await service.listStores(
-        undefined, undefined, undefined, 'ALL', undefined, 'ALL', false, true,
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        undefined,
+        'ALL',
+        false,
+        true,
         1,
         5000,
       );
@@ -434,18 +471,43 @@ describe('Business Directory QA', () => {
     it('Stable pagination: candidate branch IDs are sorted deterministically and do not overlap between pages', async () => {
       // 3 branches matching keyword "coffee"
       const candidateBranches = [
-        { id: 'branch-c', name: 'Branch C', organization: { name: 'Org C', businessCategory: 'RETAIL' } },
-        { id: 'branch-a', name: 'Branch A', organization: { name: 'Org A', businessCategory: 'RETAIL' } },
-        { id: 'branch-b', name: 'Branch B', organization: { name: 'Org B', businessCategory: 'RETAIL' } },
+        {
+          id: 'branch-c',
+          name: 'Branch C',
+          organization: { name: 'Org C', businessCategory: 'RETAIL' },
+        },
+        {
+          id: 'branch-a',
+          name: 'Branch A',
+          organization: { name: 'Org A', businessCategory: 'RETAIL' },
+        },
+        {
+          id: 'branch-b',
+          name: 'Branch B',
+          organization: { name: 'Org B', businessCategory: 'RETAIL' },
+        },
       ];
 
       // Page 1 with limit 2: direct matches returns all 3 candidates
       mockPrisma.retailBranch.findMany
-        .mockResolvedValueOnce([{ id: 'branch-c' }, { id: 'branch-a' }, { id: 'branch-b' }]) // direct
+        .mockResolvedValueOnce([
+          { id: 'branch-c' },
+          { id: 'branch-a' },
+          { id: 'branch-b' },
+        ]) // direct
         .mockResolvedValueOnce([candidateBranches[1], candidateBranches[2]]); // full for page 1: branch-a, branch-b
 
       const page1 = await service.listStores(
-        undefined, undefined, undefined, 'ALL', 'coffee', 'ALL', false, true, 1, 2,
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        'coffee',
+        'ALL',
+        false,
+        true,
+        1,
+        2,
       );
       expect(page1.meta.total).toBe(3);
       expect(page1.meta.page).toBe(1);
@@ -462,11 +524,24 @@ describe('Business Directory QA', () => {
 
       // Page 2 with limit 2: direct matches returns all 3 candidates
       mockPrisma.retailBranch.findMany
-        .mockResolvedValueOnce([{ id: 'branch-c' }, { id: 'branch-a' }, { id: 'branch-b' }]) // direct
+        .mockResolvedValueOnce([
+          { id: 'branch-c' },
+          { id: 'branch-a' },
+          { id: 'branch-b' },
+        ]) // direct
         .mockResolvedValueOnce([candidateBranches[0]]); // full for page 2: branch-c
 
       const page2 = await service.listStores(
-        undefined, undefined, undefined, 'ALL', 'coffee', 'ALL', false, true, 2, 2,
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        'coffee',
+        'ALL',
+        false,
+        true,
+        2,
+        2,
       );
       expect(page2.meta.page).toBe(2);
 
@@ -484,7 +559,16 @@ describe('Business Directory QA', () => {
       mockPrisma.retailBranch.findMany.mockResolvedValueOnce([]);
 
       await service.listStores(
-        undefined, undefined, undefined, 'ALL', undefined, '  Jesmond   ', false, true, 1, 20,
+        undefined,
+        undefined,
+        undefined,
+        'ALL',
+        undefined,
+        '  Jesmond   ',
+        false,
+        true,
+        1,
+        20,
       );
 
       expect(mockPrisma.retailBranch.findMany).toHaveBeenCalledWith(

@@ -9,9 +9,15 @@ import { ApplicationsModule } from '../applications/applications.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { AdminSettingsController } from './admin-settings.controller';
 import { AdminSettingsService } from './admin-settings.service';
+import { PropertiesModule } from '../properties/properties.module';
 
 @Module({
-  imports: [PrismaModule, ApplicationsModule, NotificationsModule],
+  imports: [
+    PrismaModule,
+    ApplicationsModule,
+    NotificationsModule,
+    PropertiesModule,
+  ],
   controllers: [
     AdminController,
     AdminFeaturesController,

@@ -3,6 +3,8 @@ import { InventoryService } from '../inventory/inventory.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { RetailOrderWhatsAppService } from './retail-order-whatsapp.service';
+import { RetailOrderEmailService } from './retail-order-email.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -29,8 +31,26 @@ describe('OrdersService', () => {
           provide: InventoryService,
           useValue: { deductInventoryForSale: jest.fn() },
         },
+        {
+          provide: RetailOrderEmailService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+            notifyOrderPacked: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_PACKED' }),
+            notifyOrderDelivered: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_DELIVERED' }),
+            notifyOrderTakenAway: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_TAKEN_AWAY' }),
+          },
+        },
         { provide: PrismaService, useValue: prismaMock },
         { provide: NotificationsService, useValue: {} },
+        {
+          provide: RetailOrderWhatsAppService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true }),
+            notifyOrderPacked: jest.fn().mockResolvedValue({ sent: true }),
+            notifyOrderDelivered: jest.fn().mockResolvedValue({ sent: true }),
+            notifyOrderTakenAway: jest.fn().mockResolvedValue({ sent: true }),
+          },
+        },
       ],
     }).compile();
 

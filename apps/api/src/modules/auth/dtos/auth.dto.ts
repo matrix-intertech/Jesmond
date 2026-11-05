@@ -129,8 +129,16 @@ export class VerifyEmailDto {
 
 export class ResendOtpDto {
   @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  channel?: 'email' | 'whatsapp' | 'both';
 }
 
 export class Login2faDto {
@@ -145,16 +153,54 @@ export class Login2faDto {
   code!: string;
 }
 
+export class RequestLoginOtpDto {
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+}
+
+export class VerifyLoginOtpDto {
+  @IsEmail()
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  @MaxLength(6)
+  otp!: string;
+}
+
 export class ForgotPasswordDto {
   @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  channel?: 'email' | 'whatsapp' | 'both';
 }
 
 export class VerifyResetOtpDto {
   @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -165,8 +211,12 @@ export class VerifyResetOtpDto {
 
 export class ResetPasswordDto {
   @IsEmail()
-  @IsNotEmpty()
-  email!: string;
+  @IsOptional()
+  email?: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
 
   @IsString()
   @IsNotEmpty()

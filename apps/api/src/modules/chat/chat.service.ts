@@ -13,12 +13,16 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PropertyWhatsAppService } from '../properties/core/property-whatsapp.service';
+import { PropertyEmailService } from '../properties/core/property-email.service';
 
 @Injectable()
 export class ChatService {
   constructor(
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
+    private propertyWhatsAppService: PropertyWhatsAppService,
+    private propertyEmailService: PropertyEmailService,
   ) {}
 
   private assertId(value: string | undefined | null, label: string): string {
@@ -331,6 +335,27 @@ export class ChatService {
           );
       }
     });
+
+    // Async WhatsApp notification for PROPERTY_MESSAGE_RECEIVED (Non-blocking)
+    this.propertyWhatsAppService
+      .notifyMessageReceived({
+        messageId: message.id,
+        conversationId,
+        senderId: userId,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch PROPERTY_MESSAGE_RECEIVED notification', err),
+        );
+
+    this.propertyEmailService
+      .notifyMessageReceived({
+        messageId: message.id,
+        conversationId,
+        senderId: userId,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch PROPERTY_MESSAGE_RECEIVED email', err),
+      );
 
     return message;
   }

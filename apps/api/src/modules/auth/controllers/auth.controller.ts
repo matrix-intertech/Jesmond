@@ -19,6 +19,8 @@ import {
   ForgotPasswordDto,
   VerifyResetOtpDto,
   ResetPasswordDto,
+  RequestLoginOtpDto,
+  VerifyLoginOtpDto,
 } from '../dtos/auth.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -85,6 +87,27 @@ export class AuthController {
   @Post('reset-password')
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto);
+  }
+
+  /**
+   * Initiates a phone-based passwordless OTP login.
+   * Sends OTP to the user's WhatsApp number.
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('request-login-otp')
+  async requestLoginOtp(@Body() dto: RequestLoginOtpDto) {
+    return this.authService.requestLoginOtp(dto);
+  }
+
+  /**
+   * Verifies the WhatsApp login OTP and issues a JWT session.
+   */
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-login-otp')
+  async verifyLoginOtp(@Request() req: any, @Body() dto: VerifyLoginOtpDto) {
+    const ipAddress = req.ip;
+    const userAgent = req.headers['user-agent'];
+    return this.authService.verifyLoginOtp(dto, { ipAddress, userAgent });
   }
 
   @UseGuards(JwtAuthGuard)

@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { EmailService } from './email.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { WhatsAppAuthOtpService } from './whatsapp-auth-otp.service';
 import {
   UserRole,
   AccountStatus,
@@ -38,6 +39,9 @@ describe('Account Creation Notification System', () => {
       orgStaff: {
         create: jest.fn(),
       },
+      emailNotificationLog: {
+        create: jest.fn().mockResolvedValue({ id: 'log-1' }),
+      },
       $transaction: jest.fn((callback) => callback(prismaService)),
     };
 
@@ -47,6 +51,14 @@ describe('Account Creation Notification System', () => {
         EmailService,
         { provide: PrismaService, useValue: prismaService },
         { provide: JwtService, useValue: { sign: jest.fn() } },
+        {
+          provide: WhatsAppAuthOtpService,
+          useValue: {
+            sendRegistrationOtp: jest.fn().mockResolvedValue({ sent: true, channel: 'whatsapp' }),
+            sendLoginOtp: jest.fn().mockResolvedValue({ sent: true, channel: 'whatsapp' }),
+            sendPasswordResetOtp: jest.fn().mockResolvedValue({ sent: true, channel: 'whatsapp' }),
+          },
+        },
       ],
     }).compile();
 
@@ -605,6 +617,56 @@ describe('Account Creation Notification System', () => {
 
       expect(res.message).toContain('verification code was sent');
       expect(spyNotification).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Centralized Auth OTP Email Logging', () => {
+    it('should log registration verification OTP to EmailNotificationLog without plaintext OTP', async () => {
+      emailService.setTransporter(mockTransporter);
+      const res = await emailService.sendVerificationOtp('newuser@example.com', '123456');
+
+      expect(res).toBe(true);
+      expect(prismaService.emailNotificationLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'AUTH_REGISTER_OTP',
+          recipient: 'newuser@example.com',
+          subject: 'Verify your Jesmond account',
+          status: 'SENT',
+          metadata: expect.not.objectContaining({ otp: '123456' }),
+        }),
+      });
+    });
+
+    it('should log login OTP to EmailNotificationLog without plaintext OTP', async () => {
+      emailService.setTransporter(mockTransporter);
+      const res = await emailService.sendLoginOtp('loginuser@example.com', '654321');
+
+      expect(res).toBe(true);
+      expect(prismaService.emailNotificationLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'AUTH_LOGIN_OTP',
+          recipient: 'loginuser@example.com',
+          subject: 'Your Jesmond login code',
+          status: 'SENT',
+          metadata: expect.not.objectContaining({ otp: '654321' }),
+        }),
+      });
+    });
+
+    it('should log password reset OTP to EmailNotificationLog without plaintext OTP', async () => {
+      emailService.setTransporter(mockTransporter);
+      const res = await emailService.sendPasswordResetOtp('resetuser@example.com', '987654');
+
+      expect(res).toBe(true);
+      expect(prismaService.emailNotificationLog.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          eventType: 'AUTH_PASSWORD_RESET_OTP',
+          recipient: 'resetuser@example.com',
+          subject: 'Reset your Jesmond password',
+          status: 'SENT',
+          metadata: expect.not.objectContaining({ otp: '987654' }),
+        }),
+      });
     });
   });
 });

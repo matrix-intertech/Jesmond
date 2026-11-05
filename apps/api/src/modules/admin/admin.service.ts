@@ -8,6 +8,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ApplicationsService } from '../applications/applications.service';
 import { AccountStatus, OrgStatus, UserRole } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { PropertyWhatsAppService } from '../properties/core/property-whatsapp.service';
+import { PropertyEmailService } from '../properties/core/property-email.service';
 
 @Injectable()
 export class AdminService {
@@ -15,6 +17,8 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly applicationsService: ApplicationsService,
     private readonly notificationsService: NotificationsService,
+    private readonly propertyWhatsAppService: PropertyWhatsAppService,
+    private readonly propertyEmailService: PropertyEmailService,
   ) {}
 
   private async notifyOrgAdminsPropertyStatus(
@@ -132,6 +136,24 @@ export class AdminService {
 
     this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'PUBLISHED');
 
+    this.propertyWhatsAppService
+      .notifyListingConfirmed({
+        propertyId: updated.id,
+        propertyName: updated.name,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch WA listing confirmed', err),
+      );
+
+    this.propertyEmailService
+      .notifyListingConfirmed({
+        propertyId: updated.id,
+        propertyName: updated.name,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch Email listing confirmed', err),
+      );
+
     return updated;
   }
 
@@ -246,6 +268,24 @@ export class AdminService {
     });
 
     this.notifyOrgAdminsPropertyStatus(updated.id, updated.name, 'PUBLISHED');
+
+    this.propertyWhatsAppService
+      .notifyListingConfirmed({
+        propertyId: updated.id,
+        propertyName: updated.name,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch WA listing confirmed', err),
+      );
+
+    this.propertyEmailService
+      .notifyListingConfirmed({
+        propertyId: updated.id,
+        propertyName: updated.name,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch Email listing confirmed', err),
+      );
 
     return updated;
   }

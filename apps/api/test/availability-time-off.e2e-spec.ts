@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  INestApplication,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { AppointmentsModule } from '../src/modules/appointments/appointments.module';
 import { PrismaModule } from '../src/modules/prisma/prisma.module';
 import { PrismaService } from '../src/modules/prisma/prisma.service';
@@ -203,13 +208,17 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
     let createdBlockId: string;
 
     it('should create a time off block with type, timezone, and reason', async () => {
-      const block = await appointmentsService.createTimeOffBlock(orgAId, managerAId, {
-        staffId: staffAId,
-        startTime: '2026-10-12T12:00:00.000Z',
-        endTime: '2026-10-12T13:00:00.000Z',
-        type: 'BREAK',
-        reason: 'Lunch break',
-      });
+      const block = await appointmentsService.createTimeOffBlock(
+        orgAId,
+        managerAId,
+        {
+          staffId: staffAId,
+          startTime: '2026-10-12T12:00:00.000Z',
+          endTime: '2026-10-12T13:00:00.000Z',
+          type: 'BREAK',
+          reason: 'Lunch break',
+        },
+      );
 
       expect(block).toBeDefined();
       expect(block.id).toBeDefined();
@@ -252,16 +261,23 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
     });
 
     it('should update a time off block', async () => {
-      const updated = await appointmentsService.updateTimeOffBlock(orgAId, createdBlockId, {
-        reason: 'Extended lunch break',
-        type: 'BREAK',
-      });
+      const updated = await appointmentsService.updateTimeOffBlock(
+        orgAId,
+        createdBlockId,
+        {
+          reason: 'Extended lunch break',
+          type: 'BREAK',
+        },
+      );
 
       expect(updated.reason).toBe('Extended lunch break');
     });
 
     it('should safely soft-delete a time off block', async () => {
-      const result = await appointmentsService.deleteTimeOffBlock(orgAId, createdBlockId);
+      const result = await appointmentsService.deleteTimeOffBlock(
+        orgAId,
+        createdBlockId,
+      );
       expect(result.success).toBe(true);
 
       const activeBlocks = await appointmentsService.getTimeOffBlocks(orgAId);
@@ -308,16 +324,20 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
 
   describe('Workflow B: Offline Appointment Booking', () => {
     it('should create an immediately confirmed offline appointment for walk-in customer', async () => {
-      const offlineAppt = await appointmentsService.createOfflineAppointment(orgAId, managerAId, {
-        branchId: branchAId,
-        serviceId: serviceAId,
-        staffId: staffAId,
-        startTime: '2026-10-12T10:00:00.000Z',
-        endTime: '2026-10-12T11:00:00.000Z',
-        customerName: 'Sam Walkin',
-        customerPhone: '0412 999 888',
-        notes: 'Walk-in emergency repair',
-      });
+      const offlineAppt = await appointmentsService.createOfflineAppointment(
+        orgAId,
+        managerAId,
+        {
+          branchId: branchAId,
+          serviceId: serviceAId,
+          staffId: staffAId,
+          startTime: '2026-10-12T10:00:00.000Z',
+          endTime: '2026-10-12T11:00:00.000Z',
+          customerName: 'Sam Walkin',
+          customerPhone: '0412 999 888',
+          notes: 'Walk-in emergency repair',
+        },
+      );
 
       expect(offlineAppt).toBeDefined();
       expect(offlineAppt.status).toBe('CONFIRMED');
@@ -402,7 +422,9 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
         '2026-10-13',
         'Australia/Sydney',
       );
-      const nextDaySlots = nextDayAvailability.availableSlots.map((s) => s.startTime);
+      const nextDaySlots = nextDayAvailability.availableSlots.map(
+        (s) => s.startTime,
+      );
 
       // 09:00, 10:00, 11:00 should be available
       expect(nextDaySlots).toContain('09:00');
@@ -432,7 +454,9 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
         '2026-10-19',
         'Australia/Sydney',
       );
-      const oct19Slots = oct19Availability.availableSlots.map((s) => s.startTime);
+      const oct19Slots = oct19Availability.availableSlots.map(
+        (s) => s.startTime,
+      );
       expect(oct19Slots).toContain('09:00');
       // 16:00 should be excluded by the recurring block
       expect(oct19Slots).not.toContain('16:00');
@@ -443,7 +467,9 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
         '2026-10-26',
         'Australia/Sydney',
       );
-      const oct26Slots = oct26Availability.availableSlots.map((s) => s.startTime);
+      const oct26Slots = oct26Availability.availableSlots.map(
+        (s) => s.startTime,
+      );
       expect(oct26Slots).toContain('09:00');
       // 16:00 should now be restored because recurrence has ended
       expect(oct26Slots).toContain('16:00');
@@ -470,7 +496,9 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
         '2027-04-12',
         'Australia/Sydney',
       );
-      const aprilSlots = aprilAvailability.availableSlots.map((s) => s.startTime);
+      const aprilSlots = aprilAvailability.availableSlots.map(
+        (s) => s.startTime,
+      );
       // Working hours local slots: 09:00 to 16:00
       expect(aprilSlots).toContain('09:00');
       expect(aprilSlots).toContain('10:00');
@@ -511,7 +539,7 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
       expect(failed.length).toBe(1);
 
       // The rejected error must explicitly explain the conflict
-      const failureReason = (failed[0] as PromiseRejectedResult).reason;
+      const failureReason = failed[0].reason;
       expect(failureReason).toBeInstanceOf(BadRequestException);
       expect(failureReason.message).toMatch(/conflict|unavailable/i);
     });

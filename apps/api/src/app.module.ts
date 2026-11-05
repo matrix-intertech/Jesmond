@@ -25,6 +25,8 @@ import { AppService } from './app.service';
 import { RedisModule } from './modules/redis/redis.module';
 import { FoodModule } from './modules/food/food.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
+import { EmailModule } from './modules/email/email.module';
 
 @Module({
   imports: [
@@ -59,6 +61,13 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
         port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        maxRetriesPerRequest: null,
+        retryStrategy: (times) => {
+          if (process.env.NODE_ENV === 'test' || times > 3) {
+            return null;
+          }
+          return Math.min(times * 200, 1000);
+        },
       },
     }),
 
@@ -77,6 +86,8 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
     LeadsModule,
     OrganizationsModule,
     AppointmentsModule,
+    WhatsAppModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

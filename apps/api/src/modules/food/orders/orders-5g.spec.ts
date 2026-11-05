@@ -1,6 +1,6 @@
 /**
  * Phase 5G — Food Cart + Checkout Tests
- * 
+ *
  * These tests verify the FoodCartProvider logic, checkout payload construction,
  * and the backend Food order read endpoint security.
  */
@@ -28,29 +28,51 @@ describe('FoodCartProvider Logic', () => {
     return { branchId: null, businessName: null, items: [], subtotal: 0 };
   }
 
-  function addItem(state: FoodCartState, branchId: string, businessName: string, item: Omit<FoodCartItem, 'quantity'> & { quantity?: number }, allowBranchSwitch = false): FoodCartState {
+  function addItem(
+    state: FoodCartState,
+    branchId: string,
+    businessName: string,
+    item: Omit<FoodCartItem, 'quantity'> & { quantity?: number },
+    allowBranchSwitch = false,
+  ): FoodCartState {
     let currentItems = state.items;
     if (state.branchId !== null && state.branchId !== branchId) {
       if (!allowBranchSwitch) return state; // User declined
       currentItems = [];
     }
-    const existingIndex = currentItems.findIndex(i => i.foodMenuItemId === item.foodMenuItemId);
+    const existingIndex = currentItems.findIndex(
+      (i) => i.foodMenuItemId === item.foodMenuItemId,
+    );
     const newItems = [...currentItems];
     const addQty = item.quantity || 1;
 
     if (existingIndex >= 0) {
       const existing = newItems[existingIndex];
-      newItems[existingIndex] = { ...existing, quantity: existing.quantity + addQty };
+      newItems[existingIndex] = {
+        ...existing,
+        quantity: existing.quantity + addQty,
+      };
     } else {
       newItems.push({ ...item, quantity: addQty });
     }
-    const subtotal = newItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+    const subtotal = newItems.reduce(
+      (sum, i) => sum + i.unitPrice * i.quantity,
+      0,
+    );
     return { branchId, businessName, items: newItems, subtotal };
   }
 
-  function removeItem(state: FoodCartState, foodMenuItemId: string): FoodCartState {
-    const newItems = state.items.filter(i => i.foodMenuItemId !== foodMenuItemId);
-    const subtotal = newItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  function removeItem(
+    state: FoodCartState,
+    foodMenuItemId: string,
+  ): FoodCartState {
+    const newItems = state.items.filter(
+      (i) => i.foodMenuItemId !== foodMenuItemId,
+    );
+    const subtotal = newItems.reduce(
+      (sum, i) => sum + i.unitPrice * i.quantity,
+      0,
+    );
     return {
       branchId: newItems.length === 0 ? null : state.branchId,
       businessName: newItems.length === 0 ? null : state.businessName,
@@ -59,14 +81,21 @@ describe('FoodCartProvider Logic', () => {
     };
   }
 
-  function updateQuantity(state: FoodCartState, foodMenuItemId: string, quantity: number): FoodCartState {
-    const newItems = state.items.map(i => {
+  function updateQuantity(
+    state: FoodCartState,
+    foodMenuItemId: string,
+    quantity: number,
+  ): FoodCartState {
+    const newItems = state.items.map((i) => {
       if (i.foodMenuItemId === foodMenuItemId) {
         return { ...i, quantity: Math.max(1, quantity) };
       }
       return i;
     });
-    const subtotal = newItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+    const subtotal = newItems.reduce(
+      (sum, i) => sum + i.unitPrice * i.quantity,
+      0,
+    );
     return { ...state, items: newItems, subtotal };
   }
 
@@ -74,8 +103,18 @@ describe('FoodCartProvider Logic', () => {
     return { branchId: null, businessName: null, items: [], subtotal: 0 };
   }
 
-  const item1 = { foodMenuItemId: 'item-1', name: 'Burger', imageUrl: null, unitPrice: 1500 };
-  const item2 = { foodMenuItemId: 'item-2', name: 'Fries', imageUrl: null, unitPrice: 500 };
+  const item1 = {
+    foodMenuItemId: 'item-1',
+    name: 'Burger',
+    imageUrl: null,
+    unitPrice: 1500,
+  };
+  const item2 = {
+    foodMenuItemId: 'item-2',
+    name: 'Fries',
+    imageUrl: null,
+    unitPrice: 500,
+  };
 
   it('1. add item creates cart with correct branch', () => {
     let cart = createCart();
@@ -194,13 +233,25 @@ describe('FoodCartProvider Logic', () => {
 describe('Food Checkout Payload Construction', () => {
   it('11. valid checkout payload has no price fields', () => {
     const cartItems = [
-      { foodMenuItemId: 'item-1', name: 'Burger', imageUrl: null, unitPrice: 1500, quantity: 2 },
-      { foodMenuItemId: 'item-2', name: 'Fries', imageUrl: null, unitPrice: 500, quantity: 1 },
+      {
+        foodMenuItemId: 'item-1',
+        name: 'Burger',
+        imageUrl: null,
+        unitPrice: 1500,
+        quantity: 2,
+      },
+      {
+        foodMenuItemId: 'item-2',
+        name: 'Fries',
+        imageUrl: null,
+        unitPrice: 500,
+        quantity: 1,
+      },
     ];
 
     const payload = {
       branchId: 'branch-1',
-      items: cartItems.map(i => ({
+      items: cartItems.map((i) => ({
         foodMenuItemId: i.foodMenuItemId,
         quantity: i.quantity,
       })),
@@ -223,10 +274,21 @@ describe('Food Checkout Payload Construction', () => {
   });
 
   it('12. client price is not sent to API', () => {
-    const cartItem = { foodMenuItemId: 'item-1', name: 'Burger', imageUrl: null, unitPrice: 1, quantity: 1 };
+    const cartItem = {
+      foodMenuItemId: 'item-1',
+      name: 'Burger',
+      imageUrl: null,
+      unitPrice: 1,
+      quantity: 1,
+    };
     const payload = {
       branchId: 'branch-1',
-      items: [{ foodMenuItemId: cartItem.foodMenuItemId, quantity: cartItem.quantity }],
+      items: [
+        {
+          foodMenuItemId: cartItem.foodMenuItemId,
+          quantity: cartItem.quantity,
+        },
+      ],
     };
     // Even though client has unitPrice: 1 (spoofed), payload has no price
     expect(JSON.stringify(payload)).not.toContain('unitPrice');
@@ -261,7 +323,7 @@ describe('Food Checkout Payload Construction', () => {
 });
 
 // ============================================================
-// FOOD ORDER READ API TESTS  
+// FOOD ORDER READ API TESTS
 // ============================================================
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
@@ -303,14 +365,23 @@ describe('Food Order Read API (Phase 5G)', () => {
     total: 3000,
     createdAt: new Date(),
     items: [
-      { id: 'oi-1', itemName: 'Burger', unitPrice: 1500, quantity: 2, lineTotal: 3000 },
+      {
+        id: 'oi-1',
+        itemName: 'Burger',
+        unitPrice: 1500,
+        quantity: 2,
+        lineTotal: 3000,
+      },
     ],
     branch: { name: 'Pizza Place' },
   };
 
   it('18. confirmation displays correct order via GET', async () => {
     mockPrisma.foodOrder.findUnique.mockResolvedValue(mockOrder);
-    const result = await controller.getOrder({ user: { id: 'user-1' } }, 'order-1');
+    const result = await controller.getOrder(
+      { user: { id: 'user-1' } },
+      'order-1',
+    );
     expect(result).toEqual(mockOrder);
     expect(result.orderNumber).toBe('FOOD-123');
     expect(result.items.length).toBe(1);
@@ -320,14 +391,14 @@ describe('Food Order Read API (Phase 5G)', () => {
   it('19. unauthorized user cannot read another users order', async () => {
     mockPrisma.foodOrder.findUnique.mockResolvedValue(mockOrder);
     await expect(
-      controller.getOrder({ user: { id: 'user-evil' } }, 'order-1')
+      controller.getOrder({ user: { id: 'user-evil' } }, 'order-1'),
     ).rejects.toThrow(BadRequestException);
   });
 
   it('nonexistent order returns error', async () => {
     mockPrisma.foodOrder.findUnique.mockResolvedValue(null);
     await expect(
-      controller.getOrder({ user: { id: 'user-1' } }, 'order-nonexistent')
+      controller.getOrder({ user: { id: 'user-1' } }, 'order-nonexistent'),
     ).rejects.toThrow(BadRequestException);
   });
 });

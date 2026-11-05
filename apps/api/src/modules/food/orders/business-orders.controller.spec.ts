@@ -36,8 +36,15 @@ describe('Business Orders (Phase 5H)', () => {
   describe('updateOrderStatus', () => {
     it('should call updateOrderStatus with the correct parameters', async () => {
       const req = { user: { organizationId: 'org123', id: 'user123' } };
-      await controller.updateOrderStatus(req, 'order123', { status: FoodOrderStatus.ACCEPTED });
-      expect(service.updateOrderStatus).toHaveBeenCalledWith('order123', 'org123', FoodOrderStatus.ACCEPTED, 'user123');
+      await controller.updateOrderStatus(req, 'order123', {
+        status: FoodOrderStatus.ACCEPTED,
+      });
+      expect(service.updateOrderStatus).toHaveBeenCalledWith(
+        'order123',
+        'org123',
+        FoodOrderStatus.ACCEPTED,
+        'user123',
+      );
     });
   });
 });

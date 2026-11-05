@@ -36,6 +36,11 @@ model User {
   passwordResetOtpAttempts Int       @default(0)
   passwordResetLastSentAt  DateTime?
 
+  loginOtpToken      String?   @unique
+  loginOtpExpiresAt  DateTime?
+  loginOtpAttempts   Int       @default(0)
+  loginOtpLastSentAt DateTime?
+
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime?
 
@@ -49,6 +54,7 @@ model User {
   emailNotifications        Boolean @default(true)
   smsNotifications          Boolean @default(false)
   pushNotifications         Boolean @default(true)
+  whatsappNotifications     Boolean @default(true)
   allowPublicContactDetails Boolean @default(false)
 
   // Global Permissions for non-org users
@@ -85,8 +91,11 @@ model User {
   FoodOrder              FoodOrder[]
   FoodOrderStatusHistory FoodOrderStatusHistory[]
   appointments           Appointment[]
+  whatsAppNotificationLogs WhatsAppNotificationLog[]
+  emailNotificationLogs    EmailNotificationLog[]
 
   @@index([email])
+  @@index([phone])
 }
 
 enum AccountStatus {
@@ -1989,3 +1998,77 @@ model AppointmentStatusHistory {
 
   @@index([appointmentId])
 }
+
+// ---------------------------------------------------------
+// WHATSAPP NOTIFICATIONS
+// ---------------------------------------------------------
+
+enum WhatsAppNotificationStatus {
+  PENDING
+  QUEUED
+  SENT
+  DELIVERED
+  FAILED
+}
+
+model WhatsAppNotificationLog {
+  id                String                     @id @default(uuid())
+  eventType         String
+  recipient         String                     // E.164 / normalized phone number
+  userId            String?
+  user              User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  templateId        String
+  relatedEntityId   String?
+  providerMessageId String?
+  status            WhatsAppNotificationStatus @default(PENDING)
+  attemptCount      Int                        @default(1)
+  failureReason     String?
+  metadata          Json?                      // Sanitized non-sensitive metadata (never OTPs or passwords)
+  idempotencyKey    String?                    @unique
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  @@index([recipient])
+  @@index([eventType])
+  @@index([status])
+  @@index([relatedEntityId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------
+// EMAIL NOTIFICATIONS
+// ---------------------------------------------------------
+
+enum EmailNotificationStatus {
+  PENDING
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+}
+
+model EmailNotificationLog {
+  id              String                  @id @default(uuid())
+  eventType       String
+  recipient       String                  // Recipient email address
+  userId          String?
+  user            User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  templateId      String?
+  subject         String
+  relatedEntityId String?
+  status          EmailNotificationStatus @default(PENDING)
+  attemptCount    Int                     @default(1)
+  failureReason   String?
+  metadata        Json?                   // Sanitized non-sensitive metadata (never OTPs or passwords)
+  idempotencyKey  String?                 @unique
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([recipient])
+  @@index([eventType])
+  @@index([status])
+  @@index([relatedEntityId])
+  @@index([createdAt])
+}
+
+

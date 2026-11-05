@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Param, Body, Headers, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Param,
+  Body,
+  Headers,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateFoodOrderDto } from './dto/create-food-order.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -28,11 +37,7 @@ export class OrdersController {
   }
 
   @Get(':id')
-  async getOrder(
-    @Request() req: any,
-    @Param('id') orderId: string,
-  ) {
+  async getOrder(@Request() req: any, @Param('id') orderId: string) {
     return this.ordersService.getOrderForUser(orderId, req.user.id);
   }
 }
-

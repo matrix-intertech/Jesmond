@@ -8,6 +8,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppointmentStatus, Prisma, UserRole } from '@prisma/client';
 
 import { NotificationsService } from '../../notifications/notifications.service';
+import { AppointmentWhatsAppService } from './appointment-whatsapp.service';
+import { AppointmentEmailService } from './appointment-email.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -16,7 +18,9 @@ export class AppointmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+    private readonly appointmentWhatsAppService: AppointmentWhatsAppService,
+    private readonly appointmentEmailService: AppointmentEmailService,
+  ) { }
 
   // 1. List active services for an eligible business/branch
   async getServicesForBranch(branchId: string) {
@@ -177,6 +181,17 @@ export class AppointmentsService {
       })
       .catch(console.error);
 
+    // Non-blocking WhatsApp and Email notifications for booking request
+    this.appointmentWhatsAppService
+      .notifyBookingRequestReceived(result.id)
+      .catch((err) => console.error('Failed WA appt request received', err));
+    this.appointmentEmailService
+      .notifyAppointmentRequestReceived(result.id)
+      .catch((err) => console.error('Failed Email appt request received', err));
+    this.appointmentEmailService
+      .notifyProviderNewAppointment(result.id)
+      .catch((err) => console.error('Failed Email provider new appt', err));
+
     return result;
   }
 
@@ -226,6 +241,14 @@ export class AppointmentsService {
         body: `Your appointment has been cancelled.`,
       })
       .catch(console.error);
+
+    // Non-blocking WhatsApp and Email notifications
+    this.appointmentWhatsAppService
+      .notifyAppointmentCancelled(appointmentId, reason)
+      .catch((err) => console.error('Failed WA appt cancelled', err));
+    this.appointmentEmailService
+      .notifyAppointmentCancelled(appointmentId, reason)
+      .catch((err) => console.error('Failed Email appt cancelled', err));
 
     return result;
   }
@@ -400,14 +423,18 @@ export class AppointmentsService {
         if (to.recurrence === 'NONE') return true;
 
         if (appointment.endTime <= to.startTime) return false;
-        if (to.recurrenceEnd && appointment.startTime >= to.recurrenceEnd) return false;
+        if (to.recurrenceEnd && appointment.startTime >= to.recurrenceEnd)
+          return false;
 
         if (to.recurrence === 'WEEKLY') {
-          if (to.startTime.getUTCDay() !== appointment.startTime.getUTCDay()) return false;
+          if (to.startTime.getUTCDay() !== appointment.startTime.getUTCDay())
+            return false;
         }
 
-        const bStartMins = to.startTime.getUTCHours() * 60 + to.startTime.getUTCMinutes();
-        const bEndMins = to.endTime.getUTCHours() * 60 + to.endTime.getUTCMinutes();
+        const bStartMins =
+          to.startTime.getUTCHours() * 60 + to.startTime.getUTCMinutes();
+        const bEndMins =
+          to.endTime.getUTCHours() * 60 + to.endTime.getUTCMinutes();
 
         if (bStartMins < bEndMins) {
           return startMins < bEndMins && endMins > bStartMins;
@@ -465,6 +492,14 @@ export class AppointmentsService {
         actionUrl: `/my-appointments/${result.id}`,
       })
       .catch(console.error);
+
+    // Non-blocking WhatsApp and Email notifications
+    this.appointmentWhatsAppService
+      .notifyAppointmentConfirmed(result.id)
+      .catch((err) => console.error('Failed WA appt confirmed', err));
+    this.appointmentEmailService
+      .notifyAppointmentConfirmed(result.id)
+      .catch((err) => console.error('Failed Email appt confirmed', err));
 
     return result;
   }
@@ -599,6 +634,23 @@ export class AppointmentsService {
         actionUrl: `/my-appointments/${result.id}`,
       })
       .catch(console.error);
+
+    // Non-blocking WhatsApp and Email notifications
+    if (status === AppointmentStatus.CANCELLED) {
+      this.appointmentWhatsAppService
+        .notifyAppointmentCancelled(appointmentId, reason)
+        .catch((err) => console.error('Failed WA appt cancelled', err));
+      this.appointmentEmailService
+        .notifyAppointmentCancelled(appointmentId, reason)
+        .catch((err) => console.error('Failed Email appt cancelled', err));
+    } else if (status === AppointmentStatus.CONFIRMED) {
+      this.appointmentWhatsAppService
+        .notifyAppointmentConfirmed(appointmentId)
+        .catch((err) => console.error('Failed WA appt confirmed', err));
+      this.appointmentEmailService
+        .notifyAppointmentConfirmed(appointmentId)
+        .catch((err) => console.error('Failed Email appt confirmed', err));
+    }
 
     return result;
   }
@@ -787,8 +839,14 @@ export class AppointmentsService {
       const category = await this.prisma.serviceCategory.findUnique({
         where: { id: data.categoryId },
       });
-      if (!category || category.organizationId !== organizationId || category.deletedAt) {
-        throw new BadRequestException('Invalid service category for this organization');
+      if (
+        !category ||
+        category.organizationId !== organizationId ||
+        category.deletedAt
+      ) {
+        throw new BadRequestException(
+          'Invalid service category for this organization',
+        );
       }
       resolvedCategoryId = category.id;
     }
@@ -877,7 +935,7 @@ export class AppointmentsService {
       throw new NotFoundException('Service not found for this organization');
     }
 
-    let categoryUpdate: { categoryId?: string | null } = {};
+    const categoryUpdate: { categoryId?: string | null } = {};
     if (data.categoryId !== undefined) {
       if (data.categoryId === null || data.categoryId === '') {
         categoryUpdate.categoryId = null;
@@ -886,7 +944,9 @@ export class AppointmentsService {
           where: { id: data.categoryId },
         });
         if (!cat || cat.organizationId !== organizationId || cat.deletedAt) {
-          throw new BadRequestException('Invalid service category for this organization');
+          throw new BadRequestException(
+            'Invalid service category for this organization',
+          );
         }
         categoryUpdate.categoryId = cat.id;
       }
@@ -1078,11 +1138,15 @@ export class AppointmentsService {
     const existing = await this.prisma.serviceCategory.findUnique({
       where: { id: categoryId },
     });
-    if (!existing || existing.organizationId !== organizationId || existing.deletedAt) {
+    if (
+      !existing ||
+      existing.organizationId !== organizationId ||
+      existing.deletedAt
+    ) {
       throw new NotFoundException('Service category not found');
     }
 
-    let nameUpdate: { name?: string } = {};
+    const nameUpdate: { name?: string } = {};
     if (data.name !== undefined) {
       const normalizedName = data.name.trim();
       if (!normalizedName) {
@@ -1109,7 +1173,9 @@ export class AppointmentsService {
       where: { id: categoryId },
       data: {
         ...nameUpdate,
-        ...(data.description !== undefined ? { description: data.description?.trim() } : {}),
+        ...(data.description !== undefined
+          ? { description: data.description?.trim() }
+          : {}),
         ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
       },
       include: {
@@ -1133,7 +1199,11 @@ export class AppointmentsService {
         },
       },
     });
-    if (!existing || existing.organizationId !== organizationId || existing.deletedAt) {
+    if (
+      !existing ||
+      existing.organizationId !== organizationId ||
+      existing.deletedAt
+    ) {
       throw new NotFoundException('Service category not found');
     }
 
@@ -1162,7 +1232,11 @@ export class AppointmentsService {
     const service = await this.prisma.businessService.findUnique({
       where: { id: serviceId },
     });
-    if (!service || service.organizationId !== organizationId || service.deletedAt) {
+    if (
+      !service ||
+      service.organizationId !== organizationId ||
+      service.deletedAt
+    ) {
       throw new NotFoundException('Service not found');
     }
 
@@ -1170,8 +1244,14 @@ export class AppointmentsService {
       const category = await this.prisma.serviceCategory.findUnique({
         where: { id: categoryId },
       });
-      if (!category || category.organizationId !== organizationId || category.deletedAt) {
-        throw new ForbiddenException('Invalid service category for this organization');
+      if (
+        !category ||
+        category.organizationId !== organizationId ||
+        category.deletedAt
+      ) {
+        throw new ForbiddenException(
+          'Invalid service category for this organization',
+        );
       }
     }
 
@@ -1253,12 +1333,16 @@ export class AppointmentsService {
 
     return this.prisma.$transaction(async (tx) => {
       // 1. Find or create user account
-      let targetUser = await tx.user.findUnique({ where: { email: normalizedEmail } });
+      let targetUser = await tx.user.findUnique({
+        where: { email: normalizedEmail },
+      });
 
       if (targetUser) {
         // Check for existing active membership in this org
         const existingStaff = await tx.orgStaff.findUnique({
-          where: { userId_organizationId: { userId: targetUser.id, organizationId } },
+          where: {
+            userId_organizationId: { userId: targetUser.id, organizationId },
+          },
         });
         if (existingStaff && !existingStaff.deletedAt) {
           throw new BadRequestException(
@@ -1295,7 +1379,11 @@ export class AppointmentsService {
 
       // 2. Create OrgStaff record
       const orgStaff = await tx.orgStaff.create({
-        data: { userId: targetUser.id, organizationId, role: UserRole.ORG_STAFF },
+        data: {
+          userId: targetUser.id,
+          organizationId,
+          role: UserRole.ORG_STAFF,
+        },
       });
 
       // 3. Assign services and working hours
@@ -1484,7 +1572,9 @@ export class AppointmentsService {
     }
 
     if (start >= end) {
-      throw new BadRequestException('Start time must be strictly before end time');
+      throw new BadRequestException(
+        'Start time must be strictly before end time',
+      );
     }
 
     if (data.recurrence === 'CUSTOM') {
@@ -1502,7 +1592,9 @@ export class AppointmentsService {
     });
 
     if (!staff || staff.organizationId !== organizationId || staff.deletedAt) {
-      throw new ForbiddenException('Staff member does not belong to this organization');
+      throw new ForbiddenException(
+        'Staff member does not belong to this organization',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -1542,7 +1634,9 @@ export class AppointmentsService {
           type: data.type || 'LEAVE',
           reason: data.reason?.trim() || null,
           recurrence: data.recurrence || 'NONE',
-          recurrenceEnd: data.recurrenceEnd ? new Date(data.recurrenceEnd) : null,
+          recurrenceEnd: data.recurrenceEnd
+            ? new Date(data.recurrenceEnd)
+            : null,
           createdById,
         },
         include: {
@@ -1580,15 +1674,23 @@ export class AppointmentsService {
       where: { id },
     });
 
-    if (!existing || existing.organizationId !== organizationId || existing.deletedAt) {
+    if (
+      !existing ||
+      existing.organizationId !== organizationId ||
+      existing.deletedAt
+    ) {
       throw new NotFoundException('Time off block not found');
     }
 
-    const start = data.startTime ? new Date(data.startTime) : existing.startTime;
+    const start = data.startTime
+      ? new Date(data.startTime)
+      : existing.startTime;
     const end = data.endTime ? new Date(data.endTime) : existing.endTime;
 
     if (start >= end) {
-      throw new BadRequestException('Start time must be strictly before end time');
+      throw new BadRequestException(
+        'Start time must be strictly before end time',
+      );
     }
 
     if (data.recurrence === 'CUSTOM') {
@@ -1626,10 +1728,16 @@ export class AppointmentsService {
           ...(data.endTime ? { endTime: end } : {}),
           ...(data.timezone ? { timezone: data.timezone } : {}),
           ...(data.type ? { type: data.type } : {}),
-          ...(data.reason !== undefined ? { reason: data.reason?.trim() || null } : {}),
+          ...(data.reason !== undefined
+            ? { reason: data.reason?.trim() || null }
+            : {}),
           ...(data.recurrence ? { recurrence: data.recurrence } : {}),
           ...(data.recurrenceEnd !== undefined
-            ? { recurrenceEnd: data.recurrenceEnd ? new Date(data.recurrenceEnd) : null }
+            ? {
+              recurrenceEnd: data.recurrenceEnd
+                ? new Date(data.recurrenceEnd)
+                : null,
+            }
             : {}),
         },
         include: {
@@ -1655,7 +1763,11 @@ export class AppointmentsService {
       where: { id },
     });
 
-    if (!existing || existing.organizationId !== organizationId || existing.deletedAt) {
+    if (
+      !existing ||
+      existing.organizationId !== organizationId ||
+      existing.deletedAt
+    ) {
       throw new NotFoundException('Time off block not found');
     }
 
@@ -1698,14 +1810,20 @@ export class AppointmentsService {
     }
 
     if (start >= end) {
-      throw new BadRequestException('Start time must be strictly before end time');
+      throw new BadRequestException(
+        'Start time must be strictly before end time',
+      );
     }
 
     // 1. Verify service belongs to organization
     const service = await this.prisma.businessService.findUnique({
       where: { id: data.serviceId },
     });
-    if (!service || service.organizationId !== organizationId || service.deletedAt) {
+    if (
+      !service ||
+      service.organizationId !== organizationId ||
+      service.deletedAt
+    ) {
       throw new BadRequestException('Invalid service for this organization');
     }
 
@@ -1723,7 +1841,9 @@ export class AppointmentsService {
       include: { user: true },
     });
     if (!staff || staff.organizationId !== organizationId || staff.deletedAt) {
-      throw new ForbiddenException('Staff member does not belong to this organization');
+      throw new ForbiddenException(
+        'Staff member does not belong to this organization',
+      );
     }
 
     const assignment = await this.prisma.staffServiceAssignment.findUnique({
@@ -1735,7 +1855,9 @@ export class AppointmentsService {
       },
     });
     if (!assignment) {
-      throw new BadRequestException('Staff member is not assigned to this service');
+      throw new BadRequestException(
+        'Staff member is not assigned to this service',
+      );
     }
 
     // 4. Concurrency lock on staff schedule using advisory lock
@@ -1772,10 +1894,7 @@ export class AppointmentsService {
             {
               recurrence: { in: ['DAILY', 'WEEKLY', 'CUSTOM'] },
               startTime: { lt: end },
-              OR: [
-                { recurrenceEnd: null },
-                { recurrenceEnd: { gte: start } },
-              ],
+              OR: [{ recurrenceEnd: null }, { recurrenceEnd: { gte: start } }],
             },
           ],
         },
@@ -1794,8 +1913,10 @@ export class AppointmentsService {
           if (to.startTime.getUTCDay() !== start.getUTCDay()) return false;
         }
 
-        const bStartMins = to.startTime.getUTCHours() * 60 + to.startTime.getUTCMinutes();
-        const bEndMins = to.endTime.getUTCHours() * 60 + to.endTime.getUTCMinutes();
+        const bStartMins =
+          to.startTime.getUTCHours() * 60 + to.startTime.getUTCMinutes();
+        const bEndMins =
+          to.endTime.getUTCHours() * 60 + to.endTime.getUTCMinutes();
 
         if (bStartMins < bEndMins) {
           return offStartMins < bEndMins && offEndMins > bStartMins;
@@ -1820,7 +1941,8 @@ export class AppointmentsService {
             data: {
               email,
               firstName: data.customerName?.split(' ')[0] || 'Walk-in',
-              lastName: data.customerName?.split(' ').slice(1).join(' ') || 'Customer',
+              lastName:
+                data.customerName?.split(' ').slice(1).join(' ') || 'Customer',
               phone: data.customerPhone || null,
               role: UserRole.STUDENT,
               password: 'OFFLINE_WALKIN_PLACEHOLDER',

@@ -18,6 +18,8 @@ import {
 import { StorageService } from '../properties/core/storage.service';
 import { RedisService } from '../redis/redis.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RetailOrderWhatsAppService } from './orders/retail-order-whatsapp.service';
+import { RetailOrderEmailService } from './orders/retail-order-email.service';
 
 describe('Retail Backend QA Validation', () => {
   let catalogService: CatalogService;
@@ -35,6 +37,24 @@ describe('Retail Backend QA Validation', () => {
         InventoryService,
         OrdersService,
         PosWebhookService,
+        {
+          provide: RetailOrderWhatsAppService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+            notifyOrderPacked: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_PACKED' }),
+            notifyOrderDelivered: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_DELIVERED' }),
+            notifyOrderTakenAway: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_TAKEN_AWAY' }),
+          },
+        },
+        {
+          provide: RetailOrderEmailService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+            notifyOrderPacked: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_PACKED' }),
+            notifyOrderDelivered: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_DELIVERED' }),
+            notifyOrderTakenAway: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_TAKEN_AWAY' }),
+          },
+        },
         { provide: StorageService, useValue: { uploadFile: jest.fn() } },
         {
           provide: RedisService,

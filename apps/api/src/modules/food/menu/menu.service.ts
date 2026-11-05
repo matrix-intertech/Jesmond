@@ -1,12 +1,17 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { 
-  CreateFoodMenuDto, 
-  UpdateFoodMenuDto, 
-  CreateFoodMenuCategoryDto, 
-  UpdateFoodMenuCategoryDto, 
-  CreateFoodMenuItemDto, 
-  UpdateFoodMenuItemDto 
+import {
+  CreateFoodMenuDto,
+  UpdateFoodMenuDto,
+  CreateFoodMenuCategoryDto,
+  UpdateFoodMenuCategoryDto,
+  CreateFoodMenuItemDto,
+  UpdateFoodMenuItemDto,
 } from './dtos/menu.dto';
 
 @Injectable()
@@ -55,7 +60,9 @@ export class MenuService {
     });
 
     if (!branch) {
-      throw new NotFoundException('Branch not found or does not belong to organization');
+      throw new NotFoundException(
+        'Branch not found or does not belong to organization',
+      );
     }
 
     return this.prisma.foodMenu.create({
@@ -68,7 +75,11 @@ export class MenuService {
     });
   }
 
-  async updateMenu(organizationId: string, menuId: string, dto: UpdateFoodMenuDto) {
+  async updateMenu(
+    organizationId: string,
+    menuId: string,
+    dto: UpdateFoodMenuDto,
+  ) {
     const menu = await this.prisma.foodMenu.findFirst({
       where: { id: menuId, organizationId },
     });
@@ -93,7 +104,9 @@ export class MenuService {
     });
 
     if (!menu) {
-      throw new NotFoundException('Menu not found or you do not have permission');
+      throw new NotFoundException(
+        'Menu not found or you do not have permission',
+      );
     }
 
     return this.prisma.foodMenuCategory.create({
@@ -106,9 +119,13 @@ export class MenuService {
     });
   }
 
-  async updateCategory(organizationId: string, categoryId: string, dto: UpdateFoodMenuCategoryDto) {
+  async updateCategory(
+    organizationId: string,
+    categoryId: string,
+    dto: UpdateFoodMenuCategoryDto,
+  ) {
     const category = await this.prisma.foodMenuCategory.findFirst({
-      where: { 
+      where: {
         id: categoryId,
         menu: { organizationId },
       },
@@ -130,14 +147,16 @@ export class MenuService {
 
   async createMenuItem(organizationId: string, dto: CreateFoodMenuItemDto) {
     const category = await this.prisma.foodMenuCategory.findFirst({
-      where: { 
+      where: {
         id: dto.categoryId,
         menu: { organizationId },
       },
     });
 
     if (!category) {
-      throw new NotFoundException('Category not found or you do not have permission');
+      throw new NotFoundException(
+        'Category not found or you do not have permission',
+      );
     }
 
     return this.prisma.foodMenuItem.create({
@@ -154,9 +173,13 @@ export class MenuService {
     });
   }
 
-  async updateMenuItem(organizationId: string, itemId: string, dto: UpdateFoodMenuItemDto) {
+  async updateMenuItem(
+    organizationId: string,
+    itemId: string,
+    dto: UpdateFoodMenuItemDto,
+  ) {
     const item = await this.prisma.foodMenuItem.findFirst({
-      where: { 
+      where: {
         id: itemId,
         category: {
           menu: { organizationId },
@@ -180,7 +203,7 @@ export class MenuService {
 
   async getPublicMenu(branchId: string) {
     const menus = await this.prisma.foodMenu.findMany({
-      where: { 
+      where: {
         branchId,
         isActive: true,
       },

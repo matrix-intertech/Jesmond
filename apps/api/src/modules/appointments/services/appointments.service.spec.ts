@@ -2,11 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppointmentsService } from './appointments.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { AppointmentWhatsAppService } from './appointment-whatsapp.service';
+import { AppointmentEmailService } from './appointment-email.service';
 import { BadRequestException } from '@nestjs/common';
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
   let prisma: any;
+  let waService: any;
+  let emailService: any;
 
   beforeEach(async () => {
     const mockPrisma: any = {
@@ -47,6 +51,12 @@ describe('AppointmentsService', () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      retailBranch: {
+        findUnique: jest.fn(),
+      },
+      organization: {
+        findUnique: jest.fn(),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -62,11 +72,34 @@ describe('AppointmentsService', () => {
             createNotification: jest.fn().mockResolvedValue(undefined),
           },
         },
+        {
+          provide: AppointmentWhatsAppService,
+          useValue: {
+            notifyBookingRequestReceived: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentRequestReceived: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentConfirmed: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentCancelled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentRescheduled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyProviderNewAppointment: jest.fn().mockResolvedValue({ sent: true }),
+          },
+        },
+        {
+          provide: AppointmentEmailService,
+          useValue: {
+            notifyAppointmentRequestReceived: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentConfirmed: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentCancelled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentRescheduled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyProviderNewAppointment: jest.fn().mockResolvedValue({ sent: true }),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<AppointmentsService>(AppointmentsService);
     prisma = module.get<PrismaService>(PrismaService);
+    waService = module.get<AppointmentWhatsAppService>(AppointmentWhatsAppService);
+    emailService = module.get<AppointmentEmailService>(AppointmentEmailService);
   });
 
   it('should be defined', () => {
@@ -110,7 +143,12 @@ describe('AppointmentsService', () => {
         firstName: 'Sarah',
         lastName: 'Connor',
         workingHours: [
-          { dayOfWeek: 1, startTime: '09:00', endTime: '17:00', isWorking: true },
+          {
+            dayOfWeek: 1,
+            startTime: '09:00',
+            endTime: '17:00',
+            isWorking: true,
+          },
         ],
       });
 
@@ -129,7 +167,14 @@ describe('AppointmentsService', () => {
         where: { staffId: 'staff-456' },
       });
       expect(prisma.staffWorkingHours.createMany).toHaveBeenCalledWith({
-        data: [{ staffId: 'staff-456', dayOfWeek: 1, startTime: '09:00', endTime: '17:00' }],
+        data: [
+          {
+            staffId: 'staff-456',
+            dayOfWeek: 1,
+            startTime: '09:00',
+            endTime: '17:00',
+          },
+        ],
       });
       expect(result.id).toBe('staff-456');
     });
@@ -155,7 +200,9 @@ describe('AppointmentsService', () => {
     });
 
     it('should throw BadRequestException if invalid service IDs are provided', async () => {
-      prisma.businessService.findMany.mockResolvedValue([{ id: 'valid-svc-1' }]);
+      prisma.businessService.findMany.mockResolvedValue([
+        { id: 'valid-svc-1' },
+      ]);
 
       await expect(
         service.addBusinessStaff(orgId, {
@@ -183,7 +230,11 @@ describe('AppointmentsService', () => {
         if (where.id) {
           return Promise.resolve({
             id: 'staff-deleted-id',
-            user: { id: 'deleted-user-id', firstName: 'Back', lastName: 'Again' },
+            user: {
+              id: 'deleted-user-id',
+              firstName: 'Back',
+              lastName: 'Again',
+            },
             serviceAssignments: [],
             workingHours: [],
           });
@@ -205,6 +256,56 @@ describe('AppointmentsService', () => {
         data: { deletedAt: null },
       });
       expect(result.id).toBe('staff-deleted-id');
+    });
+  });
+
+  describe('createPendingAppointment', () => {
+    it('should create a pending appointment and dispatch request notifications to customer and provider', async () => {
+      const now = new Date(Date.now() + 86400000);
+      const startTime = new Date(now.getTime() + 3600000);
+      const endTime = new Date(startTime.getTime() + 30 * 60000);
+
+      prisma.businessService.findUnique.mockResolvedValue({
+        id: 'svc-1',
+        isActive: true,
+        branchId: 'branch-1',
+        organizationId: 'org-1',
+        durationMins: 30,
+        price: 100,
+        currency: 'AUD',
+        name: 'General Consultation',
+      });
+      prisma.retailBranch.findUnique.mockResolvedValue({
+        id: 'branch-1',
+        organizationId: 'org-1',
+      });
+      prisma.organization.findUnique.mockResolvedValue({
+        id: 'org-1',
+        businessCategory: 'SERVICES',
+      });
+      prisma.appointment.count.mockResolvedValue(0);
+      prisma.staffServiceAssignment.count.mockResolvedValue(1);
+      prisma.appointment.create.mockResolvedValue({
+        id: 'appt-123',
+        customerId: 'cust-1',
+        serviceName: 'General Consultation',
+        status: 'PENDING_APPROVAL',
+      });
+
+      const result = await service.createPendingAppointment({
+        customerId: 'cust-1',
+        branchId: 'branch-1',
+        serviceId: 'svc-1',
+        startTime,
+        endTime,
+        timezone: 'Australia/Sydney',
+        customerNotes: 'Need assistance',
+      });
+
+      expect(result.id).toBe('appt-123');
+      expect(waService.notifyBookingRequestReceived).toHaveBeenCalledWith('appt-123');
+      expect(emailService.notifyAppointmentRequestReceived).toHaveBeenCalledWith('appt-123');
+      expect(emailService.notifyProviderNewAppointment).toHaveBeenCalledWith('appt-123');
     });
   });
 });

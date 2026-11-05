@@ -215,7 +215,8 @@ export class CreateTimeOffDto {
   reason?: string;
 
   @IsEnum(['NONE', 'DAILY', 'WEEKLY'], {
-    message: 'recurrence must be one of: NONE, DAILY, WEEKLY (CUSTOM recurrence is not supported in Phase 5)',
+    message:
+      'recurrence must be one of: NONE, DAILY, WEEKLY (CUSTOM recurrence is not supported in Phase 5)',
   })
   @IsOptional()
   recurrence?: 'NONE' | 'DAILY' | 'WEEKLY';
@@ -247,7 +248,8 @@ export class UpdateTimeOffDto {
   reason?: string;
 
   @IsEnum(['NONE', 'DAILY', 'WEEKLY'], {
-    message: 'recurrence must be one of: NONE, DAILY, WEEKLY (CUSTOM recurrence is not supported in Phase 5)',
+    message:
+      'recurrence must be one of: NONE, DAILY, WEEKLY (CUSTOM recurrence is not supported in Phase 5)',
   })
   @IsOptional()
   recurrence?: 'NONE' | 'DAILY' | 'WEEKLY';

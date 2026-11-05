@@ -5,6 +5,7 @@ import { ChatGateway } from './chat.gateway';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PropertiesModule } from '../properties/properties.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       secret: process.env.JWT_SECRET || 'test-secret',
     }),
     NotificationsModule,
+    PropertiesModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatGateway],

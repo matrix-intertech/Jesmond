@@ -1,6 +1,8 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Injectable, Logger, Optional, Inject } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { RedisService } from '../../redis/redis.service';
+import { PrismaService } from '../../prisma/prisma.service';
+import { EmailNotificationStatus } from '@prisma/client';
 
 export interface AccountCreatedNotificationPayload {
   id: string;
@@ -28,7 +30,10 @@ export class EmailService {
     process.env.EMAIL_FROM || process.env.SMTP_USER || 'noreply@jesmond.local';
   private readonly notifiedUserIds = new Set<string>();
 
-  constructor(@Optional() private readonly redisService?: RedisService) {
+  constructor(
+    @Optional() @Inject(RedisService) private readonly redisService?: RedisService,
+    @Optional() @Inject(PrismaService) private readonly prisma?: PrismaService,
+  ) {
     if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
       const port = parseInt(process.env.SMTP_PORT, 10);
       this.transporter = nodemailer.createTransport({
@@ -62,6 +67,39 @@ export class EmailService {
       this.logger.warn(
         'SMTP_HOST or SMTP_PORT is not set. Emails will only be logged.',
       );
+    }
+  }
+
+  /**
+   * Records OTP emails to central EmailNotificationLog for auditability.
+   * Guaranteed: Plaintext OTP is never logged.
+   */
+  private async logOtpEmail(params: {
+    event: string;
+    recipient: string;
+    subject: string;
+    success: boolean;
+    error?: string;
+  }) {
+    if (!this.prisma?.emailNotificationLog) return;
+    try {
+      await this.prisma.emailNotificationLog.create({
+        data: {
+          eventType: params.event,
+          recipient: params.recipient.toLowerCase().trim(),
+          subject: params.subject,
+          status: params.success
+            ? EmailNotificationStatus.SENT
+            : EmailNotificationStatus.FAILED,
+          failureReason: params.error ? params.error.slice(0, 1000) : null,
+          metadata: {
+            authChannel: 'email',
+            devMode: !this.transporter,
+          },
+        },
+      });
+    } catch (err: any) {
+      this.logger.warn(`Failed to create auth OTP email log: ${err.message}`);
     }
   }
 
@@ -109,20 +147,22 @@ export class EmailService {
   }
 
   async sendVerificationOtp(email: string, otp: string): Promise<boolean> {
+    const text = `Hello,\n\nUse this code to verify your Jesmond account:\n\n${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone. If you did not start this registration, you can ignore this email.\n\nRegards,\nJesmond Team`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
-        <h2 style="color: #111827;">Verify your email address</h2>
+        <h2 style="color: #111827;">Verify your Jesmond account</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">Hello,</p>
         <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
-          Thanks for signing up for Jesmond! Please use the following 6-digit code to verify your email address. 
-          This code will expire in 10 minutes.
+          Use this code to verify your Jesmond account:
         </p>
         <div style="background-color: #f3f4f6; border-radius: 8px; padding: 16px; text-align: center; margin: 32px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${otp}</span>
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827; font-family: monospace;">${escapeHtml(otp)}</span>
         </div>
         <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
-          Security Note: Jesmond team will never ask you for your password or this verification code.
+          This code expires in 10 minutes. Do not share it with anyone. If you did not start this registration, you can ignore this email.
         </p>
+        <p style="margin-top: 24px; color: #374151;">Regards,<br><strong>Jesmond Team</strong></p>
       </div>
     `;
 
@@ -130,21 +170,102 @@ export class EmailService {
       this.logger.log(
         `[DEV MODE] Mock Email sent to ${email}. OTP is generated but hidden from logs in production.`,
       );
-      // We log OTP in dev mode only if SMTP is not configured
       this.logger.debug(`[DEV MODE] OTP: ${otp}`);
-      return true; // Return true in dev mode
+      this.logOtpEmail({
+        event: 'AUTH_REGISTER_OTP',
+        recipient: email,
+        subject: 'Verify your Jesmond account',
+        success: true,
+      });
+      return true;
     }
 
     try {
       await this.transporter.sendMail({
         from: `"Jesmond" <${this.fromEmail}>`,
         to: email,
-        subject: 'Verify your email - Jesmond',
+        subject: 'Verify your Jesmond account',
+        text,
         html,
+      });
+      this.logOtpEmail({
+        event: 'AUTH_REGISTER_OTP',
+        recipient: email,
+        subject: 'Verify your Jesmond account',
+        success: true,
       });
       return true;
     } catch (error) {
       this.logger.error(`Failed to send email to ${email}`, error);
+      this.logOtpEmail({
+        event: 'AUTH_REGISTER_OTP',
+        recipient: email,
+        subject: 'Verify your Jesmond account',
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  }
+
+  async sendLoginOtp(email: string, otp: string): Promise<boolean> {
+    const text = `Hello,\n\nYour Jesmond login verification code is:\n\n${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone. If you did not request this code, you can ignore this email.\n\nRegards,\nJesmond Team`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
+        <h2 style="color: #111827;">Your Jesmond login code</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">Hello,</p>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
+          Your Jesmond login verification code is:
+        </p>
+        <div style="background-color: #f3f4f6; border-radius: 8px; padding: 16px; text-align: center; margin: 32px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827; font-family: monospace;">${escapeHtml(otp)}</span>
+        </div>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
+          This code expires in 10 minutes. Do not share it with anyone. If you did not request this code, you can ignore this email.
+        </p>
+        <p style="margin-top: 24px; color: #374151;">Regards,<br><strong>Jesmond Team</strong></p>
+      </div>
+    `;
+
+    if (!this.transporter) {
+      this.logger.log(
+        `[DEV MODE] Mock Login OTP Email sent to ${email}. OTP is generated but hidden from logs in production.`,
+      );
+      this.logger.debug(`[DEV MODE] Login OTP: ${otp}`);
+      this.logOtpEmail({
+        event: 'AUTH_LOGIN_OTP',
+        recipient: email,
+        subject: 'Your Jesmond login code',
+        success: true,
+      });
+      return true;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        from: `"Jesmond" <${this.fromEmail}>`,
+        to: email,
+        subject: 'Your Jesmond login code',
+        text,
+        html,
+      });
+      this.logOtpEmail({
+        event: 'AUTH_LOGIN_OTP',
+        recipient: email,
+        subject: 'Your Jesmond login code',
+        success: true,
+      });
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to send login OTP email to ${email}`, error);
+      this.logOtpEmail({
+        event: 'AUTH_LOGIN_OTP',
+        recipient: email,
+        subject: 'Your Jesmond login code',
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }
@@ -232,22 +353,22 @@ export class EmailService {
   }
 
   async sendPasswordResetOtp(email: string, otp: string): Promise<boolean> {
+    const text = `Hello,\n\nUse this code to continue resetting your Jesmond password:\n\n${otp}\n\nThis code expires in 15 minutes. Do not share it with anyone. If you did not request a reset, ignore this email.\n\nRegards,\nJesmond Team`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #4f46e5; margin-bottom: 24px;">Jesmond</h1>
-        <h2 style="color: #111827;">Reset your password</h2>
+        <h2 style="color: #111827;">Reset your Jesmond password</h2>
+        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">Hello,</p>
         <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
-          Your Jesmond password reset OTP is:
+          Use this code to continue resetting your Jesmond password:
         </p>
         <div style="background-color: #f3f4f6; border-radius: 8px; padding: 16px; text-align: center; margin: 32px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827;">${otp}</span>
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #111827; font-family: monospace;">${escapeHtml(otp)}</span>
         </div>
-        <p style="color: #4b5563; font-size: 16px; line-height: 24px;">
-          This OTP is valid for 15 minutes.
-        </p>
         <p style="color: #6b7280; font-size: 14px; margin-top: 32px;">
-          If you did not request a password reset, you can safely ignore this email.
+          This code expires in 15 minutes. Do not share it with anyone. If you did not request a reset, ignore this email.
         </p>
+        <p style="margin-top: 24px; color: #374151;">Regards,<br><strong>Jesmond Team</strong></p>
       </div>
     `;
 
@@ -256,6 +377,12 @@ export class EmailService {
         `[DEV MODE] Mock Password Reset Email sent to ${email}. OTP is generated but hidden from logs in production.`,
       );
       this.logger.debug(`[DEV MODE] Password Reset OTP: ${otp}`);
+      this.logOtpEmail({
+        event: 'AUTH_PASSWORD_RESET_OTP',
+        recipient: email,
+        subject: 'Reset your Jesmond password',
+        success: true,
+      });
       return true;
     }
 
@@ -263,8 +390,15 @@ export class EmailService {
       await this.transporter.sendMail({
         from: `"Jesmond" <${this.fromEmail}>`,
         to: email,
-        subject: 'Reset your password - Jesmond',
+        subject: 'Reset your Jesmond password',
+        text,
         html,
+      });
+      this.logOtpEmail({
+        event: 'AUTH_PASSWORD_RESET_OTP',
+        recipient: email,
+        subject: 'Reset your Jesmond password',
+        success: true,
       });
       return true;
     } catch (error) {
@@ -272,6 +406,13 @@ export class EmailService {
         `Failed to send password reset email to ${email}`,
         error,
       );
+      this.logOtpEmail({
+        event: 'AUTH_PASSWORD_RESET_OTP',
+        recipient: email,
+        subject: 'Reset your Jesmond password',
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }

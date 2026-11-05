@@ -3,6 +3,9 @@ import { MarketplaceService } from './marketplace.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
 import { PaymentSettingsService } from '../payments/payment-settings.service';
+import { RetailOrderWhatsAppService } from '../orders/retail-order-whatsapp.service';
+import { RetailOrderEmailService } from '../orders/retail-order-email.service';
+import { RetailOrderWhatsAppService } from '../orders/retail-order-whatsapp.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 describe('MarketplaceService', () => {
@@ -58,6 +61,18 @@ describe('MarketplaceService', () => {
         { provide: PrismaService, useValue: prismaMock },
         { provide: RedisService, useValue: redisMock },
         { provide: PaymentSettingsService, useValue: paymentSettingsMock },
+        {
+          provide: RetailOrderWhatsAppService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+          },
+        },
+        {
+          provide: RetailOrderEmailService,
+          useValue: {
+            notifyOrderConfirmed: jest.fn().mockResolvedValue({ sent: true, event: 'ORDER_CONFIRMED' }),
+          },
+        },
       ],
     }).compile();
 

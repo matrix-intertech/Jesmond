@@ -1,22 +1,22 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Patch, 
-  Body, 
-  Param, 
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
   UseGuards,
   Request,
-  ForbiddenException
+  ForbiddenException,
 } from '@nestjs/common';
 import { MenuService } from './menu.service';
-import { 
-  CreateFoodMenuDto, 
-  UpdateFoodMenuDto, 
-  CreateFoodMenuCategoryDto, 
-  UpdateFoodMenuCategoryDto, 
-  CreateFoodMenuItemDto, 
-  UpdateFoodMenuItemDto 
+import {
+  CreateFoodMenuDto,
+  UpdateFoodMenuDto,
+  CreateFoodMenuCategoryDto,
+  UpdateFoodMenuCategoryDto,
+  CreateFoodMenuItemDto,
+  UpdateFoodMenuItemDto,
 } from './dtos/menu.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
@@ -51,20 +51,14 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
   @RequireCapability(BusinessCapability.MENU)
   @Get(':id')
-  getMenuById(
-    @Request() req: any,
-    @Param('id') id: string,
-  ) {
+  getMenuById(@Request() req: any, @Param('id') id: string) {
     return this.menuService.getMenuById(this.getOrgId(req), id);
   }
 
   @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
   @RequireCapability(BusinessCapability.MENU)
   @Post()
-  createMenu(
-    @Request() req: any,
-    @Body() dto: CreateFoodMenuDto,
-  ) {
+  createMenu(@Request() req: any, @Body() dto: CreateFoodMenuDto) {
     return this.menuService.createMenu(this.getOrgId(req), dto);
   }
 
@@ -86,10 +80,7 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
   @RequireCapability(BusinessCapability.MENU)
   @Post('categories')
-  createCategory(
-    @Request() req: any,
-    @Body() dto: CreateFoodMenuCategoryDto,
-  ) {
+  createCategory(@Request() req: any, @Body() dto: CreateFoodMenuCategoryDto) {
     return this.menuService.createCategory(this.getOrgId(req), dto);
   }
 
@@ -111,10 +102,7 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
   @RequireCapability(BusinessCapability.MENU)
   @Post('items')
-  createMenuItem(
-    @Request() req: any,
-    @Body() dto: CreateFoodMenuItemDto,
-  ) {
+  createMenuItem(@Request() req: any, @Body() dto: CreateFoodMenuItemDto) {
     return this.menuService.createMenuItem(this.getOrgId(req), dto);
   }
 

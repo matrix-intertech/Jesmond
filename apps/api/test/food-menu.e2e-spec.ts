@@ -10,7 +10,7 @@ describe('Food Menu Management (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let jwtService: JwtService;
-  
+
   let foodToken: string;
   let retailToken: string;
   let mechanicsToken: string;
@@ -33,7 +33,12 @@ describe('Food Menu Management (e2e)', () => {
 
     // Setup FOOD
     const foodOrg = await prisma.organization.create({
-      data: { name: 'Food Org', type: 'PROVIDER', status: 'VERIFIED', businessCategory: 'FOOD' },
+      data: {
+        name: 'Food Org',
+        type: 'PROVIDER',
+        status: 'VERIFIED',
+        businessCategory: 'FOOD',
+      },
     });
     foodOrgId = foodOrg.id;
     const foodBranch = await prisma.retailBranch.create({
@@ -42,15 +47,47 @@ describe('Food Menu Management (e2e)', () => {
     foodBranchId = foodBranch.id;
 
     const foodUser = await prisma.user.create({
-      data: { email: `food-${Date.now()}@test.com`, password: 'pwd', firstName: 'F', lastName: 'U' },
+      data: {
+        email: `food-${Date.now()}@test.com`,
+        password: 'pwd',
+        firstName: 'F',
+        lastName: 'U',
+      },
     });
-    await prisma.orgStaff.create({ data: { userId: foodUser.id, organizationId: foodOrgId, role: UserRole.ADMIN } });
-    const s1 = await prisma.session.create({ data: { userId: foodUser.id, refreshToken: `f-${Date.now()}`, expiresAt: new Date(Date.now() + 100000) } });
-    foodToken = jwtService.sign({ sub: foodUser.id, email: foodUser.email, role: foodUser.role, orgId: foodOrgId, orgRoles: ['ADMIN'], sessionId: s1.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    await prisma.orgStaff.create({
+      data: {
+        userId: foodUser.id,
+        organizationId: foodOrgId,
+        role: UserRole.ADMIN,
+      },
+    });
+    const s1 = await prisma.session.create({
+      data: {
+        userId: foodUser.id,
+        refreshToken: `f-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 100000),
+      },
+    });
+    foodToken = jwtService.sign(
+      {
+        sub: foodUser.id,
+        email: foodUser.email,
+        role: foodUser.role,
+        orgId: foodOrgId,
+        orgRoles: ['ADMIN'],
+        sessionId: s1.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
     // Setup RETAIL
     const retailOrg = await prisma.organization.create({
-      data: { name: 'Retail Org', type: 'RETAIL', status: 'VERIFIED', businessCategory: 'RETAIL' },
+      data: {
+        name: 'Retail Org',
+        type: 'RETAIL',
+        status: 'VERIFIED',
+        businessCategory: 'RETAIL',
+      },
     });
     retailOrgId = retailOrg.id;
     const retailBranch = await prisma.retailBranch.create({
@@ -59,22 +96,81 @@ describe('Food Menu Management (e2e)', () => {
     retailBranchId = retailBranch.id;
 
     const retailUser = await prisma.user.create({
-      data: { email: `retail-${Date.now()}@test.com`, password: 'pwd', firstName: 'R', lastName: 'U' },
+      data: {
+        email: `retail-${Date.now()}@test.com`,
+        password: 'pwd',
+        firstName: 'R',
+        lastName: 'U',
+      },
     });
-    await prisma.orgStaff.create({ data: { userId: retailUser.id, organizationId: retailOrgId, role: UserRole.ADMIN } });
-    const s2 = await prisma.session.create({ data: { userId: retailUser.id, refreshToken: `r-${Date.now()}`, expiresAt: new Date(Date.now() + 100000) } });
-    retailToken = jwtService.sign({ sub: retailUser.id, email: retailUser.email, role: retailUser.role, orgId: retailOrgId, orgRoles: ['ADMIN'], sessionId: s2.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    await prisma.orgStaff.create({
+      data: {
+        userId: retailUser.id,
+        organizationId: retailOrgId,
+        role: UserRole.ADMIN,
+      },
+    });
+    const s2 = await prisma.session.create({
+      data: {
+        userId: retailUser.id,
+        refreshToken: `r-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 100000),
+      },
+    });
+    retailToken = jwtService.sign(
+      {
+        sub: retailUser.id,
+        email: retailUser.email,
+        role: retailUser.role,
+        orgId: retailOrgId,
+        orgRoles: ['ADMIN'],
+        sessionId: s2.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
     // Setup MECHANICS
     const mechOrg = await prisma.organization.create({
-      data: { name: 'Mech Org', type: 'PROVIDER', status: 'VERIFIED', businessCategory: 'MECHANICS' },
+      data: {
+        name: 'Mech Org',
+        type: 'PROVIDER',
+        status: 'VERIFIED',
+        businessCategory: 'MECHANICS',
+      },
     });
     const mechUser = await prisma.user.create({
-      data: { email: `mech-${Date.now()}@test.com`, password: 'pwd', firstName: 'M', lastName: 'U' },
+      data: {
+        email: `mech-${Date.now()}@test.com`,
+        password: 'pwd',
+        firstName: 'M',
+        lastName: 'U',
+      },
     });
-    await prisma.orgStaff.create({ data: { userId: mechUser.id, organizationId: mechOrg.id, role: UserRole.ADMIN } });
-    const s3 = await prisma.session.create({ data: { userId: mechUser.id, refreshToken: `m-${Date.now()}`, expiresAt: new Date(Date.now() + 100000) } });
-    mechanicsToken = jwtService.sign({ sub: mechUser.id, email: mechUser.email, role: mechUser.role, orgId: mechOrg.id, orgRoles: ['ADMIN'], sessionId: s3.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    await prisma.orgStaff.create({
+      data: {
+        userId: mechUser.id,
+        organizationId: mechOrg.id,
+        role: UserRole.ADMIN,
+      },
+    });
+    const s3 = await prisma.session.create({
+      data: {
+        userId: mechUser.id,
+        refreshToken: `m-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 100000),
+      },
+    });
+    mechanicsToken = jwtService.sign(
+      {
+        sub: mechUser.id,
+        email: mechUser.email,
+        role: mechUser.role,
+        orgId: mechOrg.id,
+        orgRoles: ['ADMIN'],
+        sessionId: s3.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
   });
 
   afterAll(async () => {
@@ -105,7 +201,11 @@ describe('Food Menu Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/v1/food/menu')
       .set('Authorization', `Bearer ${foodToken}`)
-      .send({ branchId: foodBranchId, name: 'Main Menu', description: 'Our main offerings' });
+      .send({
+        branchId: foodBranchId,
+        name: 'Main Menu',
+        description: 'Our main offerings',
+      });
     expect(res.status).toBe(201);
     expect(res.body.name).toBe('Main Menu');
     createdMenuId = res.body.id;
@@ -143,7 +243,11 @@ describe('Food Menu Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/v1/food/menu/items')
       .set('Authorization', `Bearer ${foodToken}`)
-      .send({ categoryId: createdCategoryId, name: 'Invalid Item', price: -500 });
+      .send({
+        categoryId: createdCategoryId,
+        name: 'Invalid Item',
+        price: -500,
+      });
     expect(res.status).toBe(400); // Bad Request from class-validator
   });
 
@@ -151,7 +255,12 @@ describe('Food Menu Management (e2e)', () => {
     const res = await request(app.getHttpServer())
       .post('/v1/food/menu/items')
       .set('Authorization', `Bearer ${foodToken}`)
-      .send({ categoryId: createdCategoryId, name: 'Garlic Bread', price: 650, displayOrder: 1 });
+      .send({
+        categoryId: createdCategoryId,
+        name: 'Garlic Bread',
+        price: 650,
+        displayOrder: 1,
+      });
     expect(res.status).toBe(201);
     expect(res.body.name).toBe('Garlic Bread');
     expect(res.body.price).toBe(650);
@@ -167,17 +276,49 @@ describe('Food Menu Management (e2e)', () => {
     expect(res.body.price).toBe(700);
   });
 
-  it('11. Unauthorized organization cannot manipulate another Food organization\'s menu', async () => {
+  it("11. Unauthorized organization cannot manipulate another Food organization's menu", async () => {
     // Setup second FOOD org
     const foodOrg2 = await prisma.organization.create({
-      data: { name: 'Food Org 2', type: 'PROVIDER', status: 'VERIFIED', businessCategory: 'FOOD' },
+      data: {
+        name: 'Food Org 2',
+        type: 'PROVIDER',
+        status: 'VERIFIED',
+        businessCategory: 'FOOD',
+      },
     });
     const foodUser2 = await prisma.user.create({
-      data: { email: `food2-${Date.now()}@test.com`, password: 'pwd', firstName: 'F', lastName: 'U' },
+      data: {
+        email: `food2-${Date.now()}@test.com`,
+        password: 'pwd',
+        firstName: 'F',
+        lastName: 'U',
+      },
     });
-    await prisma.orgStaff.create({ data: { userId: foodUser2.id, organizationId: foodOrg2.id, role: UserRole.ADMIN } });
-    const s4 = await prisma.session.create({ data: { userId: foodUser2.id, refreshToken: `f2-${Date.now()}`, expiresAt: new Date(Date.now() + 100000) } });
-    const foodToken2 = jwtService.sign({ sub: foodUser2.id, email: foodUser2.email, role: foodUser2.role, orgId: foodOrg2.id, orgRoles: ['ADMIN'], sessionId: s4.id }, { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' });
+    await prisma.orgStaff.create({
+      data: {
+        userId: foodUser2.id,
+        organizationId: foodOrg2.id,
+        role: UserRole.ADMIN,
+      },
+    });
+    const s4 = await prisma.session.create({
+      data: {
+        userId: foodUser2.id,
+        refreshToken: `f2-${Date.now()}`,
+        expiresAt: new Date(Date.now() + 100000),
+      },
+    });
+    const foodToken2 = jwtService.sign(
+      {
+        sub: foodUser2.id,
+        email: foodUser2.email,
+        role: foodUser2.role,
+        orgId: foodOrg2.id,
+        orgRoles: ['ADMIN'],
+        sessionId: s4.id,
+      },
+      { secret: process.env.JWT_SECRET || 'fallback-secret-for-dev' },
+    );
 
     // Try to update Org 1's menu with Org 2's token
     const res = await request(app.getHttpServer())
@@ -192,20 +333,27 @@ describe('Food Menu Management (e2e)', () => {
     const resCat = await request(app.getHttpServer())
       .post('/v1/food/menu/categories')
       .set('Authorization', `Bearer ${foodToken}`)
-      .send({ menuId: createdMenuId, name: 'Secret Category', isActive: false });
-    
+      .send({
+        menuId: createdMenuId,
+        name: 'Secret Category',
+        isActive: false,
+      });
+
     await request(app.getHttpServer())
       .post('/v1/food/menu/items')
       .set('Authorization', `Bearer ${foodToken}`)
       .send({ categoryId: resCat.body.id, name: 'Secret Item', price: 1000 });
 
-    const resPublic = await request(app.getHttpServer())
-      .get(`/v1/food/menu/public/${foodBranchId}`);
-    
+    const resPublic = await request(app.getHttpServer()).get(
+      `/v1/food/menu/public/${foodBranchId}`,
+    );
+
     expect(resPublic.status).toBe(200);
     expect(resPublic.body.name).toBe('Updated Main Menu');
     // The inactive category should NOT be returned
-    const cat = resPublic.body.categories.find(c => c.name === 'Secret Category');
+    const cat = resPublic.body.categories.find(
+      (c) => c.name === 'Secret Category',
+    );
     expect(cat).toBeUndefined();
   });
 });

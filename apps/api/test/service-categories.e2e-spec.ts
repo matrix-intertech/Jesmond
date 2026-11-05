@@ -1,5 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  INestApplication,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AppointmentsModule } from '../src/modules/appointments/appointments.module';
 import { PrismaModule } from '../src/modules/prisma/prisma.module';
 import { PrismaService } from '../src/modules/prisma/prisma.service';
@@ -108,11 +113,14 @@ describe('Service Categories & Appointments (Phase 4)', () => {
     });
 
     it('should allow another organization to create a category with the same name', async () => {
-      const categoryOrgB = await appointmentsService.createServiceCategory(orgBId, {
-        name: 'Electrical',
-        description: 'Auto Electrical',
-        isActive: true,
-      });
+      const categoryOrgB = await appointmentsService.createServiceCategory(
+        orgBId,
+        {
+          name: 'Electrical',
+          description: 'Auto Electrical',
+          isActive: true,
+        },
+      );
 
       expect(categoryOrgB).toBeDefined();
       expect(categoryOrgB.organizationId).toBe(orgBId);
@@ -127,30 +135,42 @@ describe('Service Categories & Appointments (Phase 4)', () => {
         description: 'Plumbing maintenance',
       });
 
-      const orgACategories = await appointmentsService.getServiceCategories(orgAId, true);
+      const orgACategories = await appointmentsService.getServiceCategories(
+        orgAId,
+        true,
+      );
       const names = orgACategories.map((c) => c.name);
 
       expect(names).toContain('Electrical');
       expect(names).toContain('Plumbing');
-      expect(orgACategories.every((c) => c.organizationId === orgAId)).toBe(true);
+      expect(orgACategories.every((c) => c.organizationId === orgAId)).toBe(
+        true,
+      );
     });
 
     it('should update category name, description, and active status', async () => {
       const cats = await appointmentsService.getServiceCategories(orgAId, true);
       const plumbing = cats.find((c) => c.name === 'Plumbing')!;
 
-      const updated = await appointmentsService.updateServiceCategory(orgAId, plumbing.id, {
-        name: 'Plumbing & Gas',
-        description: 'Licensed gas & plumbing',
-        isActive: false,
-      });
+      const updated = await appointmentsService.updateServiceCategory(
+        orgAId,
+        plumbing.id,
+        {
+          name: 'Plumbing & Gas',
+          description: 'Licensed gas & plumbing',
+          isActive: false,
+        },
+      );
 
       expect(updated.name).toBe('Plumbing & Gas');
       expect(updated.description).toBe('Licensed gas & plumbing');
       expect(updated.isActive).toBe(false);
 
       // Verify inactive category is filtered out by default when includeInactive=false
-      const activeCats = await appointmentsService.getServiceCategories(orgAId, false);
+      const activeCats = await appointmentsService.getServiceCategories(
+        orgAId,
+        false,
+      );
       expect(activeCats.some((c) => c.id === plumbing.id)).toBe(false);
     });
   });
@@ -161,10 +181,16 @@ describe('Service Categories & Appointments (Phase 4)', () => {
     let serviceA: any;
 
     beforeAll(async () => {
-      const catsA = await appointmentsService.getServiceCategories(orgAId, true);
+      const catsA = await appointmentsService.getServiceCategories(
+        orgAId,
+        true,
+      );
       catElectricalA = catsA.find((c) => c.name === 'Electrical')!;
 
-      const catsB = await appointmentsService.getServiceCategories(orgBId, true);
+      const catsB = await appointmentsService.getServiceCategories(
+        orgBId,
+        true,
+      );
       catElectricalB = catsB.find((c) => c.name === 'Electrical')!;
     });
 
@@ -197,17 +223,24 @@ describe('Service Categories & Appointments (Phase 4)', () => {
 
     it('should reject unassigning or assigning a service belonging to another organization', async () => {
       await expect(
-        appointmentsService.assignServiceCategory(orgBId, serviceA.id, catElectricalB.id),
+        appointmentsService.assignServiceCategory(
+          orgBId,
+          serviceA.id,
+          catElectricalB.id,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should allow creating existing/unassigned services without a category', async () => {
-      const unassignedSvc = await appointmentsService.createBusinessService(orgAId, {
-        name: 'General Consultation',
-        durationMins: 30,
-        price: 6000,
-        branchId: branchAId,
-      });
+      const unassignedSvc = await appointmentsService.createBusinessService(
+        orgAId,
+        {
+          name: 'General Consultation',
+          durationMins: 30,
+          price: 6000,
+          branchId: branchAId,
+        },
+      );
 
       expect(unassignedSvc).toBeDefined();
       expect(unassignedSvc.categoryId).toBeNull();
@@ -215,7 +248,11 @@ describe('Service Categories & Appointments (Phase 4)', () => {
 
     it('should assign and unassign a category for a service without deleting the service', async () => {
       // Assign
-      const updated = await appointmentsService.assignServiceCategory(orgAId, serviceA.id, null);
+      const updated = await appointmentsService.assignServiceCategory(
+        orgAId,
+        serviceA.id,
+        null,
+      );
       expect(updated.categoryId).toBeNull();
 
       // Re-assign
@@ -230,7 +267,10 @@ describe('Service Categories & Appointments (Phase 4)', () => {
 
   describe('Safe Category Deletion & Cascade Rules', () => {
     it('should reject deleting a category when dependent services exist', async () => {
-      const catsA = await appointmentsService.getServiceCategories(orgAId, true);
+      const catsA = await appointmentsService.getServiceCategories(
+        orgAId,
+        true,
+      );
       const catElectricalA = catsA.find((c) => c.name === 'Electrical')!;
 
       await expect(
@@ -244,19 +284,28 @@ describe('Service Categories & Appointments (Phase 4)', () => {
         name: 'Temporary Category',
       });
 
-      const result = await appointmentsService.deleteServiceCategory(orgAId, tempCat.id);
+      const result = await appointmentsService.deleteServiceCategory(
+        orgAId,
+        tempCat.id,
+      );
       expect(result.success).toBe(true);
 
       // Verify category is no longer in active listing
-      const cats = await appointmentsService.getServiceCategories(orgAId, false);
+      const cats = await appointmentsService.getServiceCategories(
+        orgAId,
+        false,
+      );
       expect(cats.some((c) => c.id === tempCat.id)).toBe(false);
     });
 
     it('should allow recreating a category with the same name after it was deleted', async () => {
-      const recreated = await appointmentsService.createServiceCategory(orgAId, {
-        name: 'Temporary Category',
-        description: 'Recreated category with same name',
-      });
+      const recreated = await appointmentsService.createServiceCategory(
+        orgAId,
+        {
+          name: 'Temporary Category',
+          description: 'Recreated category with same name',
+        },
+      );
 
       expect(recreated).toBeDefined();
       expect(recreated.name).toBe('Temporary Category');
@@ -268,10 +317,13 @@ describe('Service Categories & Appointments (Phase 4)', () => {
 
   describe('Public Branch Services & Category Inclusion', () => {
     it('should return active services with category metadata in public branch lookup', async () => {
-      const branchServices = await appointmentsService.getServicesForBranch(branchAId);
+      const branchServices =
+        await appointmentsService.getServicesForBranch(branchAId);
       expect(branchServices.length).toBeGreaterThan(0);
 
-      const electricalSvc = branchServices.find((s) => s.name === 'Rewiring Service');
+      const electricalSvc = branchServices.find(
+        (s) => s.name === 'Rewiring Service',
+      );
       expect(electricalSvc).toBeDefined();
       expect((electricalSvc as any).category).toBeDefined();
       expect((electricalSvc as any).category.name).toBe('Electrical');

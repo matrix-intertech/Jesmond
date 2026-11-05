@@ -1,4 +1,15 @@
-import { IsString, IsArray, ValidateNested, IsInt, Min, ArrayMinSize, IsEnum, IsOptional, ValidateIf, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsArray,
+  ValidateNested,
+  IsInt,
+  Min,
+  ArrayMinSize,
+  IsEnum,
+  IsOptional,
+  ValidateIf,
+  IsObject,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { FoodOrderFulfillmentType } from '@prisma/client';
 
@@ -37,7 +48,7 @@ export class CreateFoodOrderDto {
   @IsEnum(FoodOrderFulfillmentType)
   fulfillmentType: FoodOrderFulfillmentType;
 
-  @ValidateIf(o => o.fulfillmentType === FoodOrderFulfillmentType.DELIVERY)
+  @ValidateIf((o) => o.fulfillmentType === FoodOrderFulfillmentType.DELIVERY)
   @IsObject()
   @ValidateNested()
   @Type(() => FoodDeliveryAddressDto)

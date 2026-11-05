@@ -17,6 +17,8 @@ describe('ChatService', () => {
   let service: ChatService;
   let prisma: any;
   let notificationsService: any;
+  let propertyWhatsAppService: any;
+  let propertyEmailService: any;
 
   const activeUser = { id: 'student-a' };
   const publishedVerifiedProperty = {
@@ -80,9 +82,19 @@ describe('ChatService', () => {
       createNotification: jest.fn().mockResolvedValue({ id: 'notification-a' }),
     };
 
+    propertyWhatsAppService = {
+      notifyMessageReceived: jest.fn().mockResolvedValue({ sent: true, event: 'PROPERTY_MESSAGE_RECEIVED' }),
+    };
+
+    propertyEmailService = {
+      notifyMessageReceived: jest.fn().mockResolvedValue({ sent: true, event: 'PROPERTY_MESSAGE_RECEIVED' }),
+    };
+
     service = new ChatService(
       prisma as PrismaService,
       notificationsService as NotificationsService,
+      propertyWhatsAppService,
+      propertyEmailService,
     );
   });
 

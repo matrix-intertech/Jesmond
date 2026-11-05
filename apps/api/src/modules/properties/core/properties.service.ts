@@ -13,6 +13,8 @@ import {
   UpdateAvailabilityDto,
 } from '../dtos/property.dto';
 import { StorageService } from './storage.service';
+import { PropertyWhatsAppService } from './property-whatsapp.service';
+import { PropertyEmailService } from './property-email.service';
 
 interface SearchParams {
   city?: string;
@@ -44,6 +46,8 @@ export class PropertiesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly propertyWhatsAppService: PropertyWhatsAppService,
+    private readonly propertyEmailService: PropertyEmailService,
   ) {}
 
   async createProperty(dto: CreatePropertyDto, user: any) {
@@ -738,6 +742,28 @@ export class PropertiesService {
         authorId: userId,
       },
     });
+
+    if (newStatus === 'PUBLISHED') {
+      this.propertyWhatsAppService
+        .notifyListingConfirmed({
+          propertyId: updated.id,
+          propertyName: updated.name,
+          authorId: userId,
+        })
+        .catch((err) =>
+          console.error('Failed to dispatch PROPERTY_LISTING_CONFIRMED notification', err),
+        );
+
+      this.propertyEmailService
+        .notifyListingConfirmed({
+          propertyId: updated.id,
+          propertyName: updated.name,
+          authorId: userId,
+        })
+        .catch((err) =>
+          console.error('Failed to dispatch PROPERTY_LISTING_CONFIRMED email', err),
+        );
+    }
 
     return updated;
   }
@@ -1576,7 +1602,7 @@ export class PropertiesService {
         throw new BadRequestException('Invalid room type for this property.');
     }
 
-    return this.prisma.enquiry.create({
+    const createdEnquiry = await this.prisma.enquiry.create({
       data: {
         propertyId,
         message: data.message,
@@ -1587,6 +1613,32 @@ export class PropertiesService {
         seekerPhone: data.seekerPhone,
       },
     });
+
+    // Async WhatsApp and Email notifications for PROPERTY_QUERY_RECEIVED (Non-blocking & isolated)
+    this.propertyWhatsAppService
+      .notifyQueryReceived({
+        enquiryId: createdEnquiry.id,
+        propertyId,
+        seekerName: data.seekerName,
+        seekerPhone: data.seekerPhone,
+        studentId: data.studentId,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch PROPERTY_QUERY_RECEIVED notification', err),
+      );
+
+    this.propertyEmailService
+      .notifyQueryReceived({
+        enquiryId: createdEnquiry.id,
+        propertyId,
+        senderName: data.seekerName,
+        senderEmail: data.seekerEmail,
+      })
+      .catch((err) =>
+        console.error('Failed to dispatch PROPERTY_QUERY_RECEIVED email', err),
+      );
+
+    return createdEnquiry;
   }
 
   // --- House Rules ---

@@ -19,16 +19,16 @@ export class AvailabilityService {
       where: { id: serviceId, isActive: true },
       include: {
         staffAssignments: {
-          include: { staff: true }
-        }
-      }
+          include: { staff: true },
+        },
+      },
     });
 
     if (!businessService) {
       throw new BadRequestException('Service not found or inactive');
     }
 
-    const staffIds = businessService.staffAssignments.map(a => a.staffId);
+    const staffIds = businessService.staffAssignments.map((a) => a.staffId);
     if (staffIds.length === 0) {
       return { serviceId, date, availableSlots: [] };
     }
@@ -38,7 +38,7 @@ export class AvailabilityService {
       where: {
         staffId: { in: staffIds },
         dayOfWeek: dayOfWeek,
-      }
+      },
     });
 
     // 3. Fetch Time Off for these staff on this date
@@ -75,21 +75,31 @@ export class AvailabilityService {
     // 4. Fetch existing appointments for the service OR the staff
     const appointments = await this.prisma.appointment.findMany({
       where: {
-        status: { in: [AppointmentStatus.PENDING_APPROVAL, AppointmentStatus.CONFIRMED, AppointmentStatus.IN_PROGRESS] },
+        status: {
+          in: [
+            AppointmentStatus.PENDING_APPROVAL,
+            AppointmentStatus.CONFIRMED,
+            AppointmentStatus.IN_PROGRESS,
+          ],
+        },
         startTime: { lt: endOfDay },
         endTime: { gt: startOfDay },
-        OR: [
-          { serviceId: serviceId },
-          { staffId: { in: staffIds } }
-        ]
-      }
+        OR: [{ serviceId: serviceId }, { staffId: { in: staffIds } }],
+      },
     });
 
     // 5. Generate possible slots for the day (Simplified: 00:00 to 23:59 based on working hours)
-    // Here we'll build a map of available slots. 
+    // Here we'll build a map of available slots.
     // In a production system we'd step through the day by `durationMins + bufferAfterMins`.
-    const availableSlots: { key: string; startTime: string; endTime: string }[] = [];
-    const totalSlotMins = businessService.durationMins + businessService.bufferBeforeMins + businessService.bufferAfterMins;
+    const availableSlots: {
+      key: string;
+      startTime: string;
+      endTime: string;
+    }[] = [];
+    const totalSlotMins =
+      businessService.durationMins +
+      businessService.bufferBeforeMins +
+      businessService.bufferAfterMins;
 
     // For each working hour block of each staff, check if a slot can fit
     for (const wh of workingHours) {
@@ -111,7 +121,7 @@ export class AvailabilityService {
         slotEnd.setUTCMinutes(slotEndMins);
 
         // Check against time-off (including recurring blocks)
-        const hasTimeOff = timeOffs.some(to => {
+        const hasTimeOff = timeOffs.some((to) => {
           if (to.staffId !== wh.staffId) return false;
 
           if (to.recurrence === 'NONE') {
@@ -136,13 +146,16 @@ export class AvailabilityService {
           // Compare local time-of-day window (minutes from local midnight)
           const bStartMins = blockLocal.mins;
           let bEndMins = blockLocalEnd.mins;
-          if (bEndMins <= bStartMins && to.endTime.getTime() > to.startTime.getTime()) {
+          if (
+            bEndMins <= bStartMins &&
+            to.endTime.getTime() > to.startTime.getTime()
+          ) {
             // Crossed midnight locally
             bEndMins += 1440;
           }
 
-          let sStartMins = slotLocal.mins;
-          let sEndMins = sStartMins + totalSlotMins;
+          const sStartMins = slotLocal.mins;
+          const sEndMins = sStartMins + totalSlotMins;
 
           return sStartMins < bEndMins && sEndMins > bStartMins;
         });
@@ -150,15 +163,19 @@ export class AvailabilityService {
         // Check against appointments (whether specific to this staff or general service capacity limit)
         // If appointment doesn't have staffId yet (PENDING), it consumes 1 generic capacity
         // If it does have staffId, it consumes THIS staff's capacity
-        const overlappingAppointments = appointments.filter(a => 
-          a.startTime < slotEnd && a.endTime > slotStart
+        const overlappingAppointments = appointments.filter(
+          (a) => a.startTime < slotEnd && a.endTime > slotStart,
         );
 
-        const staffConflict = overlappingAppointments.some(a => a.staffId === wh.staffId);
-        
-        // PENDING appointments without staffId consume generic capacity. 
+        const staffConflict = overlappingAppointments.some(
+          (a) => a.staffId === wh.staffId,
+        );
+
+        // PENDING appointments without staffId consume generic capacity.
         // If generic overlapping >= total staff, we are full.
-        const pendingGeneric = overlappingAppointments.filter(a => !a.staffId).length;
+        const pendingGeneric = overlappingAppointments.filter(
+          (a) => !a.staffId,
+        ).length;
         const totalAvailableStaff = staffIds.length;
         const genericFull = pendingGeneric >= totalAvailableStaff;
 
@@ -166,18 +183,18 @@ export class AvailabilityService {
           // Add this slot to the Set (format HH:mm)
           const startStr = `${String(Math.floor(slotStartMins / 60)).padStart(2, '0')}:${String(slotStartMins % 60).padStart(2, '0')}`;
           const endStr = `${String(Math.floor(slotEndMins / 60)).padStart(2, '0')}:${String(slotEndMins % 60).padStart(2, '0')}`;
-          
+
           // Ensure uniqueness of slots returned to customer
           const slotKey = `${startStr}-${endStr}`;
-          if (!availableSlots.some(s => s.key === slotKey)) {
+          if (!availableSlots.some((s) => s.key === slotKey)) {
             availableSlots.push({
               key: slotKey,
               startTime: startStr,
-              endTime: endStr
+              endTime: endStr,
             });
           }
         }
-        
+
         // Step forward by the slot duration
         currentMins += totalSlotMins;
       }
@@ -186,11 +203,16 @@ export class AvailabilityService {
     return {
       serviceId,
       date,
-      availableSlots: availableSlots.map(s => ({ startTime: s.startTime, endTime: s.endTime })).sort((a, b) => a.startTime.localeCompare(b.startTime)),
+      availableSlots: availableSlots
+        .map((s) => ({ startTime: s.startTime, endTime: s.endTime }))
+        .sort((a, b) => a.startTime.localeCompare(b.startTime)),
     };
   }
 
-  private getLocalDayAndMins(date: Date, tz: string): { dayOfWeek: number; mins: number } {
+  private getLocalDayAndMins(
+    date: Date,
+    tz: string,
+  ): { dayOfWeek: number; mins: number } {
     try {
       const parts = new Intl.DateTimeFormat('en-US', {
         timeZone: tz,

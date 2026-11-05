@@ -9,6 +9,8 @@ import { RedisService } from '../../redis/redis.service';
 import { FulfillmentType, OrderSource, OrderStatus } from '@prisma/client';
 import { PaymentSettingsService } from '../payments/payment-settings.service';
 import { CheckoutDto } from './dto/checkout.dto';
+import { RetailOrderWhatsAppService } from '../orders/retail-order-whatsapp.service';
+import { RetailOrderEmailService } from '../orders/retail-order-email.service';
 
 @Injectable()
 export class MarketplaceService {
@@ -16,6 +18,8 @@ export class MarketplaceService {
     private prisma: PrismaService,
     private redisService: RedisService,
     private paymentSettingsService: PaymentSettingsService,
+    private whatsAppOrderService: RetailOrderWhatsAppService,
+    private emailOrderService: RetailOrderEmailService,
   ) {}
 
   async listStores(
@@ -34,7 +38,11 @@ export class MarketplaceService {
     const hasSearch = searchQuery.length > 0;
     const cleanSuburb = typeof suburb === 'string' ? suburb.trim() : '';
     const hasSuburb = cleanSuburb.length > 0 && cleanSuburb !== 'ALL';
-    const isFiltered = (category && category !== 'ALL') || hasSuburb || verifiedOnly !== undefined || openNow !== undefined;
+    const isFiltered =
+      (category && category !== 'ALL') ||
+      hasSuburb ||
+      verifiedOnly !== undefined ||
+      openNow !== undefined;
     const isPaginated = page !== undefined || limit !== undefined;
 
     // ----------------------------------------------------------------
@@ -42,7 +50,13 @@ export class MarketplaceService {
     // callers passing only lat, lng, radius, category).
     // Returns plain Array for 100% backward compatibility.
     // ----------------------------------------------------------------
-    if (!hasSearch && !hasSuburb && verifiedOnly === undefined && openNow === undefined && !isPaginated) {
+    if (
+      !hasSearch &&
+      !hasSuburb &&
+      verifiedOnly === undefined &&
+      openNow === undefined &&
+      !isPaginated
+    ) {
       const cacheKey = `retail:marketplace:stores:${lat ?? 'all'}:${lng ?? 'all'}:${radius ?? 'all'}:${category ?? 'all'}`;
       const cached = await this.redisService.get<any[]>(cacheKey);
       if (cached) {
@@ -88,8 +102,14 @@ export class MarketplaceService {
     // ----------------------------------------------------------------
     // Safe pagination validation at service layer:
     // Non-integer, zero, negative, NaN fallback safely (page -> 1, limit -> 20, max limit -> 100)
-    const pageNum = typeof page === 'number' && Number.isInteger(page) && page >= 1 ? page : 1;
-    const limitNum = typeof limit === 'number' && Number.isInteger(limit) && limit >= 1 ? Math.min(100, limit) : 20;
+    const pageNum =
+      typeof page === 'number' && Number.isInteger(page) && page >= 1
+        ? page
+        : 1;
+    const limitNum =
+      typeof limit === 'number' && Number.isInteger(limit) && limit >= 1
+        ? Math.min(100, limit)
+        : 20;
 
     // Build organization-level filter:
     // - Always exclude soft-deleted organizations (deletedAt: null)
@@ -99,7 +119,8 @@ export class MarketplaceService {
     const orgWhere: any = {
       type: 'RETAIL',
       deletedAt: null,
-      status: verifiedOnly === true ? 'VERIFIED' : { in: ['VERIFIED', 'PENDING'] },
+      status:
+        verifiedOnly === true ? 'VERIFIED' : { in: ['VERIFIED', 'PENDING'] },
     };
     if (category && category !== 'ALL') {
       orgWhere.businessCategory = category as any;
@@ -187,7 +208,10 @@ export class MarketplaceService {
     //
     // Concurrent execution with Promise.all across independent queries.
     // ----------------------------------------------------------------
-    const ilike = () => ({ contains: searchQuery, mode: 'insensitive' as const });
+    const ilike = () => ({
+      contains: searchQuery,
+      mode: 'insensitive' as const,
+    });
 
     const [
       directMatches,
@@ -317,11 +341,16 @@ export class MarketplaceService {
     }
 
     if (matchedBranchIds.size === 0) {
-      return { data: [], meta: { total: 0, page: pageNum, limit: limitNum, totalPages: 0 } };
+      return {
+        data: [],
+        meta: { total: 0, page: pageNum, limit: limitNum, totalPages: 0 },
+      };
     }
 
     // Deterministic ID sorting before pagination slicing ensures stable, non-overlapping pages
-    const allIds = Array.from(matchedBranchIds).sort((a, b) => a.localeCompare(b));
+    const allIds = Array.from(matchedBranchIds).sort((a, b) =>
+      a.localeCompare(b),
+    );
     const total = allIds.length;
     const skip = (pageNum - 1) * limitNum;
     const paginatedIds = allIds.slice(skip, skip + limitNum);
@@ -517,7 +546,7 @@ export class MarketplaceService {
     }
 
     try {
-      return await this.prisma.$transaction(async (tx) => {
+      const createdOrder = await this.prisma.$transaction(async (tx) => {
         // Double check idempotency inside transaction
         const existingTx = await tx.salesOrder.findFirst({
           where: { organizationId: branch.organizationId, idempotencyKey },
@@ -617,6 +646,38 @@ export class MarketplaceService {
 
         return order;
       });
+
+      // Async WhatsApp Notification for ORDER_CONFIRMED (Non-blocking)
+      const customerName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+      this.whatsAppOrderService
+        .notifyOrderConfirmed({
+          orderId: createdOrder.id,
+          orderNumber: createdOrder.orderNumber,
+          organizationId: branch.organizationId,
+          customerId: customer.id,
+          customerName: customerName || undefined,
+          customerPhone: customer.phone,
+          branchName: branch.name,
+        })
+        .catch((err) =>
+          console.error('Failed to dispatch ORDER_CONFIRMED WhatsApp notification', err),
+        );
+
+      this.emailOrderService
+        .notifyOrderConfirmed({
+          orderId: createdOrder.id,
+          orderNumber: createdOrder.orderNumber,
+          organizationId: branch.organizationId,
+          customerId: customer.id,
+          customerName: customerName || undefined,
+          customerEmail: customer.email,
+          branchName: branch.name,
+        })
+        .catch((err) =>
+          console.error('Failed to dispatch ORDER_CONFIRMED Email notification', err),
+        );
+
+      return createdOrder;
     } catch (error: any) {
       if (
         error.code === 'P2002' &&

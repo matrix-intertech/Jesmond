@@ -15,11 +15,14 @@ import {
   ForgotPasswordDto,
   VerifyResetOtpDto,
   ResetPasswordDto,
+  RequestLoginOtpDto,
+  VerifyLoginOtpDto,
 } from '../dtos/auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserRole, AccountStatus, OrgType } from '@prisma/client';
 import { EmailService } from './email.service';
+import { WhatsAppAuthOtpService } from './whatsapp-auth-otp.service';
 import * as crypto from 'crypto';
 const { authenticator } = require('otplib');
 
@@ -31,6 +34,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
+    private readonly whatsAppOtp: WhatsAppAuthOtpService,
   ) {}
 
   private generateOtp(): string {
@@ -209,6 +213,11 @@ export class AuthService {
 
     await this.emailService.sendVerificationOtp(result.user.email, otp);
 
+    // Fire-and-forget WhatsApp OTP (after email sent, non-blocking)
+    this.whatsAppOtp.sendRegistrationOtp(result.user, otp).catch((err) =>
+      this.logger.warn(`WA OTP register (provider) failed: ${err.message}`),
+    );
+
     if (isNewUser) {
       try {
         await this.emailService.sendAccountCreationNotification({
@@ -302,6 +311,11 @@ export class AuthService {
     }
 
     await this.emailService.sendVerificationOtp(user.email, otp);
+
+    // Fire-and-forget WhatsApp OTP (after email sent, non-blocking)
+    this.whatsAppOtp.sendRegistrationOtp(user, otp).catch((err) =>
+      this.logger.warn(`WA OTP register (student) failed: ${err.message}`),
+    );
 
     if (isNewUser) {
       try {
@@ -598,7 +612,7 @@ export class AuthService {
 
   async resendOtp(dto: ResendOtpDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase() },
+      where: { email: dto.email!.toLowerCase() },
     });
 
     if (!user)
@@ -632,12 +646,17 @@ export class AuthService {
 
     await this.emailService.sendVerificationOtp(user.email, otp);
 
+    // Fire-and-forget WhatsApp OTP (after email sent, non-blocking)
+    this.whatsAppOtp.sendRegistrationOtp(user, otp).catch((err) =>
+      this.logger.warn(`WA OTP resend failed: ${err.message}`),
+    );
+
     return { message: 'If an account exists, a verification code was sent.' };
   }
 
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase() },
+      where: { email: dto.email!.toLowerCase() },
     });
 
     if (!user) {
@@ -675,6 +694,11 @@ export class AuthService {
 
     await this.emailService.sendPasswordResetOtp(user.email, otp);
 
+    // Fire-and-forget WhatsApp OTP (after email sent, non-blocking)
+    this.whatsAppOtp.sendPasswordResetOtp(user, otp).catch((err) =>
+      this.logger.warn(`WA OTP password-reset failed: ${err.message}`),
+    );
+
     return {
       message: 'If an account exists with this email, an OTP has been sent.',
     };
@@ -682,7 +706,7 @@ export class AuthService {
 
   async verifyResetOtp(dto: VerifyResetOtpDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase() },
+      where: { email: dto.email!.toLowerCase() },
     });
 
     if (!user) throw new UnauthorizedException('Invalid or expired OTP.');
@@ -723,7 +747,7 @@ export class AuthService {
 
   async resetPassword(dto: ResetPasswordDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase() },
+      where: { email: dto.email!.toLowerCase() },
     });
 
     if (!user) throw new UnauthorizedException('Invalid or expired OTP.');
@@ -778,5 +802,217 @@ export class AuthService {
     });
 
     return { message: 'Password reset successfully.' };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Login OTP (phone-based passwordless secondary login)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Initiates a phone-based OTP login.
+   * - Accepts email OR phone as identifier
+   * - Generates a 6-digit OTP, hashes it, stores with 10-min expiry
+   * - Dispatches WhatsApp OTP (fire-and-forget)
+   * - Always returns a generic message to prevent account enumeration
+   */
+  async requestLoginOtp(dto: RequestLoginOtpDto) {
+    if (!dto.email && !dto.phone) {
+      throw new BadRequestException('Email or phone is required.');
+    }
+
+    // Look up user by email or phone
+    const user = dto.email
+      ? await this.prisma.user.findUnique({
+          where: { email: dto.email.toLowerCase() },
+        })
+      : await this.prisma.user.findFirst({
+          where: { phone: dto.phone },
+        });
+
+    // Generic response — do not leak account existence
+    if (!user) {
+      return {
+        message:
+          'If an account exists, a verification code has been sent via WhatsApp.',
+      };
+    }
+
+    // User must have verified their email before using login OTP
+    if (!user.emailVerified) {
+      return {
+        message:
+          'If an account exists, a verification code has been sent via WhatsApp.',
+      };
+    }
+
+    // Enforce 60-second cooldown
+    if (user.loginOtpLastSentAt) {
+      const diffSeconds =
+        (Date.now() - user.loginOtpLastSentAt.getTime()) / 1000;
+      if (diffSeconds < 60) {
+        return {
+          message:
+            'If an account exists, a verification code has been sent via WhatsApp.',
+        };
+      }
+    }
+
+    const otp = this.generateOtp();
+    const otpHash = await bcrypt.hash(otp, 10);
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        loginOtpToken: otpHash,
+        loginOtpExpiresAt: otpExpiresAt,
+        loginOtpLastSentAt: new Date(),
+        loginOtpAttempts: 0,
+      },
+    });
+
+    // Fire-and-forget WhatsApp OTP
+    this.whatsAppOtp.sendLoginOtp(user, otp).catch((err) =>
+      this.logger.warn(`WA login OTP failed: ${err.message}`),
+    );
+
+    // Fire-and-forget Email login OTP
+    if (user.email) {
+      this.emailService.sendLoginOtp(user.email, otp).catch((err) =>
+        this.logger.warn(`Email login OTP failed: ${err.message}`),
+      );
+    }
+
+    return {
+      message:
+        'If an account exists, a verification code has been sent via WhatsApp.',
+    };
+  }
+
+  /**
+   * Verifies the login OTP and issues a session + JWT.
+   * - Accepts email OR phone as identifier
+   * - Enforces max 5 attempts, 10-min expiry
+   * - Clears OTP fields on success
+   * - Returns the same JWT payload structure as login()
+   */
+  async verifyLoginOtp(
+    dto: VerifyLoginOtpDto,
+    clientInfo?: { ipAddress?: string; userAgent?: string },
+  ) {
+    if (!dto.email && !dto.phone) {
+      throw new BadRequestException('Email or phone is required.');
+    }
+
+    const user = dto.email
+      ? await this.prisma.user.findUnique({
+          where: { email: dto.email.toLowerCase() },
+          include: {
+            orgStaffRoles: {
+              include: { organization: true },
+            },
+          },
+        })
+      : await this.prisma.user.findFirst({
+          where: { phone: dto.phone },
+          include: {
+            orgStaffRoles: {
+              include: { organization: true },
+            },
+          },
+        });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid or expired verification code.');
+    }
+
+    if (!user.loginOtpToken || !user.loginOtpExpiresAt) {
+      throw new UnauthorizedException('No active verification code found.');
+    }
+
+    if (user.loginOtpExpiresAt < new Date()) {
+      throw new UnauthorizedException(
+        'Verification code has expired. Please request a new code.',
+      );
+    }
+
+    if (user.loginOtpAttempts >= 5) {
+      throw new UnauthorizedException(
+        'Maximum verification attempts reached. Please request a new code.',
+      );
+    }
+
+    // Atomically increment attempts BEFORE comparing to prevent concurrent bypass
+    const updatedUserAtomic = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { loginOtpAttempts: { increment: 1 } },
+    });
+
+    if (updatedUserAtomic.loginOtpAttempts > 5) {
+      throw new UnauthorizedException(
+        'Maximum verification attempts reached. Please request a new code.',
+      );
+    }
+
+    const isValid = await bcrypt.compare(dto.otp, user.loginOtpToken);
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid or expired verification code.');
+    }
+
+    // Success — clear OTP fields and create session
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        loginOtpToken: null,
+        loginOtpExpiresAt: null,
+        loginOtpAttempts: 0,
+      },
+    });
+
+    const session = await this.prisma.session.create({
+      data: {
+        userId: user.id,
+        refreshToken: crypto.randomBytes(32).toString('hex'),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ipAddress: clientInfo?.ipAddress,
+        deviceInfo: clientInfo?.userAgent,
+      },
+    });
+
+    const activeRole =
+      user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
+    const organizationId = activeRole?.organizationId;
+    const orgType = activeRole?.organization?.type;
+    const businessCategory = activeRole?.organization?.businessCategory;
+    const orgRole = activeRole?.role;
+    const permissions = activeRole?.permissions || [];
+    const retailBranchId = activeRole?.retailBranchId;
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      orgType,
+      sessionId: session.id,
+    };
+    const access_token = this.jwtService.sign(payload);
+
+    return {
+      access_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        organizationId,
+        orgType,
+        businessCategory,
+        orgRole,
+        permissions,
+        retailBranchId,
+      },
+    };
   }
 }

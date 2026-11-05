@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateFoodOrderDto } from './dto/create-food-order.dto';
 import { randomBytes } from 'crypto';
@@ -8,7 +12,12 @@ import { FoodOrderStatus } from '@prisma/client';
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createOrder(userId: string, organizationId: string, dto: CreateFoodOrderDto, idempotencyKey?: string) {
+  async createOrder(
+    userId: string,
+    organizationId: string,
+    dto: CreateFoodOrderDto,
+    idempotencyKey?: string,
+  ) {
     // 1. Verify branch belongs to organization and is a FOOD business
     const branch = await this.prisma.retailBranch.findUnique({
       where: { id: dto.branchId },
@@ -20,11 +29,15 @@ export class OrdersService {
     }
 
     if (branch.organizationId !== organizationId) {
-      throw new BadRequestException('Branch does not belong to your organization');
+      throw new BadRequestException(
+        'Branch does not belong to your organization',
+      );
     }
 
     if (branch.organization.businessCategory !== 'FOOD') {
-      throw new BadRequestException('Branch does not belong to a FOOD business');
+      throw new BadRequestException(
+        'Branch does not belong to a FOOD business',
+      );
     }
 
     // 2. Check Idempotency Key
@@ -58,7 +71,7 @@ export class OrdersService {
         }
 
         const productIds = dto.items.map((i) => i.foodMenuItemId);
-        
+
         // Detect duplicates in request
         if (new Set(productIds).size !== productIds.length) {
           throw new BadRequestException('Duplicate menu items in order');
@@ -78,19 +91,27 @@ export class OrdersService {
           const menuItem = itemMap.get(reqItem.foodMenuItemId);
 
           if (!menuItem) {
-            throw new BadRequestException(`Menu item ${reqItem.foodMenuItemId} not found`);
+            throw new BadRequestException(
+              `Menu item ${reqItem.foodMenuItemId} not found`,
+            );
           }
 
           if (!menuItem.isActive) {
-            throw new BadRequestException(`Menu item ${menuItem.name} is inactive`);
+            throw new BadRequestException(
+              `Menu item ${menuItem.name} is inactive`,
+            );
           }
 
           if (menuItem.category.menu.branchId !== dto.branchId) {
-            throw new BadRequestException(`Menu item ${menuItem.name} does not belong to the selected branch`);
+            throw new BadRequestException(
+              `Menu item ${menuItem.name} does not belong to the selected branch`,
+            );
           }
 
           if (menuItem.category.menu.organizationId !== organizationId) {
-            throw new BadRequestException(`Menu item ${menuItem.name} does not belong to your organization`);
+            throw new BadRequestException(
+              `Menu item ${menuItem.name} does not belong to your organization`,
+            );
           }
 
           const lineTotal = menuItem.price * reqItem.quantity;
@@ -119,29 +140,34 @@ export class OrdersService {
             total,
             idempotencyKey,
             fulfillmentType: dto.fulfillmentType,
-            deliveryAddress: dto.deliveryAddress as any || null,
+            deliveryAddress: (dto.deliveryAddress as any) || null,
             paymentMethod: 'CASH',
             items: {
               create: orderItemsToCreate,
             },
             statusHistory: {
-              create: [{
-                toStatus: 'PENDING',
-                changedByUserId: userId,
-              }],
+              create: [
+                {
+                  toStatus: 'PENDING',
+                  changedByUserId: userId,
+                },
+              ],
             },
           },
           include: {
             items: true,
             branch: { select: { name: true } },
             statusHistory: { orderBy: { createdAt: 'desc' } },
-          }
+          },
         });
 
         return order;
       });
     } catch (error: any) {
-      if (error.code === 'P2002' && error.meta?.target?.includes('idempotencyKey')) {
+      if (
+        error.code === 'P2002' &&
+        error.meta?.target?.includes('idempotencyKey')
+      ) {
         const existingOrder = await this.prisma.foodOrder.findUnique({
           where: { idempotencyKey: idempotencyKey! },
         });
@@ -188,7 +214,13 @@ export class OrdersService {
     return order;
   }
 
-  async getBusinessOrders(organizationId: string, page: number = 1, limit: number = 20, status?: string, branchId?: string) {
+  async getBusinessOrders(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 20,
+    status?: string,
+    branchId?: string,
+  ) {
     const take = limit;
     const skip = (page - 1) * limit;
 
@@ -248,13 +280,27 @@ export class OrdersService {
     return order;
   }
 
-  async updateOrderStatus(orderId: string, organizationId: string, newStatus: FoodOrderStatus, changedByUserId: string) {
+  async updateOrderStatus(
+    orderId: string,
+    organizationId: string,
+    newStatus: FoodOrderStatus,
+    changedByUserId: string,
+  ) {
     const order = await this.getBusinessOrder(orderId, organizationId);
 
     const validTransitions: Record<FoodOrderStatus, FoodOrderStatus[]> = {
-      [FoodOrderStatus.PENDING]: [FoodOrderStatus.ACCEPTED, FoodOrderStatus.CANCELLED],
-      [FoodOrderStatus.ACCEPTED]: [FoodOrderStatus.PREPARING, FoodOrderStatus.CANCELLED],
-      [FoodOrderStatus.PREPARING]: [FoodOrderStatus.READY, FoodOrderStatus.CANCELLED],
+      [FoodOrderStatus.PENDING]: [
+        FoodOrderStatus.ACCEPTED,
+        FoodOrderStatus.CANCELLED,
+      ],
+      [FoodOrderStatus.ACCEPTED]: [
+        FoodOrderStatus.PREPARING,
+        FoodOrderStatus.CANCELLED,
+      ],
+      [FoodOrderStatus.PREPARING]: [
+        FoodOrderStatus.READY,
+        FoodOrderStatus.CANCELLED,
+      ],
       [FoodOrderStatus.READY]: [FoodOrderStatus.COMPLETED],
       [FoodOrderStatus.COMPLETED]: [],
       [FoodOrderStatus.CANCELLED]: [],
@@ -262,7 +308,9 @@ export class OrdersService {
 
     const allowedNext = validTransitions[order.status];
     if (!allowedNext || !allowedNext.includes(newStatus)) {
-      throw new BadRequestException(`Invalid status transition from ${order.status} to ${newStatus}`);
+      throw new BadRequestException(
+        `Invalid status transition from ${order.status} to ${newStatus}`,
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -289,5 +337,3 @@ export class OrdersService {
     });
   }
 }
-
-

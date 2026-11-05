@@ -40,16 +40,17 @@ export class AppointmentsController {
       throw new BadRequestException('serviceId and date are required');
     }
     // timezone can be passed or we resolve it inside
-    return this.availabilityService.getAvailability(serviceId, date, timezone || 'UTC');
+    return this.availabilityService.getAvailability(
+      serviceId,
+      date,
+      timezone || 'UTC',
+    );
   }
 
   // 3. Submit an appointment request (Customer)
   @UseGuards(JwtAuthGuard)
   @Post('request')
-  async createRequest(
-    @Body() dto: CreateAppointmentDto,
-    @Request() req: any,
-  ) {
+  async createRequest(@Body() dto: CreateAppointmentDto, @Request() req: any) {
     const customerId = req.user.id;
     return this.appointmentsService.createPendingAppointment({
       customerId,
@@ -75,7 +76,9 @@ export class AppointmentsController {
   async getMyAppointment(@Param('id') id: string, @Request() req: any) {
     const appointment = await this.appointmentsService.getAppointment(id);
     if (!appointment || appointment.customerId !== req.user.id) {
-      throw new ForbiddenException('You do not have access to this appointment');
+      throw new ForbiddenException(
+        'You do not have access to this appointment',
+      );
     }
     return appointment;
   }
@@ -88,6 +91,10 @@ export class AppointmentsController {
     @Body('reason') reason: string,
     @Request() req: any,
   ) {
-    return this.appointmentsService.cancelCustomerAppointment(id, req.user.id, reason);
+    return this.appointmentsService.cancelCustomerAppointment(
+      id,
+      req.user.id,
+      reason,
+    );
   }
 }

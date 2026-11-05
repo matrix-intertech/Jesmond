@@ -16,6 +16,8 @@ import { SquareConnector } from '../pos/providers/square.connector';
 import { StripeConnector } from '../pos/providers/stripe.connector';
 import { ZellerConnector } from '../pos/providers/zeller.connector';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { RetailOrderWhatsAppService } from './retail-order-whatsapp.service';
+import { RetailOrderEmailService } from './retail-order-email.service';
 
 @Injectable()
 export class OrdersService {
@@ -23,6 +25,8 @@ export class OrdersService {
     private prisma: PrismaService,
     private inventoryService: InventoryService,
     private notificationsService: NotificationsService,
+    private whatsAppOrderService: RetailOrderWhatsAppService,
+    private emailOrderService: RetailOrderEmailService,
   ) {}
 
   private getConnector(provider: string) {
@@ -655,6 +659,59 @@ export class OrdersService {
         );
     }
 
+    // Async WhatsApp and Email Notifications based on new order status (Non-blocking & isolated)
+    const customer = (result as any).customer;
+    const customerPhone = customer?.phone || null;
+    const customerEmail = customer?.email || null;
+    const customerName = customer ? `${customer.firstName || ''} ${customer.lastName || ''}`.trim() : null;
+    const waPayload = {
+      orderId: result.id,
+      orderNumber: result.orderNumber,
+      organizationId: result.organizationId,
+      customerId: result.customerId,
+      customerName,
+      customerPhone,
+      branchName: (result as any).branch?.name,
+    };
+    const emailPayload = {
+      orderId: result.id,
+      orderNumber: result.orderNumber,
+      organizationId: result.organizationId,
+      customerId: result.customerId,
+      customerName,
+      customerEmail,
+      branchName: (result as any).branch?.name,
+    };
+
+    if (newStatus === OrderStatus.ACCEPTED) {
+      this.whatsAppOrderService.notifyOrderConfirmed(waPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_CONFIRMED WhatsApp notification', err),
+      );
+      this.emailOrderService.notifyOrderConfirmed(emailPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_CONFIRMED Email notification', err),
+      );
+    } else if (newStatus === OrderStatus.PACKED) {
+      this.whatsAppOrderService.notifyOrderPacked(waPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_PACKED WhatsApp notification', err),
+      );
+      this.emailOrderService.notifyOrderPacked(emailPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_PACKED Email notification', err),
+      );
+    } else if (newStatus === OrderStatus.DELIVERED) {
+      this.whatsAppOrderService.notifyOrderDelivered(waPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_DELIVERED WhatsApp notification', err),
+      );
+      this.emailOrderService.notifyOrderDelivered(emailPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_DELIVERED Email notification', err),
+      );
+    } else if (newStatus === OrderStatus.TAKEN) {
+      this.whatsAppOrderService.notifyOrderTakenAway(waPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_TAKEN_AWAY WhatsApp notification', err),
+      );
+      this.emailOrderService.notifyOrderTakenAway(emailPayload).catch((err) =>
+        console.error('Failed to dispatch ORDER_TAKEN_AWAY Email notification', err),
+      );
+    }
     return result;
   }
 }

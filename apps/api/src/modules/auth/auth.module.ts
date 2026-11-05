@@ -12,11 +12,14 @@ import { AuthService } from './services/auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailService } from './services/email.service';
+import { WhatsAppModule } from '../whatsapp/whatsapp.module';
+import { WhatsAppAuthOtpService } from './services/whatsapp-auth-otp.service';
 
 @Module({
   imports: [
     PassportModule,
     PrismaModule,
+    WhatsAppModule,
     JwtModule.registerAsync({
       useFactory: () => {
         const secret = process.env.JWT_SECRET;
@@ -33,7 +36,7 @@ import { EmailService } from './services/email.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, EmailService],
+  providers: [AuthService, JwtStrategy, EmailService, WhatsAppAuthOtpService],
   exports: [AuthService, EmailService],
 })
 export class AuthModule implements NestModule {
@@ -44,7 +47,7 @@ export class AuthModule implements NestModule {
       standardHeaders: true,
       legacyHeaders: true,
       message:
-        'Too many password reset requests from this IP, please try again after 15 minutes.',
+        'Too many requests from this IP, please try again after 15 minutes.',
     });
 
     consumer
@@ -53,6 +56,8 @@ export class AuthModule implements NestModule {
         { path: 'auth/forgot-password', method: RequestMethod.POST },
         { path: 'auth/verify-reset-otp', method: RequestMethod.POST },
         { path: 'auth/reset-password', method: RequestMethod.POST },
+        { path: 'auth/request-login-otp', method: RequestMethod.POST },
+        { path: 'auth/verify-login-otp', method: RequestMethod.POST },
       );
   }
 }
