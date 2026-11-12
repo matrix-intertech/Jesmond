@@ -1,5 +1,7 @@
 'use client';
 
+import { CountrySelector } from "@/components/ui/CountrySelector";
+
 import { useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
@@ -17,13 +19,13 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  email: '',
  phone: '',
  age: '',
- ethnicity: '',
+ countryOfOrigin: '',
  occupation: '',
  shortBio: '',
  photoUrl: '',
  publicVisibility: {
  age: false,
- ethnicity: false,
+ countryOfOrigin: false,
  occupation: false,
  shortBio: false
  }
@@ -32,8 +34,8 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  const handleOpenNew = () => {
  setCurrentResident(null);
  setForm({
- name: '', email: '', phone: '', age: '', ethnicity: '', occupation: '', shortBio: '', photoUrl: '',
- publicVisibility: { age: false, ethnicity: false, occupation: false, shortBio: false }
+ name: '', email: '', phone: '', age: '', countryOfOrigin: '', occupation: '', shortBio: '', photoUrl: '',
+ publicVisibility: { age: false, countryOfOrigin: false, occupation: false, shortBio: false }
  });
  setIsEditing(true);
  };
@@ -45,11 +47,11 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  email: res.email || '',
  phone: res.phone || '',
  age: res.age || '',
- ethnicity: res.ethnicity || '',
+ countryOfOrigin: res.countryOfOrigin || '',
  occupation: res.occupation || '',
  shortBio: res.shortBio || '',
  photoUrl: res.photoUrl || '',
- publicVisibility: res.publicVisibility || { age: false, ethnicity: false, occupation: false, shortBio: false }
+ publicVisibility: res.publicVisibility || { age: false, countryOfOrigin: false, occupation: false, shortBio: false }
  });
  setIsEditing(true);
  };
@@ -180,10 +182,13 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  <label className="block text-sm font-medium mb-1">Age</label>
  <input type="number" min="1" value={form.age} onChange={e => setForm({...form, age: e.target.value})} className="w-full border rounded px-3 py-2" />
  </div>
- <div>
- <label className="block text-sm font-medium mb-1">Ethnicity / Nationality</label>
- <input type="text" value={form.ethnicity} onChange={e => setForm({...form, ethnicity: e.target.value})} className="w-full border rounded px-3 py-2" />
- </div>
+ <CountrySelector
+                id="residentCountryOfOrigin"
+                name="residentCountryOfOrigin"
+                label="Country of Origin"
+                value={form.countryOfOrigin}
+                onChange={val => setForm({...form, countryOfOrigin: val})}
+              />
  <div>
  <label className="block text-sm font-medium mb-1">Occupation</label>
  <input type="text" value={form.occupation} onChange={e => setForm({...form, occupation: e.target.value})} className="w-full border rounded px-3 py-2" />
@@ -208,8 +213,8 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  <input type="checkbox" checked={form.publicVisibility.age} onChange={e => setForm({...form, publicVisibility: {...form.publicVisibility, age: e.target.checked}})} /> Show Age
  </label>
  <label className="flex items-center gap-2 text-sm">
- <input type="checkbox" checked={form.publicVisibility.ethnicity} onChange={e => setForm({...form, publicVisibility: {...form.publicVisibility, ethnicity: e.target.checked}})} /> Show Ethnicity/Nationality
- </label>
+                <input type="checkbox" checked={Boolean(form.publicVisibility?.countryOfOrigin)} onChange={e => setForm({...form, publicVisibility: {...form.publicVisibility, countryOfOrigin: e.target.checked}})} /> Show Country of Origin
+              </label>
  <label className="flex items-center gap-2 text-sm">
  <input type="checkbox" checked={form.publicVisibility.occupation} onChange={e => setForm({...form, publicVisibility: {...form.publicVisibility, occupation: e.target.checked}})} /> Show Occupation
  </label>

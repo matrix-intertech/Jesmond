@@ -126,7 +126,14 @@ export class AuthService {
             lastName: dto.lastName,
             countryCode: dto.countryCode,
             phone: dto.phone,
-            ethnicity: dto.ethnicity,
+            ...(dto.countryOfOrigin !== undefined && {
+              countryOfOrigin: dto.countryOfOrigin
+                ? dto.countryOfOrigin.trim().toUpperCase()
+                : null,
+            }),
+            ...(dto.ethnicity !== undefined && {
+              ethnicity: dto.ethnicity ? dto.ethnicity.trim() : null,
+            }),
             dateOfBirth: new Date(dto.dateOfBirth),
             role: UserRole.ORG_STAFF,
             emailVerificationToken: otpHash,
@@ -186,7 +193,14 @@ export class AuthService {
             lastName: dto.lastName,
             countryCode: dto.countryCode,
             phone: dto.phone,
-            ethnicity: dto.ethnicity,
+            ...(dto.countryOfOrigin !== undefined && {
+              countryOfOrigin: dto.countryOfOrigin
+                ? dto.countryOfOrigin.trim().toUpperCase()
+                : null,
+            }),
+            ...(dto.ethnicity !== undefined && {
+              ethnicity: dto.ethnicity ? dto.ethnicity.trim() : null,
+            }),
             dateOfBirth: new Date(dto.dateOfBirth),
             role: UserRole.ORG_STAFF,
             accountStatus: AccountStatus.PENDING_VERIFICATION,
@@ -279,7 +293,14 @@ export class AuthService {
           lastName: dto.lastName,
           countryCode: dto.countryCode,
           phone: dto.phone,
-          ethnicity: dto.ethnicity,
+          ...(dto.countryOfOrigin !== undefined && {
+            countryOfOrigin: dto.countryOfOrigin
+              ? dto.countryOfOrigin.trim().toUpperCase()
+              : null,
+          }),
+          ...(dto.ethnicity !== undefined && {
+            ethnicity: dto.ethnicity ? dto.ethnicity.trim() : null,
+          }),
           dateOfBirth: new Date(dto.dateOfBirth),
           role: UserRole.STUDENT,
           emailVerificationToken: otpHash,
@@ -297,7 +318,14 @@ export class AuthService {
           lastName: dto.lastName,
           countryCode: dto.countryCode,
           phone: dto.phone,
-          ethnicity: dto.ethnicity,
+          ...(dto.countryOfOrigin !== undefined && {
+            countryOfOrigin: dto.countryOfOrigin
+              ? dto.countryOfOrigin.trim().toUpperCase()
+              : null,
+          }),
+          ...(dto.ethnicity !== undefined && {
+            ethnicity: dto.ethnicity ? dto.ethnicity.trim() : null,
+          }),
           dateOfBirth: new Date(dto.dateOfBirth),
           role: UserRole.STUDENT,
           accountStatus: AccountStatus.PENDING_VERIFICATION,

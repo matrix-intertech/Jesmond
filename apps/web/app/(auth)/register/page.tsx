@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
 import { Suspense } from 'react';
 import Turnstile from '@/components/ui/Turnstile';
+import { CountrySelector } from '@/components/ui/CountrySelector';
 
 function RegisterForm() {
  const [accountType, setAccountType] = useState<'student' | 'host' | 'business'>('student');
@@ -13,7 +14,7 @@ function RegisterForm() {
  const [name, setName] = useState('');
  const [countryCode, setCountryCode] = useState('+61');
  const [phone, setPhone] = useState('');
- const [ethnicity, setEthnicity] = useState('');
+ const [countryOfOrigin, setCountryOfOrigin] = useState('');
  const [dateOfBirth, setDateOfBirth] = useState('');
  const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -105,8 +106,8 @@ function RegisterForm() {
  : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/register`;
 
  const payload = accountType === 'student'
- ? { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), ethnicity: ethnicity || undefined, dateOfBirth, turnstileToken }
- : { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), ethnicity: ethnicity || undefined, dateOfBirth, organizationName: accountType === 'business' ? organizationName.trim() : (firstName + ' ' + lastName), organizationType, businessCategory: accountType === 'business' ? businessCategory : undefined, turnstileToken };
+ ? { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), countryOfOrigin: countryOfOrigin || undefined, dateOfBirth, turnstileToken }
+ : { firstName, lastName, email: email.trim(), password, countryCode, phone: phone.trim(), countryOfOrigin: countryOfOrigin || undefined, dateOfBirth, organizationName: accountType === 'business' ? organizationName.trim() : (firstName + ' ' + lastName), organizationType, businessCategory: accountType === 'business' ? businessCategory : undefined, turnstileToken };
 
  const res = await fetch(endpoint, {
  method: 'POST',
@@ -460,24 +461,13 @@ function RegisterForm() {
  </div>
 
  <div className="grid grid-cols-2 gap-3">
- <div>
- <label htmlFor="ethnicity" className="block text-sm font-medium text-text-primary mb-1">
- Ethnicity (Optional)
- </label>
- <select
- id="ethnicity"
- value={ethnicity}
- onChange={(e) => setEthnicity(e.target.value)}
- className="block w-full rounded border border-border-strong bg-surface px-3 py-2 focus:border-accent focus:outline-none sm:text-sm"
- >
- <option value="">Select...</option>
- <option value="Asian">Asian</option>
- <option value="Black">Black</option>
- <option value="Hispanic">Hispanic</option>
- <option value="White">White</option>
- <option value="Other">Other</option>
- </select>
- </div>
+ <CountrySelector
+                id="countryOfOrigin"
+                name="countryOfOrigin"
+                value={countryOfOrigin}
+                onChange={setCountryOfOrigin}
+                label="Country of Origin (Optional)"
+              />
  <div>
  <label htmlFor="dob" className="block text-sm font-medium text-text-primary mb-1">
  Date of Birth

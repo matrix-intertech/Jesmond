@@ -8,6 +8,8 @@ import {
   IsOptional,
   IsIn,
   IsDateString,
+  IsISO31661Alpha2,
+  ValidateIf,
 } from 'class-validator';
 import { OrgType, BusinessCategory } from '@prisma/client';
 
@@ -43,6 +45,14 @@ export class RegisterProviderDto {
   @IsNotEmpty()
   phone!: string;
 
+  @IsOptional()
+  @ValidateIf((_, val) => val !== undefined && val !== null && val !== '')
+  @IsISO31661Alpha2({
+    message: 'countryOfOrigin must be a valid ISO 3166-1 alpha-2 country code',
+  })
+  countryOfOrigin?: string;
+
+  /** @deprecated Use countryOfOrigin instead */
   @IsString()
   @IsOptional()
   ethnicity?: string;
@@ -96,6 +106,14 @@ export class RegisterStudentDto {
   @IsNotEmpty()
   phone!: string;
 
+  @IsOptional()
+  @ValidateIf((_, val) => val !== undefined && val !== null && val !== '')
+  @IsISO31661Alpha2({
+    message: 'countryOfOrigin must be a valid ISO 3166-1 alpha-2 country code',
+  })
+  countryOfOrigin?: string;
+
+  /** @deprecated Use countryOfOrigin instead */
   @IsString()
   @IsOptional()
   ethnicity?: string;

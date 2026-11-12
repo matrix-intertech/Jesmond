@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import { handleApiError } from "@/utils/api";
+import { CountrySelector } from "@/components/ui/CountrySelector";
 
 interface ProfileData {
  firstName: string;
@@ -13,14 +14,15 @@ interface ProfileData {
  accountStatus: string;
  phone: string;
  countryCode: string;
- ethnicity: string;
+ countryOfOrigin: string;
+ ethnicity?: string;
  dateOfBirth: string;
  allowPublicContactDetails: boolean;
  profileCompletion?: { isComplete: boolean; missingFields: string[] };
 }
 
 const COUNTRY_CODES = ['+61', '+1', '+44', '+91', '+65', '+64', '+49', '+33', '+86', '+81'];
-const ETHNICITIES = ['', 'Asian', 'Black', 'Hispanic', 'White', 'Middle Eastern', 'Pacific Islander', 'Other'];
+
 
 export default function ProfileSettings() {
  const router = useRouter();
@@ -36,6 +38,7 @@ export default function ProfileSettings() {
  accountStatus: "",
  phone: "",
  countryCode: "+61",
+ countryOfOrigin: "",
  ethnicity: "",
  dateOfBirth: "",
  allowPublicContactDetails: false,
@@ -56,7 +59,8 @@ export default function ProfileSettings() {
  ...json,
  countryCode: json.countryCode || '+61',
  phone: json.phone || '',
- ethnicity: json.ethnicity || '',
+ countryOfOrigin: json.countryOfOrigin || '',
+        ethnicity: json.ethnicity || '',
  dateOfBirth: json.dateOfBirth ? json.dateOfBirth.split('T')[0] : '',
  });
  } else {
@@ -89,7 +93,7 @@ export default function ProfileSettings() {
  lastName: data.lastName,
  phone: data.phone || undefined,
  countryCode: data.countryCode || undefined,
- ethnicity: data.ethnicity || undefined,
+ countryOfOrigin: data.countryOfOrigin || undefined,
  dateOfBirth: data.dateOfBirth || undefined,
  allowPublicContactDetails: data.allowPublicContactDetails,
  })
@@ -101,7 +105,8 @@ export default function ProfileSettings() {
  ...updated,
  countryCode: updated.countryCode || prev.countryCode || '+61',
  phone: updated.phone || prev.phone || '',
- ethnicity: updated.ethnicity || prev.ethnicity || '',
+ countryOfOrigin: updated.countryOfOrigin || prev.countryOfOrigin || '',
+        ethnicity: updated.ethnicity || prev.ethnicity || '',
  dateOfBirth: updated.dateOfBirth ? updated.dateOfBirth.split('T')[0] : prev.dateOfBirth || '',
  }));
  setSuccess("Profile updated successfully");
@@ -196,19 +201,15 @@ export default function ProfileSettings() {
  />
  </div>
  </div>
- <div>
- <label className="block text-sm font-medium text-text-primary mb-1">
- Ethnicity
- {missingFields.includes('ethnicity') && <span className="text-amber-600 text-xs ml-1">* Required to complete profile</span>}
- </label>
- <select
- value={data.ethnicity}
- onChange={e => setData({...data, ethnicity: e.target.value})}
- className={`mt-1 block w-full rounded-md border shadow-sm sm:text-sm px-3 py-2 focus:border-accent focus:ring-accent ${missingFields.includes('ethnicity') ? 'border-amber-400 bg-amber-50' : 'border-border-strong'}`}
- >
- {ETHNICITIES.map(eth => <option key={eth} value={eth}>{eth || 'Prefer not to say'}</option>)}
- </select>
- </div>
+ <CountrySelector
+              id="countryOfOrigin"
+              name="countryOfOrigin"
+              label="Country of Origin"
+              value={data.countryOfOrigin}
+              onChange={(val) => setData({ ...data, countryOfOrigin: val })}
+              error={missingFields.includes('countryOfOrigin')}
+              helperText={missingFields.includes('countryOfOrigin') ? '* Required to complete profile' : undefined}
+            />
  <div>
  <label className="block text-sm font-medium text-text-primary mb-1">
  Date of Birth

@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as qrcode from 'qrcode';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dtos/settings.dto';
+import { isISO31661Alpha2 } from 'class-validator';
 import { parseUserAgent } from '../../utils/device.util';
 const { authenticator } = require('otplib');
 
@@ -28,6 +29,7 @@ export class SettingsService {
         accountStatus: true,
         phone: true,
         countryCode: true,
+        countryOfOrigin: true,
         ethnicity: true,
         dateOfBirth: true,
         allowPublicContactDetails: true,
@@ -42,10 +44,15 @@ export class SettingsService {
     const requiredFields = [
       'phone',
       'countryCode',
-      'ethnicity',
+      'countryOfOrigin',
       'dateOfBirth',
     ] as const;
-    const missingFields: string[] = requiredFields.filter((f) => !user[f]);
+    const missingFields: string[] = requiredFields.filter((f) => {
+      if (f === 'countryOfOrigin') {
+        return !user.countryOfOrigin;
+      }
+      return !user[f];
+    });
 
     const activeRole = user.orgStaffRoles?.[0];
     if (activeRole?.organization?.type === 'RETAIL') {
@@ -75,8 +82,18 @@ export class SettingsService {
       if (data.phone !== undefined) updateData.phone = data.phone;
       if (data.countryCode !== undefined)
         updateData.countryCode = data.countryCode;
-      if (data.ethnicity !== undefined)
-        updateData.ethnicity = data.ethnicity || null;
+      if (data.countryOfOrigin !== undefined && data.countryOfOrigin !== null && data.countryOfOrigin !== '') {
+        const code = String(data.countryOfOrigin).trim().toUpperCase();
+        if (!isISO31661Alpha2(code)) {
+          throw new BadRequestException('countryOfOrigin must be a valid ISO 3166-1 alpha-2 country code');
+        }
+        updateData.countryOfOrigin = code;
+      } else if (data.countryOfOrigin !== undefined) {
+        updateData.countryOfOrigin = null;
+      }
+      if (data.ethnicity !== undefined) {
+        updateData.ethnicity = data.ethnicity ? String(data.ethnicity).trim() : null;
+      }
       if (data.dateOfBirth !== undefined)
         updateData.dateOfBirth = data.dateOfBirth
           ? new Date(data.dateOfBirth)
@@ -98,6 +115,7 @@ export class SettingsService {
           accountStatus: true,
           phone: true,
           countryCode: true,
+          countryOfOrigin: true,
           ethnicity: true,
           dateOfBirth: true,
           allowPublicContactDetails: true,
@@ -111,10 +129,15 @@ export class SettingsService {
       const requiredFields = [
         'phone',
         'countryCode',
-        'ethnicity',
+        'countryOfOrigin',
         'dateOfBirth',
       ] as const;
-      const missingFields: string[] = requiredFields.filter((f) => !updated[f]);
+      const missingFields: string[] = requiredFields.filter((f) => {
+        if (f === 'countryOfOrigin') {
+          return !updated.countryOfOrigin;
+        }
+        return !updated[f];
+      });
 
       const activeRole = updated.orgStaffRoles?.[0];
       if (activeRole?.organization?.type === 'RETAIL') {
@@ -134,6 +157,7 @@ export class SettingsService {
       const { orgStaffRoles, ...userWithoutOrg } = updated;
       return { ...userWithoutOrg, profileCompletion };
     } catch (e) {
+      if (e instanceof BadRequestException) throw e;
       throw new InternalServerErrorException('Failed to update profile');
     }
   }

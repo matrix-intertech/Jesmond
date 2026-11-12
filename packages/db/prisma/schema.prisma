@@ -20,7 +20,8 @@ model User {
   lastName      String
   phone         String?
   countryCode   String?
-  ethnicity     String?
+  countryOfOrigin String?
+  ethnicity     String? // Deprecated: Replaced by countryOfOrigin
   dateOfBirth   DateTime?
   accountStatus AccountStatus @default(PENDING_VERIFICATION)
 
@@ -454,7 +455,8 @@ model Resident {
   email            String?
   phone            String?
   age              Int?
-  ethnicity        String?
+  countryOfOrigin  String?
+  ethnicity        String? // Deprecated: Replaced by countryOfOrigin
   occupation       String?
   shortBio         String?
   photoUrl         String?

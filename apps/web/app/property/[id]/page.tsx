@@ -8,6 +8,7 @@ import { SaveButton } from "../../../components/student/SaveButton";
 import { PropertyActions } from "../../../components/student/PropertyActions";
 import { formatLocation } from "../../../utils/location";
 import { LeadTracker } from "../../../components/marketing/LeadTracker";
+import { getCountryName } from "@/constants/countries";
 import { getApiUrl } from "@/utils/api";
 import { getSiteUrl } from "@/utils/site";
 import { JsonLd, getPropertySchema, getBreadcrumbSchema } from "@/components/seo/JsonLd";
@@ -191,7 +192,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                         <div className="text-sm text-text-secondary mt-1 flex flex-wrap gap-2">
                           {resident.age && <span>{resident.age} yrs</span>}
                           {resident.occupation && <span>• {resident.occupation}</span>}
-                          {resident.ethnicity && <span>• {resident.ethnicity}</span>}
+                          {resident.countryOfOrigin && <span>• {getCountryName(resident.countryOfOrigin)}</span>}
                         </div>
                         {resident.shortBio && <p className="text-sm text-text-secondary mt-2 line-clamp-2">{resident.shortBio}</p>}
                       </div>

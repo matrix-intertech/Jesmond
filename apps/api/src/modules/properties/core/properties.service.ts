@@ -1199,6 +1199,7 @@ export class PropertiesService {
             id: true,
             name: true,
             age: true,
+            countryOfOrigin: true,
             ethnicity: true,
             occupation: true,
             shortBio: true,
@@ -1222,7 +1223,12 @@ export class PropertiesService {
         name: resident.name,
         photoUrl: resident.photoUrl,
         age: visibility.age ? resident.age : undefined,
-        ethnicity: visibility.ethnicity ? resident.ethnicity : undefined,
+        countryOfOrigin: visibility.countryOfOrigin
+          ? (resident.countryOfOrigin || undefined)
+          : undefined,
+        ethnicity: visibility.ethnicity
+          ? (resident.ethnicity || undefined)
+          : undefined,
         occupation: visibility.occupation ? resident.occupation : undefined,
         shortBio: visibility.shortBio ? resident.shortBio : undefined,
       };
@@ -1464,7 +1470,10 @@ export class PropertiesService {
         email: dto.email,
         phone: dto.phone,
         age: dto.age,
-        ethnicity: dto.ethnicity,
+        countryOfOrigin: dto.countryOfOrigin
+          ? dto.countryOfOrigin.trim().toUpperCase()
+          : null,
+        ethnicity: dto.ethnicity ? dto.ethnicity.trim() : null,
         occupation: dto.occupation,
         shortBio: dto.shortBio,
         photoUrl: dto.photoUrl,
@@ -1515,7 +1524,14 @@ export class PropertiesService {
         ...(dto.email !== undefined && { email: dto.email }),
         ...(dto.phone !== undefined && { phone: dto.phone }),
         ...(dto.age !== undefined && { age: dto.age }),
-        ...(dto.ethnicity !== undefined && { ethnicity: dto.ethnicity }),
+        ...(dto.countryOfOrigin !== undefined && {
+          countryOfOrigin: dto.countryOfOrigin
+            ? dto.countryOfOrigin.trim().toUpperCase()
+            : null,
+        }),
+        ...(dto.ethnicity !== undefined && {
+          ethnicity: dto.ethnicity ? dto.ethnicity.trim() : null,
+        }),
         ...(dto.occupation !== undefined && { occupation: dto.occupation }),
         ...(dto.shortBio !== undefined && { shortBio: dto.shortBio }),
         ...(dto.photoUrl !== undefined && { photoUrl: dto.photoUrl }),
