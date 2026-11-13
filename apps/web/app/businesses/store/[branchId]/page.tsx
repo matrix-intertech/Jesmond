@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getApiUrl } from "@/utils/api";
 import { getSiteUrl } from "@/utils/site";
 import { ProductCard } from "@/components/retail/ProductCard";
@@ -8,7 +9,7 @@ import PublicFoodMenu from "@/components/food/PublicFoodMenu";
 import BusinessAppointments from "@/components/appointments/BusinessAppointments";
 import { JsonLd, getLocalBusinessSchema, getBreadcrumbSchema } from "@/components/seo/JsonLd";
 
-async function getStoreCatalog(branchId: string) {
+const getStoreCatalog = cache(async (branchId: string): Promise<any> => {
   try {
     const res = await fetch(`${getApiUrl()}/api/v1/retail/marketplace/stores/${branchId}/catalog`, {
       cache: 'no-store' // Don't aggressively cache inventory counts
@@ -22,7 +23,7 @@ async function getStoreCatalog(branchId: string) {
     console.error("Failed to fetch store catalog", err);
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }: { params: Promise<{ branchId: string }> }) {
   try {

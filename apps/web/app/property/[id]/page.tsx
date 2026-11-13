@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { GlobalNav } from "../../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../../components/marketing/EditorialFooter";
 import { notFound } from "next/navigation";
@@ -13,15 +14,27 @@ import { getApiUrl } from "@/utils/api";
 import { getSiteUrl } from "@/utils/site";
 import { JsonLd, getPropertySchema, getBreadcrumbSchema } from "@/components/seo/JsonLd";
 
+interface PropertyFetchResult {
+  status: number;
+  ok: boolean;
+  statusText: string;
+  data: any | null;
+}
+
+const getPublicProperty = cache(async (id: string): Promise<PropertyFetchResult> => {
+  const res = await fetch(
+    `${getApiUrl()}/api/v1/properties/public/${id}`,
+    { cache: 'no-store' }
+  );
+  const data = res.ok ? await res.json() : null;
+  return { status: res.status, ok: res.ok, statusText: res.statusText, data };
+});
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const res = await fetch(
-      `${getApiUrl()}/api/v1/properties/public/${id}`,
-      { cache: 'no-store' }
-    );
-    if (!res.ok) return { title: "Property Details" };
-    const property = await res.json();
+    const { ok, data: property } = await getPublicProperty(id);
+    if (!ok || !property) return { title: "Property Details" };
     const name = property?.title || property?.name;
     if (!name) return { title: "Property Details" };
     const description = property?.description
@@ -56,11 +69,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
-  let property;
 
   let res;
   try {
-    res = await fetch(`${getApiUrl()}/api/v1/properties/public/${resolvedParams.id}`, { cache: 'no-store' });
+    res = await getPublicProperty(resolvedParams.id);
   } catch (err) {
     throw new Error(`Failed to fetch property details: ${err instanceof Error ? err.message : String(err)}`);
   }
@@ -73,7 +85,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
     throw new Error(`Failed to fetch property details: ${res.statusText}`);
   }
 
-  property = await res.json();
+  const property = res.data;
 
   if (!property) return notFound();
 
