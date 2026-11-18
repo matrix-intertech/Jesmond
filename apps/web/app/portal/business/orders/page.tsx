@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAccessToken, getCurrentUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -26,8 +26,8 @@ export default function BusinessFoodOrdersPage() {
 
   useEffect(() => {
     const user = getCurrentUser();
-    if (!user || !canUseBusinessCapability(user.businessCategory as any, 'ORDERS')) {
-      router.push('/portal');
+    if (user && !canUseBusinessCapability(user.businessCategory as any, 'ORDERS')) {
+      router.replace(getDashboardRouteForUser(user));
       return;
     }
     

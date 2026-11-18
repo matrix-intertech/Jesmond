@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, isAuthenticated, getDashboardRouteForUser } from "@/utils/auth";
+import { getCurrentUser, isAuthenticated, getDashboardRouteForUser, restoreUserSession } from "@/utils/auth";
 import { Loader2 } from "lucide-react";
 
 export type RetailPermission =
@@ -65,45 +65,65 @@ export default function RetailGuard({
   const [forbidden, setForbidden] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push(
-        `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
-      );
-      return;
-    }
-
-    const user = getCurrentUser();
-    if (!user || user.orgType !== "RETAIL") {
-      router.replace(getDashboardRouteForUser(user));
-      return;
-    }
-
-    const userCat = (user.businessCategory || "").toUpperCase();
-    const isApptBusiness = userCat === "SERVICES" || userCat === "MECHANICS";
-    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-    const isCommerceOnlyRoute =
-      currentPath === "/portal/retail" ||
-      currentPath.startsWith("/portal/retail/pos") ||
-      currentPath.startsWith("/portal/retail/catalog") ||
-      currentPath.startsWith("/portal/retail/inventory") ||
-      currentPath.startsWith("/portal/retail/orders") ||
-      currentPath.startsWith("/portal/retail/sales-history") ||
-      currentPath.startsWith("/portal/retail/terminals") ||
-      currentPath.startsWith("/portal/retail/employees");
-
-    if (isApptBusiness && isCommerceOnlyRoute) {
-      router.replace("/portal/business/appointments");
-      return;
-    }
-
-    if (requirePermissions.length > 0) {
-      if (!hasPermission(requirePermissions, requireAll)) {
-        setForbidden(true);
+    let mounted = true;
+    const validateAccess = async () => {
+      if (!isAuthenticated()) {
+        router.push(
+          `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+        );
         return;
       }
-    }
 
-    setAuthorized(true);
+      // Server validation must determine whether access is granted
+      const sessionRes = await restoreUserSession();
+      if (!mounted) return;
+
+      if (sessionRes.status !== "ok" || !sessionRes.user) {
+        router.push(
+          `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+        );
+        return;
+      }
+
+      const user = sessionRes.user;
+      if (user.orgType !== "RETAIL") {
+        router.replace(getDashboardRouteForUser(user));
+        return;
+      }
+
+      const userCat = (user.businessCategory || "").toUpperCase();
+      const isApptBusiness = userCat === "SERVICES" || userCat === "MECHANICS";
+      const currentPath =
+        typeof window !== "undefined" ? window.location.pathname : "";
+      const isCommerceOnlyRoute =
+        currentPath === "/portal/retail" ||
+        currentPath.startsWith("/portal/retail/pos") ||
+        currentPath.startsWith("/portal/retail/catalog") ||
+        currentPath.startsWith("/portal/retail/inventory") ||
+        currentPath.startsWith("/portal/retail/orders") ||
+        currentPath.startsWith("/portal/retail/sales-history") ||
+        currentPath.startsWith("/portal/retail/terminals") ||
+        currentPath.startsWith("/portal/retail/employees");
+
+      if (isApptBusiness && isCommerceOnlyRoute) {
+        router.replace("/portal/business/appointments");
+        return;
+      }
+
+      if (requirePermissions.length > 0) {
+        if (!hasPermission(requirePermissions, requireAll)) {
+          setForbidden(true);
+          return;
+        }
+      }
+
+      setAuthorized(true);
+    };
+
+    validateAccess();
+    return () => {
+      mounted = false;
+    };
   }, [router, requirePermissions, requireAll]);
 
   if (authorized === null && !forbidden) {

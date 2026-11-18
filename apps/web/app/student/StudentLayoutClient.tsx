@@ -1,69 +1,90 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
 import ProfileCompletionBanner from '@/components/ui/ProfileCompletionBanner';
-import { getAccessToken, getCurrentUser, clearAuth, setCurrentUser, User } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { restoreUserSession, clearAuth, User, getDashboardRouteForUser } from '@/utils/auth';
+import { AlertCircle, RefreshCw, LogOut } from 'lucide-react';
 
 export default function StudentLayoutClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
+  const initAuth = useCallback(async (forceRefresh = false) => {
+    setError(null);
+    if (forceRefresh) setIsRetrying(true);
+
+    const result = await restoreUserSession({ forceRefresh });
+
+    if (result.status === 'unauthorized') {
       clearAuth();
       router.replace('/login');
       return;
     }
 
-    const cachedUser = getCurrentUser();
-    const authorize = (usr: User) => {
-      if (usr.role !== 'STUDENT') {
-        if (usr.role === 'ADMIN' || usr.role === 'SUPER_ADMIN') router.replace('/admin');
-        else if (usr.role === 'ORG_STAFF') router.replace('/portal');
-        else router.replace('/');
-        return;
-      }
-      setUser(usr);
-      setIsAuthorized(true);
-    };
-
-    if (cachedUser) {
-      authorize(cachedUser);
+    if (result.status === 'forbidden') {
+      setError(result.error || 'Access to student account is restricted.');
+      setIsRetrying(false);
       return;
     }
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const status = await handleApiError(res, () => {
-          clearAuth();
-          router.replace('/login');
-        });
-        if (status === 'ok') {
-          const data = await res.json();
-          setCurrentUser(data.user);
-          authorize(data.user);
-        } else if (status === 'unauthorized') {
-          // already handled
-        } else {
-          // non‑401 errors
-        }
-      } catch (e) {
-        console.error('Failed to recover user via /auth/me:', e);
+    if (result.status === 'ok' && result.user) {
+      if (result.user.role !== 'STUDENT') {
+        router.replace(getDashboardRouteForUser(result.user));
+        return;
       }
-    };
-    fetchUser();
-  }, []);
+      setUser(result.user);
+      setIsAuthorized(true);
+      setIsRetrying(false);
+      return;
+    }
+
+    setError(result.error || 'Unable to load student account. Please try again.');
+    setIsRetrying(false);
+  }, [router]);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   if (!isAuthorized) {
+    if (error) {
+      return (
+        <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
+          <div className="max-w-md w-full bg-surface-card p-6 rounded-xl border border-border shadow-sm text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle size={24} />
+            </div>
+            <h2 className="text-lg font-semibold text-text-primary mb-2">Student Account Recovery</h2>
+            <p className="text-sm text-text-secondary mb-6">{error}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => initAuth(true)}
+                disabled={isRetrying}
+                className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw size={16} className={`mr-2 ${isRetrying ? 'animate-spin' : ''}`} />
+                {isRetrying ? 'Connecting...' : 'Retry'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { clearAuth(); router.replace('/login'); }}
+                className="inline-flex items-center justify-center px-4 py-2 border border-border text-text-secondary rounded-lg text-sm font-medium hover:bg-surface-muted transition-colors"
+              >
+                <LogOut size={16} className="mr-2" />
+                Return to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
         <h1 className="text-xl font-semibold text-primary mb-2">Student Portal</h1>

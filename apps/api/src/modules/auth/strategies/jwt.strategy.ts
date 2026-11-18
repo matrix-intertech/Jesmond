@@ -29,7 +29,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { id: payload.sub },
       include: {
         orgStaffRoles: {
-          where: { deletedAt: null },
+          where: {
+            deletedAt: null,
+            organization: { deletedAt: null },
+          },
           include: { organization: true },
           orderBy: { createdAt: 'asc' },
         },
@@ -38,6 +41,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     if (
       !user ||
+      user.deletedAt ||
       user.accountStatus === 'SUSPENDED' ||
       user.accountStatus === 'DEACTIVATED'
     ) {
@@ -53,9 +57,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       }
     }
 
+    const activeStaffRoles = (user.orgStaffRoles || []).filter(
+      (r) => !r.deletedAt && (!r.organization || !r.organization.deletedAt),
+    );
+
     let activeRole: (typeof user.orgStaffRoles)[number] | undefined = undefined;
 
-    if (user.orgStaffRoles && user.orgStaffRoles.length > 0) {
+    if (activeStaffRoles.length > 0) {
       const requestedOrgId = (
         (req?.headers?.['x-organization-id'] as string) ||
         (typeof req?.header === 'function'
@@ -67,7 +75,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       )?.trim();
 
       if (requestedOrgId) {
-        const matched = user.orgStaffRoles.find(
+        const matched = activeStaffRoles.find(
           (r) => r.organizationId === requestedOrgId,
         );
         if (!matched) {
@@ -78,7 +86,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         activeRole = matched;
       } else {
         // Deterministic primary organization (earliest created active membership)
-        activeRole = [...user.orgStaffRoles].sort(
+        activeRole = [...activeStaffRoles].sort(
           (a, b) =>
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         )[0];

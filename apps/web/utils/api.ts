@@ -1,12 +1,20 @@
 export function getApiUrl(): string {
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+    // In browser, use configured NEXT_PUBLIC_API_URL or relative path.
+    // Never fallback to localhost/127.0.0.1:3001 in browser to avoid leaking requests to visitor localhost.
+    return process.env.NEXT_PUBLIC_API_URL || '';
   }
-  return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3001';
+  return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || '';
 }
 
-export async function handleApiError(response: Response, onAuthError?: () => void): Promise<'ok' | 'unauthorized' | 'forbidden' | 'error' | 'notfound'> {
+export async function handleApiError(
+  response: Response,
+  onAuthError?: () => void,
+): Promise<'ok' | 'unauthorized' | 'forbidden' | 'error' | 'notfound' | 'notmodified'> {
   if (response.ok) return 'ok';
+  if (response.status === 304) {
+    return 'notmodified';
+  }
   if (response.status === 401) {
     // Authentication error – clear auth and redirect
     if (onAuthError) onAuthError();

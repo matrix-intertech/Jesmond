@@ -232,6 +232,64 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
   });
 
   describe('Account Status & Session Validation', () => {
+    it('should throw UnauthorizedException if user is deletedAt is set', async () => {
+      const deletedUser = {
+        id: 'user-deleted',
+        email: 'deleted@example.com',
+        role: UserRole.STUDENT,
+        accountStatus: AccountStatus.ACTIVE,
+        deletedAt: new Date(),
+        orgStaffRoles: [],
+      };
+
+      prisma.user.findUnique.mockResolvedValue(deletedUser);
+
+      await expect(
+        strategy.validate({}, { sub: 'user-deleted' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should ignore soft-deleted organizations and revoked memberships', async () => {
+      const deletedOrgStaff = {
+        id: 'staff-deleted',
+        organizationId: 'org-deleted',
+        role: UserRole.ORG_STAFF,
+        createdAt: new Date('2024-01-01'),
+        deletedAt: new Date(),
+        organization: { id: 'org-deleted', type: OrgType.PROVIDER },
+      };
+      const orgWithDeletedOrg = {
+        id: 'staff-active-deleted-org',
+        organizationId: 'org-soft-deleted',
+        role: UserRole.ORG_STAFF,
+        createdAt: new Date('2024-02-01'),
+        organization: { id: 'org-soft-deleted', type: OrgType.PROVIDER, deletedAt: new Date() },
+      };
+      const activeOrgStaff = {
+        id: 'staff-active',
+        organizationId: 'org-active',
+        role: UserRole.ORG_STAFF,
+        createdAt: new Date('2024-03-01'),
+        organization: { id: 'org-active', type: OrgType.RETAIL },
+      };
+
+      const mockUser = {
+        id: 'user-mixed',
+        email: 'mixed@example.com',
+        role: UserRole.ORG_STAFF,
+        accountStatus: AccountStatus.ACTIVE,
+        orgStaffRoles: [deletedOrgStaff, orgWithDeletedOrg, activeOrgStaff],
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+
+      const result = await strategy.validate({}, { sub: 'user-mixed' });
+
+      // Only activeOrgStaff should be selected; deleted staff and soft-deleted orgs are ignored
+      expect(result.organizationId).toBe('org-active');
+      expect(result.orgType).toBe(OrgType.RETAIL);
+    });
+
     it('should throw UnauthorizedException if user is SUSPENDED or DEACTIVATED', async () => {
       const suspendedUser = {
         id: 'user-suspended',

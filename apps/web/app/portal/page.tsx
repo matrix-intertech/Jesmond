@@ -29,10 +29,12 @@ export default function ProviderPortalPage() {
  const currentUser = getCurrentUser();
 
  if (!token) return;
-    const targetRoute = getDashboardRouteForUser(currentUser);
-    if (targetRoute !== '/portal') {
-      router.replace(targetRoute);
-      return;
+    if (currentUser) {
+      const targetRoute = getDashboardRouteForUser(currentUser);
+      if (targetRoute !== '/portal') {
+        router.replace(targetRoute);
+        return;
+      }
     }
 
  try {

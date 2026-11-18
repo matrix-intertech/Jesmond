@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   Loader2,
@@ -71,13 +71,13 @@ export default function BusinessCustomersPage() {
   useEffect(() => {
     const user = getCurrentUser();
     if (
-      !user ||
+      user &&
       !canUseBusinessCapability(
         user.businessCategory as any,
         "APPOINTMENT_CUSTOMERS",
       )
     ) {
-      router.replace("/portal");
+      router.replace(getDashboardRouteForUser(user));
       return;
     }
     fetchCustomers();

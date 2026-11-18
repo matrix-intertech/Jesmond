@@ -7,6 +7,7 @@ import {
   Get,
   UseGuards,
   Request,
+  Header,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
 import {
@@ -112,8 +113,14 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
+  @Header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   getProfile(@Request() req: any) {
-    return req.user;
+    return {
+      ...req.user,
+      user: req.user,
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

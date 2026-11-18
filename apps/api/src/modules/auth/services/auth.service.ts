@@ -382,7 +382,9 @@ export class AuthService {
       where: { email: dto.email.toLowerCase() },
       include: {
         orgStaffRoles: {
+          where: { deletedAt: null },
           include: { organization: true },
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
@@ -483,7 +485,9 @@ export class AuthService {
       where: { id: payload.sub },
       include: {
         orgStaffRoles: {
+          where: { deletedAt: null },
           include: { organization: true },
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
@@ -937,7 +941,9 @@ export class AuthService {
           where: { email: dto.email.toLowerCase() },
           include: {
             orgStaffRoles: {
+              where: { deletedAt: null },
               include: { organization: true },
+              orderBy: { createdAt: 'asc' },
             },
           },
         })
@@ -945,7 +951,9 @@ export class AuthService {
           where: { phone: dto.phone },
           include: {
             orgStaffRoles: {
+              where: { deletedAt: null },
               include: { organization: true },
+              orderBy: { createdAt: 'asc' },
             },
           },
         });

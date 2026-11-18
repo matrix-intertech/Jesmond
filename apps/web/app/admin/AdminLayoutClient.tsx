@@ -1,70 +1,96 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
-import { getAccessToken, getCurrentUser, clearAuth, setCurrentUser, User } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { restoreUserSession, clearAuth, User, getDashboardRouteForUser } from '@/utils/auth';
+import { AlertCircle, RefreshCw, LogOut } from 'lucide-react';
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  useEffect(() => {
-    const token = getAccessToken();
-    if (!token) {
+  const initAuth = useCallback(async (forceRefresh = false) => {
+    setError(null);
+    if (forceRefresh) setIsRetrying(true);
+
+    const result = await restoreUserSession({ forceRefresh });
+
+    if (result.status === 'unauthorized') {
       clearAuth();
       router.replace('/login');
       return;
     }
 
-    const cachedUser = getCurrentUser();
-    const authorize = (usr: User) => {
-      const allowed = ['ADMIN', 'SUPER_ADMIN'];
-      if (!allowed.includes(usr.role)) {
-        if (usr.role === 'ORG_STAFF') router.replace('/portal');
-        else if (usr.role === 'STUDENT') router.replace('/student');
-        else router.replace('/');
-        return;
-      }
-      setUser(usr);
-      setIsAuthorized(true);
-    };
-
-    if (cachedUser) {
-      authorize(cachedUser);
+    if (result.status === 'forbidden') {
+      setError(result.error || 'Access to admin dashboard is restricted.');
+      setIsRetrying(false);
       return;
     }
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const status = await handleApiError(res, () => {
-          clearAuth();
-          router.replace('/login');
-        });
-        if (status === 'ok') {
-          const data = await res.json();
-          setCurrentUser(data.user);
-          authorize(data.user);
-        } else if (status === 'unauthorized') {
-          // onAuthError already handled redirect
-        } else {
-          // Non‑401 errors
-        }
-      } catch (e) {
-        console.error('Failed to recover user via /auth/me:', e);
+    if (result.status === 'ok' && result.user) {
+      const allowed = ['ADMIN', 'SUPER_ADMIN'];
+      if (!allowed.includes(result.user.role)) {
+        router.replace(getDashboardRouteForUser(result.user));
+        return;
       }
-    };
-    fetchUser();
-  }, []);
+      setUser(result.user);
+      setIsAuthorized(true);
+      setIsRetrying(false);
+      return;
+    }
+
+    setError(result.error || 'Unable to load admin account. Please try again.');
+    setIsRetrying(false);
+  }, [router]);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
 
   if (!isAuthorized) {
-    return <div className="min-h-screen bg-surface-muted flex items-center justify-center">Loading dashboard...</div>;
+    if (error) {
+      return (
+        <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
+          <div className="max-w-md w-full bg-surface-card p-6 rounded-xl border border-border shadow-sm text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle size={24} />
+            </div>
+            <h2 className="text-lg font-semibold text-text-primary mb-2">Admin Dashboard Error</h2>
+            <p className="text-sm text-text-secondary mb-6">{error}</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => initAuth(true)}
+                disabled={isRetrying}
+                className="inline-flex items-center justify-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw size={16} className={`mr-2 ${isRetrying ? 'animate-spin' : ''}`} />
+                {isRetrying ? 'Connecting...' : 'Retry'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { clearAuth(); router.replace('/login'); }}
+                className="inline-flex items-center justify-center px-4 py-2 border border-border text-text-secondary rounded-lg text-sm font-medium hover:bg-surface-muted transition-colors"
+              >
+                <LogOut size={16} className="mr-2" />
+                Return to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
+        <h1 className="text-xl font-semibold text-primary mb-2">Admin Portal</h1>
+        <p className="text-sm text-text-secondary">Loading dashboard...</p>
+      </div>
+    );
   }
 
   return (
