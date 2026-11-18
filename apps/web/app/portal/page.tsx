@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAccessToken, clearAuth, User, getCurrentUser, getDashboardRouteForUser } from '@/utils/auth';
+import { getAccessToken, clearAuth, User, getCurrentUser, getDashboardRouteForUser, getDashboardHeading } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
@@ -16,7 +16,7 @@ export default function ProviderPortalPage() {
 
  const onAuthError = () => { clearAuth(); router.replace('/login'); };
 
- const [user, setUser] = useState<User | null>(null);
+ const [user, setUser] = useState<User | null>(() => (typeof window !== 'undefined' ? getCurrentUser() : null));
  const [properties, setProperties] = useState<any[]>([]);
  const [applications, setApplications] = useState<any[]>([]);
  const [loadingProps, setLoadingProps] = useState(true);
@@ -94,7 +94,7 @@ export default function ProviderPortalPage() {
 
  return (
  <>
- <PageHeader title="Provider Dashboard" description="Manage your accommodations and applications" primaryAction={{ label: 'Create Accommodation', href: '/portal/create' }} />
+ <PageHeader title={getDashboardHeading(user || (typeof window !== 'undefined' ? getCurrentUser() : null))} description="Manage your accommodations and applications" primaryAction={{ label: 'Create Accommodation', href: '/portal/create' }} />
  <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
  <StatCard label="My Properties" value={total} />
  <StatCard label="Draft" value={drafts.length} />

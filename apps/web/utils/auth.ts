@@ -260,6 +260,76 @@ export const getDashboardRouteForUser = (user: Partial<User> | null | undefined)
 };
 
 /**
+ * Resolves the display heading for a user's dashboard based on their
+ * role, organization type, and business category.
+ *
+ * Expected headings:
+ * - Student -> Student Dashboard
+ * - Parent -> Parent Dashboard
+ * - Service Provider -> Service Provider Dashboard
+ * - Mechanics -> Mechanics Dashboard
+ * - Services -> Services / Tradies Dashboard
+ * - Retail -> Retail Business Dashboard
+ * - Food -> Food Business Dashboard
+ * - Agency -> Agency Dashboard
+ * - University -> University Dashboard
+ * - Admin -> Admin Dashboard
+ * - Super Admin -> Super Admin Dashboard
+ */
+export const getDashboardHeading = (user: Partial<User> | null | undefined): string => {
+  if (!user || !user.role) return 'Dashboard';
+
+  const role = (user.role || '').toUpperCase();
+  const orgType = (user.orgType || '').toUpperCase();
+  const category = (user.businessCategory || '').toUpperCase();
+
+  switch (role) {
+    case 'SUPER_ADMIN':
+      return 'Super Admin Dashboard';
+    case 'ADMIN':
+      return 'Admin Dashboard';
+    case 'STUDENT':
+      return 'Student Dashboard';
+    case 'PARENT':
+      return 'Parent Dashboard';
+    case 'ORG_STAFF': {
+      // 1. Business Category takes precedence for specialized business operations
+      if (category === 'MECHANICS') {
+        return 'Mechanics Dashboard';
+      }
+      if (category === 'SERVICES') {
+        return 'Services / Tradies Dashboard';
+      }
+      if (category === 'FOOD') {
+        return 'Food Business Dashboard';
+      }
+      if (category === 'RETAIL') {
+        return 'Retail Business Dashboard';
+      }
+
+      // 2. Organization Type determines sector dashboard
+      if (orgType === 'AGENCY') {
+        return 'Agency Dashboard';
+      }
+      if (orgType === 'UNIVERSITY') {
+        return 'University Dashboard';
+      }
+      if (orgType === 'PROVIDER') {
+        return 'Service Provider Dashboard';
+      }
+      if (orgType === 'RETAIL') {
+        return 'Retail Business Dashboard';
+      }
+
+      // Fallback for ORG_STAFF when org context is unresolved
+      return 'Service Provider Dashboard';
+    }
+    default:
+      return 'Dashboard';
+  }
+};
+
+/**
  * Validates whether a requested returnUrl is authorized for the given user.
  */
 export const isAuthorizedRouteForUser = (

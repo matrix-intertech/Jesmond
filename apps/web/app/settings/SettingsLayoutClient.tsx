@@ -98,7 +98,7 @@ export default function SettingsLayoutClient({ children }: { children: React.Rea
   }
 
   return (
-    <DashboardShell role={user?.role as any}>
+    <DashboardShell role={user?.role as any} user={user}>
       <SettingsLayout title="Account Settings" description="Manage your personal preferences." links={links}>
         {children}
       </SettingsLayout>

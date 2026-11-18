@@ -94,7 +94,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   }
 
   return (
-    <DashboardShell role={user?.role as any}>
+    <DashboardShell role={user?.role as any} user={user}>
       {children}
     </DashboardShell>
   );

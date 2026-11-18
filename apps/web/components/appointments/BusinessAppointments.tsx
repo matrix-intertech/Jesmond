@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getApiUrl } from '@/utils/api';
 import { getAccessToken, isAuthenticated } from '@/utils/auth';
+import { formatAudPrice } from '@/utils/pricing';
 import { Calendar, Clock, Loader2, Info, User, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -193,6 +194,8 @@ export default function BusinessAppointments({
   }
 
   const selectedServiceObj = services.find((s) => s.id === selectedService);
+  const selectedServices = selectedServiceObj ? [selectedServiceObj] : [];
+  const bookingTotalCents = selectedServices.reduce((sum, s) => sum + (Number(s.price) || 0), 0);
 
   return (
     <div className="bg-surface rounded-3xl p-8 lg:p-10 border border-border-strong/60 shadow-sm relative overflow-hidden">
@@ -262,7 +265,7 @@ export default function BusinessAppointments({
                     <span className="flex items-center gap-1.5"><Clock size={14}/> {svc.durationMins || svc.durationMinutes} mins</span>
                     {svc.price > 0 && (
                       <span className="font-semibold text-brand-navy">
-                        ${(Number(svc.price) > 500 ? Number(svc.price) / 100 : Number(svc.price)).toFixed(2)}
+                        {formatAudPrice(svc.price)}
                       </span>
                     )}
                   </div>
@@ -344,10 +347,10 @@ export default function BusinessAppointments({
                   ) : '---'}
                 </div>
               </div>
-              {selectedServiceObj?.price > 0 && (
+              {bookingTotalCents > 0 && (
                 <div className="flex justify-between items-start pt-4 border-t border-border-strong">
                   <div className="text-text-secondary font-bold">Total</div>
-                  <div className="text-right font-extrabold text-lg text-primary">${selectedServiceObj.price.toFixed(2)}</div>
+                  <div className="text-right font-extrabold text-lg text-primary">{formatAudPrice(bookingTotalCents)}</div>
                 </div>
               )}
             </div>

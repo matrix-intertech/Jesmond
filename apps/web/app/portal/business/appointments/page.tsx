@@ -21,6 +21,7 @@ import {
   Search,
 } from "lucide-react";
 import { canUseBusinessCapability } from "@/utils/capabilities";
+import { formatAudPrice } from "@/utils/pricing";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function BusinessAppointmentsDashboard() {
@@ -630,7 +631,7 @@ export default function BusinessAppointmentsDashboard() {
                           </span>
                           {appt.service?.price && (
                             <div className="text-xs text-text-secondary font-normal">
-                              AUD ${Number(appt.service.price).toFixed(2)}
+                              {formatAudPrice(appt.service.price, { showPrefix: true })}
                             </div>
                           )}
                         </td>
@@ -799,7 +800,7 @@ export default function BusinessAppointmentsDashboard() {
                         {req.service?.durationMinutes} min
                       </span>
                       {req.service?.price && (
-                        <span>AUD ${Number(req.service.price).toFixed(2)}</span>
+                        <span>{formatAudPrice(req.service.price, { showPrefix: true })}</span>
                       )}
                     </div>
                     <div className="mt-3 bg-surface-muted p-3.5 rounded-xl border border-border-strong/50 text-sm">
@@ -992,7 +993,7 @@ export default function BusinessAppointmentsDashboard() {
                   <div className="text-xs text-text-secondary">
                     {selectedAppointment.service?.durationMinutes} mins
                     {selectedAppointment.service?.price &&
-                      ` • AUD $${Number(selectedAppointment.service.price).toFixed(2)}`}
+                      ` • ${formatAudPrice(selectedAppointment.service.price, { showPrefix: true })}`}
                   </div>
                 </div>
                 <span className="px-2 py-0.5 text-xs font-bold rounded bg-amber-100 text-amber-800">

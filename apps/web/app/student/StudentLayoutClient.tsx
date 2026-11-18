@@ -100,7 +100,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
   }
 
   return (
-    <DashboardShell role={user?.role as any}>
+    <DashboardShell role={user?.role as any} user={user}>
       <ProfileCompletionBanner />
       {children}
     </DashboardShell>

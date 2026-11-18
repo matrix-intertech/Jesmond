@@ -160,7 +160,7 @@ export default function PortalLayoutClient({
   }
 
   return (
-    <DashboardShell role={user?.role as any}>
+    <DashboardShell role={user?.role as any} user={user}>
       <ProfileCompletionBanner />
       {children}
     </DashboardShell>

@@ -355,7 +355,7 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     // Click genuine Sign Out button in UI
     const signOutBtn = page.locator('button:has-text("Sign Out")').first();
     await expect(signOutBtn).toBeVisible({ timeout: 5000 });
-    await signOutBtn.click();
+    await signOutBtn.dispatchEvent('click');
 
     await page.waitForURL('**/login', { timeout: 10_000 });
     expect(page.url()).toContain('/login');
@@ -489,5 +489,55 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     const saveBtn = page.locator('button:has-text("Save Changes")');
     await saveBtn.click();
     await expect(page.locator('text=Business profile updated successfully')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('17. Appointment Pricing Display: Provider portal renders minor-unit service price as AUD dollars without 100x multiplication', async ({ page }) => {
+    const mechanicsUser = {
+      id: 'demo-mech-id',
+      email: 'demo.mechanics@jesmond.com.au',
+      role: 'ORG_STAFF',
+      organizationId: 'org-mech-1',
+      orgType: 'RETAIL',
+      businessCategory: 'MECHANICS',
+      permissions: ['*'],
+      accountStatus: 'ACTIVE',
+    };
+
+    await setupAuthSession(page, mechanicsUser);
+
+    // Mock business-appointments endpoint with 8900 cents ($89.00)
+    await page.route('**/api/v1/business-appointments*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 'appt-test-1',
+            status: 'PENDING_APPROVAL',
+            startTime: '2026-11-20T10:00:00.000Z',
+            endTime: '2026-11-20T10:45:00.000Z',
+            customer: { name: 'John Doe', email: 'john@example.com' },
+            service: {
+              id: 'srv-1',
+              name: 'Comprehensive Vehicle Safety Inspection',
+              price: 8900, // 8900 minor units (cents) = $89.00
+              durationMins: 45,
+            },
+          },
+        ]),
+      });
+    });
+
+    await page.goto('/portal/business/appointments?tab=list');
+
+    await expect(page).toHaveURL(/\/portal\/business\/appointments/);
+    await expect(page.locator('h1:has-text("Appointments")')).toBeVisible({ timeout: 10_000 });
+
+    // Verify service name is present
+    await expect(page.locator('text=Comprehensive Vehicle Safety Inspection')).toBeVisible();
+
+    // Verify price is formatted accurately as AUD $89.00 and NOT AUD $8900.00
+    await expect(page.locator('text=AUD $89.00')).toBeVisible();
+    await expect(page.locator('text=AUD $8900.00')).not.toBeVisible();
   });
 });

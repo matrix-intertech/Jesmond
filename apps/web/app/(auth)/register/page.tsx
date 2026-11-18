@@ -404,7 +404,7 @@ function RegisterForm() {
   <option value="RETAIL">Retail</option>
   <option value="FOOD">Food</option>
   <option value="MECHANICS">Mechanics</option>
-  <option value="SERVICES">Services</option>
+  <option value="SERVICES">Services / Tradies</option>
   <option value="RENTALS">Rentals</option>
   </select>
   </div>

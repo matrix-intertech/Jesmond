@@ -410,6 +410,67 @@ describe('Demo Businesses End-to-End Feature Verification (e2e)', () => {
       expect(Array.isArray(res.body.availableSlots)).toBe(true);
       expect(res.body.availableSlots.length).toBeGreaterThan(0);
     });
+
+    it('3. Submits an appointment request and verifies price persistence in minor units (cents) with AUD currency', async () => {
+      const inspection = await prisma.businessService.findFirst({
+        where: {
+          organizationId: mechanicsOrg.id,
+          name: 'Comprehensive Vehicle Safety Inspection',
+        },
+      });
+      expect(inspection).toBeDefined();
+      expect(inspection!.price).toBe(8900); // $89.00 in minor units (cents)
+      expect(inspection!.currency).toBe('AUD');
+
+      // Schedule for a future date (next Thursday) during business hours
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + ((4 - targetDate.getDay() + 7) % 7 || 7));
+      targetDate.setHours(10, 0, 0, 0);
+      const startTime = targetDate.toISOString();
+      const endTime = new Date(targetDate.getTime() + 45 * 60 * 1000).toISOString();
+
+      const bookingPayload = {
+        branchId: mechanicsBranch.id,
+        serviceId: inspection!.id,
+        startTime,
+        endTime,
+        timezone: 'Australia/Sydney',
+        customerNotes: 'Automated E2E booking price persistence test',
+      };
+
+      const res = await request(app.getHttpServer())
+        .post('/api/v1/appointments/request')
+        .set('Authorization', `Bearer ${retailToken}`)
+        .send(bookingPayload)
+        .expect(201);
+
+      expect(res.body).toBeDefined();
+      expect(res.body.id).toBeDefined();
+      // Price must be persisted in minor units (8900 cents = $89.00), not multiplied or divided
+      expect(res.body.price).toBe(8900);
+      expect(res.body.currency).toBe('AUD');
+      expect(res.body.serviceName).toBe('Comprehensive Vehicle Safety Inspection');
+      expect(res.body.durationMins).toBe(45);
+      expect(res.body.status).toBe('PENDING_APPROVAL');
+
+      // Verify persisted database record matches
+      const persistedAppointment = await prisma.appointment.findUnique({
+        where: { id: res.body.id },
+      });
+      expect(persistedAppointment).toBeDefined();
+      expect(persistedAppointment!.price).toBe(8900);
+      expect(persistedAppointment!.currency).toBe('AUD');
+      expect(persistedAppointment!.serviceName).toBe('Comprehensive Vehicle Safety Inspection');
+      expect(persistedAppointment!.durationMins).toBe(45);
+
+      // Clean up the created test appointment
+      await prisma.appointmentStatusHistory.deleteMany({
+        where: { appointmentId: res.body.id },
+      });
+      await prisma.appointment.delete({
+        where: { id: res.body.id },
+      });
+    });
   });
 
   // =========================================================================

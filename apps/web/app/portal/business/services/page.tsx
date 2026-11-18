@@ -154,12 +154,10 @@ export default function BusinessServicesPage() {
   const handleOpenEditServiceModal = (service: ServiceItem) => {
     setEditingService(service);
     const duration = service.durationMins ?? service.durationMinutes ?? 30;
-    // backend price is in cents if returned as integer
+    // backend price is in cents
     const priceAud =
       service.price !== undefined
-        ? Number(service.price) > 500
-          ? Number(service.price) / 100
-          : Number(service.price)
+        ? Number(service.price) / 100
         : 0;
 
     setServiceFormData({
@@ -570,9 +568,7 @@ export default function BusinessServicesPage() {
             const duration = service.durationMins ?? service.durationMinutes ?? 30;
             const priceAud =
               service.price !== undefined
-                ? Number(service.price) > 500
-                  ? Number(service.price) / 100
-                  : Number(service.price)
+                ? Number(service.price) / 100
                 : 0;
 
             return (

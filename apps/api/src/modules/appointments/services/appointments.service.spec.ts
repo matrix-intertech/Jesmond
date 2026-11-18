@@ -282,6 +282,8 @@ describe('AppointmentsService', () => {
       prisma.organization.findUnique.mockResolvedValue({
         id: 'org-1',
         businessCategory: 'SERVICES',
+        deletedAt: null,
+        isPubliclyVisible: true,
       });
       prisma.appointment.count.mockResolvedValue(0);
       prisma.staffServiceAssignment.count.mockResolvedValue(1);
@@ -303,6 +305,15 @@ describe('AppointmentsService', () => {
       });
 
       expect(result.id).toBe('appt-123');
+      expect(prisma.appointment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            price: 100,
+            currency: 'AUD',
+            serviceName: 'General Consultation',
+          }),
+        }),
+      );
       expect(waService.notifyBookingRequestReceived).toHaveBeenCalledWith('appt-123');
       expect(emailService.notifyAppointmentRequestReceived).toHaveBeenCalledWith('appt-123');
       expect(emailService.notifyProviderNewAppointment).toHaveBeenCalledWith('appt-123');
