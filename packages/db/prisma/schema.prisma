@@ -310,6 +310,7 @@ model Property {
   @@index([organizationId])
   @@index([suburbId])
   @@index([lat, lng])
+  @@index([status, createdAt(sort: Desc)])
 }
 
 enum PropertyListingMode {
@@ -788,6 +789,7 @@ model AuditLog {
 
   @@index([resourceType, resourceId])
   @@index([actorId])
+  @@index([createdAt(sort: Desc)])
 }
 
 enum ActorType {
@@ -1031,7 +1033,7 @@ model SavedProperty {
   createdAt DateTime @default(now())
 
   @@unique([studentId, propertyId])
-  @@index([studentId])
+  @@index([propertyId])
 }
 
 model Enquiry {
@@ -1319,6 +1321,7 @@ model SalesOrder {
   @@index([organizationId])
   @@index([branchId])
   @@index([customerId])
+  @@index([terminalId])
 }
 
 enum OrderStatus {
@@ -1625,6 +1628,7 @@ model Notification {
 
   @@index([recipientId, isRead])
   @@index([createdAt])
+  @@index([recipientId, createdAt(sort: Desc)])
 }
 
 model PushSubscription {
@@ -1748,9 +1752,9 @@ model FoodOrder {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([organizationId])
   @@index([branchId])
   @@index([userId])
+  @@index([organizationId, createdAt(sort: Desc)])
 }
 
 model FoodOrderItem {
@@ -2035,6 +2039,7 @@ model WhatsAppNotificationLog {
   @@index([status])
   @@index([relatedEntityId])
   @@index([createdAt])
+  @@index([userId])
 }
 
 // ---------------------------------------------------------
@@ -2071,6 +2076,7 @@ model EmailNotificationLog {
   @@index([status])
   @@index([relatedEntityId])
   @@index([createdAt])
+  @@index([userId])
 }
 
 
