@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, isAuthenticated } from "@/utils/auth";
+import { getCurrentUser, isAuthenticated, getDashboardRouteForUser } from "@/utils/auth";
 import { Loader2 } from "lucide-react";
 
 export type RetailPermission =
@@ -74,7 +74,7 @@ export default function RetailGuard({
 
     const user = getCurrentUser();
     if (!user || user.orgType !== "RETAIL") {
-      router.push("/student"); // Redirect to generic portal or student portal
+      router.replace(getDashboardRouteForUser(user));
       return;
     }
 

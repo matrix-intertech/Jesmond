@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAccessToken, clearAuth, User, getCurrentUser } from '@/utils/auth';
+import { getAccessToken, clearAuth, User, getCurrentUser, getDashboardRouteForUser } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
@@ -29,10 +29,11 @@ export default function ProviderPortalPage() {
  const currentUser = getCurrentUser();
 
  if (!token) return;
- if (currentUser?.orgType === 'RETAIL') {
- router.replace('/portal/retail');
- return;
- }
+    const targetRoute = getDashboardRouteForUser(currentUser);
+    if (targetRoute !== '/portal') {
+      router.replace(targetRoute);
+      return;
+    }
 
  try {
  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my`, {

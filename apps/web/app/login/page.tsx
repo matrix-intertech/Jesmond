@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { setAccessToken, setCurrentUser } from '@/utils/auth';
+import { setAccessToken, setCurrentUser, getDashboardRouteForUser, isAuthorizedRouteForUser } from '@/utils/auth';
 
 function LoginContent() {
  const [email, setEmail] = useState('');
@@ -39,20 +39,12 @@ function LoginContent() {
  setCurrentUser(data.user);
 
  // Role-based redirect
- const returnUrl = searchParams.get('returnUrl');
- switch (data.user.role) {
- case 'STUDENT':
- router.push(returnUrl || '/');
- break;
- case 'SUPER_ADMIN':
- case 'ADMIN':
- router.push(returnUrl || '/admin');
- break;
- case 'ORG_STAFF':
- default:
- router.push(returnUrl || '/portal');
- break;
- }
+	const returnUrl = searchParams.get('returnUrl');
+	if (returnUrl && isAuthorizedRouteForUser(data.user, returnUrl)) {
+		router.push(returnUrl);
+	} else {
+		router.push(getDashboardRouteForUser(data.user));
+	}
  } catch (err: any) {
  if (err.message === 'Failed to fetch') {
  setError('Unable to connect. Please try again later.');

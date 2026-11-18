@@ -10,6 +10,7 @@ import {
   clearAuth,
   setCurrentUser,
   User,
+  getDashboardRouteForUser,
 } from "@/utils/auth";
 import { handleApiError } from "@/utils/api";
 
@@ -35,36 +36,51 @@ export default function PortalLayoutClient({
     const cachedUser = getCurrentUser();
     const authorize = (usr: User) => {
       if (usr.role !== "ORG_STAFF") {
-        if (usr.role === "ADMIN" || usr.role === "SUPER_ADMIN")
-          router.replace("/admin");
-        else if (usr.role === "STUDENT") router.replace("/student");
-        else router.replace("/");
+        router.replace(getDashboardRouteForUser(usr));
         return;
       }
 
-      const userOrgType = usr.orgType || "PROVIDER";
+      const userOrgType = usr.orgType;
+      if (!userOrgType) {
+        router.replace("/settings/profile");
+        return;
+      }
+
       const userCategory = (usr.businessCategory || "").toUpperCase();
       const isAppointmentBusiness = userCategory === "SERVICES" || userCategory === "MECHANICS";
+      const isFoodBusiness = userCategory === "FOOD";
       const isRetailRoute = pathname.startsWith("/portal/retail");
       const isAccommodationRoute =
+        pathname === "/portal" ||
         pathname.startsWith("/portal/properties") ||
         pathname.startsWith("/portal/applications") ||
-        pathname.startsWith("/portal/enquiries");
+        pathname.startsWith("/portal/enquiries") ||
+        pathname.startsWith("/portal/create") ||
+        pathname.startsWith("/portal/leads") ||
+        pathname.startsWith("/portal/agency");
 
-      if (isAppointmentBusiness && (pathname === "/portal" || pathname === "/portal/retail")) {
+      if (isAppointmentBusiness && (pathname === "/portal" || pathname === "/portal/retail" || isAccommodationRoute)) {
         router.replace("/portal/business/appointments");
+        return;
+      }
+
+      if (isFoodBusiness && (pathname === "/portal" || isAccommodationRoute)) {
+        router.replace("/portal/business/orders");
         return;
       }
 
       if (userOrgType === "RETAIL" && isAccommodationRoute) {
         if (isAppointmentBusiness) {
           router.replace("/portal/business/appointments");
+        } else if (isFoodBusiness) {
+          router.replace("/portal/business/orders");
         } else {
           router.replace("/portal/retail");
         }
         return;
       }
-      if (userOrgType === "PROVIDER" && isRetailRoute) {
+
+      if ((userOrgType === "PROVIDER" || userOrgType === "AGENCY") && (isRetailRoute || pathname.startsWith("/portal/business"))) {
         router.replace("/portal");
         return;
       }
@@ -73,11 +89,9 @@ export default function PortalLayoutClient({
       setIsAuthorized(true);
     };
 
-    if (cachedUser) {
-      if (cachedUser.orgType !== "RETAIL") {
-        authorize(cachedUser);
-        return;
-      }
+    if (cachedUser && cachedUser.orgType) {
+      authorize(cachedUser);
+      return;
     }
 
     const fetchUser = async () => {

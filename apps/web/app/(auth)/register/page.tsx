@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { setAccessToken, setCurrentUser } from '@/utils/auth';
+import { setAccessToken, setCurrentUser, getDashboardRouteForUser } from '@/utils/auth';
 import { Suspense } from 'react';
 import Turnstile from '@/components/ui/Turnstile';
 import { CountrySelector } from '@/components/ui/CountrySelector';
@@ -131,7 +131,7 @@ function RegisterForm() {
  if (data.user) {
  setCurrentUser(data.user);
  }
- router.push(accountType === 'student' ? '/student' : '/portal');
+ router.push(data.user ? getDashboardRouteForUser(data.user) : (accountType === 'student' ? '/student' : '/portal'));
  } else {
  router.push('/login');
  }
@@ -178,7 +178,7 @@ function RegisterForm() {
  }
  setAccessToken(data.access_token);
  setCurrentUser(data.user);
- router.push(data.user.role === 'STUDENT' ? '/student' : '/portal');
+ router.push(getDashboardRouteForUser(data.user));
  } catch (err: any) {
  lastVerificationAttemptRef.current = null;
  setError(err.message === 'Failed to fetch'

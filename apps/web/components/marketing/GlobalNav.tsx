@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import Image from "next/image";
-import { isAuthenticated, getCurrentUser } from "@/utils/auth";
+import { isAuthenticated, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
 import { CompactChatPanel } from "../chat/CompactChatPanel";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 
@@ -17,16 +17,18 @@ export function GlobalNav() {
   const mobileDialogRef = useRef<HTMLDivElement>(null);
  const [isChatOpen, setIsChatOpen] = useState(false);
  const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
- const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string }>({ isAuth: false });
+ const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string, dashboardRoute?: string }>({ isAuth: false });
  const pathname = usePathname();
  const isMessagesActive = pathname === "/messages" || pathname.startsWith("/messages/");
  const unreadChatCount = useUnreadChatCount();
 
  useEffect(() => {
- setAuthStatus({
- isAuth: isAuthenticated(),
- role: getCurrentUser()?.role,
- });
+ const user = getCurrentUser();
+    setAuthStatus({
+      isAuth: isAuthenticated(),
+      role: user?.role,
+      dashboardRoute: getDashboardRouteForUser(user),
+    });
  }, []);
 
  useEffect(() => {
@@ -39,14 +41,9 @@ export function GlobalNav() {
  }, []);
 
  const getDashboardRoute = (role?: string) => {
- switch (role) {
- case 'STUDENT': return '/student';
- case 'ADMIN':
- case 'SUPER_ADMIN': return '/admin';
- case 'ORG_STAFF': return '/portal';
- default: return '/login';
- }
- };
+    if (authStatus.dashboardRoute) return authStatus.dashboardRoute;
+    return getDashboardRouteForUser(getCurrentUser());
+  };
 
  useEffect(() => {
  const handleScroll = () => {
