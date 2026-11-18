@@ -16,8 +16,11 @@ export function useUnreadChatCount() {
     }
 
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      const userId = payload.sub;
+      const parts = token.split(".");
+      if (parts.length < 2) return;
+      const payload = JSON.parse(atob(parts[1]));
+      const userId = payload?.sub;
+      if (!userId) return;
 
       const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
         headers: { Authorization: `Bearer ${token}` },

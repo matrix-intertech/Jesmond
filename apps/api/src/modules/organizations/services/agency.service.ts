@@ -75,6 +75,10 @@ export class AgencyService {
         name: data.name,
         branding: data.branding || undefined,
         settings: data.settings || undefined,
+        isPubliclyVisible:
+          data.isPubliclyVisible !== undefined
+            ? Boolean(data.isPubliclyVisible)
+            : undefined,
       },
     });
   }
@@ -499,6 +503,8 @@ export class AgencyService {
       type: OrgType.PROVIDER,
       status: 'VERIFIED',
       name: { not: '' },
+      deletedAt: null,
+      isPubliclyVisible: true,
     };
 
     if (search) {
@@ -539,6 +545,8 @@ export class AgencyService {
         type: OrgType.PROVIDER,
         status: 'VERIFIED',
         name: { not: '' },
+        deletedAt: null,
+        isPubliclyVisible: true,
       },
       select: {
         id: true,

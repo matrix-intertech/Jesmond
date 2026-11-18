@@ -24,6 +24,23 @@ export class AppointmentsService {
 
   // 1. List active services for an eligible business/branch
   async getServicesForBranch(branchId: string) {
+    const branch = await this.prisma.retailBranch.findUnique({
+      where: { id: branchId },
+      include: {
+        organization: {
+          select: { isPubliclyVisible: true, deletedAt: true },
+        },
+      },
+    });
+    if (
+      !branch ||
+      (branch.organization &&
+        (branch.organization.deletedAt ||
+          branch.organization.isPubliclyVisible === false))
+    ) {
+      return [];
+    }
+
     return this.prisma.businessService.findMany({
       where: { branchId, isActive: true },
       include: {
@@ -96,6 +113,8 @@ export class AppointmentsService {
       });
       if (
         !org ||
+        org.deletedAt !== null ||
+        org.isPubliclyVisible === false ||
         (org.businessCategory !== 'MECHANICS' &&
           org.businessCategory !== 'SERVICES')
       ) {

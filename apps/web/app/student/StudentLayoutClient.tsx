@@ -34,7 +34,13 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
 
     if (result.status === 'ok' && result.user) {
       if (result.user.role !== 'STUDENT') {
-        router.replace(getDashboardRouteForUser(result.user));
+        const dest = getDashboardRouteForUser(result.user);
+        if (typeof window !== 'undefined' && window.location.pathname === dest) {
+          setError('This portal is only accessible to student accounts.');
+          setIsRetrying(false);
+          return;
+        }
+        router.replace(dest);
         return;
       }
       setUser(result.user);

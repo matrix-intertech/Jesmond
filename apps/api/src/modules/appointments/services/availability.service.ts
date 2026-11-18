@@ -18,13 +18,21 @@ export class AvailabilityService {
     const businessService = await this.prisma.businessService.findUnique({
       where: { id: serviceId, isActive: true },
       include: {
+        organization: {
+          select: { isPubliclyVisible: true, deletedAt: true },
+        },
         staffAssignments: {
           include: { staff: true },
         },
       },
     });
 
-    if (!businessService) {
+    if (
+      !businessService ||
+      (businessService.organization &&
+        (businessService.organization.deletedAt ||
+          businessService.organization.isPubliclyVisible === false))
+    ) {
       throw new BadRequestException('Service not found or inactive');
     }
 

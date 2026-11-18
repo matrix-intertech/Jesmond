@@ -71,7 +71,13 @@ export class BusinessesController {
   @Patch('profile')
   async updateProfile(
     @Request() req: any,
-    @Body() data: { timezone?: string; branding?: any; settings?: any },
+    @Body()
+    data: {
+      timezone?: string;
+      branding?: any;
+      settings?: any;
+      isPubliclyVisible?: boolean;
+    },
   ) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException(

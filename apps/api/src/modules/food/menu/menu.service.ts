@@ -202,6 +202,23 @@ export class MenuService {
   // ==========================================
 
   async getPublicMenu(branchId: string) {
+    const branch = await this.prisma.retailBranch.findUnique({
+      where: { id: branchId },
+      include: {
+        organization: {
+          select: { isPubliclyVisible: true, deletedAt: true },
+        },
+      },
+    });
+    if (
+      !branch ||
+      (branch.organization &&
+        (branch.organization.deletedAt ||
+          branch.organization.isPubliclyVisible === false))
+    ) {
+      return [];
+    }
+
     const menus = await this.prisma.foodMenu.findMany({
       where: {
         branchId,

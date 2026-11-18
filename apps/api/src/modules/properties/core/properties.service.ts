@@ -821,7 +821,10 @@ export class PropertiesService {
         radiusKm !== undefined
       ) {
         // --- DB-LAYER GEOGRAPHIC SEARCH ---
-        const conditions: Prisma.Sql[] = [Prisma.sql`p.status = 'PUBLISHED'`];
+        const conditions: Prisma.Sql[] = [
+          Prisma.sql`p.status = 'PUBLISHED'`,
+          Prisma.sql`EXISTS (SELECT 1 FROM "Organization" o WHERE o.id = p."organizationId" AND o."deletedAt" IS NULL AND o."isPubliclyVisible" = true)`,
+        ];
 
         if (radiusKm <= 0) {
           return { data: [], meta: { total: 0, page, limit, totalPages: 0 } };
@@ -1015,7 +1018,13 @@ export class PropertiesService {
         }
       } else {
         // --- STANDARD IN-MEMORY PRISMA SEARCH ---
-        const whereClause: any = { status: 'PUBLISHED' };
+        const whereClause: any = {
+          status: 'PUBLISHED',
+          organization: {
+            deletedAt: null,
+            isPubliclyVisible: true,
+          },
+        };
 
         if (city) {
           whereClause.suburb = {
@@ -1182,6 +1191,8 @@ export class PropertiesService {
             name: true,
             abn: true,
             settings: true,
+            isPubliclyVisible: true,
+            deletedAt: true,
           },
         },
         suburb: {
@@ -1212,7 +1223,12 @@ export class PropertiesService {
       },
     });
 
-    if (!pubProperty) {
+    if (
+      !pubProperty ||
+      (pubProperty.organization &&
+        (pubProperty.organization.deletedAt ||
+          pubProperty.organization.isPubliclyVisible === false))
+    ) {
       throw new NotFoundException('Property not found');
     }
 
@@ -1603,8 +1619,19 @@ export class PropertiesService {
   ) {
     const property = await this.prisma.property.findUnique({
       where: { id: propertyId },
+      include: {
+        organization: {
+          select: { isPubliclyVisible: true, deletedAt: true },
+        },
+      },
     });
-    if (!property || property.status !== 'PUBLISHED') {
+    if (
+      !property ||
+      property.status !== 'PUBLISHED' ||
+      (property.organization &&
+        (property.organization.deletedAt ||
+          property.organization.isPubliclyVisible === false))
+    ) {
       throw new BadRequestException(
         'Cannot enquire about this property. It is not currently published.',
       );

@@ -2,17 +2,27 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', () => {
 
-  const setupAuthSession = async (page: any, user: any, token = 'mock-valid-jwt-token') => {
+  const setupAuthSession = async (page: any, user: any, token = 'mock-valid-jwt.eyJzdWIiOiJ1c2VyLTEifQ.sig') => {
+    const corsHeaders = {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Methods': '*',
+    };
+
     // Intercept all requests containing /api/v1/ via RegExp so 127.0.0.1, localhost, or relative URLs are all matched
     await page.route(/\/api\/v1\//, async (route: any) => {
+      if (route.request().method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders });
+        return;
+      }
+
       const url = route.request().url();
       if (url.includes('/auth/me')) {
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-          },
+          headers: corsHeaders,
           body: JSON.stringify({
             ...user,
             user,
@@ -26,6 +36,7 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
         await route.fulfill({
           status: 200,
           contentType: 'application/json',
+          headers: corsHeaders,
           body: JSON.stringify({ totalRevenue: 0, orderCount: 0 }),
         });
         return;
@@ -34,16 +45,18 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
+        headers: corsHeaders,
         body: JSON.stringify([]),
       });
     });
 
-    // Seed localStorage once before initial navigation
+    // Seed localStorage before initial navigation
     await page.addInitScript(({ tokenVal, userVal }: { tokenVal: string; userVal: any }) => {
-      if (window.sessionStorage.getItem('auth_seeded') !== 'true') {
+      if (window.sessionStorage.getItem('auth_seeded_for') !== userVal.id) {
         window.localStorage.setItem('token', tokenVal);
+        window.localStorage.setItem('access_token', tokenVal);
         window.localStorage.setItem('user', JSON.stringify(userVal));
-        window.sessionStorage.setItem('auth_seeded', 'true');
+        window.sessionStorage.setItem('auth_seeded_for', userVal.id);
       }
     }, { tokenVal: token, userVal: user });
   };
@@ -194,6 +207,11 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': '*',
+          'Access-Control-Allow-Methods': '*',
+        },
         body: JSON.stringify({ message: 'Unauthorized session' }),
       });
     });
@@ -270,6 +288,51 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     // Layout should redirect user with missing orgType to /settings/profile
     await page.waitForURL('**/settings/profile', { timeout: 10_000 });
     expect(page.url()).toContain('/settings/profile');
+    // Must render Account Settings and NOT hang on "Loading student account..."
+    await expect(page.locator('h1:has-text("Account Settings")')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('text=Loading student account...')).not.toBeVisible();
+  });
+
+  test('13. Production reproduction: demo.services ORG_STAFF without org context resolves Account Settings cleanly', async ({ page }) => {
+    // Exact production response shape from prompt
+    const prodUser = {
+      id: 'demo-services-prod-id',
+      email: 'demo.services@jesmond.com.au',
+      role: 'ORG_STAFF',
+      permissions: [],
+    };
+
+    await setupAuthSession(page, prodUser);
+    // User lands or is redirected to /settings/profile
+    await page.goto('/settings/profile');
+
+    await expect(page).toHaveURL(/\/settings\/profile/);
+    // Header must say Account Settings, NOT Student Portal
+    await expect(page.locator('h1:has-text("Account Settings")')).toBeVisible({ timeout: 10_000 });
+    // Links for Profile, Security, Notifications, Privacy must be visible
+    await expect(page.locator('a:has-text("Profile")').first()).toBeVisible();
+    await expect(page.locator('a:has-text("Security")').first()).toBeVisible();
+    // Must NOT be stuck in student loading UI
+    await expect(page.locator('text=Student Portal')).not.toBeVisible();
+    await expect(page.locator('text=Loading student account...')).not.toBeVisible();
+  });
+
+  test('14. Production reproduction: demo.services ORG_STAFF visiting /student redirects to /settings/profile safely', async ({ page }) => {
+    const prodUser = {
+      id: 'demo-services-prod-id',
+      email: 'demo.services@jesmond.com.au',
+      role: 'ORG_STAFF',
+      permissions: [],
+    };
+
+    await setupAuthSession(page, prodUser);
+    await page.goto('/student');
+
+    // Should redirect away from student portal to /settings/profile
+    await page.waitForURL('**/settings/profile', { timeout: 10_000 });
+    expect(page.url()).toContain('/settings/profile');
+    await expect(page.locator('h1:has-text("Account Settings")')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('text=Loading student account...')).not.toBeVisible();
   });
 
   test('12. User Logout clears session and redirects to login', async ({ page }) => {
@@ -298,5 +361,133 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     expect(page.url()).toContain('/login');
     const storedToken = await page.evaluate(() => window.localStorage.getItem('token'));
     expect(storedToken).toBeNull();
+  });
+
+  test('15a. Production Account Mapping: demo.mechanics resolves to Appointments Dashboard', async ({ page }) => {
+    const mechanicsUser = {
+      id: 'demo-mech-id',
+      email: 'demo.mechanics@jesmond.com.au',
+      role: 'ORG_STAFF',
+      organizationId: 'org-mech-1',
+      orgType: 'RETAIL',
+      businessCategory: 'MECHANICS',
+      permissions: ['*'],
+      accountStatus: 'ACTIVE',
+    };
+    await setupAuthSession(page, mechanicsUser);
+    await page.goto('/portal/business/appointments');
+    await expect(page).toHaveURL(/\/portal\/business\/appointments/);
+    await expect(page.locator('h1:has-text("Appointments")')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('15b. Production Account Mapping: demo.services resolves to Appointments Dashboard', async ({ page }) => {
+    const servicesUser = {
+      id: 'demo-serv-id',
+      email: 'demo.services@jesmond.com.au',
+      role: 'ORG_STAFF',
+      organizationId: 'org-serv-1',
+      orgType: 'RETAIL',
+      businessCategory: 'SERVICES',
+      permissions: ['*'],
+      accountStatus: 'ACTIVE',
+    };
+    await setupAuthSession(page, servicesUser);
+    await page.goto('/portal/business/appointments');
+    await expect(page).toHaveURL(/\/portal\/business\/appointments/);
+    await expect(page.locator('h1:has-text("Appointments")')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('15c. Production Account Mapping: shikharshaurya.01 resolves to Retail Operations Dashboard', async ({ page }) => {
+    const retailerUser = {
+      id: 'shikhar-retail-id',
+      email: 'shikharshaurya.01@gmail.com',
+      role: 'ORG_STAFF',
+      organizationId: 'org-retail-1',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      orgRole: 'MANAGER',
+      permissions: ['*'],
+      accountStatus: 'ACTIVE',
+    };
+    await setupAuthSession(page, retailerUser);
+    await page.goto('/portal/retail');
+    await expect(page).toHaveURL(/\/portal\/retail/);
+  });
+
+  test('16. Universal Public Visibility UI: Retail Business Profile displays and interacts with Public Visibility toggle', async ({ page }) => {
+    const retailerUser = {
+      id: 'shikhar-retail-id',
+      email: 'shikharshaurya.01@gmail.com',
+      role: 'ORG_STAFF',
+      organizationId: 'org-retail-1',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      permissions: ['*'],
+      accountStatus: 'ACTIVE',
+    };
+
+    // Mock retail profile and location endpoints
+    await page.route('**/api/v1/retail/businesses/profile', async (route) => {
+      if (route.request().method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 'org-retail-1',
+            name: 'Jesmond Demo Retail Store',
+            type: 'RETAIL',
+            businessCategory: 'RETAIL',
+            timezone: 'Australia/Sydney',
+            isPubliclyVisible: true,
+          }),
+        });
+      } else if (route.request().method() === 'PATCH') {
+        const body = JSON.parse(route.request().postData() || '{}');
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 'org-retail-1',
+            name: 'Jesmond Demo Retail Store',
+            type: 'RETAIL',
+            businessCategory: 'RETAIL',
+            timezone: body.timezone || 'Australia/Sydney',
+            isPubliclyVisible: body.isPubliclyVisible !== undefined ? body.isPubliclyVisible : true,
+          }),
+        });
+      }
+    });
+
+    await page.route('**/api/v1/retail/businesses/location', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          address: '123 Test St, Newcastle NSW',
+          lat: -32.9,
+          lng: 151.7,
+        }),
+      });
+    });
+
+    await setupAuthSession(page, retailerUser);
+    await page.goto('/portal/retail/business');
+
+    await expect(page).toHaveURL(/\/portal\/retail\/business/);
+    await expect(page.locator('h1:has-text("Business Profile")')).toBeVisible({ timeout: 10_000 });
+
+    // Verify Public Directory Visibility toggle is rendered and checked by default
+    const visibilityCheckbox = page.locator('#retailIsPubliclyVisible');
+    await expect(visibilityCheckbox).toBeVisible({ timeout: 5000 });
+    await expect(visibilityCheckbox).toBeChecked();
+    await expect(page.locator('text=Public Directory Visibility')).toBeVisible();
+
+    // Toggle visibility off and save
+    await visibilityCheckbox.uncheck();
+    await expect(visibilityCheckbox).not.toBeChecked();
+
+    const saveBtn = page.locator('button:has-text("Save Changes")');
+    await saveBtn.click();
+    await expect(page.locator('text=Business profile updated successfully')).toBeVisible({ timeout: 5000 });
   });
 });

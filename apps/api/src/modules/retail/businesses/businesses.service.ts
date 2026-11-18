@@ -18,6 +18,7 @@ export class BusinessesService {
         branding: true,
         settings: true,
         businessCategory: true,
+        isPubliclyVisible: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -102,7 +103,12 @@ export class BusinessesService {
 
   async updateProfile(
     organizationId: string,
-    data: { timezone?: string; branding?: any; settings?: any },
+    data: {
+      timezone?: string;
+      branding?: any;
+      settings?: any;
+      isPubliclyVisible?: boolean;
+    },
     userId: string,
   ) {
     const current = await this.getProfile(organizationId);
@@ -120,6 +126,10 @@ export class BusinessesService {
           data.settings !== undefined
             ? data.settings
             : (current.settings as any),
+        isPubliclyVisible:
+          data.isPubliclyVisible !== undefined
+            ? Boolean(data.isPubliclyVisible)
+            : current.isPubliclyVisible,
       },
     });
 

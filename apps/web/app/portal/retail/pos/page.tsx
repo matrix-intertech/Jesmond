@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { handleApiError, getApiUrl } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 
 interface Category {
@@ -78,7 +78,7 @@ function POSPageContent() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {
@@ -99,7 +99,7 @@ function POSPageContent() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/terminals`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/terminals`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {
@@ -126,7 +126,7 @@ function POSPageContent() {
  }
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog?branchId=${branch}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog?branchId=${branch}`, {
  headers: { Authorization: `Bearer ${token}` },
  });
 
@@ -307,7 +307,7 @@ function POSPageContent() {
  }
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders`, {
  method: "POST",
  headers: {
  "Authorization": `Bearer ${token}`,
@@ -348,7 +348,7 @@ function POSPageContent() {
  setCheckoutLoading(true);
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${currentOrder.id}/cancel`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${currentOrder.id}/cancel`, {
  method: "POST",
  headers: { Authorization: `Bearer ${token}` }
  });
@@ -376,7 +376,7 @@ function POSPageContent() {
  const newRequestId = `req_retry_${Date.now()}`;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/payments/retry`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/payments/retry`, {
  method: "POST",
  headers: {
  "Authorization": `Bearer ${token}`,
@@ -421,7 +421,7 @@ function POSPageContent() {
 
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${currentOrder.id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${currentOrder.id}`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -471,7 +471,7 @@ function POSPageContent() {
 
  try {
  const res = await fetch(
- `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/retail/pos/sandbox/simulate`,
+ `${getApiUrl()}/api/v1/retail/pos/sandbox/simulate`,
  {
  method: "POST",
  headers: {

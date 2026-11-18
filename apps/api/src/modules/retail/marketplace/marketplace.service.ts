@@ -69,6 +69,7 @@ export class MarketplaceService {
             deletedAt: null,
             status: 'VERIFIED',
             type: 'RETAIL',
+            isPubliclyVisible: true,
             businessCategory: category ? (category as any) : undefined,
           },
         },
@@ -119,6 +120,7 @@ export class MarketplaceService {
     const orgWhere: any = {
       type: 'RETAIL',
       deletedAt: null,
+      isPubliclyVisible: true,
       status:
         verifiedOnly === true ? 'VERIFIED' : { in: ['VERIFIED', 'PENDING'] },
     };
@@ -401,11 +403,21 @@ export class MarketplaceService {
       where: { id: branchId },
       include: {
         organization: {
-          select: { name: true, businessCategory: true },
+          select: {
+            name: true,
+            businessCategory: true,
+            isPubliclyVisible: true,
+            deletedAt: true,
+          },
         },
       },
     });
-    if (!branch) {
+    if (
+      !branch ||
+      (branch.organization &&
+        (branch.organization.deletedAt ||
+          branch.organization.isPubliclyVisible === false))
+    ) {
       throw new NotFoundException('Store not found');
     }
 

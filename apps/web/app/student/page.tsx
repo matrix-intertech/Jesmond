@@ -46,7 +46,7 @@ export default function StudentDashboardPage() {
  });
  const appStatus = await handleApiError(appRes, onAuthError);
  if (appStatus === 'ok') {
- setApplications(await appRes.json());
+ const data = await appRes.json(); setApplications(Array.isArray(data) ? data : []);
  } else if (appStatus === 'forbidden') {
  setError('You are not authorized to view applications.');
  } else {
@@ -97,9 +97,10 @@ export default function StudentDashboardPage() {
  }
  };
 
- const pendingCount = applications.filter(a => a.status === 'PENDING_REVIEW').length;
- const approvedCount = applications.filter(a => a.status === 'APPROVED').length;
- const rejectedCount = applications.filter(a => a.status === 'REJECTED').length;
+ const safeApplications = Array.isArray(applications) ? applications : [];
+ const pendingCount = safeApplications.filter(a => a.status === 'PENDING_REVIEW').length;
+ const approvedCount = safeApplications.filter(a => a.status === 'APPROVED').length;
+ const rejectedCount = safeApplications.filter(a => a.status === 'REJECTED').length;
 
  if (loading) return <div className="p-10 text-center">Loading your dashboard...</div>;
  if (error) return <div className="p-10 text-center text-rose-600">{error}</div>;
@@ -123,7 +124,7 @@ export default function StudentDashboardPage() {
 
  {/* Overview Cards */}
  <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4 md:gap-4 md:mb-10">
- <StatCard label="Total Applications" value={applications.length} />
+ <StatCard label="Total Applications" value={safeApplications.length} />
  {pendingCount > 0 && <StatCard label="Pending Review" value={pendingCount} />}
  {approvedCount > 0 && <StatCard label="Approved" value={approvedCount} />}
  {rejectedCount > 0 && <StatCard label="Rejected" value={rejectedCount} />}
@@ -131,7 +132,7 @@ export default function StudentDashboardPage() {
 
  <h2 id="applications" className="text-xl font-bold text-primary mb-6 font-outfit scroll-mt-24">My Applications</h2>
 
- {applications.length === 0 ? (
+ {safeApplications.length === 0 ? (
  <div className="bg-surface rounded-xl shadow-sm border p-8">
  <EmptyState
  title="No applications yet"

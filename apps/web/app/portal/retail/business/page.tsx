@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function BusinessProfilePage() {
@@ -17,6 +17,7 @@ export default function BusinessProfilePage() {
     type: "",
     businessCategory: "",
     timezone: "",
+    isPubliclyVisible: true,
     branding: null,
     settings: null,
   });
@@ -31,11 +32,12 @@ export default function BusinessProfilePage() {
     const token = getAccessToken();
     if (!token) return;
     try {
+      const apiUrl = getApiUrl();
       const [profileRes, locRes] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/businesses/profile`, {
+        fetch(`${apiUrl}/api/v1/retail/businesses/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/businesses/location`, {
+        fetch(`${apiUrl}/api/v1/retail/businesses/location`, {
           headers: { Authorization: `Bearer ${token}` },
         })
       ]);
@@ -48,6 +50,7 @@ export default function BusinessProfilePage() {
           type: json.type || "",
           businessCategory: json.businessCategory || "",
           timezone: json.timezone || "",
+          isPubliclyVisible: json.isPubliclyVisible !== undefined ? Boolean(json.isPubliclyVisible) : true,
           branding: json.branding || null,
           settings: json.settings || null,
         });
@@ -75,7 +78,8 @@ export default function BusinessProfilePage() {
     setSuccess("");
     try {
       const token = getAccessToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/businesses/profile`, {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/retail/businesses/profile`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -83,6 +87,7 @@ export default function BusinessProfilePage() {
         },
         body: JSON.stringify({
           timezone: data.timezone,
+          isPubliclyVisible: data.isPubliclyVisible,
         })
       });
       if (res.ok) {
@@ -114,20 +119,18 @@ export default function BusinessProfilePage() {
     setLocError("");
     try {
       const token = getAccessToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/businesses/location`, {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/retail/businesses/location`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          address: locForm.address,
-          lat: parseFloat(locForm.lat as any),
-          lng: parseFloat(locForm.lng as any),
-        })
+        body: JSON.stringify(locForm)
       });
       if (res.ok) {
-        await fetchData();
+        const updated = await res.json();
+        setLocation(updated);
         setShowLocationModal(false);
       } else {
         const errJson = await res.json().catch(() => ({}));
@@ -144,7 +147,7 @@ export default function BusinessProfilePage() {
     <div className="space-y-6 max-w-4xl">
       <PageHeader
         title="Business Profile"
-        description="Manage your business information and localization."
+        description="Manage your business information, operating location, and public visibility."
       />
 
       {loading ? (
@@ -204,17 +207,42 @@ export default function BusinessProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-text-primary">Business Name</label>
-                    <input type="text" value={data.name || ''} disabled className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed" />
+                    <input type="text" value={data.name || ''} disabled className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed px-3 py-2 border" />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-text-primary">Business Category</label>
-                    <input type="text" value={data.businessCategory || ''} disabled className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed" />
+                    <input type="text" value={data.businessCategory || ''} disabled className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed px-3 py-2 border" />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-text-primary">Timezone</label>
-                    <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm" placeholder="e.g. America/Los_Angeles" />
+                    <input type="text" value={data.timezone || ''} onChange={e => setData({...data, timezone: e.target.value})} className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary" placeholder="e.g. Australia/Sydney" />
+                  </div>
+                </div>
+
+                {/* Public Visibility Universal Toggle */}
+                <div className="rounded-lg border border-border-subtle bg-slate-50/50 p-4 dark:bg-slate-900/30">
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col pr-4">
+                      <label htmlFor="retailIsPubliclyVisible" className="text-sm font-semibold text-text-primary">
+                        Public Directory Visibility
+                      </label>
+                      <p className="mt-1 text-xs text-text-secondary leading-relaxed">
+                        When enabled, your business, branches, and active services/catalog appear across Jesmond public discovery and search.
+                        When disabled, your business is hidden from public visitors while authorized staff retain private dashboard management access.
+                      </p>
+                    </div>
+                    <div className="flex items-center h-6">
+                      <input
+                        id="retailIsPubliclyVisible"
+                        name="retailIsPubliclyVisible"
+                        type="checkbox"
+                        checked={data.isPubliclyVisible}
+                        onChange={e => setData({ ...data, isPubliclyVisible: e.target.checked })}
+                        className="h-5 w-5 rounded border-border-strong text-accent focus:ring-accent cursor-pointer"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -249,30 +277,54 @@ export default function BusinessProfilePage() {
 
                 <form onSubmit={handleLocationSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-text-primary">Business Address</label>
-                    <input type="text" required value={locForm.address} onChange={e => setLocForm({...locForm, address: e.target.value})} className="mt-1 block w-full border border-border-strong rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" />
+                    <label className="block text-sm font-medium text-text-primary">Street Address</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 123 Main St, Sydney NSW"
+                      value={locForm.address}
+                      onChange={e => setLocForm({ ...locForm, address: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary"
+                    />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text-primary">Latitude (-90 to 90)</label>
-                    <input type="number" step="any" required min="-90" max="90" value={locForm.lat} onChange={e => setLocForm({...locForm, lat: parseFloat(e.target.value) || 0})} className="mt-1 block w-full border border-border-strong rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text-primary">Longitude (-180 to 180)</label>
-                    <input type="number" step="any" required min="-180" max="180" value={locForm.lng} onChange={e => setLocForm({...locForm, lng: parseFloat(e.target.value) || 0})} className="mt-1 block w-full border border-border-strong rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm" />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary">Latitude</label>
+                      <input
+                        type="number"
+                        step="any"
+                        required
+                        value={locForm.lat}
+                        onChange={e => setLocForm({ ...locForm, lat: parseFloat(e.target.value) || 0 })}
+                        className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-text-primary">Longitude</label>
+                      <input
+                        type="number"
+                        step="any"
+                        required
+                        value={locForm.lng}
+                        onChange={e => setLocForm({ ...locForm, lng: parseFloat(e.target.value) || 0 })}
+                        className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary"
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
                     <button
                       type="submit"
                       disabled={locSubmitting}
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-accent text-base font-medium text-white hover:bg-accent focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent sm:col-start-2 sm:text-sm"
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-accent text-base font-medium text-white hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent sm:col-start-2 sm:text-sm disabled:opacity-50"
                     >
                       {locSubmitting ? 'Saving...' : 'Save Location'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowLocationModal(false)}
-                      className="mt-3 w-full inline-flex justify-center rounded-md border border-border-strong shadow-sm px-4 py-2 bg-surface text-base font-medium text-text-primary hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent sm:mt-0 sm:col-start-1 sm:text-sm"
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-border-strong shadow-sm px-4 py-2 bg-surface text-base font-medium text-text-primary hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent sm:mt-0 sm:col-start-1 sm:text-sm"
                     >
                       Cancel
                     </button>

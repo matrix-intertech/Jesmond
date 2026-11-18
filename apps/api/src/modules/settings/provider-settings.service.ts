@@ -20,6 +20,7 @@ export class ProviderSettingsService {
         abn: true,
         timezone: true,
         branding: true,
+        isPubliclyVisible: true,
       },
     });
     if (!org) throw new NotFoundException('Organization not found');
@@ -35,6 +36,10 @@ export class ProviderSettingsService {
           abn: data.abn,
           timezone: data.timezone,
           branding: data.branding,
+          isPubliclyVisible:
+            data.isPubliclyVisible !== undefined
+              ? Boolean(data.isPubliclyVisible)
+              : undefined,
         },
         select: {
           id: true,
@@ -43,6 +48,7 @@ export class ProviderSettingsService {
           abn: true,
           timezone: true,
           branding: true,
+          isPubliclyVisible: true,
         },
       });
     } catch (e) {

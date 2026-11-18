@@ -123,11 +123,12 @@ model Organization {
   status OrgStatus @default(PENDING)
 
   // Business Fields
-  timezone         String?          @default("Australia/Sydney")
-  branding         Json?
-  settings         Json?
-  billingProfile   Json?
-  businessCategory BusinessCategory @default(RETAIL)
+  timezone          String?          @default("Australia/Sydney")
+  branding          Json?
+  settings          Json?
+  billingProfile    Json?
+  businessCategory  BusinessCategory @default(RETAIL)
+  isPubliclyVisible Boolean          @default(true)
 
   offices    Office[]
   properties Property[]
@@ -159,6 +160,7 @@ model Organization {
   timeOffBlocks     StaffTimeOff[]
 
   @@index([abn])
+  @@index([isPubliclyVisible])
 }
 
 enum OrgType {
