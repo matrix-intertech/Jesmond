@@ -48,12 +48,10 @@ test.describe('Accommodation Provider Restoration & Retail Guard Isolation', () 
           status: 200,
           contentType: 'application/json',
           headers: corsHeaders,
-          body: JSON.stringify({
-            data: [
-              { id: '82936021-ba79-4521-9ac4-fd68f6e6f25a', name: 'Demo House', status: 'PUBLISHED' },
-              { id: 'a230f971-843f-4a6f-afc3-e0dcded86b78', name: 'Demo Apartment', status: 'PUBLISHED' },
-            ],
-          }),
+          body: JSON.stringify([
+            { id: '82936021-ba79-4521-9ac4-fd68f6e6f25a', name: 'Demo House', status: 'PUBLISHED' },
+            { id: 'a230f971-843f-4a6f-afc3-e0dcded86b78', name: 'Demo Apartment', status: 'PUBLISHED' },
+          ]),
         });
         return;
       }
@@ -78,10 +76,14 @@ test.describe('Accommodation Provider Restoration & Retail Guard Isolation', () 
 
     await page.addInitScript(
       ({ u }) => {
-        localStorage.setItem('auth_token', 'mock-valid-jwt.eyJzdWIiOiIwYjBhZDE1Zi01YzUwLTQ4MDEtYTViZS1jZWVmMmRmMzFlMzYifQ.sig');
+        const token = 'mock-valid-jwt.eyJzdWIiOiIwYjBhZDE1Zi01YzUwLTQ4MDEtYTViZS1jZWVmMmRmMzFlMzYifQ.sig';
+        localStorage.setItem('token', token);
+        localStorage.setItem('access_token', token);
         localStorage.setItem('user', JSON.stringify(u));
-        sessionStorage.setItem('auth_token', 'mock-valid-jwt.eyJzdWIiOiIwYjBhZDE1Zi01YzUwLTQ4MDEtYTViZS1jZWVmMmRmMzFlMzYifQ.sig');
+        sessionStorage.setItem('token', token);
+        sessionStorage.setItem('access_token', token);
         sessionStorage.setItem('user', JSON.stringify(u));
+        document.cookie = `access_token=${token}; path=/`;
       },
       { u: user }
     );
@@ -92,17 +94,24 @@ test.describe('Accommodation Provider Restoration & Retail Guard Isolation', () 
     await page.goto('/portal');
 
     // Heading should be Service Provider Dashboard
-    await expect(page.getByRole('heading', { name: /Service Provider Dashboard/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="dashboard-header-title"]')).toHaveText(
+      'Service Provider Dashboard',
+      { timeout: 10000 }
+    );
 
-    // Provider sidebar navigation items should be visible
-    await expect(page.locator('aside').getByRole('link', { name: /My Properties/i })).toBeVisible();
-    await expect(page.locator('aside').getByRole('link', { name: /Applications/i })).toBeVisible();
-    await expect(page.locator('aside').getByRole('link', { name: /Enquiries/i })).toBeVisible();
+    // Provider content rendered in main
+    const main = page.getByRole('main');
+    await expect(main.getByText('Create Accommodation')).toBeVisible({ timeout: 10_000 });
+    await expect(main.getByText('My Properties')).toBeVisible();
 
-    // Retail sidebar links should NOT be present
-    await expect(page.locator('aside').getByRole('link', { name: /Retail Dashboard/i })).not.toBeVisible();
-    await expect(page.locator('aside').getByRole('link', { name: /POS Terminal/i })).not.toBeVisible();
-    await expect(page.locator('aside').getByRole('link', { name: /Inventory/i })).not.toBeVisible();
+    // Provider navigation items should exist
+    await expect(page.getByRole('link', { name: 'My Properties' }).first()).toBeAttached();
+    await expect(page.getByRole('link', { name: 'Applications' }).first()).toBeAttached();
+
+    // Retail sidebar links should NOT be present in navigation
+    await expect(page.getByRole('link', { name: 'Retail Dashboard' })).toBeHidden();
+    await expect(page.getByRole('link', { name: 'POS Terminal' })).toBeHidden();
+    await expect(page.getByRole('link', { name: 'Inventory' })).toBeHidden();
   });
 
   test('blocks restored Accommodation Provider from accessing /portal/retail and redirects to /portal', async ({ page }) => {

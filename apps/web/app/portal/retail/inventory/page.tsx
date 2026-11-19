@@ -110,8 +110,13 @@ function InventoryWorkspaceContent() {
  };
 
  const fetchBranches = async () => {
+ setLoading(true);
+ setError("");
  const token = getAccessToken();
- if (!token) return;
+ if (!token) {
+ router.replace('/login');
+ return;
+ }
  try {
  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` },
@@ -120,11 +125,31 @@ function InventoryWorkspaceContent() {
  const data = await res.json();
  setBranches(data);
  if (data.length > 0) {
- setBranchId(data[0].id);
+ setBranchId(prev => (prev && data.some((b: any) => b.id === prev) ? prev : data[0].id));
+ } else {
+ setBranchId("");
+ setInventory([]);
+ setLoading(false);
  }
+ } else {
+ const errJson = await res.json().catch(() => ({}));
+ setError(errJson.message || 'Failed to load retail branches');
+ if (res.status === 401) {
+ clearAuth();
+ router.replace('/login');
  }
- } catch (e) {
+ setBranches([]);
+ setBranchId("");
+ setInventory([]);
+ setLoading(false);
+ }
+ } catch (e: any) {
  console.error('Failed to load branches', e);
+ setError(e.message || 'Network error while loading branches');
+ setBranches([]);
+ setBranchId("");
+ setInventory([]);
+ setLoading(false);
  }
  };
 
@@ -241,7 +266,8 @@ function InventoryWorkspaceContent() {
  <select
  value={branchId}
  onChange={(e) => setBranchId(e.target.value)}
- className="min-w-0 text-sm font-semibold text-primary border-none bg-transparent p-0 focus:ring-0 cursor-pointer"
+ disabled={branches.length === 0}
+ className="min-w-0 text-sm font-semibold text-primary border-none bg-transparent p-0 focus:ring-0 cursor-pointer disabled:cursor-not-allowed disabled:text-text-muted"
  >
  {branches.length === 0 ? (
  <option value="">No branches found...</option>
@@ -252,7 +278,7 @@ function InventoryWorkspaceContent() {
  )}
  </select>
  </div>
- <button onClick={() => fetchInventory(branchId)} className="p-2 bg-surface border border-border-strong rounded-lg hover:bg-surface-lavender shadow-sm text-text-secondary transition" title="Refresh">
+ <button onClick={() => { if (branchId) fetchInventory(branchId); else fetchBranches(); }} className="p-2 bg-surface border border-border-strong rounded-lg hover:bg-surface-lavender shadow-sm text-text-secondary transition" title="Refresh">
  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
  </svg>
@@ -320,6 +346,19 @@ function InventoryWorkspaceContent() {
  <div className="h-4 bg-secondary rounded w-1/4"></div>
  </div>
  ))}
+ </div>
+ ) : branches.length === 0 ? (
+ <div className="flex flex-col items-center justify-center p-12 text-center h-full">
+ <div className="w-16 h-16 rounded-full bg-surface-muted flex items-center justify-center mb-4 text-text-muted">
+ <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+ <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+ </svg>
+ </div>
+ <h3 className="text-lg font-semibold text-primary mb-1">No retail branches found</h3>
+ <p className="text-text-secondary max-w-md mb-6">You need at least one active branch to manage inventory, track stock levels, and operate POS registers.</p>
+ <button onClick={() => router.push('/portal/retail/branches')} className="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-surface-muted transition">
+ Set Up Your First Branch
+ </button>
  </div>
  ) : filteredItems.length === 0 ? (
  <div className="flex flex-col items-center justify-center p-12 text-center h-full">
