@@ -25,8 +25,12 @@ export class OrgTypesGuard implements CanActivate {
       return true; // Let RolesGuard handle access for non-org staff (e.g. SUPER_ADMIN)
     }
 
-    // Default to 'PROVIDER' if orgType is missing for legacy users (as done in frontend)
-    const userOrgType = user.orgType || 'PROVIDER';
+    // Default to 'PROVIDER' if orgType is missing for legacy users (as done in frontend).
+    // Ensure businessCategory 'RETAIL' resolves to OrgType.RETAIL.
+    const userOrgType =
+      user.businessCategory === 'RETAIL'
+        ? OrgType.RETAIL
+        : (user.orgType as OrgType) || OrgType.PROVIDER;
 
     return requiredTypes.includes(userOrgType as OrgType);
   }
