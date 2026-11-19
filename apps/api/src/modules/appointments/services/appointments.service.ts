@@ -1525,6 +1525,158 @@ export class AppointmentsService {
     return Array.from(customerMap.values());
   }
 
+  // 14b. Customer Appointment History (Business View)
+  async getCustomerAppointmentHistory(
+    organizationId: string,
+    customerId: string,
+    filters?: {
+      status?: AppointmentStatus;
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+    },
+  ) {
+    // 1. Verify customer exists
+    const customer = await this.prisma.user.findUnique({
+      where: { id: customerId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+      },
+    });
+
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    // 2. Fetch all appointments for this customer in this organization
+    const orgAppointments = await this.prisma.appointment.findMany({
+      where: {
+        organizationId,
+        customerId,
+        deletedAt: null,
+      },
+      orderBy: { startTime: 'desc' },
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            durationMins: true,
+            price: true,
+            currency: true,
+          },
+        },
+        staff: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        },
+        branch: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    // 3. Organization isolation: if customer has no appointments in this org,
+    // verify whether customer belongs exclusively to another organization.
+    if (orgAppointments.length === 0) {
+      const otherOrgAppointmentsCount = await this.prisma.appointment.count({
+        where: {
+          customerId,
+          organizationId: { not: organizationId },
+          deletedAt: null,
+        },
+      });
+
+      if (otherOrgAppointmentsCount > 0) {
+        throw new ForbiddenException(
+          'Customer does not belong to this business organization',
+        );
+      }
+    }
+
+    // 4. Calculate summary metrics from actual appointments
+    const now = new Date();
+    const summary = {
+      total: orgAppointments.length,
+      completed: orgAppointments.filter(
+        (a) => a.status === AppointmentStatus.COMPLETED,
+      ).length,
+      upcoming: orgAppointments.filter(
+        (a) =>
+          (a.status === AppointmentStatus.CONFIRMED ||
+            a.status === AppointmentStatus.PENDING_APPROVAL ||
+            a.status === AppointmentStatus.IN_PROGRESS) &&
+          new Date(a.startTime) >= now,
+      ).length,
+      cancelled: orgAppointments.filter(
+        (a) =>
+          a.status === AppointmentStatus.CANCELLED ||
+          a.status === AppointmentStatus.REJECTED ||
+          a.status === AppointmentStatus.NO_SHOW,
+      ).length,
+    };
+
+    // 5. Apply filters if provided
+    let filteredAppointments = orgAppointments;
+
+    if (filters?.status) {
+      filteredAppointments = filteredAppointments.filter(
+        (a) => a.status === filters.status,
+      );
+    }
+
+    if (filters?.startDate) {
+      const start = new Date(filters.startDate);
+      filteredAppointments = filteredAppointments.filter(
+        (a) => new Date(a.startTime) >= start,
+      );
+    }
+
+    if (filters?.endDate) {
+      const end = new Date(filters.endDate);
+      end.setHours(23, 59, 59, 999);
+      filteredAppointments = filteredAppointments.filter(
+        (a) => new Date(a.startTime) <= end,
+      );
+    }
+
+    if (filters?.search) {
+      const q = filters.search.toLowerCase().trim();
+      filteredAppointments = filteredAppointments.filter(
+        (a) =>
+          a.serviceName.toLowerCase().includes(q) ||
+          a.id.toLowerCase().includes(q) ||
+          (a.staff?.user &&
+            `${a.staff.user.firstName} ${a.staff.user.lastName}`
+              .toLowerCase()
+              .includes(q)),
+      );
+    }
+
+    return {
+      customer,
+      summary,
+      appointments: filteredAppointments,
+    };
+  }
+
   // 15. Time Off / Availability Blocks Management (Phase 5)
   async getTimeOffBlocks(
     organizationId: string,

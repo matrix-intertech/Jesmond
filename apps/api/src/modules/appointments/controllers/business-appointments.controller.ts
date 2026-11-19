@@ -15,7 +15,7 @@ import { AppointmentsService } from '../services/appointments.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole, AppointmentStatus } from '@prisma/client';
 import {
   ApproveAppointmentDto,
   RejectAppointmentDto,
@@ -358,6 +358,55 @@ export class BusinessAppointmentsController {
     }
     return this.appointmentsService.getBusinessCustomers(
       req.user.organizationId,
+    );
+  }
+
+  // Customer Appointment History (Business View)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('customers/:customerId/history')
+  async getCustomerAppointmentHistory(
+    @Param('customerId') customerId: string,
+    @Request() req: any,
+    @Query('status') status?: AppointmentStatus,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('search') search?: string,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
+    }
+    return this.appointmentsService.getCustomerAppointmentHistory(
+      req.user.organizationId,
+      customerId,
+      { status, startDate, endDate, search },
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('customers/:customerId/appointments')
+  async getCustomerAppointments(
+    @Param('customerId') customerId: string,
+    @Request() req: any,
+    @Query('status') status?: AppointmentStatus,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('search') search?: string,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
+    }
+    return this.appointmentsService.getCustomerAppointmentHistory(
+      req.user.organizationId,
+      customerId,
+      { status, startDate, endDate, search },
     );
   }
 

@@ -4,7 +4,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AppointmentWhatsAppService } from './appointment-whatsapp.service';
 import { AppointmentEmailService } from './appointment-email.service';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { AppointmentStatus } from '@prisma/client';
 
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
@@ -469,6 +470,171 @@ describe('AppointmentsService', () => {
           endTime,
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('getCustomerAppointmentHistory', () => {
+    const mockCustomer = {
+      id: 'cust-123',
+      firstName: 'Alice',
+      lastName: 'Smith',
+      email: 'alice@example.com',
+      phone: '0412 999 888',
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+    };
+
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 5);
+
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 5);
+
+    const mockAppointments = [
+      {
+        id: 'appt-1',
+        organizationId: 'org-1',
+        branchId: 'branch-1',
+        customerId: 'cust-123',
+        serviceId: 'svc-1',
+        serviceName: 'Standard Car Service',
+        status: AppointmentStatus.COMPLETED,
+        startTime: pastDate,
+        endTime: new Date(pastDate.getTime() + 3600000),
+        timezone: 'Australia/Sydney',
+        price: 18900,
+        currency: 'AUD',
+        customerNotes: 'Please check brakes',
+        staff: {
+          id: 'staff-1',
+          user: { id: 'u-1', firstName: 'Dave', lastName: 'Tradie', email: 'dave@tradie.com' },
+        },
+        service: { id: 'svc-1', name: 'Standard Car Service', durationMins: 60, price: 18900 },
+        branch: { id: 'branch-1', name: 'Jesmond Central' },
+      },
+      {
+        id: 'appt-2',
+        organizationId: 'org-1',
+        branchId: 'branch-1',
+        customerId: 'cust-123',
+        serviceId: 'svc-2',
+        serviceName: 'Brake Inspection',
+        status: AppointmentStatus.CONFIRMED,
+        startTime: futureDate,
+        endTime: new Date(futureDate.getTime() + 1800000),
+        timezone: 'Australia/Sydney',
+        price: 8900,
+        currency: 'AUD',
+        customerNotes: '[Offline Booking] Urgent check',
+        staff: {
+          id: 'staff-1',
+          user: { id: 'u-1', firstName: 'Dave', lastName: 'Tradie', email: 'dave@tradie.com' },
+        },
+        service: { id: 'svc-2', name: 'Brake Inspection', durationMins: 30, price: 8900 },
+        branch: { id: 'branch-1', name: 'Jesmond Central' },
+      },
+      {
+        id: 'appt-3',
+        organizationId: 'org-1',
+        branchId: 'branch-1',
+        customerId: 'cust-123',
+        serviceId: 'svc-3',
+        serviceName: 'Wheel Alignment',
+        status: AppointmentStatus.CANCELLED,
+        startTime: pastDate,
+        endTime: new Date(pastDate.getTime() + 1800000),
+        timezone: 'Australia/Sydney',
+        price: 9900,
+        currency: 'AUD',
+        customerNotes: 'Cancelled by customer',
+        staff: null,
+        service: { id: 'svc-3', name: 'Wheel Alignment', durationMins: 30, price: 9900 },
+        branch: { id: 'branch-1', name: 'Jesmond Central' },
+      },
+    ];
+
+    it('should return customer details, summary metrics, and appointments list', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockCustomer);
+      prisma.appointment.findMany.mockResolvedValue(mockAppointments);
+
+      const result = await service.getCustomerAppointmentHistory('org-1', 'cust-123');
+
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'cust-123' },
+        select: expect.objectContaining({ id: true, email: true }),
+      });
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith({
+        where: { organizationId: 'org-1', customerId: 'cust-123', deletedAt: null },
+        orderBy: { startTime: 'desc' },
+        include: expect.any(Object),
+      });
+
+      expect(result.customer.id).toBe('cust-123');
+      expect(result.customer.firstName).toBe('Alice');
+      expect(result.summary.total).toBe(3);
+      expect(result.summary.completed).toBe(1);
+      expect(result.summary.upcoming).toBe(1);
+      expect(result.summary.cancelled).toBe(1);
+      expect(result.appointments).toHaveLength(3);
+    });
+
+    it('should throw NotFoundException if customer does not exist in User table', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.getCustomerAppointmentHistory('org-1', 'cust-nonexistent'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException if customer belongs exclusively to another organization', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockCustomer);
+      prisma.appointment.findMany.mockResolvedValue([]);
+      prisma.appointment.count.mockResolvedValue(3); // Belongs to other orgs
+
+      await expect(
+        service.getCustomerAppointmentHistory('org-1', 'cust-123'),
+      ).rejects.toThrow(ForbiddenException);
+
+      expect(prisma.appointment.count).toHaveBeenCalledWith({
+        where: {
+          customerId: 'cust-123',
+          organizationId: { not: 'org-1' },
+          deletedAt: null,
+        },
+      });
+    });
+
+    it('should return empty appointments and 0 summary counts if customer exists with no appointments', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockCustomer);
+      prisma.appointment.findMany.mockResolvedValue([]);
+      prisma.appointment.count.mockResolvedValue(0);
+
+      const result = await service.getCustomerAppointmentHistory('org-1', 'cust-123');
+
+      expect(result.customer.id).toBe('cust-123');
+      expect(result.summary.total).toBe(0);
+      expect(result.summary.completed).toBe(0);
+      expect(result.summary.upcoming).toBe(0);
+      expect(result.summary.cancelled).toBe(0);
+      expect(result.appointments).toHaveLength(0);
+    });
+
+    it('should apply filters correctly (status, search, date range)', async () => {
+      prisma.user.findUnique.mockResolvedValue(mockCustomer);
+      prisma.appointment.findMany.mockResolvedValue(mockAppointments);
+
+      // Status filter
+      const completedResult = await service.getCustomerAppointmentHistory('org-1', 'cust-123', {
+        status: AppointmentStatus.COMPLETED,
+      });
+      expect(completedResult.appointments).toHaveLength(1);
+      expect(completedResult.appointments[0].id).toBe('appt-1');
+
+      // Search filter
+      const searchResult = await service.getCustomerAppointmentHistory('org-1', 'cust-123', {
+        search: 'Brake',
+      });
+      expect(searchResult.appointments).toHaveLength(1);
+      expect(searchResult.appointments[0].id).toBe('appt-2');
     });
   });
 });

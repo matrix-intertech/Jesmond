@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface CustomerItem {
   id: string;
@@ -43,9 +44,6 @@ export default function BusinessCustomersPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerItem | null>(
-    null,
-  );
 
   const fetchCustomers = async () => {
     try {
@@ -199,95 +197,19 @@ export default function BusinessCustomersPage() {
                         : "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <button
-                        onClick={() => setSelectedCustomer(cust)}
-                        className="px-3 py-1.5 bg-surface-muted hover:bg-border-strong text-primary text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 ml-auto"
+                      <Link
+                        href={`/portal/business/customers/${cust.id}/history`}
+                        data-testid={`customer-history-btn-${cust.id}`}
+                        className="px-3 py-1.5 bg-surface-muted hover:bg-border-strong text-primary text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5 ml-auto"
                       >
                         <Eye size={13} />
                         History
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      )}
-
-      {/* Customer Booking History Modal */}
-      {selectedCustomer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-surface rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="text-xl font-bold text-primary">
-                  {selectedCustomer.firstName} {selectedCustomer.lastName}
-                </h3>
-                <div className="text-xs text-text-secondary mt-1">
-                  {selectedCustomer.email}{" "}
-                  {selectedCustomer.phone && `• ${selectedCustomer.phone}`}
-                </div>
-              </div>
-              <button
-                onClick={() => setSelectedCustomer(null)}
-                className="text-text-secondary hover:text-primary text-sm font-semibold p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="mt-4">
-              <h4 className="text-xs font-bold uppercase text-text-secondary tracking-wider mb-3">
-                Appointment History ({selectedCustomer.appointments.length})
-              </h4>
-              <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                {selectedCustomer.appointments.length === 0 ? (
-                  <div className="text-sm text-text-secondary italic p-4 bg-surface-muted rounded-xl">
-                    No bookings found.
-                  </div>
-                ) : (
-                  selectedCustomer.appointments.map((appt) => (
-                    <div
-                      key={appt.id}
-                      className="p-3 bg-surface-muted/60 border border-border-strong/60 rounded-xl flex items-center justify-between text-xs"
-                    >
-                      <div>
-                        <div className="font-semibold text-primary text-sm">
-                          {appt.service?.name || "Appointment"}
-                        </div>
-                        <div className="text-text-secondary mt-0.5 flex items-center gap-1">
-                          <Calendar size={12} />
-                          {new Date(appt.startTime).toLocaleString()}
-                        </div>
-                      </div>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          appt.status === "CONFIRMED"
-                            ? "bg-green-100 text-green-700"
-                            : appt.status === "PENDING_APPROVAL"
-                              ? "bg-amber-100 text-amber-700"
-                              : appt.status === "COMPLETED"
-                                ? "bg-teal-100 text-teal-700"
-                                : "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {appt.status.replace("_", " ")}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-border-strong flex justify-end">
-              <button
-                onClick={() => setSelectedCustomer(null)}
-                className="px-5 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl hover:bg-brand-navy/90"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}
