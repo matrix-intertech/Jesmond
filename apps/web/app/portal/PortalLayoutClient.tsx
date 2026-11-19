@@ -31,15 +31,17 @@ export default function PortalLayoutClient({
       return false;
     }
 
-    const userOrgType = usr.orgType;
-    if (!userOrgType) {
+    const userCategory = (usr.businessCategory || "").toUpperCase();
+    const effectiveOrgType = usr.orgType || (userCategory === "RETAIL" || userCategory === "SERVICES" || userCategory === "MECHANICS" || userCategory === "FOOD" ? "RETAIL" : undefined);
+    if (!effectiveOrgType && !usr.businessCategory) {
       router.replace("/settings/profile");
       return false;
     }
 
-    const userCategory = (usr.businessCategory || "").toUpperCase();
+    const userOrgType = effectiveOrgType || usr.orgType;
     const isAppointmentBusiness = userCategory === "SERVICES" || userCategory === "MECHANICS";
     const isFoodBusiness = userCategory === "FOOD";
+    const isRetailBusiness = userCategory === "RETAIL" || (userOrgType === "RETAIL" && !isAppointmentBusiness && !isFoodBusiness);
     const isRetailRoute = pathname.startsWith("/portal/retail");
     const isAccommodationRoute =
       pathname === "/portal" ||
@@ -60,18 +62,12 @@ export default function PortalLayoutClient({
       return false;
     }
 
-    if (userOrgType === "RETAIL" && isAccommodationRoute) {
-      if (isAppointmentBusiness) {
-        router.replace("/portal/business/appointments");
-      } else if (isFoodBusiness) {
-        router.replace("/portal/business/orders");
-      } else {
-        router.replace("/portal/retail");
-      }
+    if (isRetailBusiness && isAccommodationRoute) {
+      router.replace("/portal/retail");
       return false;
     }
 
-    if ((userOrgType === "PROVIDER" || userOrgType === "AGENCY") && (isRetailRoute || pathname.startsWith("/portal/business"))) {
+    if ((userOrgType === "PROVIDER" || userOrgType === "AGENCY") && !isRetailBusiness && !isAppointmentBusiness && !isFoodBusiness && (isRetailRoute || pathname.startsWith("/portal/business"))) {
       router.replace("/portal");
       return false;
     }

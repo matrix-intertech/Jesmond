@@ -146,6 +146,7 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ["ORG_STAFF"],
+    orgTypes: ["PROVIDER", "AGENCY", "UNIVERSITY"],
   },
   {
     href: "/portal/properties",
@@ -855,8 +856,16 @@ export default function Sidebar({ role }: { role: string }) {
       if (!hasCap) return false;
     }
     if (i.orgTypes) {
-      // Legacy users might not have orgType in local storage yet. Default to PROVIDER.
-      const userOrgType = user?.orgType || "PROVIDER";
+      // Determine effective organization type
+      let userOrgType = user?.orgType;
+      const userCat = (user?.businessCategory || "").toUpperCase();
+      if (!userOrgType || userCat === "RETAIL" || userCat === "SERVICES" || userCat === "MECHANICS" || userCat === "FOOD") {
+        if (userCat === "RETAIL" || userCat === "SERVICES" || userCat === "MECHANICS" || userCat === "FOOD") {
+          userOrgType = "RETAIL";
+        } else {
+          userOrgType = userOrgType || "PROVIDER";
+        }
+      }
       if (!i.orgTypes.includes(userOrgType)) return false;
 
       // If it's a RETAIL org, check permissions

@@ -225,28 +225,23 @@ export const getDashboardRouteForUser = (user: Partial<User> | null | undefined)
       const orgType = user.orgType;
       const category = (user.businessCategory || '').toUpperCase();
 
-      if (orgType === 'PROVIDER' || orgType === 'AGENCY') {
-        return '/portal';
-      }
-
-      if (orgType === 'RETAIL') {
-        if (category === 'SERVICES' || category === 'MECHANICS') {
-          return '/portal/business/appointments';
-        }
-        if (category === 'FOOD') {
-          return '/portal/business/orders';
-        }
+      // 1. Business Category takes precedence for specialized business operations
+      if (category === 'RETAIL') {
         return '/portal/retail';
       }
-
-      // If orgType is missing or unresolved, attempt category-level routing
       if (category === 'SERVICES' || category === 'MECHANICS') {
         return '/portal/business/appointments';
       }
       if (category === 'FOOD') {
         return '/portal/business/orders';
       }
-      if (category === 'RETAIL') {
+
+      // 2. Organization Type determines sector dashboard
+      if (orgType === 'PROVIDER' || orgType === 'AGENCY') {
+        return '/portal';
+      }
+
+      if (orgType === 'RETAIL') {
         return '/portal/retail';
       }
 
@@ -372,9 +367,8 @@ export const isAuthorizedRouteForUser = (
 
     // Commercial retail routes
     if (route.startsWith('/portal/retail')) {
-      if (orgType !== 'RETAIL') return false;
       if (category === 'SERVICES' || category === 'MECHANICS') return false;
-      return true;
+      return orgType === 'RETAIL' || category === 'RETAIL';
     }
 
     // Appointment business routes
@@ -406,6 +400,9 @@ export const isAuthorizedRouteForUser = (
       route.startsWith('/portal/leads') ||
       route.startsWith('/portal/agency')
     ) {
+      if (category === 'RETAIL' || category === 'SERVICES' || category === 'MECHANICS' || category === 'FOOD') {
+        return false;
+      }
       return orgType === 'PROVIDER' || orgType === 'AGENCY';
     }
 

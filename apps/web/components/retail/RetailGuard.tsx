@@ -38,7 +38,9 @@ export function hasPermission(
   requireAll: boolean = false,
 ): boolean {
   const user = getCurrentUser();
-  if (!user || user.orgType !== "RETAIL") return false;
+  const userCat = (user?.businessCategory || "").toUpperCase();
+  const isRetailOrg = user?.orgType === "RETAIL" || userCat === "RETAIL";
+  if (!user || !isRetailOrg) return false;
 
   // Owner override
   if (user.orgRole === "ADMIN") return true;
@@ -86,12 +88,13 @@ export default function RetailGuard({
       }
 
       const user = sessionRes.user;
-      if (user.orgType !== "RETAIL") {
+      const userCat = (user.businessCategory || "").toUpperCase();
+      const isRetailOrg = user.orgType === "RETAIL" || userCat === "RETAIL";
+      if (!isRetailOrg) {
         router.replace(getDashboardRouteForUser(user));
         return;
       }
 
-      const userCat = (user.businessCategory || "").toUpperCase();
       const isApptBusiness = userCat === "SERVICES" || userCat === "MECHANICS";
       const currentPath =
         typeof window !== "undefined" ? window.location.pathname : "";

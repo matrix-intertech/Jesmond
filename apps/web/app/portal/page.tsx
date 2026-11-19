@@ -10,6 +10,7 @@ import StatCard from '@/components/ui/StatCard';
 import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import ErrorState from '@/components/ui/ErrorState';
+import RetailOverviewPage from '@/app/portal/retail/page';
 
 export default function ProviderPortalPage() {
  const router = useRouter();
@@ -23,19 +24,32 @@ export default function ProviderPortalPage() {
  const [loadingApps, setLoadingApps] = useState(true);
  const [error, setError] = useState('');
 
- useEffect(() => {
- const init = async () => {
- const token = getAccessToken();
- const currentUser = getCurrentUser();
+  const userCategory = (user?.businessCategory || '').toUpperCase();
+  const userOrgType = (user?.orgType || '').toUpperCase();
+  const isRetail = userCategory === 'RETAIL' || (userOrgType === 'RETAIL' && !['SERVICES', 'MECHANICS', 'FOOD'].includes(userCategory));
 
- if (!token) return;
-    if (currentUser) {
-      const targetRoute = getDashboardRouteForUser(currentUser);
-      if (targetRoute !== '/portal') {
-        router.replace(targetRoute);
+  useEffect(() => {
+    const init = async () => {
+      const token = getAccessToken();
+      const currentUser = getCurrentUser();
+
+      if (!token) return;
+      if (currentUser) {
+        setUser(currentUser);
+        const targetRoute = getDashboardRouteForUser(currentUser);
+        if (targetRoute !== '/portal') {
+          router.replace(targetRoute);
+          return;
+        }
+      }
+
+      const curCategory = (currentUser?.businessCategory || '').toUpperCase();
+      const curOrgType = (currentUser?.orgType || '').toUpperCase();
+      const curIsRetail = curCategory === 'RETAIL' || (curOrgType === 'RETAIL' && !['SERVICES', 'MECHANICS', 'FOOD'].includes(curCategory));
+      if (curIsRetail) {
+        router.replace('/portal/retail');
         return;
       }
-    }
 
  try {
  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my`, {
@@ -72,6 +86,10 @@ export default function ProviderPortalPage() {
  };
  init();
  }, [router]);
+
+ if (isRetail) {
+ return <RetailOverviewPage />;
+ }
 
  if (loadingProps) {
  return (
