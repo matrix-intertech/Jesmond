@@ -132,6 +132,13 @@ export class PhotonProvider implements LocationProvider {
 
       const label = labelParts.join(', ');
 
+      const streetNumber = properties.housenumber || '';
+      const road = properties.street || (type === 'street' ? name : '');
+      const streetAddress =
+        streetNumber && road
+          ? `${streetNumber} ${road}`
+          : road || name || '';
+
       results.push({
         id,
         label: label || 'Unknown Location',
@@ -144,6 +151,9 @@ export class PhotonProvider implements LocationProvider {
         postcode,
         type,
         source: `photon-${properties.osm_type || 'node'}`,
+        road,
+        streetNumber,
+        streetAddress,
       });
     }
 

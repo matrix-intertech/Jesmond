@@ -6,6 +6,7 @@ import {
   LocationResult,
 } from './providers/location-provider.interface';
 import { PhotonProvider } from './providers/photon.provider';
+import { NominatimProvider } from './providers/nominatim.provider';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -17,15 +18,15 @@ export class LocationService {
   constructor(
     private readonly redisService: RedisService,
     private readonly photonProvider: PhotonProvider,
+    private readonly nominatimProvider: NominatimProvider,
     private readonly prisma: PrismaService,
   ) {
-    // We can swap providers here based on environment variable if we add more
-    const providerType = process.env.LOCATION_PROVIDER || 'photon';
+    const providerType = process.env.LOCATION_PROVIDER || 'nominatim';
 
     if (providerType === 'photon') {
       this.provider = this.photonProvider;
     } else {
-      this.provider = this.photonProvider; // Fallback
+      this.provider = this.nominatimProvider;
     }
   }
 
@@ -121,13 +122,20 @@ export class LocationService {
 
     if (results.length < limit) {
       try {
-        const photonResults = await this.provider.search({ query: q, limit });
+        let externalResults = await this.provider.search({ query: q, limit });
+        if (
+          (!externalResults || externalResults.length === 0) &&
+          this.provider !== this.photonProvider
+        ) {
+          externalResults = await this.photonProvider.search({ query: q, limit });
+        }
+
         const existingIds = new Set(results.map((r) => r.id));
         const existingNames = new Set(
           results.map((r) => `${r.suburb?.toLowerCase()}-${r.postcode}`),
         );
 
-        for (const p of photonResults) {
+        for (const p of externalResults || []) {
           const dupKey = `${p.suburb?.toLowerCase()}-${p.postcode}`;
           if (
             !existingIds.has(p.id) &&
@@ -139,8 +147,8 @@ export class LocationService {
             existingNames.add(dupKey);
           }
         }
-      } catch (photonError) {
-        this.logger.warn(`Photon provider error: ${photonError.message}`);
+      } catch (externalError) {
+        this.logger.warn(`External location provider error: ${externalError.message}`);
       }
     }
 
@@ -175,7 +183,10 @@ export class LocationService {
       );
     }
 
-    const result = await this.provider.reverseGeocode(lat, lng);
+    let result = await this.provider.reverseGeocode(lat, lng);
+    if (!result && this.provider !== this.photonProvider) {
+      result = await this.photonProvider.reverseGeocode(lat, lng);
+    }
 
     try {
       if (result) {

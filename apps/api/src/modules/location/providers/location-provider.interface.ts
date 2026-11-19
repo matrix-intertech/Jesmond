@@ -10,6 +10,9 @@ export interface LocationResult {
   postcode: string;
   type: string;
   source: string;
+  road?: string;
+  streetNumber?: string;
+  streetAddress?: string;
 }
 
 export interface LocationSearchOptions {

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
+import BusinessLocationModal from "@/components/business/BusinessLocationModal";
 
 export default function BusinessProfilePage() {
   const router = useRouter();
@@ -24,9 +25,6 @@ export default function BusinessProfilePage() {
 
   const [location, setLocation] = useState<any>(null);
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [locForm, setLocForm] = useState({ address: "", lat: 0, lng: 0 });
-  const [locSubmitting, setLocSubmitting] = useState(false);
-  const [locError, setLocError] = useState("");
 
   const fetchData = async () => {
     const token = getAccessToken();
@@ -104,43 +102,7 @@ export default function BusinessProfilePage() {
   };
 
   const openLocationModal = () => {
-    setLocForm({
-      address: location?.address || "",
-      lat: location?.lat || 0,
-      lng: location?.lng || 0,
-    });
-    setLocError("");
     setShowLocationModal(true);
-  };
-
-  const handleLocationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLocSubmitting(true);
-    setLocError("");
-    try {
-      const token = getAccessToken();
-      const apiUrl = getApiUrl();
-      const res = await fetch(`${apiUrl}/api/v1/retail/businesses/location`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(locForm)
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setLocation(updated);
-        setShowLocationModal(false);
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        setLocError(errJson.message || 'Failed to update location');
-      }
-    } catch (e: any) {
-      setLocError(e.message || 'Network error');
-    } finally {
-      setLocSubmitting(false);
-    }
   };
 
   return (
@@ -188,7 +150,10 @@ export default function BusinessProfilePage() {
                     <span className="font-medium text-text-primary">Address:</span> {location.address}
                   </div>
                   <div>
-                    <span className="font-medium text-text-primary">Coordinates:</span> {location.lat}, {location.lng}
+                    <span className="font-medium text-text-primary">Coordinates:</span>{" "}
+                    {typeof location.lat === "number" && typeof location.lng === "number"
+                      ? `${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`
+                      : `${location.lat ?? ""}, ${location.lng ?? ""}`}
                   </div>
                 </div>
               ) : (
@@ -261,80 +226,12 @@ export default function BusinessProfilePage() {
         </>
       )}
 
-      {showLocationModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div className="inline-block align-bottom bg-surface rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-              <div>
-                <h3 className="text-lg leading-6 font-medium text-text-primary mb-4">
-                  {location?.address ? 'Edit Location' : 'Add Your Location'}
-                </h3>
-                {locError && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{locError}</div>}
-
-                <form onSubmit={handleLocationSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-text-primary">Street Address</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. 123 Main St, Sydney NSW"
-                      value={locForm.address}
-                      onChange={e => setLocForm({ ...locForm, address: e.target.value })}
-                      className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-text-primary">Latitude</label>
-                      <input
-                        type="number"
-                        step="any"
-                        required
-                        value={locForm.lat}
-                        onChange={e => setLocForm({ ...locForm, lat: parseFloat(e.target.value) || 0 })}
-                        className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-text-primary">Longitude</label>
-                      <input
-                        type="number"
-                        step="any"
-                        required
-                        value={locForm.lng}
-                        onChange={e => setLocForm({ ...locForm, lng: parseFloat(e.target.value) || 0 })}
-                        className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm px-3 py-2 border bg-surface text-text-primary"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                    <button
-                      type="submit"
-                      disabled={locSubmitting}
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-accent text-base font-medium text-white hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent sm:col-start-2 sm:text-sm disabled:opacity-50"
-                    >
-                      {locSubmitting ? 'Saving...' : 'Save Location'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowLocationModal(false)}
-                      className="mt-3 w-full inline-flex justify-center rounded-md border border-border-strong shadow-sm px-4 py-2 bg-surface text-base font-medium text-text-primary hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent sm:mt-0 sm:col-start-1 sm:text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <BusinessLocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        currentLocation={location}
+        onSuccess={(updated) => setLocation(updated)}
+      />
     </div>
   );
 }
