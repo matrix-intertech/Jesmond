@@ -319,4 +319,156 @@ describe('AppointmentsService', () => {
       expect(emailService.notifyProviderNewAppointment).toHaveBeenCalledWith('appt-123');
     });
   });
+
+  describe('createOfflineAppointment', () => {
+    it('should successfully create an immediately confirmed offline appointment for walk-in customer', async () => {
+      const startTime = '2026-11-20T10:00:00.000Z';
+      const endTime = '2026-11-20T11:00:00.000Z';
+
+      prisma.businessService.findUnique.mockResolvedValue({
+        id: 'svc-offline-1',
+        organizationId: 'org-1',
+        name: 'Comprehensive Vehicle Safety Inspection',
+        durationMins: 60,
+        price: 8900,
+        currency: 'AUD',
+        deletedAt: null,
+      });
+
+      prisma.retailBranch.findUnique.mockResolvedValue({
+        id: 'branch-1',
+        organizationId: 'org-1',
+      });
+
+      prisma.orgStaff.findUnique.mockResolvedValue({
+        id: 'staff-1',
+        organizationId: 'org-1',
+        deletedAt: null,
+        user: { id: 'user-staff-1', firstName: 'John', lastName: 'Mechanic' },
+      });
+
+      prisma.staffServiceAssignment.findUnique.mockResolvedValue({
+        staffId: 'staff-1',
+        serviceId: 'svc-offline-1',
+      });
+
+      prisma.appointment.findFirst.mockResolvedValue(null); // No conflict
+      prisma.staffTimeOff.findMany.mockResolvedValue([]); // No time-off conflict
+
+      prisma.user.findUnique.mockResolvedValue(null);
+      prisma.user.create.mockResolvedValue({
+        id: 'cust-walkin-1',
+        email: 'walkin@example.com',
+        firstName: 'Dave',
+        lastName: 'Walkin',
+      });
+
+      prisma.appointment.create.mockResolvedValue({
+        id: 'appt-offline-1',
+        organizationId: 'org-1',
+        branchId: 'branch-1',
+        serviceId: 'svc-offline-1',
+        staffId: 'staff-1',
+        customerId: 'cust-walkin-1',
+        status: 'CONFIRMED',
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        price: 8900,
+        currency: 'AUD',
+        serviceName: 'Comprehensive Vehicle Safety Inspection',
+        customerNotes: '[Offline Booking] Urgent walk-in inspection (Customer: Dave Walkin)',
+      });
+
+      const result = await service.createOfflineAppointment('org-1', 'staff-creator-1', {
+        branchId: 'branch-1',
+        serviceId: 'svc-offline-1',
+        staffId: 'staff-1',
+        startTime,
+        endTime,
+        timezone: 'Australia/Sydney',
+        customerName: 'Dave Walkin',
+        customerPhone: '0412 345 678',
+        customerEmail: 'walkin@example.com',
+        notes: 'Urgent walk-in inspection',
+      });
+
+      expect(result.id).toBe('appt-offline-1');
+      expect(result.status).toBe('CONFIRMED');
+      expect(prisma.appointment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            organizationId: 'org-1',
+            branchId: 'branch-1',
+            serviceId: 'svc-offline-1',
+            staffId: 'staff-1',
+            status: 'CONFIRMED',
+            price: 8900,
+            currency: 'AUD',
+            serviceName: 'Comprehensive Vehicle Safety Inspection',
+          }),
+        }),
+      );
+    });
+
+    it('should reject offline appointment if start time is after end time', async () => {
+      await expect(
+        service.createOfflineAppointment('org-1', 'staff-creator-1', {
+          branchId: 'branch-1',
+          serviceId: 'svc-offline-1',
+          staffId: 'staff-1',
+          startTime: '2026-11-20T12:00:00.000Z',
+          endTime: '2026-11-20T10:00:00.000Z',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject offline appointment if staff has overlapping confirmed appointment', async () => {
+      const startTime = '2026-11-20T10:00:00.000Z';
+      const endTime = '2026-11-20T11:00:00.000Z';
+
+      prisma.businessService.findUnique.mockResolvedValue({
+        id: 'svc-offline-1',
+        organizationId: 'org-1',
+        name: 'Oil Change',
+        durationMins: 60,
+        price: 7900,
+        currency: 'AUD',
+        deletedAt: null,
+      });
+
+      prisma.retailBranch.findUnique.mockResolvedValue({
+        id: 'branch-1',
+        organizationId: 'org-1',
+      });
+
+      prisma.orgStaff.findUnique.mockResolvedValue({
+        id: 'staff-1',
+        organizationId: 'org-1',
+        deletedAt: null,
+        user: { id: 'user-staff-1' },
+      });
+
+      prisma.staffServiceAssignment.findUnique.mockResolvedValue({
+        staffId: 'staff-1',
+        serviceId: 'svc-offline-1',
+      });
+
+      // Conflict exists
+      prisma.appointment.findFirst.mockResolvedValue({
+        id: 'appt-existing',
+        startTime: new Date('2026-11-20T10:30:00.000Z'),
+        endTime: new Date('2026-11-20T11:30:00.000Z'),
+      });
+
+      await expect(
+        service.createOfflineAppointment('org-1', 'staff-creator-1', {
+          branchId: 'branch-1',
+          serviceId: 'svc-offline-1',
+          staffId: 'staff-1',
+          startTime,
+          endTime,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });
