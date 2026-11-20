@@ -32,7 +32,7 @@ export class ProviderSettingsService {
       return await this.prisma.organization.update({
         where: { id: organizationId },
         data: {
-          name: data.name,
+          // Organization.name is protected: only updated via approved Business Name Change Request workflow
           abn: data.abn,
           timezone: data.timezone,
           branding: data.branding,

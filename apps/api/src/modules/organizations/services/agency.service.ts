@@ -72,7 +72,7 @@ export class AgencyService {
     return this.prisma.organization.update({
       where: { id: organizationId },
       data: {
-        name: data.name,
+        // Organization.name is protected: only updated via approved Business Name Change Request workflow
         branding: data.branding || undefined,
         settings: data.settings || undefined,
         isPubliclyVisible:

@@ -6,6 +6,7 @@ import { getAccessToken, clearAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 import BusinessLocationModal from "@/components/business/BusinessLocationModal";
+import BusinessNameChangeCard from "@/components/business/BusinessNameChangeCard";
 
 export default function BusinessProfilePage() {
   const router = useRouter();
@@ -161,6 +162,12 @@ export default function BusinessProfilePage() {
               )}
             </div>
           </div>
+
+          {/* Business Name Change Request & Management */}
+          <BusinessNameChangeCard
+            currentName={data.name}
+            onNameUpdated={fetchData}
+          />
 
           <div className="bg-surface shadow rounded-lg overflow-hidden">
             <div className="p-6">

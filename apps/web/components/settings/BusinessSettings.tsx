@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from "@/utils/api";
+import BusinessNameChangeCard from "@/components/business/BusinessNameChangeCard";
 
 export default function BusinessSettings() {
   const router = useRouter();
@@ -83,28 +84,49 @@ export default function BusinessSettings() {
   if (loading) return <div className="p-8 text-center text-text-secondary">Loading business profile...</div>;
 
   return (
-    <div className="bg-surface shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
-        <h3 className="text-lg leading-6 font-medium text-primary">Business Profile</h3>
-        <p className="mt-1 text-sm text-text-secondary">Manage your organization details and public directory visibility.</p>
-      </div>
+    <div className="space-y-6">
+      <BusinessNameChangeCard
+        currentName={data.name}
+        onNameUpdated={() => {
+          // Re-fetch
+          const token = getAccessToken();
+          if (!token) return;
+          const apiUrl = getApiUrl();
+          fetch(`${apiUrl}/api/v1/settings/provider/business`, {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+            .then((res) => res.json())
+            .then((json) => {
+              setData((prev) => ({ ...prev, name: json.name || prev.name }));
+            })
+            .catch(() => {});
+        }}
+      />
 
-      <div className="p-6">
-        {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
-        {success && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded text-sm">{success}</div>}
+      <div className="bg-surface shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-border-strong">
+          <h3 className="text-lg leading-6 font-medium text-primary">General Business Settings</h3>
+          <p className="mt-1 text-sm text-text-secondary">Manage your organization details and public directory visibility.</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-text-primary">Organization Name</label>
-              <input
-                type="text"
-                value={data.name || ''}
-                onChange={e => setData({ ...data, name: e.target.value })}
-                className="mt-1 block w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-brand-purple sm:text-sm px-3 py-2 border bg-surface text-text-primary"
-                required
-              />
-            </div>
+        <div className="p-6">
+          {error && <div className="mb-4 p-3 bg-rose-50 text-rose-700 rounded text-sm">{error}</div>}
+          {success && <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded text-sm">{success}</div>}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-text-primary">Business Name</label>
+                <input
+                  type="text"
+                  value={data.name || ''}
+                  disabled
+                  className="mt-1 block w-full rounded-md border-border-strong bg-surface-muted text-text-secondary shadow-sm sm:text-sm cursor-not-allowed px-3 py-2 border"
+                />
+                <p className="mt-1 text-xs text-text-secondary">
+                  Business name can only be changed via formal administrative approval.
+                </p>
+              </div>
 
             <div>
               <label className="block text-sm font-medium text-text-primary">ABN / Business ID</label>
@@ -165,5 +187,6 @@ export default function BusinessSettings() {
         </form>
       </div>
     </div>
+  </div>
   );
 }

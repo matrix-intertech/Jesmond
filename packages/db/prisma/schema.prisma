@@ -96,6 +96,9 @@ model User {
   emailNotificationLogs    EmailNotificationLog[]
   reviewedCredentials      BusinessCredential[]     @relation("CredentialReviewer")
   credentialDocuments      CredentialDocument[]
+  requestedNameChanges     BusinessNameChangeRequest[] @relation("RequestedNameChanges")
+  reviewedNameChanges      BusinessNameChangeRequest[] @relation("ReviewedNameChanges")
+  nameChangeDocuments      BusinessNameChangeDocument[] @relation("UploadedNameChangeDocs")
 
   @@index([email])
   @@index([phone])
@@ -165,6 +168,8 @@ model Organization {
   credentials         BusinessCredential[]
   credentialDocuments CredentialDocument[]
   profileCompletion   BusinessProfileCompletion?
+  nameChangeRequests  BusinessNameChangeRequest[]
+  nameChangeDocuments BusinessNameChangeDocument[]
 
   @@index([abn])
   @@index([isPubliclyVisible])
@@ -2268,4 +2273,64 @@ model BusinessProfileCompletion {
   @@index([abnExemptionStatus])
 }
 
+// ---------------------------------------------------------
+// BUSINESS NAME CHANGE REQUESTS & APPROVAL WORKFLOW
+// ---------------------------------------------------------
+
+enum BusinessNameChangeStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model BusinessNameChangeRequest {
+  id                String                   @id @default(uuid())
+  organizationId    String
+  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedByUserId String
+  requestedByUser   User                     @relation("RequestedNameChanges", fields: [requestedByUserId], references: [id])
+
+  currentName       String
+  proposedName      String
+  reason            String
+
+  status            BusinessNameChangeStatus @default(SUBMITTED)
+  reviewerNotes     String?
+  internalNotes     String?
+  reviewedByUserId  String?
+  reviewedByUser    User?                    @relation("ReviewedNameChanges", fields: [reviewedByUserId], references: [id])
+
+  submittedAt       DateTime                 @default(now())
+  reviewedAt        DateTime?
+
+  documents         BusinessNameChangeDocument[]
+
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([organizationId, status])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+}
+
+model BusinessNameChangeDocument {
+  id               String                    @id @default(uuid())
+  requestId        String
+  request          BusinessNameChangeRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  organizationId   String
+  organization     Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  key              String
+  filename         String
+  mimeType         String
+  size             Int
+  uploadedByUserId String
+  uploadedByUser   User                      @relation("UploadedNameChangeDocs", fields: [uploadedByUserId], references: [id])
+
+  createdAt        DateTime                  @default(now())
+
+  @@index([requestId])
+  @@index([organizationId])
+}
 
