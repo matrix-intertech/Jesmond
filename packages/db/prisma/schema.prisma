@@ -94,6 +94,8 @@ model User {
   appointments           Appointment[]
   whatsAppNotificationLogs WhatsAppNotificationLog[]
   emailNotificationLogs    EmailNotificationLog[]
+  reviewedCredentials      BusinessCredential[]     @relation("CredentialReviewer")
+  credentialDocuments      CredentialDocument[]
 
   @@index([email])
   @@index([phone])
@@ -158,6 +160,11 @@ model Organization {
   serviceCategories ServiceCategory[]
   appointments      Appointment[]
   timeOffBlocks     StaffTimeOff[]
+
+  // Business Credentials & Verification
+  credentials         BusinessCredential[]
+  credentialDocuments CredentialDocument[]
+  profileCompletion   BusinessProfileCompletion?
 
   @@index([abn])
   @@index([isPubliclyVisible])
@@ -2079,6 +2086,186 @@ model EmailNotificationLog {
   @@index([relatedEntityId])
   @@index([createdAt])
   @@index([userId])
+}
+
+// =========================================================
+// BUSINESS CREDENTIALS & VERIFICATION ENUMS & MODELS
+// =========================================================
+
+enum CredentialStatus {
+  NOT_SUBMITTED
+  DRAFT
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+  NEEDS_INFORMATION
+  UNABLE_TO_VERIFY
+  NOT_APPLICABLE
+}
+
+enum BusinessVerificationStatus {
+  NOT_SUBMITTED
+  PENDING_REVIEW
+  PARTIALLY_VERIFIED
+  VERIFIED
+  ACTION_REQUIRED
+  REJECTED
+}
+
+enum VerificationMethod {
+  AUTOMATED_ABR
+  AUTOMATED_REGISTRY
+  MANUAL_ADMIN
+  SYSTEM_EXEMPTION
+}
+
+enum AbnExemptionStatus {
+  NOT_REQUESTED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model CredentialType {
+  id                 String            @id @default(uuid())
+  code               String            @unique
+  name               String
+  description        String?
+  category           BusinessCategory?
+  issuer             String
+  jurisdiction       String            @default("ALL")
+  requiresDocument   Boolean           @default(true)
+  requiresExpiryDate Boolean           @default(false)
+  requiresNumber     Boolean           @default(true)
+  numberPattern      String?
+  isPublic           Boolean           @default(true)
+
+  requirements       CredentialRequirement[]
+  credentials        BusinessCredential[]
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+
+  @@index([category, jurisdiction])
+  @@index([code])
+}
+
+model CredentialRequirement {
+  id               String           @id @default(uuid())
+  credentialTypeId String
+  credentialType   CredentialType   @relation(fields: [credentialTypeId], references: [id], onDelete: Cascade)
+  
+  businessCategory BusinessCategory
+  serviceName      String?
+  state            String?
+  isMandatory      Boolean          @default(true)
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([credentialTypeId, businessCategory, serviceName, state])
+  @@index([businessCategory, state])
+}
+
+model BusinessCredential {
+  id                 String             @id @default(uuid())
+  organizationId     String
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  credentialTypeId   String
+  credentialType     CredentialType     @relation(fields: [credentialTypeId], references: [id])
+
+  credentialNumber   String?
+  holderName         String?
+  issuingAuthority   String?
+  state              String?
+
+  issuedAt           DateTime?
+  expiresAt          DateTime?
+  metadata           Json?
+
+  status             CredentialStatus   @default(NOT_SUBMITTED)
+  isDraft            Boolean            @default(false)
+
+  submittedAt        DateTime?
+  verifiedAt         DateTime?
+  verifiedByUserId   String?
+  verifiedByUser     User?              @relation("CredentialReviewer", fields: [verifiedByUserId], references: [id])
+  verificationMethod VerificationMethod?
+  reviewerNotes      String?
+  internalNotes      String?
+  rejectionReason    String?
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+
+  documents          CredentialDocument[]
+
+  @@unique([organizationId, credentialTypeId])
+  @@index([organizationId, status])
+  @@index([credentialTypeId])
+  @@index([verifiedByUserId])
+}
+
+model CredentialDocument {
+  id                 String             @id @default(uuid())
+  credentialId       String
+  credential         BusinessCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  organizationId     String
+  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  key                String
+  filename           String
+  mimeType           String
+  size               Int
+
+  uploadedByUserId   String
+  uploadedByUser     User               @relation(fields: [uploadedByUserId], references: [id])
+
+  createdAt          DateTime           @default(now())
+  deletedAt          DateTime?
+
+  @@index([credentialId])
+  @@index([organizationId])
+}
+
+model BusinessProfileCompletion {
+  id                     String                     @id @default(uuid())
+  organizationId         String                     @unique
+  organization           Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  isCompleted            Boolean                    @default(false)
+  completedAt            DateTime?
+
+  dismissedUntil         DateTime?
+  lastPromptedAt         DateTime?
+  dismissCount           Int                        @default(0)
+
+  currentStep            Int                        @default(1)
+  completedSteps         Json?
+  missingRequirementIds String[]
+
+  overallStatus          BusinessVerificationStatus @default(NOT_SUBMITTED)
+
+  // ABN Exemption Controlled Workflow
+  abnExempt                 Boolean                    @default(false)
+  abnExemptionStatus        AbnExemptionStatus         @default(NOT_REQUESTED)
+  abnExemptionReason        String?
+  abnExemptionRequestedAt   DateTime?
+  abnExemptionReviewedAt    DateTime?
+  abnExemptionReviewedBy    String?
+  abnExemptionReviewNotes   String?
+  abnExemptionInternalNotes String?
+
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+
+  @@index([organizationId])
+  @@index([overallStatus])
+  @@index([dismissedUntil])
+  @@index([abnExemptionStatus])
 }
 
 

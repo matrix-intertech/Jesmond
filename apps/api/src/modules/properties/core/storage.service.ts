@@ -2,13 +2,17 @@ import {
   Injectable,
   InternalServerErrorException,
   ServiceUnavailableException,
+  BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import {
   S3Client,
   PutObjectCommand,
+  GetObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -163,5 +167,139 @@ export class StorageService {
     } catch (error) {
       this.logger.error('Failed to delete image from S3/R2', error);
     }
+  }
+
+  /**
+   * Uploads a private credential document to S3/R2 under the credentials/ prefix.
+   * Performs magic bytes verification, MIME checks, and size validation (max 10MB).
+   * Strictly isolates files from public CDN exposure.
+   */
+  async uploadCredentialDocument(
+    orgId: string,
+    credentialId: string,
+    file: Express.Multer.File,
+  ): Promise<{ key: string; filename: string; mimeType: string; size: number }> {
+    if (!file || !file.buffer) {
+      throw new BadRequestException('No file buffer provided for upload');
+    }
+
+    // 1. File size validation (max 10MB)
+    const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_SIZE) {
+      throw new BadRequestException(
+        `File size exceeds maximum allowed limit of 10MB (received ${(file.size / (1024 * 1024)).toFixed(2)}MB)`,
+      );
+    }
+
+    // 2. MIME type & Magic Byte verification
+    const allowedMimeTypes = ['application/pdf', 'image/png', 'image/jpeg'];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        `Invalid file format: ${file.mimetype}. Allowed formats: PDF, PNG, JPG/JPEG.`,
+      );
+    }
+
+    const buffer = file.buffer;
+    let isValidMagic = false;
+    if (
+      file.mimetype === 'application/pdf' &&
+      buffer.length >= 4 &&
+      buffer.toString('utf-8', 0, 4) === '%PDF'
+    ) {
+      isValidMagic = true;
+    } else if (
+      file.mimetype === 'image/png' &&
+      buffer.length >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47
+    ) {
+      isValidMagic = true;
+    } else if (
+      file.mimetype === 'image/jpeg' &&
+      buffer.length >= 3 &&
+      buffer[0] === 0xff &&
+      buffer[1] === 0xd8 &&
+      buffer[2] === 0xff
+    ) {
+      isValidMagic = true;
+    }
+
+    if (!isValidMagic) {
+      throw new BadRequestException(
+        'File contents do not match the declared MIME type header signature (magic bytes validation failed).',
+      );
+    }
+
+    const rawExt = file.originalname.split('.').pop()?.toLowerCase() || 'bin';
+    const safeExt = ['pdf', 'png', 'jpg', 'jpeg'].includes(rawExt) ? rawExt : 'bin';
+    const key = `credentials/${orgId}/${credentialId}/${randomUUID()}.${safeExt}`;
+
+    if (this.s3Client && this.bucketName) {
+      try {
+        await this.s3Client.send(
+          new PutObjectCommand({
+            Bucket: this.bucketName,
+            Key: key,
+            Body: file.buffer,
+            ContentType: file.mimetype,
+          }),
+        );
+      } catch (error: any) {
+        this.logger.error(
+          `Failed to upload credential document to S3/R2: ${error.message || error}`,
+          error,
+        );
+        throw new InternalServerErrorException('Failed to upload credential document');
+      }
+    } else {
+      this.logger.warn(
+        `S3/R2 credentials not configured. Mocking credential storage for key: ${key}`,
+      );
+    }
+
+    return {
+      key,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+      size: file.size,
+    };
+  }
+
+  /**
+   * Generates a temporary pre-signed GET URL for downloading private credential documents.
+   * Maximum TTL is 15 minutes (900 seconds).
+   */
+  async getSignedDownloadUrl(
+    key: string,
+    expiresInSeconds: number = 900,
+  ): Promise<string> {
+    const ttl = Math.min(Math.max(expiresInSeconds, 60), 900); // Max 15 mins (900s)
+
+    if (this.s3Client && this.bucketName) {
+      try {
+        const command = new GetObjectCommand({
+          Bucket: this.bucketName,
+          Key: key,
+        });
+        return await getSignedUrl(this.s3Client as any, command as any, {
+          expiresIn: ttl,
+        });
+      } catch (error: any) {
+        this.logger.error(
+          `Failed to generate presigned download URL for key ${key}: ${error.message || error}`,
+          error,
+        );
+        throw new InternalServerErrorException(
+          'Failed to generate secure signed URL for document',
+        );
+      }
+    }
+
+    this.logger.warn(
+      `S3 not configured. Returning local signed placeholder for ${key}`,
+    );
+    return `https://mock-storage.local/${key}?token=${randomUUID()}&expires=${ttl}`;
   }
 }

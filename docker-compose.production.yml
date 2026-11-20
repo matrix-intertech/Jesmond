@@ -24,6 +24,7 @@ services:
       NODE_ENV: production
       REDIS_HOST: jesmond-redis
       REDIS_PORT: 6379
+      ENABLE_AUTOMATED_ABR: ${ENABLE_AUTOMATED_ABR:-false}
     depends_on:
       - jesmond-redis
     networks:

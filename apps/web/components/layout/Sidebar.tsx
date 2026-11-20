@@ -126,6 +126,44 @@ const navConfig: NavItem[] = [
     ),
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
+  {
+    href: "/admin/credentials",
+    label: "Business Credentials",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
+  {
+    href: "/admin/credentials/abn-exemptions",
+    label: "ABN Exemptions",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16h16v-8l-6-6z" />
+        <path d="M14 2v6h6" />
+        <path d="M9 15h6" />
+      </svg>
+    ),
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
   // Provider navigation
   {
     href: "/portal",
@@ -298,6 +336,24 @@ const navConfig: NavItem[] = [
     roles: ["ORG_STAFF"],
     orgTypes: ["RETAIL"],
     requiredPermissions: ["RETAIL_SETTINGS_VIEW"],
+  },
+  {
+    href: "/portal/business/verification",
+    label: "Verification & Licences",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+    roles: ["ORG_STAFF"],
   },
   // Appointment Business Navigation (SERVICES and MECHANICS)
   {

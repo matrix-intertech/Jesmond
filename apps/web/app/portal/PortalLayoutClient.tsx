@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import DashboardShell from "@/components/layout/DashboardShell";
 import ProfileCompletionBanner from "@/components/ui/ProfileCompletionBanner";
+import BusinessVerificationReminder from "@/components/credentials/BusinessVerificationReminder";
 import {
   restoreUserSession,
   clearAuth,
@@ -158,6 +159,7 @@ export default function PortalLayoutClient({
   return (
     <DashboardShell role={user?.role as any} user={user}>
       <ProfileCompletionBanner />
+      <BusinessVerificationReminder />
       {children}
     </DashboardShell>
   );

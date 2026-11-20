@@ -408,6 +408,27 @@ export class MarketplaceService {
             businessCategory: true,
             isPubliclyVisible: true,
             deletedAt: true,
+            profileCompletion: {
+              select: {
+                overallStatus: true,
+              },
+            },
+            credentials: {
+              where: {
+                status: 'VERIFIED',
+                deletedAt: null,
+              },
+              select: {
+                id: true,
+                credentialNumber: true,
+                credentialType: {
+                  select: {
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

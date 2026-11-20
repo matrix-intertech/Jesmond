@@ -2,7 +2,7 @@ import { cache } from "react";
 import { getApiUrl } from "@/utils/api";
 import { getSiteUrl } from "@/utils/site";
 import { ProductCard } from "@/components/retail/ProductCard";
-import { Store, Navigation, Clock, ArrowLeft, Phone, MapPin } from "lucide-react";
+import { Store, Navigation, Clock, ArrowLeft, Phone, MapPin, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicFoodMenu from "@/components/food/PublicFoodMenu";
@@ -135,7 +135,18 @@ export default async function StoreDetailPage({
               <h1 className="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">
                 {branch.name || branch.organization?.name}
               </h1>
-              <p className="text-text-secondary font-medium mt-1">Jesmond {category} Partner</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-text-secondary font-medium">Jesmond {category} Partner</p>
+                {branch.organization?.profileCompletion?.overallStatus === 'VERIFIED' && (
+                  <span
+                    data-testid="public-verified-partner-badge"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200"
+                  >
+                    <ShieldCheck size={14} className="text-emerald-600" />
+                    <span>Verified Partner</span>
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -169,6 +180,26 @@ export default async function StoreDetailPage({
             <div className="flex items-center gap-2 text-text-secondary">
               <Phone size={18} className="text-accent" />
               <span>{branch.phone}</span>
+            </div>
+          )}
+
+          {branch.organization?.credentials?.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-border-strong/40">
+              <h3 className="text-sm font-semibold text-primary mb-2 flex items-center gap-1.5">
+                <ShieldCheck size={16} className="text-emerald-600" />
+                <span>Verified Licences & Statutory Registrations</span>
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {branch.organization.credentials.map((cred: any) => (
+                  <div
+                    key={cred.id}
+                    data-testid={`public-verified-licence-${cred.credentialType?.code}`}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs font-medium text-emerald-900"
+                  >
+                    <strong>{cred.credentialType?.name}</strong>: {cred.credentialNumber || "Verified"}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

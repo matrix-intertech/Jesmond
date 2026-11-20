@@ -27,6 +27,7 @@ import { FoodModule } from './modules/food/food.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { EmailModule } from './modules/email/email.module';
+import { CredentialsModule } from './modules/credentials/credentials.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { EmailModule } from './modules/email/email.module';
     AppointmentsModule,
     WhatsAppModule,
     EmailModule,
+    CredentialsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

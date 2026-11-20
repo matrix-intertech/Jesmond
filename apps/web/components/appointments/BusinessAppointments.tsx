@@ -20,8 +20,12 @@ export default function BusinessAppointments({
   initialServices?: any[];
 }) {
   const router = useRouter();
-  const [services, setServices] = useState<any[]>(initialServices || []);
-  const [loading, setLoading] = useState(!initialServices || initialServices.length === 0);
+  const [services, setServices] = useState<any[]>(
+    Array.isArray(initialServices) ? initialServices : [],
+  );
+  const [loading, setLoading] = useState(
+    !Array.isArray(initialServices) || initialServices.length === 0,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
