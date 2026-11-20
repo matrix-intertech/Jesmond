@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { useRouter } from "next/navigation";
+import EditStaffScheduleModal from "@/components/business/EditStaffScheduleModal";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -556,6 +557,7 @@ export default function BusinessStaffPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditScheduleModal, setShowEditScheduleModal] = useState(false);
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -780,10 +782,20 @@ export default function BusinessStaffPage() {
 
                 {/* Weekly Working Hours */}
                 <div className="mt-8">
-                  <h4 className="text-sm font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Clock size={16} className="text-accent" />
-                    Weekly Availability & Working Hours
-                  </h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold text-primary uppercase tracking-wider flex items-center gap-2">
+                      <Clock size={16} className="text-accent" />
+                      Weekly Availability & Working Hours
+                    </h4>
+                    <button
+                      id="edit-staff-schedule-btn"
+                      type="button"
+                      onClick={() => setShowEditScheduleModal(true)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-strong text-xs font-semibold hover:bg-surface-muted transition-colors text-primary"
+                    >
+                      <Clock size={13} className="text-accent" /> Edit Schedule
+                    </button>
+                  </div>
                   {!selectedStaff.workingHours ||
                   selectedStaff.workingHours.length === 0 ? (
                     <div className="p-4 bg-surface-muted rounded-xl text-xs text-text-secondary">
@@ -845,6 +857,16 @@ export default function BusinessStaffPage() {
           onClose={() => setShowAddModal(false)}
           onSuccess={handleStaffAdded}
           availableServices={availableServices}
+        />
+      )}
+
+      {/* Edit Staff Schedule Modal */}
+      {showEditScheduleModal && selectedStaff && (
+        <EditStaffScheduleModal
+          staff={selectedStaff}
+          availableServices={availableServices}
+          onClose={() => setShowEditScheduleModal(false)}
+          onSuccess={handleStaffAdded}
         />
       )}
     </div>

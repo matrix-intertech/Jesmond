@@ -99,6 +99,7 @@ model User {
   requestedNameChanges     BusinessNameChangeRequest[] @relation("RequestedNameChanges")
   reviewedNameChanges      BusinessNameChangeRequest[] @relation("ReviewedNameChanges")
   nameChangeDocuments      BusinessNameChangeDocument[] @relation("UploadedNameChangeDocs")
+  customerAddresses        CustomerAddress[]
 
   @@index([email])
   @@index([phone])
@@ -1130,6 +1131,7 @@ model RetailBranch {
   isActive        Boolean             @default(true)
   deliveryEnabled Boolean             @default(false)
   takeawayEnabled Boolean             @default(true)
+  operatingHours  Json?
   terminals       PosTerminal[]
   inventory       Inventory[]
   movements       InventoryMovement[]
@@ -1842,6 +1844,12 @@ model ServiceCategory {
   @@index([organizationId, isActive])
 }
 
+enum ServiceLocationType {
+  AT_BRANCH
+  CUSTOMER_LOCATION
+  FLEXIBLE
+}
+
 model BusinessService {
   id             String       @id @default(uuid())
   organizationId String
@@ -1860,6 +1868,7 @@ model BusinessService {
   price            Int     @default(0) // In cents
   currency         String  @default("AUD")
   isActive         Boolean @default(true)
+  locationType     ServiceLocationType @default(AT_BRANCH)
 
   appointments     Appointment[]
   staffAssignments StaffServiceAssignment[]
@@ -1978,6 +1987,12 @@ model Appointment {
   price        Int    @default(0)
   currency     String @default("AUD")
 
+  // Location & Address Integration
+  locationType      ServiceLocationType @default(AT_BRANCH)
+  customerAddressId String?
+  customerAddress   CustomerAddress?    @relation(fields: [customerAddressId], references: [id], onDelete: SetNull)
+  addressSnapshot   Json?
+
   idempotencyKey String? @unique
 
   statusHistory AppointmentStatusHistory[]
@@ -1993,6 +2008,35 @@ model Appointment {
   @@index([staffId])
   @@index([status])
   @@index([startTime, endTime])
+  @@index([customerAddressId])
+}
+
+model CustomerAddress {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  label         String    @default("Home") // Home, Work, Other
+  recipientName String?
+  phone         String?
+  streetAddress String
+  unitNumber    String?
+  suburb        String?
+  city          String
+  state         String
+  postcode      String
+  country       String    @default("Australia")
+  instructions  String?
+  isDefault     Boolean   @default(false)
+
+  appointments  Appointment[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  @@index([userId])
+  @@index([userId, isDefault])
 }
 
 enum AppointmentStatus {

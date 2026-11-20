@@ -36,6 +36,7 @@ import {
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import BranchOperatingHoursModal from "@/components/business/BranchOperatingHoursModal";
 
 interface StaffMember {
   id: string;
@@ -146,6 +147,7 @@ export default function BusinessAvailabilityPage() {
 
   // Time Off Modal state (Workflow A)
   const [isTimeOffModalOpen, setIsTimeOffModalOpen] = useState(false);
+  const [isHoursModalOpen, setIsHoursModalOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TimeOffBlock | null>(null);
   const [timeOffSubmitting, setTimeOffSubmitting] = useState(false);
   const [timeOffModalError, setTimeOffModalError] = useState<string | null>(null);
@@ -563,6 +565,16 @@ export default function BusinessAvailabilityPage() {
           description="Manage professional schedules, time-off blocks, breaks, leave, and offline appointments."
         />
         <div className="flex items-center gap-2.5">
+          {services.length > 0 && services[0].branchId && (
+            <button
+              data-testid="branch-operating-hours-btn"
+              onClick={() => setIsHoursModalOpen(true)}
+              className="flex items-center gap-2 px-3.5 py-2.5 bg-surface border border-border-strong text-text-primary text-sm font-bold rounded-xl hover:bg-surface-muted transition-colors shadow-sm"
+            >
+              <Clock size={17} className="text-accent" />
+              Branch Hours
+            </button>
+          )}
           <button
             data-testid="record-offline-work-btn"
             onClick={() => handleOpenOfflineModal()}
@@ -1776,6 +1788,18 @@ export default function BusinessAvailabilityPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Branch Operating Hours Modal */}
+      {isHoursModalOpen && services.length > 0 && services[0].branchId && (
+        <BranchOperatingHoursModal
+          branchId={services[0].branchId}
+          onClose={() => setIsHoursModalOpen(false)}
+          onSuccess={() => {
+            setSuccessMessage("Branch operating hours saved successfully.");
+            fetchData();
+          }}
+        />
       )}
     </div>
   );

@@ -5,11 +5,13 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AppointmentStatus, Prisma, UserRole } from '@prisma/client';
+import { AppointmentStatus, Prisma, UserRole, ServiceLocationType } from '@prisma/client';
+import { CreateCustomerAddressDto } from '../../customer-addresses/dtos/customer-address.dto';
 
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AppointmentWhatsAppService } from './appointment-whatsapp.service';
 import { AppointmentEmailService } from './appointment-email.service';
+import { AvailabilityService } from './availability.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -20,6 +22,7 @@ export class AppointmentsService {
     private readonly notificationsService: NotificationsService,
     private readonly appointmentWhatsAppService: AppointmentWhatsAppService,
     private readonly appointmentEmailService: AppointmentEmailService,
+    private readonly availabilityService: AvailabilityService,
   ) { }
 
   // 1. List active services for an eligible business/branch
@@ -44,6 +47,9 @@ export class AppointmentsService {
     return this.prisma.businessService.findMany({
       where: { branchId, isActive: true },
       include: {
+        branch: {
+          select: { id: true, name: true, operatingHours: true },
+        },
         category: {
           select: {
             id: true,
@@ -60,7 +66,7 @@ export class AppointmentsService {
     return this.prisma.appointment.findMany({
       where: { customerId },
       orderBy: { startTime: 'desc' },
-      include: { service: true, branch: true },
+      include: { service: true, branch: true, customerAddress: true },
     });
   }
 
@@ -68,7 +74,7 @@ export class AppointmentsService {
   async getAppointment(id: string) {
     return this.prisma.appointment.findUnique({
       where: { id },
-      include: { service: true, branch: true },
+      include: { service: true, branch: true, customerAddress: true },
     });
   }
 
@@ -81,15 +87,16 @@ export class AppointmentsService {
     endTime: Date;
     timezone: string;
     customerNotes?: string;
+    locationType?: ServiceLocationType;
+    customerAddressId?: string;
+    newAddress?: CreateCustomerAddressDto;
   }) {
     const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Lock the branch level or service level to serialize concurrent requests for the same time slot
-      // We use PostgreSQL advisory locks to guarantee that no two transactions calculate capacity for the same service concurrently.
-      // 100 is just an arbitrary prefix to avoid collision. We hash serviceId or use its raw integer if it was int, but it's uuid.
-      // For uuid, we can lock based on a hash of the UUID.
+      // 1. Lock both branch level and service level to serialize concurrent requests for the same time slot and shared staff
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${data.branchId}))`;
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${data.serviceId}))`;
 
-      // Now we have exclusive access to this service's schedule in this transaction
+      // Now we have exclusive access to this service and branch schedule in this transaction
 
       // 2. Fetch the service
       const service = await tx.businessService.findUnique({
@@ -136,28 +143,119 @@ export class AppointmentsService {
         );
       }
 
-      // 3. Validate capacity for requested time by checking existing appointments
-      const overlappingAppointments = await tx.appointment.count({
-        where: {
-          serviceId: data.serviceId,
-          status: { in: ['PENDING_APPROVAL', 'CONFIRMED', 'IN_PROGRESS'] },
-          startTime: { lt: data.endTime },
-          endTime: { gt: data.startTime },
-        },
-      });
-
-      // We need at least one qualified staff for this service
-      const qualifiedStaffCount = await tx.staffServiceAssignment.count({
-        where: { serviceId: data.serviceId },
-      });
-
-      if (qualifiedStaffCount === 0) {
-        throw new BadRequestException('No staff qualified for this service');
+      // Determine effective location type based on service configuration and customer request
+      let effectiveLocationType: ServiceLocationType;
+      if (service.locationType === ServiceLocationType.CUSTOMER_LOCATION) {
+        effectiveLocationType = ServiceLocationType.CUSTOMER_LOCATION;
+      } else if (service.locationType === ServiceLocationType.AT_BRANCH) {
+        effectiveLocationType = ServiceLocationType.AT_BRANCH;
+      } else {
+        // FLEXIBLE: Customer can choose either AT_BRANCH or CUSTOMER_LOCATION
+        effectiveLocationType =
+          data.locationType === ServiceLocationType.CUSTOMER_LOCATION
+            ? ServiceLocationType.CUSTOMER_LOCATION
+            : ServiceLocationType.AT_BRANCH;
       }
 
-      if (overlappingAppointments >= qualifiedStaffCount) {
+      // Address resolution & snapshot
+      let finalCustomerAddressId: string | null = null;
+      let addressSnapshot: any = null;
+
+      if (effectiveLocationType === ServiceLocationType.CUSTOMER_LOCATION) {
+        if (!data.customerAddressId && !data.newAddress) {
+          throw new BadRequestException(
+            'A valid customer address is required for customer-location services',
+          );
+        }
+
+        if (data.newAddress) {
+          // Create the address for this customer inline
+          const createdAddr = await tx.customerAddress.create({
+            data: {
+              userId: data.customerId,
+              label: data.newAddress.label?.trim() || 'Home',
+              recipientName: data.newAddress.recipientName?.trim() || null,
+              phone: data.newAddress.phone?.trim() || null,
+              streetAddress: data.newAddress.streetAddress.trim(),
+              unitNumber: data.newAddress.unitNumber?.trim() || null,
+              suburb: data.newAddress.suburb?.trim() || null,
+              city: data.newAddress.city.trim(),
+              state: data.newAddress.state.trim().toUpperCase(),
+              postcode: data.newAddress.postcode.trim(),
+              country: data.newAddress.country?.trim() || 'Australia',
+              instructions: data.newAddress.instructions?.trim() || null,
+              isDefault: data.newAddress.isDefault || false,
+            },
+          });
+          finalCustomerAddressId = createdAddr.id;
+          addressSnapshot = {
+            id: createdAddr.id,
+            label: createdAddr.label,
+            recipientName: createdAddr.recipientName,
+            phone: createdAddr.phone,
+            streetAddress: createdAddr.streetAddress,
+            unitNumber: createdAddr.unitNumber,
+            suburb: createdAddr.suburb,
+            city: createdAddr.city,
+            state: createdAddr.state,
+            postcode: createdAddr.postcode,
+            country: createdAddr.country,
+            instructions: createdAddr.instructions,
+          };
+        } else if (data.customerAddressId) {
+          const existingAddr = await tx.customerAddress.findUnique({
+            where: { id: data.customerAddressId },
+          });
+          if (!existingAddr || existingAddr.deletedAt !== null) {
+            throw new BadRequestException('Selected address not found');
+          }
+          if (existingAddr.userId !== data.customerId) {
+            throw new ForbiddenException(
+              'Invalid address: you do not have permission to use this address',
+            );
+          }
+          finalCustomerAddressId = existingAddr.id;
+          addressSnapshot = {
+            id: existingAddr.id,
+            label: existingAddr.label,
+            recipientName: existingAddr.recipientName,
+            phone: existingAddr.phone,
+            streetAddress: existingAddr.streetAddress,
+            unitNumber: existingAddr.unitNumber,
+            suburb: existingAddr.suburb,
+            city: existingAddr.city,
+            state: existingAddr.state,
+            postcode: existingAddr.postcode,
+            country: existingAddr.country,
+            instructions: existingAddr.instructions,
+          };
+        }
+      } else {
+        // AT_BRANCH: Workshop / Branch address snapshot
+        finalCustomerAddressId = null;
+        addressSnapshot = {
+          type: 'BRANCH',
+          branchName: branch.name,
+          address: branch.address,
+          phone: branch.phone,
+        };
+      }
+
+      // 3. Validate capacity and availability for requested time using the unified availability engine
+      const validation = await this.availabilityService.validateBookingSlot(
+        tx,
+        {
+          branchId: data.branchId,
+          serviceId: data.serviceId,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          timezone: data.timezone,
+        },
+      );
+
+      if (!validation.isAvailable) {
         throw new BadRequestException(
-          'Time slot is no longer available (overbooked)',
+          validation.reason || 'Time slot is no longer available',
         );
       }
 
@@ -177,6 +275,9 @@ export class AppointmentsService {
           durationMins: service.durationMins,
           price: service.price,
           currency: service.currency,
+          locationType: effectiveLocationType,
+          customerAddressId: finalCustomerAddressId,
+          addressSnapshot,
           statusHistory: {
             create: {
               status: AppointmentStatus.PENDING_APPROVAL,
@@ -2168,6 +2269,181 @@ export class AppointmentsService {
       });
 
       return offlineAppt;
+    });
+  }
+
+  // 17. Branch Operating Hours Management
+  async getBranchOperatingHours(organizationId: string, branchId: string) {
+    const branch = await this.prisma.retailBranch.findUnique({
+      where: { id: branchId },
+    });
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
+    }
+    if (branch.organizationId !== organizationId) {
+      throw new ForbiddenException(
+        'Branch does not belong to this organization',
+      );
+    }
+    return {
+      branchId: branch.id,
+      operatingHours: (branch.operatingHours as any) || [],
+    };
+  }
+
+  async updateBranchOperatingHours(
+    organizationId: string,
+    branchId: string,
+    operatingHours: any[],
+  ) {
+    const branch = await this.prisma.retailBranch.findUnique({
+      where: { id: branchId },
+    });
+    if (!branch) {
+      throw new NotFoundException('Branch not found');
+    }
+    if (branch.organizationId !== organizationId) {
+      throw new ForbiddenException(
+        'Branch does not belong to this organization',
+      );
+    }
+
+    if (Array.isArray(operatingHours)) {
+      for (const entry of operatingHours) {
+        if (entry.isOpen) {
+          if (entry.openTime && entry.closeTime) {
+            const [oH, oM] = entry.openTime.split(':').map(Number);
+            const [cH, cM] = entry.closeTime.split(':').map(Number);
+            if (isNaN(oH) || isNaN(oM) || isNaN(cH) || isNaN(cM)) {
+              throw new BadRequestException(
+                'Invalid operating hours time format (expected HH:mm)',
+              );
+            }
+          }
+          if (entry.periods && Array.isArray(entry.periods)) {
+            for (const p of entry.periods) {
+              const [poH, poM] = p.openTime.split(':').map(Number);
+              const [pcH, pcM] = p.closeTime.split(':').map(Number);
+              if (poH * 60 + poM >= pcH * 60 + pcM) {
+                throw new BadRequestException(
+                  'Period closing time must be after opening time',
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const updated = await this.prisma.retailBranch.update({
+      where: { id: branchId },
+      data: { operatingHours: operatingHours as any },
+    });
+
+    return {
+      branchId: updated.id,
+      operatingHours: updated.operatingHours,
+    };
+  }
+
+  // 18. Employee Working Hours Management
+  async updateStaffWorkingHours(
+    organizationId: string,
+    staffId: string,
+    dto: {
+      workingHours: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        endTime: string;
+        isWorking: boolean;
+      }>;
+      serviceIds?: string[];
+    },
+  ) {
+    const staff = await this.prisma.orgStaff.findUnique({
+      where: { id: staffId },
+    });
+    if (!staff) {
+      throw new NotFoundException('Staff member not found');
+    }
+    if (staff.organizationId !== organizationId) {
+      throw new ForbiddenException(
+        'Staff member does not belong to this organization',
+      );
+    }
+
+    for (const wh of dto.workingHours) {
+      if (wh.isWorking) {
+        const [sH, sM] = wh.startTime.split(':').map(Number);
+        const [eH, eM] = wh.endTime.split(':').map(Number);
+        if (sH * 60 + sM >= eH * 60 + eM) {
+          throw new BadRequestException(
+            `Working hours for day ${wh.dayOfWeek}: end time must be after start time`,
+          );
+        }
+      }
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Update service assignments if provided, scoped strictly to this organization
+      if (dto.serviceIds !== undefined) {
+        await tx.staffServiceAssignment.deleteMany({
+          where: { staffId },
+        });
+
+        if (dto.serviceIds.length > 0) {
+          const validServices = await tx.businessService.findMany({
+            where: { id: { in: dto.serviceIds }, organizationId },
+            select: { id: true },
+          });
+
+          for (const s of validServices) {
+            await tx.staffServiceAssignment.create({
+              data: {
+                staffId,
+                serviceId: s.id,
+              },
+            });
+          }
+        }
+      }
+
+      // 2. Update working hours
+      await tx.staffWorkingHours.deleteMany({ where: { staffId } });
+      const toCreate = dto.workingHours
+        .filter((wh) => wh.isWorking)
+        .map((wh) => ({
+          staffId,
+          dayOfWeek: wh.dayOfWeek,
+          startTime: wh.startTime,
+          endTime: wh.endTime,
+        }));
+      if (toCreate.length > 0) {
+        await tx.staffWorkingHours.createMany({ data: toCreate });
+      }
+    });
+
+    return this.prisma.orgStaff.findUnique({
+      where: { id: staffId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+        serviceAssignments: {
+          include: {
+            service: true,
+          },
+        },
+        workingHours: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
+      },
     });
   }
 }

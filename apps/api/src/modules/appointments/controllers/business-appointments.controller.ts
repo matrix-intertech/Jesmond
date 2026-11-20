@@ -29,6 +29,8 @@ import {
   UpdateTimeOffDto,
   CreateOfflineAppointmentDto,
   AddBusinessStaffDto,
+  UpdateBranchOperatingHoursDto,
+  UpdateStaffWorkingHoursDto,
 } from '../dtos/appointment.dto';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
@@ -504,6 +506,69 @@ export class BusinessAppointmentsController {
     return this.appointmentsService.createOfflineAppointment(
       req.user.organizationId,
       req.user.id,
+      dto,
+    );
+  }
+
+  // Branch Operating Hours
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Get('branches/:branchId/operating-hours')
+  async getBranchOperatingHours(
+    @Request() req: any,
+    @Param('branchId') branchId: string,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
+    }
+    return this.appointmentsService.getBranchOperatingHours(
+      req.user.organizationId,
+      branchId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Put('branches/:branchId/operating-hours')
+  async updateBranchOperatingHours(
+    @Request() req: any,
+    @Param('branchId') branchId: string,
+    @Body() dto: UpdateBranchOperatingHoursDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
+    }
+    return this.appointmentsService.updateBranchOperatingHours(
+      req.user.organizationId,
+      branchId,
+      dto.operatingHours,
+    );
+  }
+
+  // Staff Working Hours Update
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Put('staff/:staffId/working-hours')
+  async updateStaffWorkingHours(
+    @Request() req: any,
+    @Param('staffId') staffId: string,
+    @Body() dto: UpdateStaffWorkingHoursDto,
+  ) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException(
+        'User is not associated with an organization',
+      );
+    }
+    return this.appointmentsService.updateStaffWorkingHours(
+      req.user.organizationId,
+      staffId,
       dto,
     );
   }

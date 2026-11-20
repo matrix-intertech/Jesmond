@@ -14,7 +14,8 @@ import {
   Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatus, ServiceLocationType } from '@prisma/client';
+import { CreateCustomerAddressDto } from '../../customer-addresses/dtos/customer-address.dto';
 
 export class CreateAppointmentDto {
   @IsString()
@@ -40,6 +41,19 @@ export class CreateAppointmentDto {
   @IsString()
   @IsOptional()
   customerNotes?: string;
+
+  @IsEnum(ServiceLocationType)
+  @IsOptional()
+  locationType?: ServiceLocationType;
+
+  @IsString()
+  @IsOptional()
+  customerAddressId?: string;
+
+  @ValidateNested()
+  @Type(() => CreateCustomerAddressDto)
+  @IsOptional()
+  newAddress?: CreateCustomerAddressDto;
 }
 
 export class ApproveAppointmentDto {
@@ -348,4 +362,57 @@ export class AddBusinessStaffDto {
   @Type(() => WorkingHoursEntryDto)
   @IsOptional()
   workingHours?: WorkingHoursEntryDto[];
+}
+
+export class UpdateStaffWorkingHoursDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorkingHoursEntryDto)
+  workingHours: WorkingHoursEntryDto[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  serviceIds?: string[];
+}
+
+export class OperatingHoursPeriodDto {
+  @IsString()
+  @IsNotEmpty()
+  openTime: string;
+
+  @IsString()
+  @IsNotEmpty()
+  closeTime: string;
+}
+
+export class BranchOperatingHoursDayDto {
+  @IsNumber()
+  @Min(0)
+  @Max(6)
+  dayOfWeek: number;
+
+  @IsBoolean()
+  isOpen: boolean;
+
+  @IsString()
+  @IsOptional()
+  openTime?: string;
+
+  @IsString()
+  @IsOptional()
+  closeTime?: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OperatingHoursPeriodDto)
+  @IsOptional()
+  periods?: OperatingHoursPeriodDto[];
+}
+
+export class UpdateBranchOperatingHoursDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BranchOperatingHoursDayDto)
+  operatingHours: BranchOperatingHoursDayDto[];
 }

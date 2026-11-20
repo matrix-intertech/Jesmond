@@ -60,6 +60,9 @@ export class AppointmentsController {
       endTime: new Date(dto.endTime),
       timezone: dto.timezone,
       customerNotes: dto.customerNotes,
+      locationType: dto.locationType,
+      customerAddressId: dto.customerAddressId,
+      newAddress: dto.newAddress,
     });
   }
 

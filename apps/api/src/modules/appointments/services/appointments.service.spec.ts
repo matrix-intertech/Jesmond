@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AppointmentWhatsAppService } from './appointment-whatsapp.service';
 import { AppointmentEmailService } from './appointment-email.service';
+import { AvailabilityService } from './availability.service';
 import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { AppointmentStatus } from '@prisma/client';
 
@@ -92,6 +93,12 @@ describe('AppointmentsService', () => {
             notifyAppointmentCancelled: jest.fn().mockResolvedValue({ sent: true }),
             notifyAppointmentRescheduled: jest.fn().mockResolvedValue({ sent: true }),
             notifyProviderNewAppointment: jest.fn().mockResolvedValue({ sent: true }),
+          },
+        },
+        {
+          provide: AvailabilityService,
+          useValue: {
+            validateBookingSlot: jest.fn().mockResolvedValue({ isAvailable: true, effectiveCapacity: 1 }),
           },
         },
       ],

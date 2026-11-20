@@ -2,7 +2,7 @@ import { cache } from "react";
 import { getApiUrl } from "@/utils/api";
 import { getSiteUrl } from "@/utils/site";
 import { ProductCard } from "@/components/retail/ProductCard";
-import { Store, Navigation, Clock, ArrowLeft, Phone, MapPin, ShieldCheck } from "lucide-react";
+import { Store, Navigation, Clock, ArrowLeft, Phone, MapPin, ShieldCheck, Calendar } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicFoodMenu from "@/components/food/PublicFoodMenu";
@@ -165,6 +165,14 @@ export default async function StoreDetailPage({
                 )}
               </>
             )}
+            {(category === 'MECHANICS' || category === 'SERVICES') && (
+              <Link
+                href={`/businesses/store/${branch.id}/book`}
+                className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent/90 text-white font-bold rounded-xl shadow-md shadow-accent/20 transition-all text-sm"
+              >
+                <Calendar size={18} /> Book Appointment
+              </Link>
+            )}
           </div>
         </div>
 
@@ -250,6 +258,8 @@ export default async function StoreDetailPage({
             businessName={branch.name || branch.organization?.name || 'Business'} 
             timezone={branch.organization?.timezone}
             initialServices={initialServices || undefined}
+            branchInfo={branch}
+            isDedicatedPage={false}
           />
         </div>
       )}

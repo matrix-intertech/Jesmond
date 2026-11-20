@@ -29,6 +29,7 @@ import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { EmailModule } from './modules/email/email.module';
 import { CredentialsModule } from './modules/credentials/credentials.module';
 import { BusinessNameRequestsModule } from './modules/business-name-requests/business-name-requests.module';
+import { CustomerAddressesModule } from './modules/customer-addresses/customer-addresses.module';
 
 @Module({
   imports: [
@@ -95,6 +96,7 @@ import { BusinessNameRequestsModule } from './modules/business-name-requests/bus
     EmailModule,
     CredentialsModule,
     BusinessNameRequestsModule,
+    CustomerAddressesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
