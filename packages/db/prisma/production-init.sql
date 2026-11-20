@@ -24,18 +24,7 @@ VALUES
   (gen_random_uuid(), 'FOOD_FSS', 'Food Safety Supervisor Certificate', 'Statement of Attainment from an approved RTO for food safety supervision in hospitality / food processing', 'FOOD'::"BusinessCategory", 'State Food Authority / Registered Training Organisation', 'ALL', true, true, true, '^[A-Z0-9-]{4,20}$', false, NOW(), NOW()),
   (gen_random_uuid(), 'SECOND_HAND_DEALER', 'Pawnbrokers & Second-Hand Dealers Licence', 'Statutory licence for businesses purchasing or selling second-hand goods', 'RETAIL'::"BusinessCategory", 'State Fair Trading / Police Licensing', 'ALL', true, true, true, '^[A-Z0-9-]{4,12}$', true, NOW(), NOW()),
   (gen_random_uuid(), 'REAL_ESTATE_CORP', 'Real Estate Corporation Licence', 'Corporation licence to conduct real estate agency, leasing and property management', 'RENTALS'::"BusinessCategory", 'State Fair Trading / Consumer Affairs', 'ALL', true, true, true, '^[A-Z0-9-]{4,12}$', true, NOW(), NOW())
-ON CONFLICT ("code") DO UPDATE SET
-  "name" = EXCLUDED."name",
-  "description" = EXCLUDED."description",
-  "category" = EXCLUDED."category",
-  "issuer" = EXCLUDED."issuer",
-  "jurisdiction" = EXCLUDED."jurisdiction",
-  "requiresDocument" = EXCLUDED."requiresDocument",
-  "requiresExpiryDate" = EXCLUDED."requiresExpiryDate",
-  "requiresNumber" = EXCLUDED."requiresNumber",
-  "numberPattern" = EXCLUDED."numberPattern",
-  "isPublic" = EXCLUDED."isPublic",
-  "updatedAt" = NOW();
+ON CONFLICT ("code") DO NOTHING;
 
 -- 2. INSERT ALL 16 STATUTORY CREDENTIAL REQUIREMENTS (IF NOT ALREADY PRESENT)
 INSERT INTO "CredentialRequirement" ("id", "credentialTypeId", "businessCategory", "serviceName", "state", "isMandatory", "createdAt", "updatedAt")
