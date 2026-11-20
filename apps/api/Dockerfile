@@ -37,7 +37,7 @@ RUN corepack enable pnpm
 # We need to install production dependencies and the workspace packages.
 # The easiest robust way for monorepos is to copy the whole project and install prod only, 
 # or copy from builder and prune. We will prune.
-COPY --from=builder /app ./
+COPY --from=builder --chown=node:node /app ./
 
 # Prune devDependencies
 RUN pnpm install --prod --frozen-lockfile
@@ -50,3 +50,6 @@ ENV HOST=0.0.0.0
 
 # The entrypoint is the built dist file for the api
 CMD ["node", "apps/api/dist/main"]
+
+RUN chmod 755 /app/packages/db/prisma/migrations/20261010094510_enhance_staff_time_off \
+    && chmod 644 /app/packages/db/prisma/migrations/20261010094510_enhance_staff_time_off/migration.sql

@@ -16,7 +16,7 @@ export class NominatimProvider implements LocationProvider {
       process.env.NOMINATIM_BASE_URL || 'https://nominatim.openstreetmap.org';
     this.userAgent =
       process.env.NOMINATIM_USER_AGENT ||
-      'Jesmond-Platform/2.0 (contact@jesmond.demo)';
+      'Jesmond-Platform/2.0 (support@jesmond.com.au)';
   }
 
   async search(options: LocationSearchOptions): Promise<LocationResult[]> {

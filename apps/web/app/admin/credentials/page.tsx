@@ -28,7 +28,7 @@ export default function AdminCredentialsPage() {
   const [meta, setMeta] = useState<any>({ total: 0, page: 1, totalPages: 1 });
 
   // Filters
-  const [statusFilter, setStatusFilter] = useState("PENDING_REVIEW");
+  const [statusFilter, setStatusFilter] = useState("PENDING");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [stateFilter, setStateFilter] = useState("ALL");
 
@@ -178,7 +178,7 @@ export default function AdminCredentialsPage() {
           className="px-3 py-1.5 rounded-lg border border-border bg-surface text-xs font-medium text-text-primary focus:outline-none"
         >
           <option value="ALL">All Statuses</option>
-          <option value="PENDING_REVIEW">Pending Review</option>
+          <option value="PENDING">Pending Review</option>
           <option value="NEEDS_INFORMATION">Needs Information</option>
           <option value="VERIFIED">Verified</option>
           <option value="REJECTED">Rejected</option>
@@ -290,7 +290,7 @@ export default function AdminCredentialsPage() {
                         <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">
                           Verified
                         </span>
-                      ) : item.status === "PENDING_REVIEW" ? (
+                      ) : item.status === "PENDING" ? (
                         <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold">
                           Pending Review
                         </span>
