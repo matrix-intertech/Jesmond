@@ -68,6 +68,8 @@ export default function BusinessServicesPage() {
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<ServiceItem | null>(null);
   const [serviceSubmitting, setServiceSubmitting] = useState(false);
+  const [serviceModalError, setServiceModalError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Category Modal state
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -145,6 +147,7 @@ export default function BusinessServicesPage() {
   // Open Service Modal
   const handleOpenCreateServiceModal = (preferredCategoryId?: string) => {
     setEditingService(null);
+    setServiceModalError(null);
     setServiceFormData({
       name: "",
       description: "",
@@ -159,6 +162,7 @@ export default function BusinessServicesPage() {
 
   const handleOpenEditServiceModal = (service: ServiceItem) => {
     setEditingService(service);
+    setServiceModalError(null);
     const duration = service.durationMins ?? service.durationMinutes ?? 30;
     // backend price is in cents
     const priceAud =
@@ -183,6 +187,7 @@ export default function BusinessServicesPage() {
     e.preventDefault();
     try {
       setServiceSubmitting(true);
+      setServiceModalError(null);
       const token = getAccessToken();
       const isEdit = !!editingService;
       const url = isEdit
@@ -211,14 +216,20 @@ export default function BusinessServicesPage() {
       });
 
       if (!res.ok) {
-        const errData = await res.json();
+        const errData = await res.json().catch(() => ({}));
         throw new Error(errData.message || "Failed to save service");
       }
 
       setIsServiceModalOpen(false);
+      setSuccessMessage(
+        isEdit
+          ? `Service "${serviceFormData.name}" updated successfully.`
+          : `Service "${serviceFormData.name}" created successfully.`
+      );
+      setTimeout(() => setSuccessMessage(null), 4000);
       await fetchData();
     } catch (err: any) {
-      alert(err.message);
+      setServiceModalError(err.message || "Failed to save service. Please try again.");
     } finally {
       setServiceSubmitting(false);
     }
@@ -431,6 +442,21 @@ export default function BusinessServicesPage() {
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center gap-2">
           <AlertCircle size={18} />
           {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="p-4 bg-green-50 border border-green-200 text-green-800 rounded-xl text-sm flex items-center justify-between gap-2 shadow-sm">
+          <div className="flex items-center gap-2 font-semibold">
+            <CheckCircle size={18} className="text-green-600 shrink-0" />
+            <span>{successMessage}</span>
+          </div>
+          <button
+            onClick={() => setSuccessMessage(null)}
+            className="text-green-700 hover:text-green-900 p-1 rounded-lg"
+          >
+            <X size={16} />
+          </button>
         </div>
       )}
 
@@ -686,15 +712,36 @@ export default function BusinessServicesPage() {
       {/* Service Modal (Create / Edit) */}
       {isServiceModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-surface rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-bold text-primary mb-1">
-              {editingService ? "Edit Bookable Service" : "Add New Service"}
-            </h2>
-            <p className="text-xs text-text-secondary mb-6">
-              Configure service details, duration, AUD price, and persistent category.
-            </p>
+          <div className="bg-surface rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border-strong">
+            <form onSubmit={handleServiceSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Modal Header */}
+              <div className="shrink-0 px-6 py-5 md:px-8 border-b border-border-strong flex items-start justify-between bg-surface">
+                <div>
+                  <h2 className="text-2xl font-bold text-primary mb-1">
+                    {editingService ? "Edit Bookable Service" : "Add New Service"}
+                  </h2>
+                  <p className="text-xs text-text-secondary">
+                    Configure service details, duration, AUD price, and persistent category.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsServiceModalOpen(false)}
+                  className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors"
+                  title="Close"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
-            <form onSubmit={handleServiceSubmit} className="space-y-4">
+              {/* Modal Scrollable Body */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
+                {serviceModalError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs flex items-center gap-2">
+                    <AlertCircle size={16} className="shrink-0" />
+                    <span>{serviceModalError}</span>
+                  </div>
+                )}
               <div>
                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
                   Service Name *
@@ -936,25 +983,34 @@ export default function BusinessServicesPage() {
                 >
                   Available for booking (Active status)
                 </label>
+                </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-border-strong">
+              {/* Modal Footer (Persistent & Accessible) */}
+              <div className="shrink-0 bg-surface border-t border-border-strong px-6 md:px-8 py-4 flex items-center justify-end gap-3 z-10">
                 <button
                   type="button"
                   onClick={() => setIsServiceModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-border-strong text-text-secondary hover:text-primary text-sm font-semibold"
+                  className="px-5 py-2.5 rounded-xl border border-border-strong text-text-secondary hover:text-primary text-sm font-semibold hover:bg-surface-muted transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={serviceSubmitting}
-                  className="px-6 py-2.5 bg-brand-navy text-white rounded-xl text-sm font-bold hover:bg-brand-navy/90 disabled:opacity-50 flex items-center gap-2"
+                  className="px-6 py-2.5 bg-brand-navy text-white rounded-xl text-sm font-bold hover:bg-brand-navy/90 disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
-                  {serviceSubmitting && (
-                    <Loader2 size={16} className="animate-spin" />
+                  {serviceSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>{editingService ? "Saving Changes..." : "Creating Service..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={16} />
+                      <span>{editingService ? "Save Changes" : "Create Service"}</span>
+                    </>
                   )}
-                  {editingService ? "Save Changes" : "Create Service"}
                 </button>
               </div>
             </form>

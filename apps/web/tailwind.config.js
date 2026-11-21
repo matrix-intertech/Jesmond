@@ -23,6 +23,7 @@ export default {
           foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
         },
         brand: {
+          navy: "#17124D",
           indigo: "rgb(var(--brand-indigo) / <alpha-value>)",
           purple: "rgb(var(--brand-purple) / <alpha-value>)",
           "bright-purple": "rgb(var(--brand-bright-purple) / <alpha-value>)",
