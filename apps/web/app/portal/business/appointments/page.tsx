@@ -19,6 +19,8 @@ import {
   ChevronRight,
   RefreshCw,
   Search,
+  Store,
+  Home,
 } from "lucide-react";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { formatAudPrice } from "@/utils/pricing";
@@ -412,6 +414,15 @@ export default function BusinessAppointmentsDashboard() {
                             >
                               {appt.status.replace("_", " ")}
                             </span>
+                            {appt.locationType === "CUSTOMER_LOCATION" ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 inline-flex items-center gap-1">
+                                <MapPin size={10} /> At Customer
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 inline-flex items-center gap-1">
+                                <Store size={10} /> In Workshop
+                              </span>
+                            )}
                           </div>
                           <div className="font-semibold text-primary text-sm">
                             {appt.service?.name}
@@ -497,8 +508,19 @@ export default function BusinessAppointmentsDashboard() {
                       className="p-4 flex items-center justify-between gap-4 hover:bg-surface-muted/40 transition-colors"
                     >
                       <div>
-                        <div className="font-semibold text-primary text-sm">
-                          {req.service?.name}
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold text-primary text-sm">
+                            {req.service?.name}
+                          </div>
+                          {req.locationType === "CUSTOMER_LOCATION" ? (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 inline-flex items-center gap-0.5">
+                              <MapPin size={9} /> Mobile
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 inline-flex items-center gap-0.5">
+                              <Store size={9} /> Workshop
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-text-secondary mt-0.5">
                           {new Date(req.startTime).toLocaleString(undefined, {
@@ -626,9 +648,20 @@ export default function BusinessAppointmentsDashboard() {
                           )}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="font-medium text-primary">
-                            {appt.service?.name}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-primary">
+                              {appt.service?.name}
+                            </span>
+                            {appt.locationType === "CUSTOMER_LOCATION" ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 inline-flex items-center gap-1">
+                                <MapPin size={10} /> Mobile
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 inline-flex items-center gap-1">
+                                <Store size={10} /> Workshop
+                              </span>
+                            )}
+                          </div>
                           {appt.service?.price && (
                             <div className="text-xs text-text-secondary font-normal">
                               {formatAudPrice(appt.service.price, { showPrefix: true })}
@@ -776,13 +809,22 @@ export default function BusinessAppointmentsDashboard() {
                   className="p-6 flex flex-col md:flex-row gap-6"
                 >
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h4 className="font-bold text-lg text-primary">
                         {req.service?.name}
                       </h4>
                       <span className="px-2 py-0.5 text-xs font-bold rounded bg-amber-100 text-amber-800">
                         PENDING APPROVAL
                       </span>
+                      {req.locationType === "CUSTOMER_LOCATION" ? (
+                        <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-purple-100 text-purple-800 border border-purple-200 inline-flex items-center gap-1">
+                          <MapPin size={11} /> At Customer Location
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-800 border border-slate-200 inline-flex items-center gap-1">
+                          <Store size={11} /> In Workshop
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-text-secondary font-medium">
                       <span className="flex items-center gap-1.5 text-primary font-semibold">
@@ -912,8 +954,13 @@ export default function BusinessAppointmentsDashboard() {
                         </div>
                       </div>
                       <div>
-                        <div className="font-bold text-primary">
-                          {appt.service?.name}
+                        <div className="font-bold text-primary flex items-center gap-1.5">
+                          <span>{appt.service?.name}</span>
+                          {appt.locationType === "CUSTOMER_LOCATION" && (
+                            <span className="p-0.5 rounded bg-purple-100 text-purple-700" title="At Customer Location">
+                              <MapPin size={10} />
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-text-secondary flex items-center gap-2 mt-1">
                           <Clock size={12} />{" "}
@@ -1204,6 +1251,93 @@ export default function BusinessAppointmentsDashboard() {
                 {viewingAppointment.customerNotes && (
                   <div className="mt-2 p-2 bg-surface-muted rounded-lg text-xs italic">
                     "{viewingAppointment.customerNotes}"
+                  </div>
+                )}
+              </div>
+
+              {/* Service Location & Address */}
+              <div className="pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs text-text-secondary font-medium">
+                    Service Location & Address
+                  </div>
+                  {viewingAppointment.locationType === "CUSTOMER_LOCATION" ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                      <MapPin size={11} />
+                      At Customer Location
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                      <Store size={11} />
+                      At Business Location
+                    </span>
+                  )}
+                </div>
+
+                {viewingAppointment.locationType === "CUSTOMER_LOCATION" ? (
+                  <div className="p-3.5 bg-purple-50/50 rounded-2xl border border-purple-100 space-y-2">
+                    {(() => {
+                      const snap = viewingAppointment.addressSnapshot || {};
+                      const fallback = viewingAppointment.customerAddress || {};
+                      const street = snap.streetAddress || fallback.streetAddress;
+                      const unit = snap.unitNumber || fallback.unitNumber;
+                      const suburb = snap.suburb || fallback.suburb || snap.city || fallback.city;
+                      const state = snap.state || fallback.state;
+                      const postcode = snap.postcode || fallback.postcode;
+                      const contact = snap.recipientName || fallback.recipientName;
+                      const phone = snap.phone || fallback.phone;
+                      const instructions = snap.instructions || fallback.instructions;
+
+                      return (
+                        <>
+                          <div className="flex items-start gap-2.5">
+                            <MapPin size={18} className="text-purple-600 shrink-0 mt-0.5" />
+                            <div>
+                              <div className="font-bold text-primary text-sm">
+                                {unit ? `${unit}/` : ""}{street || "Customer Address on File"}
+                              </div>
+                              <div className="text-xs text-text-secondary mt-0.5">
+                                {[suburb, state, postcode].filter(Boolean).join(" ")}
+                              </div>
+                              {(contact || phone) && (
+                                <div className="text-xs text-text-secondary mt-1 font-medium">
+                                  Contact: {contact || "Customer"}{phone ? ` • ${phone}` : ""}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {instructions && (
+                            <div className="mt-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                              <AlertCircle size={15} className="text-amber-700 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold">Access / Delivery Instructions:</span>{" "}
+                                {instructions}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className="p-3.5 bg-surface-muted rounded-2xl border border-border-strong space-y-1">
+                    <div className="flex items-start gap-2.5">
+                      <Store size={18} className="text-accent shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold text-primary text-sm">
+                          {viewingAppointment.branch?.name || viewingAppointment.addressSnapshot?.branchName || "Business Workshop"}
+                        </div>
+                        <div className="text-xs text-text-secondary mt-0.5">
+                          {viewingAppointment.branch?.address || viewingAppointment.addressSnapshot?.address || "On-site Workshop"}
+                        </div>
+                        {(viewingAppointment.branch?.phone || viewingAppointment.addressSnapshot?.phone) && (
+                          <div className="text-xs text-text-secondary mt-0.5">
+                            Phone: {viewingAppointment.branch?.phone || viewingAppointment.addressSnapshot?.phone}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

@@ -20,6 +20,9 @@ import {
   Settings,
   X,
   HelpCircle,
+  Store,
+  MapPin,
+  Compass,
 } from "lucide-react";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { useRouter } from "next/navigation";
@@ -46,6 +49,7 @@ interface ServiceItem {
   isActive: boolean;
   branchId?: string;
   categoryId?: string | null;
+  locationType?: "AT_BRANCH" | "CUSTOMER_LOCATION" | "FLEXIBLE";
   category?: {
     id: string;
     name: string;
@@ -79,6 +83,7 @@ export default function BusinessServicesPage() {
     price: 60,
     isActive: true,
     categoryId: "" as string,
+    locationType: "AT_BRANCH" as "AT_BRANCH" | "CUSTOMER_LOCATION" | "FLEXIBLE",
   });
 
   // Category Form state
@@ -147,6 +152,7 @@ export default function BusinessServicesPage() {
       price: 60,
       isActive: true,
       categoryId: preferredCategoryId || (categories[0]?.id ?? ""),
+      locationType: "AT_BRANCH",
     });
     setIsServiceModalOpen(true);
   };
@@ -167,6 +173,7 @@ export default function BusinessServicesPage() {
       price: priceAud,
       isActive: service.isActive,
       categoryId: service.categoryId || "",
+      locationType: service.locationType || "AT_BRANCH",
     });
     setIsServiceModalOpen(true);
   };
@@ -191,6 +198,7 @@ export default function BusinessServicesPage() {
         price: Math.round(Number(serviceFormData.price) * 100), // convert AUD dollars to cents
         isActive: serviceFormData.isActive,
         categoryId: serviceFormData.categoryId ? serviceFormData.categoryId : null,
+        locationType: serviceFormData.locationType,
       };
 
       const res = await fetch(url, {
@@ -577,7 +585,7 @@ export default function BusinessServicesPage() {
                 className="bg-surface rounded-2xl border border-border-strong p-6 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-2">
                     {categoryObj ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-surface-muted text-text-secondary border border-border-strong/50">
                         <Tag size={11} className="text-accent" />
@@ -595,8 +603,25 @@ export default function BusinessServicesPage() {
                       </span>
                     )}
 
+                    {service.locationType === "CUSTOMER_LOCATION" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                        <MapPin size={10} />
+                        At Customer Location
+                      </span>
+                    ) : service.locationType === "FLEXIBLE" ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                        <Compass size={10} />
+                        Both Locations
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                        <Store size={10} />
+                        At Business
+                      </span>
+                    )}
+
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      className={`ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         service.isActive
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-600"
@@ -750,6 +775,127 @@ export default function BusinessServicesPage() {
                     }
                     className="w-full p-3 rounded-xl border border-border-strong text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-text-secondary uppercase mb-2">
+                  Where is this service performed? *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setServiceFormData({
+                        ...serviceFormData,
+                        locationType: "AT_BRANCH",
+                      })
+                    }
+                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
+                      serviceFormData.locationType === "AT_BRANCH"
+                        ? "border-accent bg-accent/5 ring-2 ring-accent/20"
+                        : "border-border-strong hover:border-text-secondary/40 bg-surface"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className={`p-2 rounded-xl ${
+                          serviceFormData.locationType === "AT_BRANCH"
+                            ? "bg-accent/15 text-accent"
+                            : "bg-surface-muted text-text-secondary"
+                        }`}
+                      >
+                        <Store size={18} />
+                      </div>
+                      {serviceFormData.locationType === "AT_BRANCH" && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-accent" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-primary">
+                        At Business
+                      </div>
+                      <div className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                        In-workshop or studio. No customer address needed.
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setServiceFormData({
+                        ...serviceFormData,
+                        locationType: "CUSTOMER_LOCATION",
+                      })
+                    }
+                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
+                      serviceFormData.locationType === "CUSTOMER_LOCATION"
+                        ? "border-purple-600 bg-purple-50/40 ring-2 ring-purple-600/20"
+                        : "border-border-strong hover:border-text-secondary/40 bg-surface"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className={`p-2 rounded-xl ${
+                          serviceFormData.locationType === "CUSTOMER_LOCATION"
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-surface-muted text-text-secondary"
+                        }`}
+                      >
+                        <MapPin size={18} />
+                      </div>
+                      {serviceFormData.locationType === "CUSTOMER_LOCATION" && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-primary">
+                        At Customer
+                      </div>
+                      <div className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                        Mobile / callout. Customer address is mandatory.
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setServiceFormData({
+                        ...serviceFormData,
+                        locationType: "FLEXIBLE",
+                      })
+                    }
+                    className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all ${
+                      serviceFormData.locationType === "FLEXIBLE"
+                        ? "border-blue-600 bg-blue-50/40 ring-2 ring-blue-600/20"
+                        : "border-border-strong hover:border-text-secondary/40 bg-surface"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div
+                        className={`p-2 rounded-xl ${
+                          serviceFormData.locationType === "FLEXIBLE"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-surface-muted text-text-secondary"
+                        }`}
+                      >
+                        <Compass size={18} />
+                      </div>
+                      {serviceFormData.locationType === "FLEXIBLE" && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-primary">
+                        Both Locations
+                      </div>
+                      <div className="text-[11px] text-text-secondary mt-0.5 leading-snug">
+                        Customer chooses workshop or mobile when booking.
+                      </div>
+                    </div>
+                  </button>
                 </div>
               </div>
 

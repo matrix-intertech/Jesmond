@@ -10,6 +10,9 @@ import { PrismaModule } from '../src/modules/prisma/prisma.module';
 import { PrismaService } from '../src/modules/prisma/prisma.service';
 import { AppointmentsService } from '../src/modules/appointments/services/appointments.service';
 import { AvailabilityService } from '../src/modules/appointments/services/availability.service';
+import { NotificationsService } from '../src/modules/notifications/notifications.service';
+import { AppointmentWhatsAppService } from '../src/modules/appointments/services/appointment-whatsapp.service';
+import { AppointmentEmailService } from '../src/modules/appointments/services/appointment-email.service';
 import { BusinessCategory, OrgType, UserRole } from '@prisma/client';
 
 describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
@@ -29,7 +32,36 @@ describe('Phase 5: Availability Management & Offline Work (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [PrismaModule, AppointmentsModule],
+      imports: [PrismaModule],
+      providers: [
+        AppointmentsService,
+        AvailabilityService,
+        {
+          provide: NotificationsService,
+          useValue: { createNotification: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: AppointmentWhatsAppService,
+          useValue: {
+            notifyBookingRequestReceived: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentRequestReceived: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentConfirmed: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentCancelled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentRescheduled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyProviderNewAppointment: jest.fn().mockResolvedValue({ sent: true }),
+          },
+        },
+        {
+          provide: AppointmentEmailService,
+          useValue: {
+            notifyAppointmentRequestReceived: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentConfirmed: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentCancelled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyAppointmentRescheduled: jest.fn().mockResolvedValue({ sent: true }),
+            notifyProviderNewAppointment: jest.fn().mockResolvedValue({ sent: true }),
+          },
+        },
+      ],
     }).compile();
 
     app = moduleFixture.createNestApplication();

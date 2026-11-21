@@ -119,6 +119,10 @@ export class CreateBusinessServiceDto {
   @IsOptional()
   isActive?: boolean;
 
+  @IsEnum(ServiceLocationType)
+  @IsOptional()
+  locationType?: ServiceLocationType;
+
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
@@ -161,6 +165,10 @@ export class UpdateBusinessServiceDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsEnum(ServiceLocationType)
+  @IsOptional()
+  locationType?: ServiceLocationType;
 
   @IsArray()
   @IsString({ each: true })

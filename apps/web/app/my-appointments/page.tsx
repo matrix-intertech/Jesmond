@@ -103,9 +103,18 @@ export default function MyAppointmentsPage() {
                     <Calendar size={28} />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h3 className="font-bold text-xl text-primary">{appt.service?.name || 'Service Appointment'}</h3>
                       {getStatusBadge(appt.status)}
+                      {appt.locationType === 'CUSTOMER_LOCATION' ? (
+                        <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded-full flex items-center gap-1">
+                          <MapPin size={11} /> At Your Location
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
+                          In Workshop
+                        </span>
+                      )}
                     </div>
                     
                     <p className="text-text-secondary font-medium">{appt.branch?.name || appt.organization?.name || 'Jesmond Partner'}</p>

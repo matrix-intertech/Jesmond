@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SettingsLayout, { SettingsLink } from "@/components/layout/SettingsLayout";
 import { restoreUserSession, clearAuth, User } from "@/utils/auth";
-import { AlertCircle, RefreshCw, LogOut, User as UserIcon, Shield, Bell, Lock } from "lucide-react";
+import { AlertCircle, RefreshCw, LogOut, User as UserIcon, Shield, Bell, Lock, MapPin } from "lucide-react";
 
 const links: SettingsLink[] = [
   { label: "Profile", href: "/settings/profile", icon: <UserIcon className="w-5 h-5" /> },
+  { label: "Saved Addresses", href: "/settings/addresses", icon: <MapPin className="w-5 h-5" /> },
   { label: "Security", href: "/settings/security", icon: <Shield className="w-5 h-5" /> },
   { label: "Notifications", href: "/settings/notifications", icon: <Bell className="w-5 h-5" /> },
   { label: "Privacy & Data", href: "/settings/privacy", icon: <Lock className="w-5 h-5" /> },

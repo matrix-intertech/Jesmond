@@ -162,15 +162,74 @@ export default function AppointmentDetailPage() {
               </div>
             )}
 
-            {(appointment.branch?.address || appointment.organization?.address) && (
+            {appointment.locationType === 'CUSTOMER_LOCATION' ? (
               <div className="sm:col-span-2">
-                <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-2">Location</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Service Location</h3>
+                  <span className="px-2.5 py-0.5 text-xs font-bold bg-purple-100 text-purple-700 rounded-full">
+                    At Your Location
+                  </span>
+                </div>
+                <div className="flex items-start gap-2.5 font-medium text-primary">
+                  <MapPin size={20} className="text-purple-600 shrink-0 mt-0.5" />
+                  <div>
+                    {appointment.addressSnapshot?.streetAddress ? (
+                      <>
+                        <div className="font-bold">
+                          {appointment.addressSnapshot.unitNumber ? `${appointment.addressSnapshot.unitNumber}/` : ''}
+                          {appointment.addressSnapshot.streetAddress}
+                        </div>
+                        <div className="text-text-secondary text-sm">
+                          {[
+                            appointment.addressSnapshot.suburb || appointment.addressSnapshot.city,
+                            appointment.addressSnapshot.state,
+                            appointment.addressSnapshot.postcode,
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        </div>
+                        {appointment.addressSnapshot.instructions && (
+                          <div className="mt-2 p-2.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900">
+                            <span className="font-bold">Instructions:</span> {appointment.addressSnapshot.instructions}
+                          </div>
+                        )}
+                      </>
+                    ) : appointment.customerAddress ? (
+                      <>
+                        <div className="font-bold">
+                          {appointment.customerAddress.unitNumber ? `${appointment.customerAddress.unitNumber}/` : ''}
+                          {appointment.customerAddress.streetAddress}
+                        </div>
+                        <div className="text-text-secondary text-sm">
+                          {[
+                            appointment.customerAddress.suburb || appointment.customerAddress.city,
+                            appointment.customerAddress.state,
+                            appointment.customerAddress.postcode,
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                        </div>
+                      </>
+                    ) : (
+                      <span>Customer Location</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (appointment.branch?.address || appointment.organization?.address) ? (
+              <div className="sm:col-span-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider">Service Location</h3>
+                  <span className="px-2.5 py-0.5 text-xs font-bold bg-slate-100 text-slate-700 rounded-full">
+                    At Workshop / Business
+                  </span>
+                </div>
                 <div className="flex items-start gap-2 font-medium text-primary">
                   <MapPin size={20} className="text-accent shrink-0 mt-0.5" />
                   <span>{appointment.branch?.address || appointment.organization?.address}</span>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {appointment.staff && (
               <div className="sm:col-span-2">

@@ -404,7 +404,8 @@ export class AppointmentsService {
           },
         },
         service: true,
-        branch: { select: { id: true, name: true } },
+        branch: { select: { id: true, name: true, address: true, phone: true } },
+        customerAddress: true,
       },
     });
   }
@@ -431,7 +432,8 @@ export class AppointmentsService {
           },
         },
         service: true,
-        branch: { select: { id: true, name: true } },
+        branch: { select: { id: true, name: true, address: true, phone: true } },
+        customerAddress: true,
       },
     });
   }
@@ -930,6 +932,7 @@ export class AppointmentsService {
       currency?: string;
       bufferBeforeMins?: number;
       bufferAfterMins?: number;
+      locationType?: ServiceLocationType;
       staffIds?: string[];
     },
   ) {
@@ -985,6 +988,7 @@ export class AppointmentsService {
           bufferBeforeMins: data.bufferBeforeMins ?? 0,
           bufferAfterMins: data.bufferAfterMins ?? 0,
           isActive: true,
+          locationType: data.locationType ?? ServiceLocationType.AT_BRANCH,
         },
       });
 
@@ -1045,6 +1049,7 @@ export class AppointmentsService {
       bufferBeforeMins?: number;
       bufferAfterMins?: number;
       isActive?: boolean;
+      locationType?: ServiceLocationType;
       staffIds?: string[];
     },
   ) {
@@ -1073,19 +1078,24 @@ export class AppointmentsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      const updateData: Prisma.BusinessServiceUpdateInput = {
+        ...categoryUpdate,
+        name: data.name,
+        description: data.description,
+        durationMins: data.durationMins,
+        price: data.price,
+        currency: data.currency,
+        bufferBeforeMins: data.bufferBeforeMins,
+        bufferAfterMins: data.bufferAfterMins,
+        isActive: data.isActive,
+      };
+      if (data.locationType !== undefined) {
+        updateData.locationType = data.locationType;
+      }
+
       await tx.businessService.update({
         where: { id: serviceId },
-        data: {
-          ...categoryUpdate,
-          name: data.name,
-          description: data.description,
-          durationMins: data.durationMins,
-          price: data.price,
-          currency: data.currency,
-          bufferBeforeMins: data.bufferBeforeMins,
-          bufferAfterMins: data.bufferAfterMins,
-          isActive: data.isActive,
-        },
+        data: updateData,
       });
 
       if (data.staffIds !== undefined) {

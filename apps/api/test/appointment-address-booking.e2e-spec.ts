@@ -548,4 +548,64 @@ describe('Customer Address Selection & Booking Integration (e2e)', () => {
     );
     expect(is0900Available).toBe(false);
   });
+
+  // =========================================================================
+  // SCENARIO 11: Business Manager Service Location Configuration
+  // =========================================================================
+  it('Scenario 11: Business manager can configure and update service locationType (AT_BRANCH, CUSTOMER_LOCATION, FLEXIBLE)', async () => {
+    // 1. Create a service with CUSTOMER_LOCATION
+    const createdMobile = await appointmentsService.createBusinessService(orgId, {
+      branchId,
+      name: 'Mobile Brake Check',
+      description: 'On-site mobile brake check',
+      durationMins: 45,
+      price: 12000,
+      locationType: ServiceLocationType.CUSTOMER_LOCATION,
+    });
+    expect(createdMobile?.locationType).toBe(ServiceLocationType.CUSTOMER_LOCATION);
+
+    // 2. Create a service with FLEXIBLE
+    const createdFlexible = await appointmentsService.createBusinessService(orgId, {
+      branchId,
+      name: 'Air Conditioning Service',
+      description: 'Available at shop or mobile callout',
+      durationMins: 60,
+      price: 15000,
+      locationType: ServiceLocationType.FLEXIBLE,
+    });
+    expect(createdFlexible?.locationType).toBe(ServiceLocationType.FLEXIBLE);
+
+    // 3. Update an existing service from AT_BRANCH to CUSTOMER_LOCATION
+    const updatedService = await appointmentsService.updateBusinessService(
+      orgId,
+      createdFlexible!.id,
+      {
+        locationType: ServiceLocationType.CUSTOMER_LOCATION,
+      },
+    );
+    expect(updatedService?.locationType).toBe(ServiceLocationType.CUSTOMER_LOCATION);
+  });
+
+  // =========================================================================
+  // SCENARIO 12: Business Appointments Query Location & Address Details
+  // =========================================================================
+  it('Scenario 12: getBusinessAppointments and getPendingRequests return branch address and customerAddress', async () => {
+    const list = await appointmentsService.getBusinessAppointments(orgId, branchId);
+    expect(list.length).toBeGreaterThan(0);
+
+    // Check that customer-location appointments include address details
+    const customerLocationAppt = list.find(
+      (a) => a.locationType === ServiceLocationType.CUSTOMER_LOCATION,
+    );
+    expect(customerLocationAppt).toBeDefined();
+    expect(customerLocationAppt?.addressSnapshot).toBeDefined();
+    expect((customerLocationAppt?.branch as any)?.address).toBeDefined();
+
+    // Check pending requests
+    const pendingList = await appointmentsService.getPendingRequests(orgId, branchId);
+    expect(Array.isArray(pendingList)).toBe(true);
+    for (const item of pendingList) {
+      expect((item.branch as any)?.address).toBeDefined();
+    }
+  });
 });
