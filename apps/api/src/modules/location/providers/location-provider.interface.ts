@@ -13,6 +13,8 @@ export interface LocationResult {
   road?: string;
   streetNumber?: string;
   streetAddress?: string;
+  building?: string;
+  countryCode?: string;
 }
 
 export interface LocationSearchOptions {

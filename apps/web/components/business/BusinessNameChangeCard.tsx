@@ -50,7 +50,7 @@ export default function BusinessNameChangeCard({
 
       if (currentRes.ok) {
         const curJson = await currentRes.json();
-        setCurrentRequest(curJson);
+        setCurrentRequest(curJson && !Array.isArray(curJson) && curJson.id ? curJson : null);
       } else {
         setCurrentRequest(null);
       }

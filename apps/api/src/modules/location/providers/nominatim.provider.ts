@@ -84,6 +84,7 @@ export class NominatimProvider implements LocationProvider {
       const addr = item.address || {};
       const road = addr.road || addr.pedestrian || addr.street || addr.footway || '';
       const streetNumber = addr.house_number || addr.house_name || '';
+      const building = addr.building || addr.house_name || addr.amenity || addr.shop || '';
       const streetAddress =
         streetNumber && road
           ? `${streetNumber} ${road}`
@@ -99,6 +100,7 @@ export class NominatimProvider implements LocationProvider {
       const state = addr.state || '';
       const postcode = addr.postcode || '';
       const country = addr.country || 'Australia';
+      const countryCode = addr.country_code ? addr.country_code.toUpperCase() : (country === 'Australia' ? 'AU' : '');
       const lat = parseFloat(item.lat);
       const lng = parseFloat(item.lon);
 
@@ -108,6 +110,7 @@ export class NominatimProvider implements LocationProvider {
         latitude: lat,
         longitude: lng,
         country,
+        countryCode,
         state,
         city,
         suburb,
@@ -117,6 +120,7 @@ export class NominatimProvider implements LocationProvider {
         road,
         streetNumber,
         streetAddress,
+        building,
       };
     });
   }
@@ -131,6 +135,7 @@ export class NominatimProvider implements LocationProvider {
     const addr = data.address || {};
     const road = addr.road || addr.pedestrian || addr.street || addr.footway || '';
     const streetNumber = addr.house_number || addr.house_name || '';
+    const building = addr.building || addr.house_name || addr.amenity || addr.shop || '';
     const streetAddress =
       streetNumber && road
         ? `${streetNumber} ${road}`
@@ -146,6 +151,7 @@ export class NominatimProvider implements LocationProvider {
     const state = addr.state || '';
     const postcode = addr.postcode || '';
     const country = addr.country || 'Australia';
+    const countryCode = addr.country_code ? addr.country_code.toUpperCase() : (country === 'Australia' ? 'AU' : '');
     const lat = data.lat ? parseFloat(data.lat) : fallbackLat;
     const lng = data.lon ? parseFloat(data.lon) : fallbackLng;
 
@@ -155,6 +161,7 @@ export class NominatimProvider implements LocationProvider {
       latitude: lat,
       longitude: lng,
       country,
+      countryCode,
       state,
       city,
       suburb,
@@ -164,6 +171,7 @@ export class NominatimProvider implements LocationProvider {
       road,
       streetNumber,
       streetAddress,
+      building,
     };
   }
 }

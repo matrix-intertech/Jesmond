@@ -35,6 +35,10 @@ export default function BusinessVerificationReminder() {
 
       try {
         const reqs = await getCredentialsRequirements(token);
+        if (!reqs || !Array.isArray(reqs.requirements)) {
+          setShowModal(false);
+          return;
+        }
         setData(reqs);
 
         // If completed or verified, do not show modal
@@ -90,7 +94,7 @@ export default function BusinessVerificationReminder() {
     router.push("/portal/business/verification");
   };
 
-  if (!showModal || !data) return null;
+  if (!showModal || !data || !Array.isArray(data.requirements)) return null;
 
   return (
     <div

@@ -18,6 +18,11 @@ test.describe('Business Location Selection (Leaflet + OpenStreetMap)', () => {
   ) => {
     let currentLocationState = { ...initialLocation };
 
+    page.on('pageerror', (err: any) => console.log('BROWSER PAGE ERROR:', err.message, err.stack));
+    page.on('console', (msg: any) => {
+      if (msg.type() === 'error') console.log('BROWSER CONSOLE ERROR:', msg.text());
+    });
+
     await page.route(/\/api\/v1\//, async (route: any) => {
       if (route.request().method() === 'OPTIONS') {
         await route.fulfill({ status: 204, headers: corsHeaders });
@@ -69,6 +74,52 @@ test.describe('Business Location Selection (Leaflet + OpenStreetMap)', () => {
             businessCategory: 'RETAIL',
             timezone: 'Australia/Sydney',
             isPubliclyVisible: true,
+          }),
+        });
+        return;
+      }
+
+      if (url.includes('/business/name-change-requests')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify(null),
+        });
+        return;
+      }
+
+      if (url.includes('/business/credentials/requirements')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify({
+            organizationId: 'org-retail-1',
+            organizationName: 'Demo Retail Store',
+            businessCategory: 'RETAIL',
+            state: 'NSW',
+            branchAddress: null,
+            selectedServices: [],
+            abn: '12345678901',
+            abnStatus: 'VERIFIED',
+            abnExemptionReason: null,
+            overallStatus: 'VERIFIED',
+            isCompleted: true,
+            dismissedUntil: null,
+            requirements: [],
+          }),
+        });
+        return;
+      }
+
+      if (url.includes('/settings/profile')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify({
+            profileCompletion: { isComplete: true, missingFields: [] },
           }),
         });
         return;
@@ -183,6 +234,41 @@ test.describe('Business Location Selection (Leaflet + OpenStreetMap)', () => {
         const parsedUrl = new URL(url);
         const lat = parseFloat(parsedUrl.searchParams.get('lat') || '0');
         const lng = parseFloat(parsedUrl.searchParams.get('lng') || '0');
+
+        if (lat === -999) {
+          await route.fulfill({
+            status: 500,
+            contentType: 'application/json',
+            headers: corsHeaders,
+            body: JSON.stringify({ message: 'Reverse geocode service unavailable' }),
+          });
+          return;
+        }
+
+        if (Math.abs(lat - (-32.8991)) < 0.05) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            headers: corsHeaders,
+            body: JSON.stringify({
+              label: 'Shop 4, 12 Blue Gum Road, Jesmond NSW 2299, Australia',
+              address: 'Shop 4, 12 Blue Gum Road, Jesmond NSW 2299, Australia',
+              road: 'Blue Gum Road',
+              streetNumber: '12',
+              streetAddress: '12 Blue Gum Road',
+              building: 'Jesmond Central',
+              suburb: 'Jesmond',
+              city: 'Newcastle',
+              state: 'NSW',
+              postcode: '2299',
+              country: 'Australia',
+              countryCode: 'AU',
+              lat,
+              lng,
+            }),
+          });
+          return;
+        }
 
         await route.fulfill({
           status: 200,
@@ -446,5 +532,134 @@ test.describe('Business Location Selection (Leaflet + OpenStreetMap)', () => {
     // Fallback options remain accessible
     await expect(modal.locator('input[placeholder*="Shop 4"]')).toBeVisible();
     await expect(modal.locator('button:has-text("Choose on Map")')).toBeVisible();
+  });
+
+  test('7. Automatic Autofill below map occurs in real time when map search or coordinates change', async ({
+    page,
+  }) => {
+    await setupRetailSession(page, {
+      address: null,
+      lat: null,
+      lng: null,
+    });
+    await page.goto('/portal/retail/business');
+
+    await page.click('button:has-text("Add Location")');
+    const modal = page.locator('div[role="dialog"]');
+    await expect(modal).toBeVisible();
+
+    // Switch to Map tab
+    await modal.locator('button:has-text("Choose on Map")').click();
+    await expect(modal.locator('h3:has-text("Choose on Map")')).toBeVisible();
+
+    // Verify the address fields section below map is visible
+    await expect(modal.locator('text=Address Details (Autofilled & Editable)')).toBeVisible();
+    await expect(modal.locator('input[placeholder*="Central Plaza"]')).toBeVisible();
+    await expect(modal.locator('input[placeholder*="Blue Gum Road or George Street"]')).toBeVisible();
+
+    // Search for Bourke Street Melbourne
+    const searchInput = modal.locator('input[placeholder*="Search address"]');
+    await searchInput.fill('bourke melbourne');
+    await modal.locator('button:has-text("Search")').click();
+
+    const suggestionItem = modal.locator('button:has-text("Bourke Street Mall")');
+    await expect(suggestionItem).toBeVisible();
+    await suggestionItem.click();
+
+    // The fields directly below the map should immediately autofill
+    await expect(modal.locator('input[placeholder*="Shop 4"]')).toHaveValue('250 Bourke Street');
+    await expect(modal.locator('input[placeholder*="Jesmond"]')).toHaveValue('Melbourne');
+    await expect(modal.locator('input[placeholder*="NSW"]')).toHaveValue('VIC');
+    await expect(modal.locator('input[placeholder*="2299"]')).toHaveValue('3000');
+    await expect(modal.locator('text=Address autofilled from search selection')).toBeVisible();
+  });
+
+  test('8. User can manually edit autofilled address fields below map and edits are confirmed', async ({
+    page,
+  }) => {
+    await setupRetailSession(page, {
+      address: null,
+      lat: null,
+      lng: null,
+    });
+    await page.goto('/portal/retail/business');
+
+    await page.click('button:has-text("Add Location")');
+    const modal = page.locator('div[role="dialog"]');
+    await expect(modal).toBeVisible();
+
+    await modal.locator('button:has-text("Choose on Map")').click();
+
+    // Search for Bourke Street Melbourne
+    const searchInput = modal.locator('input[placeholder*="Search address"]');
+    await searchInput.fill('bourke melbourne');
+    await modal.locator('button:has-text("Search")').click();
+    await modal.locator('button:has-text("Bourke Street Mall")').click();
+
+    // User edits the Street Address and adds a Building below the map
+    const streetInput = modal.locator('input[placeholder*="Shop 4"]');
+    await streetInput.fill('Suite 5, 250 Bourke Street');
+
+    const buildingInput = modal.locator('input[placeholder*="Central Plaza"]');
+    await buildingInput.fill('Midcity Arcade');
+
+    // Confirm location
+    await modal.locator('button:has-text("Confirm Location")').click();
+
+    // Verify the user edits are preserved on the main form
+    await expect(modal.locator('input[placeholder*="Shop 4"]')).toHaveValue('Suite 5, 250 Bourke Street');
+    await expect(modal.locator('input[placeholder*="Central Plaza"]')).toHaveValue('Midcity Arcade');
+    await expect(modal.locator('input[placeholder*="Jesmond"]')).toHaveValue('Melbourne');
+
+    // Save and verify on host page
+    await modal.locator('button:has-text("Save Location")').click();
+    await expect(modal).not.toBeVisible();
+
+    await expect(page.locator('text=Address:')).toBeVisible();
+    await expect(page.getByText('Suite 5, 250 Bourke Street', { exact: false })).toBeVisible();
+  });
+
+  test('9. Reverse geocoding network failure displays non-blocking message and allows manual entry', async ({
+    page,
+  }) => {
+    await setupRetailSession(page, {
+      address: null,
+      lat: null,
+      lng: null,
+    });
+
+    // Override reverse route to return 500
+    await page.route(/\/api\/v1\/locations\/reverse/, async (route) => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'Reverse geocode service unavailable' }),
+      });
+    });
+
+    await page.goto('/portal/retail/business');
+
+    await page.click('button:has-text("Add Location")');
+    const modal = page.locator('div[role="dialog"]');
+    await expect(modal).toBeVisible();
+
+    await modal.locator('button:has-text("Choose on Map")').click();
+
+    // Click anywhere on map to trigger reverse geocode which fails with 500
+    await modal.locator('.leaflet-container').click({ position: { x: 150, y: 150 } });
+
+    // Wait for the non-blocking error notice
+    await expect(
+      modal.locator('text=Could not reverse-geocode coordinates. You can enter the address manually below.')
+    ).toBeVisible();
+
+    // Verify fields below the map are fully editable and user can type manually
+    const streetInput = modal.locator('input[placeholder*="Shop 4"]');
+    await streetInput.fill('Manual Entry 42 High Street');
+    await expect(streetInput).toHaveValue('Manual Entry 42 High Street');
+
+    // Confirm button remains enabled
+    await expect(modal.locator('button:has-text("Confirm Location")')).toBeEnabled();
   });
 });

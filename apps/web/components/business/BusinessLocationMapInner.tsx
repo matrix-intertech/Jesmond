@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Search, Loader2, MapPin, Check, X, AlertCircle } from 'lucide-react';
+import { Search, Loader2, MapPin, Check, X, AlertCircle, CheckCircle2, Building, Compass } from 'lucide-react';
 import { getApiUrl } from '@/utils/api';
 
 // Fix standard Leaflet marker icons in Next.js
@@ -16,13 +16,16 @@ L.Icon.Default.mergeOptions({
 });
 
 export interface ResolvedLocationData {
+  fullAddress: string;
   streetAddress: string;
+  building?: string;
+  streetName?: string;
   suburb: string;
   city: string;
   state: string;
   postcode: string;
   country: string;
-  fullAddress: string;
+  countryCode?: string;
   lat: number;
   lng: number;
 }
@@ -31,6 +34,7 @@ interface BusinessLocationMapInnerProps {
   initialLat?: number | null;
   initialLng?: number | null;
   initialAddress?: string;
+  initialLocationData?: Partial<ResolvedLocationData>;
   onConfirm: (data: ResolvedLocationData) => void;
   onCancel: () => void;
 }
@@ -38,7 +42,9 @@ interface BusinessLocationMapInnerProps {
 function MapController({ center, zoom }: { center: [number, number]; zoom: number }): null {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, zoom, { animate: true });
+    if (map && map.getContainer()) {
+      map.setView(center, zoom, { animate: false });
+    }
   }, [center, zoom, map]);
   return null;
 }
@@ -56,6 +62,7 @@ export default function BusinessLocationMapInner({
   initialLat,
   initialLng,
   initialAddress,
+  initialLocationData,
   onConfirm,
   onCancel,
 }: BusinessLocationMapInnerProps) {
@@ -80,29 +87,38 @@ export default function BusinessLocationMapInner({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
 
-  // Reverse geocode state
+  // Reverse geocode state & Autofill feedback
   const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+  const [geocodeNotice, setGeocodeNotice] = useState<string | null>(null);
+
+  // Form fields below the map
   const [resolvedLocation, setResolvedLocation] = useState<ResolvedLocationData>({
-    streetAddress: initialAddress || '',
-    suburb: '',
-    city: '',
-    state: '',
-    postcode: '',
-    country: 'Australia',
-    fullAddress: initialAddress || '',
+    streetAddress: initialLocationData?.streetAddress || initialAddress || '',
+    building: initialLocationData?.building || '',
+    streetName: initialLocationData?.streetName || '',
+    suburb: initialLocationData?.suburb || '',
+    city: initialLocationData?.city || '',
+    state: initialLocationData?.state || '',
+    postcode: initialLocationData?.postcode || '',
+    country: initialLocationData?.country || 'Australia',
+    countryCode: initialLocationData?.countryCode || 'AU',
+    fullAddress: initialLocationData?.fullAddress || initialAddress || '',
     lat: defaultCenter[0],
     lng: defaultCenter[1],
   });
-  const [geocodeError, setGeocodeError] = useState<string | null>(null);
 
   const markerRef = useRef<L.Marker>(null);
   const latestReverseReq = useRef<number>(0);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const reverseGeocode = useCallback(async (lat: number, lng: number) => {
+  // Reverse geocode API call
+  const executeReverseGeocode = useCallback(async (lat: number, lng: number) => {
     const reqId = Date.now();
     latestReverseReq.current = reqId;
     setIsGeocoding(true);
     setGeocodeError(null);
+    setGeocodeNotice(null);
 
     try {
       const apiUrl = getApiUrl();
@@ -110,42 +126,78 @@ export default function BusinessLocationMapInner({
       if (latestReverseReq.current !== reqId) return;
 
       if (!res.ok) {
-        throw new Error('Could not resolve address for this location');
+        throw new Error('Could not reverse-geocode coordinates. You can enter the address manually below.');
       }
 
       const data = await res.json();
       if (latestReverseReq.current !== reqId) return;
 
       if (data) {
-        const fullAddr = data.label || '';
-        const streetAddr = data.streetAddress || data.road || '';
-        const sub = data.suburb || '';
-        const cit = data.city || '';
+        const fullAddr = data.label || data.address || '';
+        const streetAddr =
+          data.streetAddress ||
+          (data.streetNumber && data.road ? `${data.streetNumber} ${data.road}` : data.road) ||
+          data.name ||
+          '';
+        const road = data.road || '';
+        const bldg = data.building || '';
+        const sub = data.suburb || data.locality || '';
+        const cit = data.city || data.town || '';
         const st = data.state || '';
         const post = data.postcode || '';
         const cntry = data.country || 'Australia';
+        const cc = data.countryCode || (cntry === 'Australia' ? 'AU' : '');
 
-        setResolvedLocation({
-          streetAddress: streetAddr,
-          suburb: sub || cit,
-          city: cit || sub,
-          state: st,
-          postcode: post,
-          country: cntry,
-          fullAddress: fullAddr,
-          lat,
-          lng,
+        // Non-destructive update: Preserve any existing user-entered values if API returns blank
+        setResolvedLocation((prev) => {
+          const effectiveStreet = streetAddr || prev.streetAddress;
+          const effectiveSuburb = sub || cit || prev.suburb;
+          const effectiveCity = cit || sub || prev.city;
+          const effectiveState = st || prev.state;
+          const effectivePostcode = post || prev.postcode;
+          const effectiveCountry = cntry || prev.country || 'Australia';
+
+          const computedFull =
+            fullAddr ||
+            [
+              effectiveStreet,
+              effectiveSuburb,
+              [effectiveState, effectivePostcode].filter(Boolean).join(' '),
+              effectiveCountry !== 'Australia' ? effectiveCountry : '',
+            ]
+              .filter(Boolean)
+              .join(', ');
+
+          return {
+            streetAddress: effectiveStreet,
+            building: bldg || prev.building || '',
+            streetName: road || prev.streetName || '',
+            suburb: effectiveSuburb,
+            city: effectiveCity,
+            state: effectiveState,
+            postcode: effectivePostcode,
+            country: effectiveCountry,
+            countryCode: cc || prev.countryCode || 'AU',
+            fullAddress: computedFull,
+            lat,
+            lng,
+          };
         });
+
+        setGeocodeNotice('Address autofilled from map selection. You can edit any field below.');
       } else {
         setResolvedLocation((prev) => ({
           ...prev,
           lat,
           lng,
         }));
+        setGeocodeNotice('Coordinates updated. You can enter or adjust the address below.');
       }
     } catch (e: any) {
       if (latestReverseReq.current === reqId) {
-        setGeocodeError(e.message || 'Unable to reverse geocode this location');
+        setGeocodeError(
+          e.message || 'Could not reverse-geocode coordinates. You can enter the address manually below.'
+        );
         setResolvedLocation((prev) => ({ ...prev, lat, lng }));
       }
     } finally {
@@ -155,18 +207,42 @@ export default function BusinessLocationMapInner({
     }
   }, []);
 
+  // Debounced trigger for reverse geocode to avoid duplicate requests during rapid pin movement
+  const handlePositionChange = useCallback(
+    (lat: number, lng: number) => {
+      setPosition([lat, lng]);
+      setIsGeocoding(true);
+      setGeocodeError(null);
+      setGeocodeNotice(null);
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        executeReverseGeocode(lat, lng);
+      }, 350);
+    },
+    [executeReverseGeocode]
+  );
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
   // Initial reverse geocode if coordinates provided but no address
   useEffect(() => {
     if (hasInitialCoords && !initialAddress) {
-      reverseGeocode(defaultCenter[0], defaultCenter[1]);
+      executeReverseGeocode(defaultCenter[0], defaultCenter[1]);
     }
-  }, [hasInitialCoords, initialAddress, defaultCenter, reverseGeocode]);
+  }, [hasInitialCoords, initialAddress, defaultCenter, executeReverseGeocode]);
 
-  const handlePositionChange = (lat: number, lng: number) => {
-    setPosition([lat, lng]);
-    reverseGeocode(lat, lng);
-  };
-
+  // Handle address search
   const handleSearchSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const query = searchQuery.trim();
@@ -193,7 +269,7 @@ export default function BusinessLocationMapInner({
 
       setSearchResults(data);
 
-      // Auto-select first result if exact or single result
+      // Auto-select first result if single result
       if (data.length === 1) {
         selectSearchResult(data[0]);
       }
@@ -209,28 +285,70 @@ export default function BusinessLocationMapInner({
     const lng = Number(item.lng ?? item.longitude);
     const label = item.label || item.name || item.address || '';
     if (!isNaN(lat) && !isNaN(lng)) {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
       setPosition([lat, lng]);
       setMapCenter([lat, lng]);
       setZoom(16);
       setSearchResults([]);
       setSearchQuery(label);
+      setGeocodeError(null);
 
-      setResolvedLocation({
-        streetAddress: item.streetAddress || item.road || '',
-        suburb: item.suburb || item.city || '',
-        city: item.city || item.suburb || '',
-        state: item.state || '',
-        postcode: item.postcode || '',
-        country: item.country || 'Australia',
-        fullAddress: label,
+      const streetAddr =
+        item.streetAddress ||
+        (item.streetNumber && item.road ? `${item.streetNumber} ${item.road}` : item.road) ||
+        item.name ||
+        '';
+      const road = item.road || '';
+      const bldg = item.building || '';
+      const sub = item.suburb || item.locality || '';
+      const cit = item.city || item.town || '';
+      const st = item.state || '';
+      const post = item.postcode || '';
+      const cntry = item.country || 'Australia';
+      const cc = item.countryCode || (cntry === 'Australia' ? 'AU' : '');
+
+      setResolvedLocation((prev) => ({
+        streetAddress: streetAddr || prev.streetAddress,
+        building: bldg || prev.building || '',
+        streetName: road || prev.streetName || '',
+        suburb: sub || cit || prev.suburb,
+        city: cit || sub || prev.city,
+        state: st || prev.state,
+        postcode: post || prev.postcode,
+        country: cntry || prev.country || 'Australia',
+        countryCode: cc || prev.countryCode || 'AU',
+        fullAddress: label || prev.fullAddress || '',
         lat,
         lng,
-      });
+      }));
+
+      setGeocodeNotice('Address autofilled from search selection. You can edit any field below.');
     }
   };
 
+  // Field edit handler (user edits any autofilled field below the map)
+  const handleFieldChange = (field: keyof ResolvedLocationData, value: string) => {
+    setResolvedLocation((prev) => {
+      const updated = { ...prev, [field]: value };
+      // Dynamically recompute full address if street, suburb, state, or postcode changed
+      if (['streetAddress', 'suburb', 'state', 'postcode', 'country'].includes(field)) {
+        const parts = [
+          updated.streetAddress.trim(),
+          updated.suburb.trim(),
+          [updated.state.trim(), updated.postcode.trim()].filter(Boolean).join(' '),
+          updated.country.trim() !== 'Australia' ? updated.country.trim() : '',
+        ].filter(Boolean);
+        updated.fullAddress = parts.join(', ');
+      }
+      return updated;
+    });
+  };
+
   return (
-    <div className="flex flex-col h-full w-full max-w-full space-y-3">
+    <div className="flex flex-col h-full w-full max-w-full space-y-3.5">
       {/* Search Header */}
       <div className="relative z-20">
         <form onSubmit={handleSearchSubmit} className="flex gap-2">
@@ -300,7 +418,7 @@ export default function BusinessLocationMapInner({
       </div>
 
       {/* Map View Area */}
-      <div className="relative w-full h-[320px] sm:h-[400px] rounded-xl overflow-hidden border border-border-strong bg-surface-muted shadow-inner z-10">
+      <div className="relative w-full h-[300px] sm:h-[360px] rounded-xl overflow-hidden border border-border-strong bg-surface-muted shadow-inner z-10">
         <MapContainer
           center={position}
           zoom={zoom}
@@ -336,31 +454,172 @@ export default function BusinessLocationMapInner({
         </div>
       </div>
 
-      {/* Resolved Address & Coordinates Display */}
-      <div className="bg-surface-muted rounded-xl p-3 border border-border-subtle space-y-1.5 text-xs text-text-secondary">
-        <div className="flex flex-wrap items-center justify-between gap-1">
+      {/* Live Autofill Status Feedback */}
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center justify-between gap-1 text-xs">
           <span className="font-semibold text-text-primary flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5 text-accent" />
-            Selected Location Details
+            Selected Coordinates
           </span>
-          <span className="font-mono text-[11px] bg-surface px-2 py-0.5 rounded border border-border-subtle text-text-primary">
+          <span className="font-mono text-[11px] bg-surface-muted px-2 py-0.5 rounded border border-border-subtle text-text-primary">
             Lat: {position[0].toFixed(6)}, Lng: {position[1].toFixed(6)}
           </span>
         </div>
 
-        <div className="min-h-[20px] flex items-center">
-          {isGeocoding ? (
-            <div className="flex items-center gap-1.5 text-text-muted italic">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>Resolving street address via OpenStreetMap...</span>
-            </div>
-          ) : geocodeError ? (
-            <span className="text-amber-700">{geocodeError}</span>
-          ) : resolvedLocation.fullAddress ? (
-            <span className="text-text-primary font-medium">{resolvedLocation.fullAddress}</span>
-          ) : (
-            <span className="text-text-muted">No address details resolved yet</span>
-          )}
+        {isGeocoding ? (
+          <div className="p-2.5 bg-sky-50 border border-sky-200 text-sky-800 text-xs rounded-xl flex items-center gap-2">
+            <Loader2 className="w-4 h-4 text-sky-600 animate-spin shrink-0" />
+            <span>Autofilling address from map coordinates...</span>
+          </div>
+        ) : geocodeError ? (
+          <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>{geocodeError}</span>
+          </div>
+        ) : geocodeNotice ? (
+          <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{geocodeNotice}</span>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Address Form Fields Below the Map */}
+      <div className="bg-surface-muted/60 p-3.5 rounded-xl border border-border-subtle space-y-3">
+        <div className="flex items-center justify-between pb-1 border-b border-border-subtle">
+          <span className="text-xs font-bold text-text-primary uppercase tracking-wider">
+            Address Details (Autofilled & Editable)
+          </span>
+          <span className="text-[11px] text-text-secondary">
+            Changes refresh automatically from map pin
+          </span>
+        </div>
+
+        {/* Street Address */}
+        <div>
+          <label className="block text-xs font-semibold text-text-primary mb-1">
+            Street Address <span className="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            required
+            placeholder="e.g. Shop 4, 12 Blue Gum Road"
+            value={resolvedLocation.streetAddress}
+            onChange={(e) => handleFieldChange('streetAddress', e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+          />
+        </div>
+
+        {/* Building & Street Name */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              Building / Premise <span className="text-text-muted font-normal">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Suite 4, Central Plaza or Building A"
+              value={resolvedLocation.building || ''}
+              onChange={(e) => handleFieldChange('building', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              Street Name <span className="text-text-muted font-normal">(Road)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Blue Gum Road or George Street"
+              value={resolvedLocation.streetName || ''}
+              onChange={(e) => handleFieldChange('streetName', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Suburb & City */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              Suburb / Locality
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Jesmond"
+              value={resolvedLocation.suburb}
+              onChange={(e) => handleFieldChange('suburb', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              City
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Newcastle"
+              value={resolvedLocation.city}
+              onChange={(e) => handleFieldChange('city', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+        </div>
+
+        {/* State & Postcode */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              State / Territory / Province
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. NSW"
+              value={resolvedLocation.state}
+              onChange={(e) => handleFieldChange('state', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              Postcode / ZIP
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. 2299"
+              value={resolvedLocation.postcode}
+              onChange={(e) => handleFieldChange('postcode', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Country & Country Code */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              Country
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Australia"
+              value={resolvedLocation.country}
+              onChange={(e) => handleFieldChange('country', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-text-primary mb-1">
+              Country Code
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. AU"
+              value={resolvedLocation.countryCode || ''}
+              onChange={(e) => handleFieldChange('countryCode', e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border border-border-strong rounded-lg bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+            />
+          </div>
         </div>
       </div>
 

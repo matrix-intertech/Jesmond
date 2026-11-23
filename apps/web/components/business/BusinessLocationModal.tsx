@@ -12,6 +12,7 @@ import {
   AlertCircle,
   CheckCircle2,
   HelpCircle,
+  Building,
 } from 'lucide-react';
 import { getApiUrl } from '@/utils/api';
 import { getAccessToken } from '@/utils/auth';
@@ -46,10 +47,14 @@ export function parseAddressParts(fullAddress?: string | null) {
   if (!fullAddress) {
     return {
       streetAddress: '',
+      building: '',
+      streetName: '',
       suburb: '',
+      city: '',
       state: '',
       postcode: '',
       country: 'Australia',
+      countryCode: 'AU',
     };
   }
 
@@ -63,15 +68,30 @@ export function parseAddressParts(fullAddress?: string | null) {
     const state = spMatch ? spMatch[1].trim() : statePostcode;
     const postcode = spMatch ? spMatch[2].trim() : '';
     const country = parts[3] || 'Australia';
-    return { streetAddress, suburb, state, postcode, country };
+    const countryCode = country === 'Australia' ? 'AU' : '';
+    return {
+      streetAddress,
+      building: '',
+      streetName: '',
+      suburb,
+      city: suburb,
+      state,
+      postcode,
+      country,
+      countryCode,
+    };
   }
 
   return {
     streetAddress: fullAddress,
+    building: '',
+    streetName: '',
     suburb: '',
+    city: '',
     state: '',
     postcode: '',
     country: 'Australia',
+    countryCode: 'AU',
   };
 }
 
@@ -83,12 +103,16 @@ export default function BusinessLocationModal({
 }: BusinessLocationModalProps) {
   const [viewMode, setViewMode] = useState<'form' | 'map'>('form');
 
-  // Manual Form State
+  // Manual & Autofilled Form State
   const [streetAddress, setStreetAddress] = useState('');
+  const [building, setBuilding] = useState('');
+  const [streetName, setStreetName] = useState('');
   const [suburb, setSuburb] = useState('');
+  const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [postcode, setPostcode] = useState('');
   const [country, setCountry] = useState('Australia');
+  const [countryCode, setCountryCode] = useState('AU');
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
 
@@ -103,10 +127,14 @@ export default function BusinessLocationModal({
     if (isOpen) {
       const parsed = parseAddressParts(currentLocation?.address);
       setStreetAddress(parsed.streetAddress);
+      setBuilding(parsed.building || '');
+      setStreetName(parsed.streetName || '');
       setSuburb(parsed.suburb);
+      setCity(parsed.city || parsed.suburb || '');
       setState(parsed.state);
       setPostcode(parsed.postcode);
       setCountry(parsed.country || 'Australia');
+      setCountryCode(parsed.countryCode || (parsed.country === 'Australia' ? 'AU' : ''));
 
       const initialLat = typeof currentLocation?.lat === 'number' ? currentLocation.lat : null;
       const initialLng = typeof currentLocation?.lng === 'number' ? currentLocation.lng : null;
@@ -121,7 +149,7 @@ export default function BusinessLocationModal({
 
   if (!isOpen) return null;
 
-  // Handle Method C: Use Current Location
+  // Handle Method C: Use Current Location (Geolocation + Reverse Geocode)
   const handleUseCurrentLocation = () => {
     setErrorMsg(null);
     setGpsNotice(null);
@@ -148,21 +176,32 @@ export default function BusinessLocationModal({
           if (res.ok) {
             const data = await res.json();
             if (data) {
-              if (data.streetAddress || data.road) {
-                setStreetAddress(data.streetAddress || data.road);
-              }
-              if (data.suburb || data.city) {
-                setSuburb(data.suburb || data.city);
-              }
-              if (data.state) {
-                setState(data.state);
-              }
-              if (data.postcode) {
-                setPostcode(data.postcode);
-              }
-              if (data.country) {
-                setCountry(data.country);
-              }
+              const streetAddr =
+                data.streetAddress ||
+                (data.streetNumber && data.road ? `${data.streetNumber} ${data.road}` : data.road) ||
+                data.name ||
+                '';
+              const road = data.road || '';
+              const bldg = data.building || '';
+              const sub = data.suburb || data.locality || '';
+              const cit = data.city || data.town || '';
+              const effectiveSuburb = sub || cit || '';
+              const st = data.state || '';
+              const post = data.postcode || '';
+              const cntry = data.country || 'Australia';
+              const cc = data.countryCode || (cntry === 'Australia' ? 'AU' : '');
+
+              // Non-destructive update
+              if (streetAddr) setStreetAddress(streetAddr);
+              if (bldg) setBuilding(bldg);
+              if (road) setStreetName(road);
+              if (effectiveSuburb) setSuburb(effectiveSuburb);
+              if (cit || sub) setCity(cit || sub);
+              if (st) setState(st);
+              if (post) setPostcode(post);
+              if (cntry) setCountry(cntry);
+              if (cc) setCountryCode(cc);
+
               setGpsNotice(data.label ? `Location detected: ${data.label}` : 'Location detected successfully.');
             } else {
               setGpsNotice('Coordinates detected. Please verify your street address.');
@@ -210,11 +249,16 @@ export default function BusinessLocationModal({
 
   // Handle Method B: Map Picker Confirmation
   const handleMapConfirm = (data: ResolvedLocationData) => {
+    // Non-destructive updates from map picker
     if (data.streetAddress) setStreetAddress(data.streetAddress);
+    if (data.building) setBuilding(data.building);
+    if (data.streetName) setStreetName(data.streetName);
     if (data.suburb) setSuburb(data.suburb);
+    if (data.city) setCity(data.city);
     if (data.state) setState(data.state);
     if (data.postcode) setPostcode(data.postcode);
     if (data.country) setCountry(data.country);
+    if (data.countryCode) setCountryCode(data.countryCode);
     setLat(data.lat);
     setLng(data.lng);
 
@@ -347,7 +391,7 @@ export default function BusinessLocationModal({
                 </h3>
                 <p className="text-xs text-text-secondary">
                   {viewMode === 'map'
-                    ? 'Search, drag the marker, or click to set your business coordinates.'
+                    ? 'Search, drag the marker, or click to set coordinates. Address fields below update automatically.'
                     : 'Specify your physical storefront or operating address.'}
                 </p>
               </div>
@@ -369,7 +413,7 @@ export default function BusinessLocationModal({
             </div>
           )}
 
-          {/* GPS Success Notice */}
+          {/* GPS / Map Success Notice */}
           {gpsNotice && !errorMsg && (
             <div className="mt-4 p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-start gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
@@ -377,13 +421,27 @@ export default function BusinessLocationModal({
             </div>
           )}
 
-          {/* View Mode: Map Picker */}
+          {/* View Mode: Map Picker with Live Address Form Below */}
           {viewMode === 'map' ? (
             <div className="mt-4">
               <BusinessLocationMapInner
                 initialLat={lat}
                 initialLng={lng}
                 initialAddress={streetAddress ? buildFullAddress() : currentLocation?.address || ''}
+                initialLocationData={{
+                  streetAddress,
+                  building,
+                  streetName,
+                  suburb,
+                  city,
+                  state,
+                  postcode,
+                  country,
+                  countryCode,
+                  fullAddress: streetAddress ? buildFullAddress() : currentLocation?.address || '',
+                  lat: lat || undefined,
+                  lng: lng || undefined,
+                }}
                 onConfirm={handleMapConfirm}
                 onCancel={() => setViewMode('form')}
               />
@@ -441,6 +499,35 @@ export default function BusinessLocationModal({
                 />
               </div>
 
+              {/* Optional Building & Street Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-text-primary mb-1">
+                    Building / Premise <span className="text-text-muted font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Suite 4, Central Plaza or Tower 1"
+                    value={building}
+                    onChange={(e) => setBuilding(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm border border-border-strong rounded-xl bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-text-primary mb-1">
+                    Street Name <span className="text-text-muted font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Blue Gum Road or George Street"
+                    value={streetName}
+                    onChange={(e) => setStreetName(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm border border-border-strong rounded-xl bg-surface text-text-primary shadow-sm focus:ring-2 focus:ring-accent focus:border-accent outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Suburb / City */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">
@@ -469,6 +556,7 @@ export default function BusinessLocationModal({
                 </div>
               </div>
 
+              {/* Postcode & Country */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-text-primary mb-1">

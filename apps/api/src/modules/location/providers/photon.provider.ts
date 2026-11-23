@@ -134,6 +134,7 @@ export class PhotonProvider implements LocationProvider {
 
       const streetNumber = properties.housenumber || '';
       const road = properties.street || (type === 'street' ? name : '');
+      const building = properties.osm_value === 'building' || properties.type === 'house' ? name : '';
       const streetAddress =
         streetNumber && road
           ? `${streetNumber} ${road}`
@@ -145,6 +146,7 @@ export class PhotonProvider implements LocationProvider {
         latitude: lat,
         longitude: lng,
         country,
+        countryCode: countryCode ? countryCode.toUpperCase() : (country === 'Australia' ? 'AU' : ''),
         state,
         city,
         suburb,
@@ -154,6 +156,7 @@ export class PhotonProvider implements LocationProvider {
         road,
         streetNumber,
         streetAddress,
+        building,
       });
     }
 
