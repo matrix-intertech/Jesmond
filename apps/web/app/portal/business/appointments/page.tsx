@@ -12,6 +12,7 @@ import {
   MapPin,
   CheckCircle,
   XCircle,
+  X,
   AlertCircle,
   Filter,
   Eye,
@@ -1022,14 +1023,33 @@ export default function BusinessAppointmentsDashboard() {
       {/* Review & Assignment Modal */}
       {selectedAppointment && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-surface rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <h2 className="text-2xl font-bold text-primary mb-2">
-              Review Appointment Request
-            </h2>
-            <p className="text-xs text-text-secondary mb-4">
-              The customer requested this appointment. Select an eligible
-              qualified professional to approve and confirm the booking.
-            </p>
+          <div className="bg-surface rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border-strong">
+            {/* Modal Header (Pinned) */}
+            <div className="shrink-0 px-6 py-5 md:px-8 border-b border-border-strong flex items-start justify-between bg-surface">
+              <div>
+                <h2 className="text-xl font-bold text-primary">
+                  Review Appointment Request
+                </h2>
+                <p className="text-xs text-text-secondary mt-0.5">
+                  Select an eligible qualified professional to approve the booking.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedAppointment(null);
+                  setSelectedStaffId("");
+                  setRejectReason("");
+                }}
+                className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors"
+                title="Close"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
 
             <div className="bg-surface-muted p-4 rounded-xl border border-border-strong mb-6 space-y-2">
               <div className="flex justify-between items-start">
@@ -1134,47 +1154,51 @@ export default function BusinessAppointmentsDashboard() {
               )}
             </div>
 
-            <div className="flex flex-col gap-3">
-              <button
-                disabled={!selectedStaffId || actionLoading}
-                onClick={handleApprove}
-                className="w-full py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm text-sm"
-              >
-                {actionLoading && (
-                  <Loader2 size={16} className="animate-spin" />
-                )}
-                Approve & Assign Professional
-              </button>
+              <div>
+                <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
+                  Reason for Rejection (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Schedule fully booked or specialist unavailable"
+                  className="w-full p-2.5 rounded-xl border border-border-strong focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                />
+              </div>
+            </div>
 
-              <div className="border-t border-border-strong my-1"></div>
-
-              <input
-                type="text"
-                placeholder="Reason for rejection (optional)"
-                className="w-full p-2.5 rounded-xl border border-border-strong focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-              />
+            {/* Modal Footer (Pinned & Accessible) */}
+            <div className="shrink-0 bg-surface border-t border-border-strong px-6 md:px-8 py-4 flex flex-col sm:flex-row items-center justify-end gap-2.5 z-10">
               <button
-                disabled={actionLoading}
-                onClick={handleReject}
-                className="w-full py-2.5 bg-white text-red-600 border border-red-200 font-bold rounded-xl hover:bg-red-50 disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
-              >
-                {actionLoading && (
-                  <Loader2 size={16} className="animate-spin" />
-                )}
-                Reject Request
-              </button>
-
-              <button
+                type="button"
                 onClick={() => {
                   setSelectedAppointment(null);
                   setSelectedStaffId("");
                   setRejectReason("");
                 }}
-                className="w-full py-2 bg-transparent text-text-secondary font-semibold hover:text-primary transition-colors text-sm"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-border-strong text-text-secondary hover:text-primary text-sm font-semibold hover:bg-surface-muted transition-colors"
               >
                 Cancel
+              </button>
+              <button
+                type="button"
+                disabled={actionLoading}
+                onClick={handleReject}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors"
+              >
+                {actionLoading && <Loader2 size={15} className="animate-spin" />}
+                Reject Request
+              </button>
+              <button
+                type="button"
+                disabled={!selectedStaffId || actionLoading}
+                onClick={handleApprove}
+                className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm transition-all"
+              >
+                {actionLoading && <Loader2 size={15} className="animate-spin" />}
+                <CheckCircle size={16} />
+                Approve & Assign
               </button>
             </div>
           </div>
@@ -1184,8 +1208,9 @@ export default function BusinessAppointmentsDashboard() {
       {/* Appointment Detail Modal */}
       {viewingAppointment && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-surface rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex items-start justify-between mb-4">
+          <div className="bg-surface rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border-strong">
+            {/* Modal Header (Pinned) */}
+            <div className="shrink-0 px-6 py-5 md:px-8 border-b border-border-strong flex items-start justify-between bg-surface">
               <div>
                 <span
                   className={`px-2 py-0.5 text-xs font-bold rounded ${
@@ -1202,17 +1227,22 @@ export default function BusinessAppointmentsDashboard() {
                 >
                   {viewingAppointment.status.replace("_", " ")}
                 </span>
-                <h2 className="text-xl font-bold text-primary mt-2">
+                <h2 className="text-xl font-bold text-primary mt-1.5">
                   {viewingAppointment.service?.name}
                 </h2>
               </div>
               <button
+                type="button"
                 onClick={() => setViewingAppointment(null)}
-                className="text-text-secondary hover:text-primary p-1 rounded-lg"
+                className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors"
+                title="Close"
               >
-                <XCircle size={22} />
+                <X size={20} />
               </button>
             </div>
+
+            {/* Modal Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
 
             <div className="space-y-4 text-sm divide-y divide-border-strong">
               <div className="pt-2 grid grid-cols-2 gap-3">
@@ -1372,46 +1402,52 @@ export default function BusinessAppointmentsDashboard() {
               )}
             </div>
 
-            {/* Quick status actions */}
-            <div className="mt-6 pt-4 border-t border-border-strong flex flex-wrap gap-2 justify-end">
+            </div>
+
+            {/* Modal Footer (Pinned & Accessible) */}
+            <div className="shrink-0 bg-surface border-t border-border-strong px-6 md:px-8 py-4 flex flex-wrap gap-2.5 justify-end z-10">
               {viewingAppointment.status === "PENDING_APPROVAL" && (
                 <button
+                  type="button"
                   onClick={() => {
                     const appt = viewingAppointment;
                     setViewingAppointment(null);
                     setSelectedAppointment(appt);
                     loadEligibleStaff(appt.id);
                   }}
-                  className="px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl hover:bg-brand-navy/90"
+                  className="px-4 py-2 bg-brand-navy text-white text-xs font-bold rounded-xl hover:bg-brand-navy/90 shadow-sm transition-colors"
                 >
                   Review & Assign
                 </button>
               )}
               {viewingAppointment.status === "CONFIRMED" && (
                 <button
+                  type="button"
                   onClick={() =>
                     handleStatusUpdate(viewingAppointment.id, "IN_PROGRESS")
                   }
                   disabled={actionLoading}
-                  className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 shadow-sm transition-colors"
                 >
                   Start Appointment
                 </button>
               )}
               {viewingAppointment.status === "IN_PROGRESS" && (
                 <button
+                  type="button"
                   onClick={() =>
                     handleStatusUpdate(viewingAppointment.id, "COMPLETED")
                   }
                   disabled={actionLoading}
-                  className="px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700"
+                  className="px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700 shadow-sm transition-colors"
                 >
                   Mark Completed
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => setViewingAppointment(null)}
-                className="px-4 py-2 border border-border-strong text-text-secondary text-xs font-semibold rounded-xl hover:bg-surface-muted"
+                className="px-4 py-2 border border-border-strong text-text-secondary text-xs font-semibold rounded-xl hover:bg-surface-muted transition-colors"
               >
                 Close
               </button>

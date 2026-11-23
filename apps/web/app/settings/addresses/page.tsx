@@ -374,27 +374,36 @@ export default function AddressesSettingsPage() {
       {/* Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-surface rounded-3xl p-6 md:p-8 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-primary">
-                {editingAddress ? "Edit Saved Address" : "Add New Address"}
-              </h3>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-text-secondary hover:text-primary p-1 rounded-lg"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {modalError && (
-              <div className="p-3 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle size={15} className="shrink-0" />
-                <span>{modalError}</span>
+          <div className="bg-surface rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden border border-border-strong">
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              {/* Modal Header (Pinned) */}
+              <div className="shrink-0 px-6 py-5 md:px-8 border-b border-border-strong flex items-start justify-between bg-surface">
+                <div>
+                  <h3 className="text-xl font-bold text-primary">
+                    {editingAddress ? "Edit Saved Address" : "Add New Address"}
+                  </h3>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    Configure recipient details and service fulfillment location.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-1.5 rounded-lg text-text-secondary hover:text-primary hover:bg-surface-muted transition-colors"
+                  title="Close"
+                >
+                  <X size={20} />
+                </button>
               </div>
-            )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Modal Scrollable Body */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
+                {modalError && (
+                  <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
+                    <span>{modalError}</span>
+                  </div>
+                )}
               {/* Address Label Presets */}
               <div>
                 <label className="block text-xs font-bold text-text-secondary uppercase mb-1">
@@ -566,22 +575,33 @@ export default function AddressesSettingsPage() {
                 </label>
               </div>
 
-              {/* Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border-strong">
+              </div>
+
+              {/* Modal Footer (Pinned & Accessible) */}
+              <div className="shrink-0 bg-surface border-t border-border-strong px-6 md:px-8 py-4 flex items-center justify-end gap-3 z-10">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-border-strong text-text-secondary hover:text-primary text-xs font-semibold"
+                  className="px-5 py-2.5 rounded-xl border border-border-strong text-text-secondary hover:text-primary text-sm font-semibold hover:bg-surface-muted transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-brand-navy text-white rounded-xl text-xs font-bold hover:bg-brand-navy/90 disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-6 py-2.5 bg-brand-navy text-white rounded-xl text-sm font-bold hover:bg-brand-navy/90 disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
-                  {submitting && <Loader2 size={14} className="animate-spin" />}
-                  {editingAddress ? "Save Changes" : "Add Address"}
+                  {submitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>{editingAddress ? "Saving Changes..." : "Adding Address..."}</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={16} />
+                      <span>{editingAddress ? "Save Changes" : "Add Address"}</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

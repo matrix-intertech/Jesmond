@@ -423,7 +423,7 @@ export default function MenuManagementPage() {
       {/* MODALS */}
       {isMenuModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-surface p-6 shadow-xl border border-border-strong">
             <h3 className="mb-4 text-lg font-bold text-text-primary">{menuForm.id ? 'Edit Menu' : 'Create Menu'}</h3>
             <form onSubmit={handleSaveMenu} className="space-y-4">
               <div>
@@ -454,7 +454,7 @@ export default function MenuManagementPage() {
 
       {isCategoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-surface p-6 shadow-xl border border-border-strong">
             <h3 className="mb-4 text-lg font-bold text-text-primary">{categoryForm.id ? 'Edit Category' : 'Add Category'}</h3>
             <form onSubmit={handleSaveCategory} className="space-y-4">
               <div>
@@ -476,7 +476,7 @@ export default function MenuManagementPage() {
 
       {isItemModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl bg-surface p-6 shadow-xl border border-border-strong">
             <h3 className="mb-4 text-lg font-bold text-text-primary">{itemForm.id ? 'Edit Item' : 'Add Item'}</h3>
             <form onSubmit={handleSaveItem} className="space-y-4">
               <div>

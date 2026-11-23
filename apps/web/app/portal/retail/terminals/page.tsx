@@ -195,13 +195,14 @@ export default function TerminalsPage() {
 
  {isModalOpen && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-muted/50 backdrop-blur-sm">
- <div className="bg-surface rounded-xl shadow-xl w-full max-w-md overflow-hidden">
- <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center">
+ <div className="bg-surface rounded-xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden border border-border-strong">
+ <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center shrink-0">
  <h3 className="font-semibold text-lg text-primary">{editingTerminal ? 'Edit Terminal' : 'Add Terminal'}</h3>
  <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-text-secondary">&times;</button>
  </div>
 
- <form onSubmit={handleSubmit} className="p-6 space-y-4">
+ <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+ <div className="p-6 space-y-4 overflow-y-auto flex-1">
  {formError && <div className="p-3 bg-rose-50 text-rose-700 rounded text-sm">{formError}</div>}
 
  <div>
@@ -236,8 +237,9 @@ export default function TerminalsPage() {
  </select>
  </div>
  )}
+ </div>
 
- <div className="pt-4 flex justify-end gap-3">
+ <div className="shrink-0 px-6 py-4 border-t border-border-subtle bg-surface flex justify-end gap-3 z-10">
  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-text-primary hover:bg-surface-muted rounded-md">Cancel</button>
  <button type="submit" disabled={formLoading} className="px-4 py-2 text-sm font-medium text-white bg-accent hover:bg-accent rounded-md disabled:opacity-50">
  {formLoading ? 'Saving...' : 'Save'}

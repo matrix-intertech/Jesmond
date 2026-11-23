@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { handleApiError } from '@/utils/api';
@@ -66,7 +67,43 @@ export default function StudentDashboardPage() {
  fetchData();
  }, []);
 
- const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+ const [paymentLoadingId, setPaymentLoadingId] = useState<string | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
+
+  const handleProceedToPayment = async (applicationId: string) => {
+    setPaymentLoadingId(applicationId);
+    setError('');
+    setPaymentMessage(null);
+    try {
+      const token = getAccessToken();
+      if (!token) { onAuthError(); return; }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/payments/create-checkout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ applicationId })
+      });
+
+      const status = await handleApiError(res, onAuthError);
+      if (status === 'ok') {
+        const data = await res.json();
+        setPaymentMessage(data.message || 'Checkout session created. Your property manager will contact you with final lease agreement & receipt.');
+        setTimeout(() => setPaymentMessage(null), 8000);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setError(err.message || 'Payment initiation failed. Please contact your property manager.');
+      }
+    } catch (e: any) {
+      setError(e.message || 'An unexpected error occurred initiating checkout.');
+    } finally {
+      setPaymentLoadingId(null);
+    }
+  };
+
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
  const handleWithdraw = async (applicationId: string) => {
  if (!confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) return;
@@ -107,6 +144,12 @@ export default function StudentDashboardPage() {
 
  return (
  <div className="mx-auto w-full max-w-7xl flex-1 py-4 sm:py-8">
+        {paymentMessage && (
+          <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center gap-2.5">
+            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+            <span>{paymentMessage}</span>
+          </div>
+        )}
  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
  <div>
  <h1 className="font-outfit text-2xl font-bold text-primary sm:text-3xl">Student Dashboard</h1>
@@ -162,8 +205,13 @@ export default function StudentDashboardPage() {
  </dl>
  {app.status === 'APPROVED' && (
  paymentsEnabled ? (
- <button className="mt-4 min-h-11 w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition hover:bg-primary/90">
- Proceed to Payment
+ <button
+   onClick={() => handleProceedToPayment(app.id)}
+   disabled={paymentLoadingId === app.id}
+   className="mt-4 min-h-11 w-full rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+ >
+   {paymentLoadingId === app.id && <Loader2 size={16} className="animate-spin" />}
+   Proceed to Payment
  </button>
  ) : (
  <p className="mt-3 text-xs font-semibold text-rose-600">Payments unavailable.</p>
@@ -214,8 +262,13 @@ export default function StudentDashboardPage() {
  <div className="flex flex-col gap-2 items-start">
  <StatusBadge status={app.status as any} />
  {paymentsEnabled ? (
- <button className="text-xs font-bold bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition">
- Proceed to Payment
+ <button
+   onClick={() => handleProceedToPayment(app.id)}
+   disabled={paymentLoadingId === app.id}
+   className="text-xs font-bold bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition disabled:opacity-50 flex items-center gap-1.5"
+ >
+   {paymentLoadingId === app.id && <Loader2 size={13} className="animate-spin" />}
+   Proceed to Payment
  </button>
  ) : (
  <span className="text-xs font-semibold text-rose-600">Payments unavailable.</span>

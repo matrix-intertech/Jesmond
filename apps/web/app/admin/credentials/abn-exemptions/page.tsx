@@ -182,57 +182,63 @@ export default function AdminAbnExemptionsPage() {
           aria-modal="true"
           className="fixed inset-0 bg-primary/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
         >
-          <div className="bg-surface rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-border-strong">
-            <div className="flex items-center justify-between border-b border-border pb-3 mb-4">
+          <div className="bg-surface rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden border border-border-strong">
+            {/* Modal Header (Pinned) */}
+            <div className="shrink-0 flex items-center justify-between border-b border-border p-6 pb-4 bg-surface">
               <h2 className="text-base font-bold font-outfit text-primary">
                 Review ABN Exemption Request
               </h2>
               <button
+                type="button"
                 onClick={() => setSelectedOrg(null)}
-                className="p-1 rounded-lg text-text-secondary hover:text-text-primary"
+                className="p-1 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="bg-surface-muted p-4 rounded-xl border border-border text-xs space-y-2 mb-4">
-              <div>
-                <span className="text-text-secondary">Business Entity:</span>
-                <span className="font-bold text-primary ml-1">
-                  {selectedOrg.organizationName}
-                </span>
+            {/* Modal Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="bg-surface-muted p-4 rounded-xl border border-border text-xs space-y-2">
+                <div>
+                  <span className="text-text-secondary">Business Entity:</span>
+                  <span className="font-bold text-primary ml-1">
+                    {selectedOrg.organizationName}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-text-secondary">Category:</span>
+                  <span className="font-semibold text-primary ml-1">
+                    {selectedOrg.businessCategory}
+                  </span>
+                </div>
+                <div className="border-t border-border pt-2">
+                  <span className="text-text-secondary block font-semibold mb-1">
+                    Stated Justification:
+                  </span>
+                  <p className="text-text-primary leading-relaxed bg-surface p-3 rounded-lg border border-border">
+                    "{selectedOrg.reason}"
+                  </p>
+                </div>
               </div>
+
               <div>
-                <span className="text-text-secondary">Category:</span>
-                <span className="font-semibold text-primary ml-1">
-                  {selectedOrg.businessCategory}
-                </span>
-              </div>
-              <div className="border-t border-border pt-2">
-                <span className="text-text-secondary block font-semibold mb-1">
-                  Stated Justification:
-                </span>
-                <p className="text-text-primary leading-relaxed bg-surface p-3 rounded-lg border border-border">
-                  "{selectedOrg.reason}"
-                </p>
+                <label className="block text-xs font-bold text-text-primary mb-1">
+                  Compliance Review Notes
+                </label>
+                <textarea
+                  rows={2}
+                  value={decisionNotes}
+                  onChange={(e) => setDecisionNotes(e.target.value)}
+                  placeholder="e.g. Valid hobbyist exception confirmed, or Insufficient justification provided."
+                  data-testid="exemption-notes-input"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-xs bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
+                />
               </div>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-xs font-bold text-text-primary mb-1">
-                Compliance Review Notes
-              </label>
-              <textarea
-                rows={2}
-                value={decisionNotes}
-                onChange={(e) => setDecisionNotes(e.target.value)}
-                placeholder="e.g. Valid hobbyist exception confirmed, or Insufficient justification provided."
-                data-testid="exemption-notes-input"
-                className="w-full px-3 py-2 rounded-lg border border-border text-xs bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+            {/* Modal Footer (Pinned & Accessible) */}
+            <div className="shrink-0 flex items-center justify-end gap-2 border-t border-border p-4 px-6 bg-surface z-10">
               <button
                 type="button"
                 onClick={() => handleDecision("REJECTED")}
@@ -247,7 +253,7 @@ export default function AdminAbnExemptionsPage() {
                 onClick={() => handleDecision("APPROVED")}
                 disabled={submittingReview}
                 data-testid="approve-exemption-btn"
-                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1.5 shadow-sm"
               >
                 <Check size={14} />
                 <span>Approve Exemption</span>
