@@ -2,9 +2,12 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Barcode, Scan } from "lucide-react";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import { handleApiError, getApiUrl } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
+import { UniversalBarcodeScanner, ScannedProduct, HardwareBarcodeInput } from "@/components/barcode";
+import { useBarcodeScanner } from "@/hooks/useBarcodeScanner";
 
 interface Category {
  id: string;
@@ -56,6 +59,7 @@ function POSPageContent() {
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState("");
  const [success, setSuccess] = useState("");
+ const [scannerModalOpen, setScannerModalOpen] = useState(false);
 
  // Search & Filter
  const [searchQuery, setSearchQuery] = useState("");
@@ -235,6 +239,75 @@ function POSPageContent() {
  ];
  });
  };
+
+ const handleBarcodeScanned = (scannedProduct: ScannedProduct) => {
+ if (scannedProduct.quantity <= 0) {
+ setError(`"${scannedProduct.name}" is out of stock at this branch.`);
+ return;
+ }
+
+ const existing = products.find(p => p.id === scannedProduct.id);
+ if (existing) {
+ handleAddToCart(existing);
+ } else {
+ handleAddToCart({
+ id: scannedProduct.id,
+ name: scannedProduct.name,
+ sku: scannedProduct.sku,
+ barcode: scannedProduct.barcode,
+ sellingPrice: scannedProduct.sellingPrice,
+ isActive: scannedProduct.isActive,
+ category: scannedProduct.category || null,
+ quantity: scannedProduct.quantity,
+ });
+ }
+ setSuccess(`Added 1x ${scannedProduct.name} ($${(scannedProduct.sellingPrice / 100).toFixed(2)}) to cart`);
+ setError("");
+ };
+
+ const { triggerManualScan: triggerDirectScan } = useBarcodeScanner({
+ onScan: async (barcode) => {
+ setError("");
+ setSuccess("");
+
+ // 1. Check local catalog first
+ const localMatch = products.find(
+ p => (p.barcode && p.barcode.toLowerCase() === barcode.toLowerCase()) ||
+ p.sku.toLowerCase() === barcode.toLowerCase()
+ );
+ if (localMatch) {
+ if (localMatch.quantity <= 0) {
+ setError(`"${localMatch.name}" is out of stock at this branch.`);
+ return;
+ }
+ handleAddToCart(localMatch);
+ setSuccess(`Added 1x ${localMatch.name} to cart`);
+ return;
+ }
+
+ // 2. Query backend lookup
+ const token = getAccessToken();
+ try {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/barcode/${encodeURIComponent(barcode)}?branchId=${branchId}`, {
+ headers: token ? { Authorization: `Bearer ${token}` } : {}
+ });
+ if (res.ok) {
+ const data = await res.json();
+ if (data.found && data.product) {
+ handleBarcodeScanned(data.product);
+ } else {
+ setError(`Barcode "${barcode}" not found in catalogue.`);
+ }
+ } else {
+ setError(`Barcode "${barcode}" not found.`);
+ }
+ } catch (err: any) {
+ setError(err.message || "Failed to lookup barcode");
+ }
+ },
+ enableGlobalKeyboardListener: !checkoutOpen && !scannerModalOpen,
+ soundEnabled: true,
+ });
 
  // Adjust cart item quantity directly
  const handleUpdateQuantity = (productId: string, delta: number) => {
@@ -519,9 +592,11 @@ function POSPageContent() {
  )}
  </select>
  </div>
- <div className="relative w-full sm:w-72">
+ <div className="flex items-center gap-2 w-full sm:w-auto">
+ <div className="relative flex-1 sm:w-72">
  <input
  type="text"
+ data-barcode-scanner="true"
  placeholder="Search by name, SKU, or barcode..."
  value={searchQuery}
  onChange={e => setSearchQuery(e.target.value)}
@@ -532,6 +607,16 @@ function POSPageContent() {
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
  </svg>
  </div>
+ </div>
+ <button
+ type="button"
+ onClick={() => setScannerModalOpen(true)}
+ className="px-3.5 py-1.5 bg-accent hover:bg-accent/90 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition whitespace-nowrap"
+ title="Open Universal Barcode Scanner (Camera, USB, Bluetooth)"
+ >
+ <Barcode size={16} />
+ <span className="hidden sm:inline">Scan Barcode</span>
+ </button>
  </div>
  </div>
 
@@ -935,6 +1020,26 @@ function POSPageContent() {
  </button>
  )}
  </div>
+ </div>
+ </div>
+ )}
+
+ {/* Universal Barcode Scanner Modal */}
+ {scannerModalOpen && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+ <div className="w-full max-w-lg">
+ <UniversalBarcodeScanner
+ branchId={branchId}
+ mode="POS"
+ onProductFound={(prod) => {
+ handleBarcodeScanned(prod);
+ }}
+ onRegisterProduct={(barcode) => {
+ setScannerModalOpen(false);
+ router.push(`/portal/retail/catalog?registerBarcode=${encodeURIComponent(barcode)}`);
+ }}
+ onClose={() => setScannerModalOpen(false)}
+ />
  </div>
  </div>
  )}

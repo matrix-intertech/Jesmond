@@ -42,6 +42,7 @@ export class CatalogController {
     @Body()
     data: {
       sku: string;
+      barcode?: string | null;
       name: string;
       sellingPrice: number;
       imageUrl?: string;
@@ -85,6 +86,7 @@ export class CatalogController {
     @Body()
     data: {
       sku?: string;
+      barcode?: string | null;
       name?: string;
       sellingPrice?: number;
       imageUrl?: string;
@@ -102,6 +104,24 @@ export class CatalogController {
       req.user.id || 'SYSTEM',
       id,
       data,
+    );
+  }
+
+  @Get('barcode/:barcode')
+  async lookupBarcode(
+    @Request() req: any,
+    @Param('barcode') barcode: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    if (!req.user || !req.user.organizationId) {
+      throw new ForbiddenException(
+        'Organization context is required to query retail catalog',
+      );
+    }
+    return this.catalogService.lookupBarcode(
+      req.user.organizationId,
+      barcode,
+      branchId,
     );
   }
 

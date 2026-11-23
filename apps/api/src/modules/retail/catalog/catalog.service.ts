@@ -17,6 +17,7 @@ export class CatalogService {
     userId: string,
     data: {
       sku?: string;
+      barcode?: string | null;
       name: string;
       sellingPrice: number;
       imageUrl?: string;
@@ -29,11 +30,27 @@ export class CatalogService {
       throw new BadRequestException('Invalid image URL');
     }
 
+    const cleanBarcode = data.barcode ? data.barcode.trim() : null;
+    if (cleanBarcode) {
+      const existingBarcode = await this.prisma.product.findFirst({
+        where: {
+          organizationId,
+          barcode: cleanBarcode,
+        },
+      });
+      if (existingBarcode) {
+        throw new ConflictException(
+          `Barcode ${cleanBarcode} is already assigned to product "${existingBarcode.name}" in this organization`,
+        );
+      }
+    }
+
     try {
       const product = await this.prisma.product.create({
         data: {
           organizationId,
           sku: data.sku,
+          barcode: cleanBarcode,
           name: data.name,
           sellingPrice: data.sellingPrice,
           imageUrl: data.imageUrl,
@@ -66,6 +83,7 @@ export class CatalogService {
     productId: string,
     data: {
       sku?: string;
+      barcode?: string | null;
       name?: string;
       sellingPrice?: number;
       imageUrl?: string;
@@ -91,11 +109,32 @@ export class CatalogService {
       }
     }
 
+    let finalBarcode = existing.barcode;
+    if (data.barcode !== undefined) {
+      const cleanBarcode = data.barcode ? data.barcode.trim() : null;
+      if (cleanBarcode && cleanBarcode !== existing.barcode) {
+        const existingBarcode = await this.prisma.product.findFirst({
+          where: {
+            organizationId,
+            barcode: cleanBarcode,
+            NOT: { id: productId },
+          },
+        });
+        if (existingBarcode) {
+          throw new ConflictException(
+            `Barcode ${cleanBarcode} is already assigned to product "${existingBarcode.name}" in this organization`,
+          );
+        }
+      }
+      finalBarcode = cleanBarcode;
+    }
+
     try {
       const product = await this.prisma.product.update({
         where: { id: productId },
         data: {
           sku: data.sku !== undefined ? data.sku : existing.sku,
+          barcode: finalBarcode,
           name: data.name !== undefined ? data.name : existing.name,
           sellingPrice:
             data.sellingPrice !== undefined
@@ -126,6 +165,82 @@ export class CatalogService {
       }
       throw new InternalServerErrorException('Failed to update product');
     }
+  }
+
+  async lookupBarcode(
+    organizationId: string,
+    rawBarcode: string,
+    branchId?: string,
+  ) {
+    if (!rawBarcode || typeof rawBarcode !== 'string' || !rawBarcode.trim()) {
+      throw new BadRequestException('Valid barcode string is required');
+    }
+
+    const cleanBarcode = rawBarcode.trim();
+
+    if (branchId) {
+      const branch = await this.prisma.retailBranch.findFirst({
+        where: { id: branchId, organizationId },
+      });
+      if (!branch) {
+        throw new ForbiddenException('Branch does not exist or access denied');
+      }
+    }
+
+    // Look up by barcode first, fallback to SKU
+    const product = await this.prisma.product.findFirst({
+      where: {
+        organizationId,
+        OR: [
+          { barcode: cleanBarcode },
+          { sku: cleanBarcode },
+        ],
+      },
+      include: {
+        category: true,
+        inventory: branchId
+          ? {
+              where: { branchId },
+            }
+          : true,
+      },
+    });
+
+    if (!product) {
+      return {
+        found: false,
+        barcode: cleanBarcode,
+        message: `Product with barcode or SKU '${cleanBarcode}' was not found.`,
+      };
+    }
+
+    const branchQty = branchId
+      ? product.inventory?.[0]?.quantity ?? 0
+      : product.inventory?.reduce((acc, curr) => acc + curr.quantity, 0) ?? 0;
+
+    return {
+      found: true,
+      inactive: !product.isActive,
+      barcode: cleanBarcode,
+      product: {
+        id: product.id,
+        name: product.name,
+        sku: product.sku,
+        barcode: product.barcode,
+        sellingPrice: product.sellingPrice,
+        costPrice: product.costPrice,
+        taxRate: product.taxRate,
+        unit: product.unit,
+        imageUrl: product.imageUrl,
+        isActive: product.isActive,
+        category: product.category
+          ? { id: product.category.id, name: product.category.name }
+          : null,
+        quantity: branchQty,
+        branchId: branchId || null,
+        outOfStock: branchQty <= 0,
+      },
+    };
   }
 
   async getCatalog(

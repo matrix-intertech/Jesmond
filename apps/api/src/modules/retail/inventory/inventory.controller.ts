@@ -8,6 +8,7 @@ import {
   Request,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -61,6 +62,46 @@ export class InventoryController {
       branchId,
       productId,
       quantity,
+      req.user.id,
+      reason,
+    );
+  }
+
+  @Post(':branchId/receive')
+  @RequirePermissions(RetailPermission.INVENTORY_ADJUST)
+  async receiveStock(
+    @Request() req: any,
+    @Param('branchId') branchId: string,
+    @Body()
+    data: {
+      productId: string;
+      quantity: number;
+      referenceNumber?: string;
+      notes?: string;
+    },
+  ) {
+    if (!req.user || !req.user.id) {
+      throw new UnauthorizedException('Authenticated user ID is required');
+    }
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('Organization context is required');
+    }
+    if (!data.productId) {
+      throw new BadRequestException('Product ID is required for stock receiving');
+    }
+    if (!data.quantity || data.quantity <= 0) {
+      throw new BadRequestException('Receiving quantity must be greater than 0');
+    }
+
+    const reason = data.referenceNumber
+      ? `Stock Receiving [Ref: ${data.referenceNumber}]${data.notes ? ` - ${data.notes}` : ''}`
+      : `Stock Receiving${data.notes ? ` - ${data.notes}` : ''}`;
+
+    return this.inventoryService.adjustInventory(
+      req.user.organizationId,
+      branchId,
+      data.productId,
+      data.quantity,
       req.user.id,
       reason,
     );

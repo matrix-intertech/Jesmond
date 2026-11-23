@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Barcode, Scan, Plus, PackageCheck, PackagePlus, AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
+import { UniversalBarcodeScanner, ScannedProduct } from "@/components/barcode";
 
 interface Category {
  id: string;
@@ -56,6 +58,196 @@ function InventoryWorkspaceContent() {
  const [adjLoading, setAdjLoading] = useState(false);
  const [adjError, setAdjError] = useState("");
  const [adjSuccess, setAdjSuccess] = useState("");
+
+ const [scannerOpen, setScannerOpen] = useState(false);
+ const [scannerMode, setScannerMode] = useState<"ADJUSTMENT" | "RECEIVING">("ADJUSTMENT");
+
+ // Stock Receiving State
+ const [receivingModalOpen, setReceivingModalOpen] = useState(false);
+ const [receivingProduct, setReceivingProduct] = useState<ScannedProduct | null>(null);
+ const [receivingQty, setReceivingQty] = useState("1");
+ const [receivingRef, setReceivingRef] = useState("");
+ const [receivingNotes, setReceivingNotes] = useState("");
+ const [receivingLoading, setReceivingLoading] = useState(false);
+ const [receivingError, setReceivingError] = useState("");
+ const [receivingSuccess, setReceivingSuccess] = useState("");
+
+ // Product Registration State
+ const [registerModalOpen, setRegisterModalOpen] = useState(false);
+ const [registerBarcode, setRegisterBarcode] = useState("");
+ const [registerName, setRegisterName] = useState("");
+ const [registerSku, setRegisterSku] = useState("");
+ const [registerPrice, setRegisterPrice] = useState("");
+ const [registerInitialStock, setRegisterInitialStock] = useState("10");
+ const [registerLoading, setRegisterLoading] = useState(false);
+ const [registerError, setRegisterError] = useState("");
+ const [registerSuccess, setRegisterSuccess] = useState("");
+
+ const handleProductScanned = (scannedProd: ScannedProduct) => {
+ if (scannerMode === "RECEIVING") {
+ setReceivingProduct(scannedProd);
+ setReceivingQty("1");
+ setReceivingRef("");
+ setReceivingNotes("");
+ setReceivingError("");
+ setReceivingSuccess("");
+ setScannerOpen(false);
+ setReceivingModalOpen(true);
+ } else {
+ const match = inventory.find(i => i.productId === scannedProd.id);
+ if (match) {
+ setSelectedItem(match);
+ } else {
+ setSelectedItem({
+ id: `temp-${scannedProd.id}`,
+ branchId,
+ productId: scannedProd.id,
+ quantity: scannedProd.quantity,
+ product: {
+ id: scannedProd.id,
+ name: scannedProd.name,
+ sku: scannedProd.sku,
+ sellingPrice: scannedProd.sellingPrice,
+ category: scannedProd.category || null,
+ barcode: scannedProd.barcode,
+ },
+ updatedAt: new Date().toISOString(),
+ });
+ }
+ setIsAdjusting(true);
+ setScannerOpen(false);
+ }
+ };
+
+ const handleOpenRegister = (barcode: string) => {
+ setRegisterBarcode(barcode);
+ setRegisterSku(`SKU-${Math.floor(100000 + Math.random() * 900000)}`);
+ setRegisterName("");
+ setRegisterPrice("");
+ setRegisterInitialStock("10");
+ setRegisterError("");
+ setRegisterSuccess("");
+ setScannerOpen(false);
+ setRegisterModalOpen(true);
+ };
+
+ const handleConfirmReceiving = async (e: React.FormEvent) => {
+ e.preventDefault();
+ if (!receivingProduct || !branchId) return;
+
+ const qty = parseInt(receivingQty, 10);
+ if (isNaN(qty) || qty <= 0) {
+ setReceivingError("Received quantity must be a positive integer.");
+ return;
+ }
+
+ setReceivingLoading(true);
+ setReceivingError("");
+ setReceivingSuccess("");
+
+ const token = getAccessToken();
+ try {
+ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branchId}/receive`, {
+ method: "POST",
+ headers: {
+ Authorization: `Bearer ${token}`,
+ "Content-Type": "application/json",
+ },
+ body: JSON.stringify({
+ productId: receivingProduct.id,
+ quantity: qty,
+ referenceNumber: receivingRef || undefined,
+ notes: receivingNotes || undefined,
+ }),
+ });
+
+ if (res.ok) {
+ const updated = await res.json();
+ setReceivingSuccess(`Successfully received +${qty} units of ${receivingProduct.name}! New stock: ${updated.quantity}`);
+ fetchInventory(branchId);
+ setTimeout(() => {
+ setReceivingModalOpen(false);
+ setReceivingProduct(null);
+ setReceivingSuccess("");
+ }, 1500);
+ } else {
+ const errJson = await res.json().catch(() => ({}));
+ setReceivingError(errJson.message || "Failed to receive stock");
+ }
+ } catch (err: any) {
+ setReceivingError(err.message || "Network error");
+ } finally {
+ setReceivingLoading(false);
+ }
+ };
+
+ const handleConfirmRegistration = async (e: React.FormEvent) => {
+ e.preventDefault();
+ if (!registerName.trim() || !registerSku.trim() || !registerPrice) {
+ setRegisterError("Please fill in all required product fields.");
+ return;
+ }
+
+ const priceCents = Math.round(parseFloat(registerPrice) * 100);
+ if (isNaN(priceCents) || priceCents <= 0) {
+ setRegisterError("Please enter a valid price.");
+ return;
+ }
+
+ setRegisterLoading(true);
+ setRegisterError("");
+ setRegisterSuccess("");
+
+ const token = getAccessToken();
+ try {
+ const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog/products`, {
+ method: "POST",
+ headers: {
+ Authorization: `Bearer ${token}`,
+ "Content-Type": "application/json",
+ },
+ body: JSON.stringify({
+ name: registerName.trim(),
+ sku: registerSku.trim(),
+ barcode: registerBarcode ? registerBarcode.trim() : null,
+ sellingPrice: priceCents,
+ imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+ }),
+ });
+
+ if (res.ok) {
+ const newProd = await res.json();
+ const initStock = parseInt(registerInitialStock, 10);
+ if (!isNaN(initStock) && initStock > 0 && branchId) {
+ await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branchId}/receive`, {
+ method: "POST",
+ headers: {
+ Authorization: `Bearer ${token}`,
+ "Content-Type": "application/json",
+ },
+ body: JSON.stringify({
+ productId: newProd.id,
+ quantity: initStock,
+ notes: "Initial inventory registration",
+ }),
+ });
+ }
+ setRegisterSuccess(`Product "${newProd.name}" registered successfully with barcode ${newProd.barcode || 'N/A'}!`);
+ fetchInventory(branchId);
+ setTimeout(() => {
+ setRegisterModalOpen(false);
+ setRegisterSuccess("");
+ }, 1500);
+ } else {
+ const errJson = await res.json().catch(() => ({}));
+ setRegisterError(errJson.message || "Failed to register product");
+ }
+ } catch (err: any) {
+ setRegisterError(err.message || "Network error");
+ } finally {
+ setRegisterLoading(false);
+ }
+ };
 
  const fetchMovements = async (branch: string, prodId: string) => {
  if (!branch || !prodId) return;
@@ -282,6 +474,30 @@ function InventoryWorkspaceContent() {
  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
  </svg>
+ </button>
+ <button
+ type="button"
+ onClick={() => {
+ setScannerMode("ADJUSTMENT");
+ setScannerOpen(true);
+ }}
+ className="px-3 py-2 bg-surface border border-border-strong rounded-lg hover:bg-surface-lavender shadow-sm text-text-primary text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap"
+ title="Open Universal Barcode Scanner for quick lookup or stock adjustment"
+ >
+ <Barcode size={16} className="text-accent" />
+ <span>Scan Barcode</span>
+ </button>
+ <button
+ type="button"
+ onClick={() => {
+ setScannerMode("RECEIVING");
+ setScannerOpen(true);
+ }}
+ className="px-3.5 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg shadow-sm text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap"
+ title="Scan barcode to receive stock into current branch"
+ >
+ <PackageCheck size={16} />
+ <span>Receive Stock</span>
  </button>
  </div>
  </div>
@@ -713,6 +929,257 @@ function InventoryWorkspaceContent() {
  </form>
  )}
  </div>
+ </div>
+ </div>
+ )}
+
+ {/* 1. Universal Barcode Scanner Modal */}
+ {scannerOpen && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+ <div className="w-full max-w-lg">
+ <UniversalBarcodeScanner
+ branchId={branchId}
+ mode={scannerMode === "RECEIVING" ? "RECEIVING" : "INVENTORY"}
+ title={scannerMode === "RECEIVING" ? "Receive Stock — Barcode Scanner" : "Inventory Barcode Scanner"}
+ description="Scan product barcode to adjust stock or receive inventory."
+ onProductFound={handleProductScanned}
+ onRegisterProduct={handleOpenRegister}
+ onClose={() => setScannerOpen(false)}
+ />
+ </div>
+ </div>
+ )}
+
+ {/* 2. Stock Receiving Modal */}
+ {receivingModalOpen && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+ <div className="w-full max-w-md bg-surface rounded-2xl shadow-2xl border border-border-strong max-h-[90vh] flex flex-col overflow-hidden">
+ <div className="shrink-0 px-6 py-4 border-b border-border-strong flex justify-between items-center bg-surface">
+ <div className="flex items-center gap-2.5">
+ <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-xl">
+ <PackageCheck size={20} />
+ </div>
+ <div>
+ <h3 className="font-bold text-base text-primary">Receive Stock</h3>
+ <p className="text-xs text-text-secondary">Branch: {branches.find(b => b.id === branchId)?.name || "Current Branch"}</p>
+ </div>
+ </div>
+ <button
+ type="button"
+ onClick={() => { setReceivingModalOpen(false); setReceivingProduct(null); }}
+ className="p-1.5 text-text-muted hover:text-text-primary rounded-lg transition"
+ >
+ <X size={18} />
+ </button>
+ </div>
+
+ <form onSubmit={handleConfirmReceiving} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+ <div className="flex-1 overflow-y-auto p-6 space-y-4">
+ {receivingError && (
+ <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
+ <AlertCircle size={16} />
+ <span>{receivingError}</span>
+ </div>
+ )}
+ {receivingSuccess && (
+ <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs flex items-center gap-2">
+ <CheckCircle2 size={16} />
+ <span>{receivingSuccess}</span>
+ </div>
+ )}
+
+ {receivingProduct && (
+ <div className="p-3 bg-surface-muted/60 border border-border-subtle rounded-xl flex items-center justify-between">
+ <div>
+ <p className="text-sm font-bold text-primary">{receivingProduct.name}</p>
+ <p className="text-xs font-mono text-text-secondary">SKU: {receivingProduct.sku} {receivingProduct.barcode && `• ${receivingProduct.barcode}`}</p>
+ </div>
+ <div className="text-right">
+ <span className="text-xs text-text-muted">Current Stock:</span>
+ <p className="text-sm font-bold text-primary">{receivingProduct.quantity} units</p>
+ </div>
+ </div>
+ )}
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">Quantity Received *</label>
+ <input
+ type="number"
+ required
+ min="1"
+ step="1"
+ value={receivingQty}
+ onChange={(e) => setReceivingQty(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-semibold text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="e.g. 50"
+ />
+ </div>
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">PO / Delivery Reference</label>
+ <input
+ type="text"
+ value={receivingRef}
+ onChange={(e) => setReceivingRef(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="e.g. PO-2026-0042"
+ />
+ </div>
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">Receiving Notes</label>
+ <textarea
+ rows={2}
+ value={receivingNotes}
+ onChange={(e) => setReceivingNotes(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="e.g. Delivered via courier, cartons intact"
+ />
+ </div>
+ </div>
+
+ <div className="shrink-0 px-6 py-4 border-t border-border-strong bg-surface flex justify-end gap-3 z-10">
+ <button
+ type="button"
+ onClick={() => { setReceivingModalOpen(false); setReceivingProduct(null); }}
+ className="px-4 py-2 border border-border-strong text-text-secondary rounded-xl text-xs font-semibold hover:bg-surface-muted transition"
+ >
+ Cancel
+ </button>
+ <button
+ type="submit"
+ disabled={receivingLoading || !receivingProduct}
+ className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+ >
+ {receivingLoading ? <Loader2 size={14} className="animate-spin" /> : <PackageCheck size={14} />}
+ <span>Confirm Receiving</span>
+ </button>
+ </div>
+ </form>
+ </div>
+ </div>
+ )}
+
+ {/* 3. Product Registration Modal */}
+ {registerModalOpen && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+ <div className="w-full max-w-md bg-surface rounded-2xl shadow-2xl border border-border-strong max-h-[90vh] flex flex-col overflow-hidden">
+ <div className="shrink-0 px-6 py-4 border-b border-border-strong flex justify-between items-center bg-surface">
+ <div className="flex items-center gap-2.5">
+ <div className="p-2 bg-accent/10 text-accent rounded-xl">
+ <PackagePlus size={20} />
+ </div>
+ <div>
+ <h3 className="font-bold text-base text-primary">Register New Product</h3>
+ <p className="text-xs text-text-secondary">Pre-filled with scanned barcode</p>
+ </div>
+ </div>
+ <button
+ type="button"
+ onClick={() => setRegisterModalOpen(false)}
+ className="p-1.5 text-text-muted hover:text-text-primary rounded-lg transition"
+ >
+ <X size={18} />
+ </button>
+ </div>
+
+ <form onSubmit={handleConfirmRegistration} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+ <div className="flex-1 overflow-y-auto p-6 space-y-4">
+ {registerError && (
+ <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
+ <AlertCircle size={16} />
+ <span>{registerError}</span>
+ </div>
+ )}
+ {registerSuccess && (
+ <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs flex items-center gap-2">
+ <CheckCircle2 size={16} />
+ <span>{registerSuccess}</span>
+ </div>
+ )}
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">Barcode *</label>
+ <input
+ type="text"
+ required
+ value={registerBarcode}
+ onChange={(e) => setRegisterBarcode(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-mono text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="e.g. 9312345001021"
+ />
+ </div>
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">Product Name *</label>
+ <input
+ type="text"
+ required
+ value={registerName}
+ onChange={(e) => setRegisterName(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-semibold text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="e.g. Premium Thermal Travel Mug 500ml"
+ />
+ </div>
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">SKU *</label>
+ <input
+ type="text"
+ required
+ value={registerSku}
+ onChange={(e) => setRegisterSku(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-mono text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="e.g. MUG-BLK-500"
+ />
+ </div>
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">Selling Price (AUD $) *</label>
+ <input
+ type="number"
+ required
+ min="0.01"
+ step="0.01"
+ value={registerPrice}
+ onChange={(e) => setRegisterPrice(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-semibold text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="29.95"
+ />
+ </div>
+
+ <div>
+ <label className="block text-xs font-semibold text-primary mb-1">Initial Stock for Current Branch</label>
+ <input
+ type="number"
+ min="0"
+ step="1"
+ value={registerInitialStock}
+ onChange={(e) => setRegisterInitialStock(e.target.value)}
+ className="w-full px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm text-primary focus:ring-2 focus:ring-accent/20 focus:border-accent"
+ placeholder="10"
+ />
+ </div>
+ </div>
+
+ <div className="shrink-0 px-6 py-4 border-t border-border-strong bg-surface flex justify-end gap-3 z-10">
+ <button
+ type="button"
+ onClick={() => setRegisterModalOpen(false)}
+ className="px-4 py-2 border border-border-strong text-text-secondary rounded-xl text-xs font-semibold hover:bg-surface-muted transition"
+ >
+ Cancel
+ </button>
+ <button
+ type="submit"
+ disabled={registerLoading}
+ className="px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-xl text-xs font-semibold transition disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+ >
+ {registerLoading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+ <span>Register Product</span>
+ </button>
+ </div>
+ </form>
  </div>
  </div>
  )}

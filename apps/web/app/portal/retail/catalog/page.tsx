@@ -28,6 +28,7 @@ function CatalogPageContent() {
  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
  sku: '',
+ barcode: '',
  name: '',
  sellingPrice: '',
  imageUrl: ''
@@ -112,7 +113,13 @@ function CatalogPageContent() {
  }, [branchId, search]);
 
  const openEditModal = (p: Product) => {
-    setFormData({ sku: p.sku || "", name: p.name, sellingPrice: (p.sellingPrice / 100).toString(), imageUrl: p.imageUrl || "" });
+    setFormData({
+      sku: p.sku || "",
+      barcode: p.barcode || "",
+      name: p.name,
+      sellingPrice: (p.sellingPrice / 100).toString(),
+      imageUrl: p.imageUrl || ""
+    });
     setFormError("");
     setFormSuccess("");
     setEditingProductId(p.id);
@@ -138,7 +145,7 @@ function CatalogPageContent() {
 
   const openCreateModal = () => {
     setEditingProductId(null);
- setFormData({ sku: '', name: '', sellingPrice: '', imageUrl: '' });
+ setFormData({ sku: '', barcode: '', name: '', sellingPrice: '', imageUrl: '' });
  setFormError("");
  setFormSuccess("");
  setImageUploading(false);
@@ -155,8 +162,9 @@ function CatalogPageContent() {
  if (!token) return;
 
  try {
- const payload = {
+ const payload: any = {
  sku: formData.sku,
+ barcode: formData.barcode ? formData.barcode.trim() : null,
  name: formData.name,
  sellingPrice: Math.round(parseFloat(formData.sellingPrice) * 100), // Convert to cents
  imageUrl: formData.imageUrl
@@ -346,6 +354,11 @@ function CatalogPageContent() {
  <div>
  <label className="block text-sm font-medium text-text-primary mb-1">SKU</label>
  <input required type="text" value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm font-mono" placeholder="e.g. TSHIRT-BLK-L" />
+ </div>
+
+ <div>
+ <label className="block text-sm font-medium text-text-primary mb-1">Barcode (EAN-13, UPC, Code 128)</label>
+ <input type="text" value={formData.barcode} onChange={e => setFormData({...formData, barcode: e.target.value})} className="w-full rounded-md border-border-strong shadow-sm focus:border-accent focus:ring-accent sm:text-sm font-mono" placeholder="e.g. 9312345001021" />
  </div>
 
  <div>

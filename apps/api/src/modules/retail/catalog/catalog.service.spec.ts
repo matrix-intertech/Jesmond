@@ -16,11 +16,13 @@ describe('CatalogService', () => {
     product: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       update: jest.fn(),
       findMany: jest.fn(),
     },
     retailBranch: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
     },
     auditLog: {
       create: jest.fn(),
@@ -220,6 +222,96 @@ describe('CatalogService', () => {
       await expect(
         service.updateProduct('org1', 'u1', 'p1', { name: 'A' }),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('Universal Barcode System & Lookup', () => {
+    it('16. createProduct rejects duplicate barcode within the same organization', async () => {
+      mockPrisma.product.findFirst.mockResolvedValue({
+        id: 'existing-p',
+        name: 'Existing Item',
+        barcode: '9312345001021',
+      });
+
+      await expect(
+        service.createProduct('org1', 'u1', {
+          name: 'Duplicate Item',
+          sellingPrice: 200,
+          imageUrl: 'http://img.com/b.jpg',
+          barcode: '9312345001021',
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('17. createProduct succeeds with valid unique barcode', async () => {
+      mockPrisma.product.findFirst.mockResolvedValue(null);
+      mockPrisma.product.create.mockResolvedValue({
+        id: 'p-new',
+        name: 'New Product',
+        barcode: '9312345001021',
+        sellingPrice: 1500,
+        imageUrl: 'http://img.com/new.jpg',
+      });
+
+      const res = await service.createProduct('org1', 'u1', {
+        name: 'New Product',
+        sellingPrice: 1500,
+        imageUrl: 'http://img.com/new.jpg',
+        barcode: '  9312345001021  ',
+      });
+
+      expect(res.id).toBe('p-new');
+      expect(mockPrisma.product.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ barcode: '9312345001021' }),
+        }),
+      );
+    });
+
+    it('18. lookupBarcode finds product and resolves branch inventory stock', async () => {
+      mockPrisma.retailBranch.findFirst.mockResolvedValue({ id: 'b1', organizationId: 'org1' });
+      mockPrisma.product.findFirst.mockResolvedValue({
+        id: 'p1',
+        name: 'Water Bottle',
+        sku: 'BOT-001',
+        barcode: '9312345002028',
+        sellingPrice: 2500,
+        isActive: true,
+        inventory: [{ quantity: 15 }],
+        category: { id: 'c1', name: 'Home' },
+      });
+
+      const result = await service.lookupBarcode('org1', '9312345002028', 'b1');
+      expect(result.found).toBe(true);
+      expect(result.product?.name).toBe('Water Bottle');
+      expect(result.product?.quantity).toBe(15);
+      expect(result.product?.outOfStock).toBe(false);
+    });
+
+    it('19. lookupBarcode handles unknown barcodes cleanly', async () => {
+      mockPrisma.product.findFirst.mockResolvedValue(null);
+
+      const result = await service.lookupBarcode('org1', '0000000000000');
+      expect(result.found).toBe(false);
+      expect(result.barcode).toBe('0000000000000');
+    });
+
+    it('20. lookupBarcode flags inactive and out of stock products', async () => {
+      mockPrisma.retailBranch.findFirst.mockResolvedValue({ id: 'b1', organizationId: 'org1' });
+      mockPrisma.product.findFirst.mockResolvedValue({
+        id: 'p2',
+        name: 'Sold Out Item',
+        sku: 'SOL-001',
+        barcode: '9312345009999',
+        sellingPrice: 1000,
+        isActive: false,
+        inventory: [{ quantity: 0 }],
+      });
+
+      const result = await service.lookupBarcode('org1', '9312345009999', 'b1');
+      expect(result.found).toBe(true);
+      expect(result.inactive).toBe(true);
+      expect(result.product?.outOfStock).toBe(true);
     });
   });
 });
