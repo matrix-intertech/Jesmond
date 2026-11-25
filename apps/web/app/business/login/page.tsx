@@ -19,6 +19,10 @@ import {
   ArrowUpRight,
   Loader2,
   Store,
+  Wrench,
+  Briefcase,
+  Car,
+  Utensils,
 } from 'lucide-react';
 
 function BusinessLoginContent() {
@@ -102,51 +106,95 @@ function BusinessLoginContent() {
   return (
     <div className="w-full flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-x-hidden">
       {/* Left Info Column — 50% Desktop */}
-      <div className="w-full bg-gradient-to-br from-[#24160D] via-[#1A100A] to-[#120D09] p-6 sm:p-10 lg:px-14 lg:py-12 flex flex-col justify-center relative overflow-hidden">
+      <div className="w-full bg-gradient-to-br from-[#24160D] via-[#1A100A] to-[#120D09] p-6 sm:p-10 lg:px-12 lg:py-10 flex flex-col justify-center relative overflow-hidden">
         <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#EA8A32]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-[#D6A64F]/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-xl w-full mx-auto space-y-6 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#D6A64F]/15 border border-[rgba(214,166,79,0.3)] text-[#F3D69A] text-xs font-semibold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-[#EA8A32]" />
-            <span>Partner &amp; Host Gateway</span>
+        <div className="max-w-2xl w-full mx-auto space-y-5 relative z-10">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#D6A64F]/15 border border-[rgba(214,166,79,0.3)] text-[#F3D69A] text-xs font-semibold uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-[#EA8A32]" />
+              <span>Partner &amp; Host Gateway</span>
+            </div>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#C9B69C]">
+              Manage your enterprise on Jesmond
+            </h2>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-[#FFF9EF] font-outfit tracking-tight leading-tight">
-            Manage your enterprise on Jesmond
+          <h1 className="text-2xl sm:text-3xl xl:text-4xl font-extrabold text-[#FFF9EF] font-outfit tracking-tight leading-tight">
+            Everything Your Business Needs. One Connected Platform.
           </h1>
 
-          <p className="text-sm text-[#C9B69C] leading-relaxed">
-            Access your accommodations, retail points of sale, dining menus, service bookings, and tenant requests in one unified business terminal.
+          <p className="text-xs sm:text-sm text-[#C9B69C] leading-relaxed">
+            Whether you run an automotive workshop, provide professional trade services, operate a vehicle rental business, manage accommodation or run a retail or hospitality business — Jesmond brings your operations, bookings and customers together in one platform.
           </p>
 
-          <div className="space-y-3.5 pt-2">
-            <div className="flex items-start gap-3.5 p-4 rounded-xl bg-[#120D09]/75 border border-[rgba(214,166,79,0.22)] hover:border-[#D6A64F]/45 hover:bg-[#24160D]/80 transition-colors">
-              <div className="p-2.5 rounded-lg bg-[#8B5E34]/25 border border-[#D6A64F]/30 text-[#F3D69A] mt-0.5 shrink-0">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-[#FFF9EF]">Accommodation &amp; Properties</h4>
-                <p className="text-xs text-[#C9B69C] mt-0.5">
-                  Manage listings, leases, tenant requests and rental agreements.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5 p-4 rounded-xl bg-[#120D09]/75 border border-[rgba(214,166,79,0.22)] hover:border-[#D6A64F]/45 hover:bg-[#24160D]/80 transition-colors">
-              <div className="p-2.5 rounded-lg bg-[#EA8A32]/20 border border-[#EA8A32]/35 text-[#EA8A32] mt-0.5 shrink-0">
-                <Store className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-[#FFF9EF]">Retail &amp; Hospitality POS</h4>
-                <p className="text-xs text-[#C9B69C] mt-0.5">
-                  Barcode stock management, real-time terminals and food orders.
-                </p>
-              </div>
-            </div>
+          {/* Six Business Categories — Responsive 2-Column Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {[
+              {
+                title: 'Mechanics & Automotive',
+                desc: 'Manage workshops, vehicle servicing, repair appointments, bookings and customer requests.',
+                examples: 'Mechanics • Automotive workshops • Vehicle servicing and repairs',
+                icon: Wrench,
+                iconBg: 'bg-[#EA8A32]/20 border-[#EA8A32]/35 text-[#EA8A32]',
+              },
+              {
+                title: 'Services & Tradies',
+                desc: 'Manage service listings, job requests, appointments, staff assignments and customer enquiries.',
+                examples: 'Electricians • Plumbers • Professional trades • Local service providers',
+                icon: Briefcase,
+                iconBg: 'bg-[#8B5E34]/25 border-[#D6A64F]/30 text-[#F3D69A]',
+              },
+              {
+                title: 'Rentals & Vehicle Hire',
+                desc: 'Manage vehicle rental listings, fleet availability, rental bookings and customer enquiries.',
+                examples: 'Car rentals • Vehicle hire businesses • Vehicle rental providers',
+                icon: Car,
+                iconBg: 'bg-[#EA8A32]/20 border-[#EA8A32]/35 text-[#EA8A32]',
+              },
+              {
+                title: 'Accommodation & Hospitality',
+                desc: 'Manage accommodation listings, rooms, property availability, reservations, guest services and rental operations.',
+                examples: 'Hotels • Resorts • Holiday accommodation • Property rentals and leasing',
+                icon: Building2,
+                iconBg: 'bg-[#8B5E34]/25 border-[#D6A64F]/30 text-[#F3D69A]',
+              },
+              {
+                title: 'Retail & Point of Sale',
+                desc: 'Manage products, inventory, barcode sales, transactions and retail operations.',
+                examples: 'Retail stores • Shops • Point of Sale businesses',
+                icon: Store,
+                iconBg: 'bg-[#EA8A32]/20 border-[#EA8A32]/35 text-[#EA8A32]',
+              },
+              {
+                title: 'Restaurants & Food Services',
+                desc: 'Manage menus, food orders, dining operations and customer experiences.',
+                examples: 'Restaurants • Cafes • Food businesses • Hospitality food services',
+                icon: Utensils,
+                iconBg: 'bg-[#8B5E34]/25 border-[#D6A64F]/30 text-[#F3D69A]',
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="flex items-start gap-3 p-3.5 rounded-xl bg-[#120D09]/75 border border-[rgba(214,166,79,0.22)] hover:border-[#D6A64F]/45 hover:bg-[#24160D]/80 transition-colors"
+                >
+                  <div className={`p-2 rounded-lg border mt-0.5 shrink-0 ${item.iconBg}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-semibold text-[#FFF9EF]">{item.title}</h4>
+                    <p className="text-[11px] text-[#C9B69C] mt-0.5 leading-snug">{item.desc}</p>
+                    <p className="text-[10px] text-[#D6A64F]/85 mt-1 leading-snug">{item.examples}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="pt-4 flex items-center justify-between text-xs text-[#C9B69C] border-t border-[rgba(214,166,79,0.22)]">
+          <div className="pt-3 flex items-center justify-between text-xs text-[#C9B69C] border-t border-[rgba(214,166,79,0.22)]">
             <span>Are you a student or customer?</span>
             <a
               href="https://jesmond.com.au/login"

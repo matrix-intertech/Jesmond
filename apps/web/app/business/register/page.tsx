@@ -20,12 +20,13 @@ import {
   Hotel,
   Utensils,
   Wrench,
+  Car,
 } from 'lucide-react';
 
 function BusinessRegisterContent() {
   const router = useRouter();
 
-  const [businessCategory, setBusinessCategory] = useState<'ACCOMMODATION' | 'RETAIL' | 'FOOD' | 'SERVICES'>('ACCOMMODATION');
+  const [businessCategory, setBusinessCategory] = useState<'RETAIL' | 'FOOD' | 'MECHANICS' | 'SERVICES' | 'RENTALS' | 'ACCOMMODATION'>('RETAIL');
   const [organizationName, setOrganizationName] = useState('');
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('+61');
@@ -152,17 +153,39 @@ function BusinessRegisterContent() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-6">
+          {/* Business Type Dropdown (Required) */}
+          <div>
+            <label htmlFor="business-type" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Business Type <span className="text-red-400">*</span>
+            </label>
+            <select
+              id="business-type"
+              name="businessCategory"
+              aria-label="Business Type"
+              required
+              value={businessCategory === 'ACCOMMODATION' ? 'SERVICES' : businessCategory}
+              onChange={(e) => setBusinessCategory(e.target.value as any)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple focus:border-transparent transition"
+            >
+              <option value="RETAIL">Retail</option>
+              <option value="FOOD">Food</option>
+              <option value="MECHANICS">Mechanics</option>
+              <option value="SERVICES">Services</option>
+              <option value="RENTALS">Rentals</option>
+            </select>
+          </div>
+
           {/* Business Category Selection */}
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3">
               Select Primary Business Type
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
                 {
                   id: 'ACCOMMODATION',
                   label: 'Accommodation',
-                  desc: 'Hostels, apartments, student housing',
+                  desc: 'Hotels, property rentals, student housing',
                   icon: Hotel,
                 },
                 {
@@ -178,10 +201,22 @@ function BusinessRegisterContent() {
                   icon: Utensils,
                 },
                 {
+                  id: 'MECHANICS',
+                  label: 'Mechanics & Auto',
+                  desc: 'Workshops, vehicle servicing, repairs',
+                  icon: Wrench,
+                },
+                {
                   id: 'SERVICES',
                   label: 'Services & Trades',
-                  desc: 'Auto mechanics, cleaning, repair',
-                  icon: Wrench,
+                  desc: 'Electricians, plumbers, local trades',
+                  icon: Briefcase,
+                },
+                {
+                  id: 'RENTALS',
+                  label: 'Rentals & Vehicle Hire',
+                  desc: 'Car rentals, fleet & vehicle hire',
+                  icon: Car,
                 },
               ].map((cat) => {
                 const Icon = cat.icon;

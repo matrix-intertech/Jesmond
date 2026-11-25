@@ -8,7 +8,18 @@ test.describe('Phase 2 — Business Portal Frontend & Subdomain Routing', () => 
     // Title and Enterprise Badge
     await expect(page).toHaveTitle(/Business Portal/);
     await expect(page.getByRole('heading', { name: /Manage your enterprise on Jesmond/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Everything Your Business Needs\. One Connected Platform\./i })).toBeVisible();
     await expect(page.getByText('Sign in to Business Portal')).toBeVisible();
+
+    // Six Business Categories & Vehicle Rentals vs Property Rentals distinction
+    await expect(page.getByText('Mechanics & Automotive')).toBeVisible();
+    await expect(page.getByText('Services & Tradies')).toBeVisible();
+    await expect(page.getByText('Rentals & Vehicle Hire')).toBeVisible();
+    await expect(page.getByText(/Manage vehicle rental listings, fleet availability/i)).toBeVisible();
+    await expect(page.getByText('Accommodation & Hospitality')).toBeVisible();
+    await expect(page.getByText(/Property rentals and leasing/i)).toBeVisible();
+    await expect(page.getByText('Retail & Point of Sale')).toBeVisible();
+    await expect(page.getByText('Restaurants & Food Services')).toBeVisible();
 
     // Inputs
     await expect(page.locator('input[type="email"]')).toBeVisible();
@@ -41,6 +52,23 @@ test.describe('Phase 2 — Business Portal Frontend & Subdomain Routing', () => 
     await expect(page.getByRole('button', { name: /Retail Store/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Food & Dining/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Services & Trades/i })).toBeVisible();
+
+    // Required Business Type dropdown with exact 5 options and RENTALS mapping
+    const businessTypeSelect = page.getByLabel('Business Type');
+    await expect(businessTypeSelect).toBeVisible();
+    await expect(businessTypeSelect).toHaveAttribute('required', '');
+    const optionValues = await businessTypeSelect.locator('option').evaluateAll((opts) =>
+      opts.map((o) => ({ text: o.textContent?.trim(), value: (o as HTMLOptionElement).value })),
+    );
+    expect(optionValues).toEqual([
+      { text: 'Retail', value: 'RETAIL' },
+      { text: 'Food', value: 'FOOD' },
+      { text: 'Mechanics', value: 'MECHANICS' },
+      { text: 'Services', value: 'SERVICES' },
+      { text: 'Rentals', value: 'RENTALS' },
+    ]);
+    await businessTypeSelect.selectOption('RENTALS');
+    await expect(businessTypeSelect).toHaveValue('RENTALS');
 
     // Form inputs
     await expect(page.locator('input[placeholder*="Trading Name"], input[placeholder*="Matrix Cafe"]')).toBeVisible();
