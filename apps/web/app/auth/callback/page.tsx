@@ -2,17 +2,31 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { completeSsoExchange, checkBusinessAccess } from '@/utils/sso';
-import { getDashboardRouteForUser } from '@/utils/auth';
-import { Loader2, ShieldCheck, AlertCircle, ArrowLeft } from 'lucide-react';
+import {
+  completeSsoExchange,
+  checkBusinessAccess,
+  resolveBusinessAuthDestination,
+  applyActiveOrganizationToUser,
+  BusinessOrganizationSummary,
+} from '@/utils/sso';
+import { getDashboardRouteForUser, User } from '@/utils/auth';
+import { Loader2, ShieldCheck, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 function SsoCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [status, setStatus] = useState<'exchanging' | 'verifying' | 'error'>('exchanging');
+  const [status, setStatus] = useState<'exchanging' | 'verifying' | 'select_org' | 'error'>('exchanging');
   const [errorMessage, setErrorMessage] = useState('');
+  const [pendingUser, setPendingUser] = useState<User | null>(null);
+  const [orgChoices, setOrgChoices] = useState<BusinessOrganizationSummary[]>([]);
+
+  const handleSelectOrg = (org: BusinessOrganizationSummary) => {
+    if (!pendingUser) return;
+    const updatedUser = applyActiveOrganizationToUser(pendingUser, org);
+    router.replace(getDashboardRouteForUser(updatedUser));
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -46,13 +60,21 @@ function SsoCallbackContent() {
         if (isMounted) setStatus('verifying');
         // Validate business organization permissions on the backend
         const accessCheck = await checkBusinessAccess();
+        const resolution = resolveBusinessAuthDestination(exchangeResult.user, accessCheck);
 
-        if (accessCheck.hasBusinessAccess) {
-          const target = getDashboardRouteForUser(exchangeResult.user);
-          router.replace(target);
-        } else {
+        if (resolution.action === 'redirect') {
+          router.replace(resolution.destination);
+        } else if (resolution.action === 'select_organization') {
+          if (isMounted) {
+            setPendingUser(exchangeResult.user);
+            setOrgChoices(resolution.organizations);
+            setStatus('select_org');
+          }
+        } else if (resolution.action === 'onboarding') {
           // Authenticated customer/student entering business portal without an organization
           router.replace('/business/onboarding');
+        } else {
+          throw new Error(resolution.message);
         }
       } catch (err: any) {
         if (isMounted) {
@@ -89,6 +111,33 @@ function SsoCallbackContent() {
             <p className="text-xs text-slate-400">
               Synchronizing partner credentials and loading business dashboard...
             </p>
+          </div>
+        )}
+
+        {status === 'select_org' && (
+          <div className="space-y-4 text-left">
+            <h2 className="text-xl font-bold font-outfit text-white text-center">Select Organization</h2>
+            <p className="text-xs text-slate-400 text-center">
+              Choose which authorized business organization to open:
+            </p>
+            <div className="space-y-2">
+              {orgChoices.map((org) => (
+                <button
+                  key={org.organizationId}
+                  type="button"
+                  onClick={() => handleSelectOrg(org)}
+                  className="w-full text-left p-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500 transition flex items-center justify-between gap-3"
+                >
+                  <div>
+                    <div className="text-sm font-semibold text-white">{org.organizationName}</div>
+                    <div className="text-[11px] text-slate-400">
+                      {org.businessCategory || org.orgType} • {org.role}
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-amber-400 shrink-0" />
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

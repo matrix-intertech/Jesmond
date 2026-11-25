@@ -54,29 +54,32 @@ test.describe('Jesmond 2.0 - Auth Recovery Lifecycle & Dashboard Routing', () =>
       expect(getDashboardRouteForUser({ role: 'SUPER_ADMIN' })).toBe('/admin');
     });
 
-    test('ORG_STAFF + PROVIDER / AGENCY maps to /portal', () => {
-      expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'PROVIDER' })).toBe('/portal');
-      expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'AGENCY' })).toBe('/portal');
+    test('ORG_STAFF + PROVIDER / AGENCY maps to /accommodation', () => {
+      expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'PROVIDER' })).toBe('/accommodation');
+      expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'AGENCY' })).toBe('/accommodation');
     });
 
-    test('ORG_STAFF + RETAIL + SERVICES / MECHANICS maps to /portal/business/appointments', () => {
+    test('ORG_STAFF + RETAIL + SERVICES / MECHANICS maps to /services and /mechanics', () => {
       expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'SERVICES' })).toBe(
-        '/portal/business/appointments',
+        '/services',
       );
       expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'MECHANICS' })).toBe(
-        '/portal/business/appointments',
+        '/mechanics',
       );
     });
 
-    test('ORG_STAFF + RETAIL + FOOD maps to /portal/business/orders', () => {
+    test('ORG_STAFF + RETAIL + FOOD maps to /food', () => {
       expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'FOOD' })).toBe(
-        '/portal/business/orders',
+        '/food',
       );
     });
 
-    test('ORG_STAFF + RETAIL + RETAIL maps to /portal/retail', () => {
+    test('ORG_STAFF + RETAIL + RETAIL / RENTALS maps to /retail and /rentals', () => {
       expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'RETAIL' })).toBe(
-        '/portal/retail',
+        '/retail',
+      );
+      expect(getDashboardRouteForUser({ role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'RENTALS' })).toBe(
+        '/rentals',
       );
     });
 
@@ -273,7 +276,7 @@ test.describe('Jesmond 2.0 - Auth Recovery Lifecycle & Dashboard Routing', () =>
       const result = await restoreUserSession();
       expect(result.status).toBe('ok');
       expect(result.user?.businessCategory).toBeUndefined();
-      expect(getDashboardRouteForUser(result.user)).toBe('/portal/retail');
+      expect(getDashboardRouteForUser(result.user)).toBe('/retail');
       expect(getCurrentUser()?.businessCategory).toBeUndefined();
     });
 
@@ -374,7 +377,7 @@ test.describe('Jesmond 2.0 - Auth Recovery Lifecycle & Dashboard Routing', () =>
       const result = await restoreUserSession();
       expect(result.status).toBe('ok');
       expect(result.user?.businessCategory).toBe('SERVICES');
-      expect(getDashboardRouteForUser(result.user)).toBe('/portal/business/appointments');
+      expect(getDashboardRouteForUser(result.user)).toBe('/services');
       expect(getCurrentUser()?.businessCategory).toBe('SERVICES');
     });
 
@@ -556,21 +559,22 @@ test.describe('Jesmond 2.0 - Auth Recovery Lifecycle & Dashboard Routing', () =>
       const result = await restoreUserSession();
       expect(result.status).toBe('ok');
       expect(result.user?.businessCategory).toBe('MECHANICS');
-      expect(getDashboardRouteForUser(result.user)).toBe('/portal/business/appointments');
+      expect(getDashboardRouteForUser(result.user)).toBe('/mechanics');
       expect(getCurrentUser()?.businessCategory).toBe('MECHANICS');
     });
 
-    test('All 9 distinct roles route deterministically without ambiguity', () => {
+    test('All 10 distinct roles route deterministically without ambiguity', () => {
       const testCases: Array<{ user: Partial<User>; expectedRoute: string }> = [
         { user: { role: 'STUDENT' }, expectedRoute: '/student' },
         { user: { role: 'ADMIN' }, expectedRoute: '/admin' },
         { user: { role: 'SUPER_ADMIN' }, expectedRoute: '/admin' },
-        { user: { role: 'ORG_STAFF', orgType: 'PROVIDER' }, expectedRoute: '/portal' },
-        { user: { role: 'ORG_STAFF', orgType: 'AGENCY' }, expectedRoute: '/portal' },
-        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'RETAIL' }, expectedRoute: '/portal/retail' },
-        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'FOOD' }, expectedRoute: '/portal/business/orders' },
-        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'SERVICES' }, expectedRoute: '/portal/business/appointments' },
-        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'MECHANICS' }, expectedRoute: '/portal/business/appointments' },
+        { user: { role: 'ORG_STAFF', orgType: 'PROVIDER' }, expectedRoute: '/accommodation' },
+        { user: { role: 'ORG_STAFF', orgType: 'AGENCY' }, expectedRoute: '/accommodation' },
+        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'RETAIL' }, expectedRoute: '/retail' },
+        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'FOOD' }, expectedRoute: '/food' },
+        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'SERVICES' }, expectedRoute: '/services' },
+        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'MECHANICS' }, expectedRoute: '/mechanics' },
+        { user: { role: 'ORG_STAFF', orgType: 'RETAIL', businessCategory: 'RENTALS' }, expectedRoute: '/rentals' },
       ];
 
       for (const tc of testCases) {

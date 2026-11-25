@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { setAccessToken, setCurrentUser } from '@/utils/auth';
-import { checkBusinessAccess } from '@/utils/sso';
+import { checkBusinessAccess, resolveBusinessAuthDestination } from '@/utils/sso';
 import { ShieldCheck, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
 function BusinessVerifyContent() {
@@ -67,10 +67,15 @@ function BusinessVerifyContent() {
 
       // Check if user has active business access
       const accessStatus = await checkBusinessAccess();
-      if (accessStatus.hasBusinessAccess) {
-        router.push('/portal');
-      } else {
+      const resolution = resolveBusinessAuthDestination(data.user, accessStatus);
+      if (resolution.action === 'redirect') {
+        router.push(resolution.destination);
+      } else if (resolution.action === 'select_organization') {
+        router.push('/business/login');
+      } else if (resolution.action === 'onboarding') {
         router.push('/business/onboarding');
+      } else {
+        throw new Error(resolution.message);
       }
     } catch (err: any) {
       setError(err.message || 'Verification failed.');

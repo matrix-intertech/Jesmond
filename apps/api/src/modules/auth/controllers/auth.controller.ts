@@ -43,16 +43,8 @@ export class AuthController {
     return this.authService.registerStudent(dto);
   }
 
-  @HttpCode(HttpStatus.OK)
-  @Post('login')
-  async login(
-    @Request() req: any,
-    @Response({ passthrough: true }) res: any,
-    @Body() dto: LoginDto,
-  ) {
-    const ipAddress = req.ip;
-    const userAgent = req.headers['user-agent'];
-    const result = await this.authService.login(dto, { ipAddress, userAgent });
+  private setSessionCookie(req: any, res: any, token?: string) {
+    if (!res?.cookie || !token) return;
 
     const hostHeader = (
       (req.headers?.['x-forwarded-host'] as string) ||
@@ -73,7 +65,8 @@ export class AuthController {
     const isProd =
       process.env.NODE_ENV === 'production' ||
       process.env.COOKIE_SECURE === 'true';
-    const isSecureContext = isProd || req.secure || req.headers['x-forwarded-proto'] === 'https';
+    const isSecureContext =
+      isProd || req.secure || req.headers['x-forwarded-proto'] === 'https';
 
     const cookieName = isSecureContext
       ? isBusiness
@@ -83,16 +76,26 @@ export class AuthController {
         ? 'business-session'
         : 'student-session';
 
-    if (res?.cookie && result.access_token) {
-      res.cookie(cookieName, result.access_token, {
-        httpOnly: true,
-        secure: isSecureContext,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-    }
+    res.cookie(cookieName, token, {
+      httpOnly: true,
+      secure: isSecureContext,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('login')
+  async login(
+    @Request() req: any,
+    @Response({ passthrough: true }) res: any,
+    @Body() dto: LoginDto,
+  ) {
+    const ipAddress = req.ip;
+    const userAgent = req.headers['user-agent'];
+    const result = await this.authService.login(dto, { ipAddress, userAgent });
+    this.setSessionCookie(req, res, result.access_token);
     return result;
   }
 
@@ -106,10 +109,19 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('verify-email')
-  async verifyEmail(@Request() req: any, @Body() dto: VerifyEmailDto) {
+  async verifyEmail(
+    @Request() req: any,
+    @Response({ passthrough: true }) res: any,
+    @Body() dto: VerifyEmailDto,
+  ) {
     const ipAddress = req.ip;
     const userAgent = req.headers['user-agent'];
-    return this.authService.verifyEmail(dto, { ipAddress, userAgent });
+    const result = await this.authService.verifyEmail(dto, {
+      ipAddress,
+      userAgent,
+    });
+    this.setSessionCookie(req, res, result.access_token);
+    return result;
   }
 
   @HttpCode(HttpStatus.OK)

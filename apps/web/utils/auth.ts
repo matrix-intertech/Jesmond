@@ -16,10 +16,25 @@ export interface User {
 }
 
 let inMemoryBusinessToken: string | null = null;
+const SELECTED_ORG_STORAGE_KEY = 'jesmond_selected_organization_id';
+
+export const getSelectedOrganizationId = (): string | null => {
+  if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return null;
+  return sessionStorage.getItem(SELECTED_ORG_STORAGE_KEY);
+};
+
+export const setSelectedOrganizationId = (orgId: string | null | undefined) => {
+  if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
+  if (!orgId) {
+    sessionStorage.removeItem(SELECTED_ORG_STORAGE_KEY);
+    return;
+  }
+  sessionStorage.setItem(SELECTED_ORG_STORAGE_KEY, orgId);
+};
 
 export const isBusinessHost = (): boolean => {
   if (typeof window === 'undefined') return false;
-  return window.location.hostname.toLowerCase().startsWith('business.');
+  return !!window.location?.hostname?.toLowerCase().startsWith('business.');
 };
 
 export const getAccessToken = (): string | null => {
@@ -68,6 +83,9 @@ export const setCurrentUser = (user: User | Partial<User> | null | undefined) =>
 export const clearAuth = () => {
   if (typeof window === 'undefined') return;
   inMemoryBusinessToken = null;
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem(SELECTED_ORG_STORAGE_KEY);
+  }
   localStorage.removeItem('access_token');
   localStorage.removeItem('token');
   localStorage.removeItem('user');
@@ -131,6 +149,10 @@ export async function restoreUserSession(options?: {
     };
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+    }
+    const selectedOrgId = getSelectedOrganizationId() || cached?.organizationId;
+    if (selectedOrgId) {
+      headers['X-Organization-Id'] = selectedOrgId;
     }
 
     const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
@@ -250,31 +272,42 @@ export const getDashboardRouteForUser = (user: Partial<User> | null | undefined)
     case 'SUPER_ADMIN':
       return '/admin';
     case 'ORG_STAFF': {
-      const orgType = user.orgType;
+      const orgType = (user.orgType || '').toUpperCase();
       const category = (user.businessCategory || '').toUpperCase();
 
-      // 1. Business Category takes precedence for specialized business operations
-      if (category === 'RETAIL') {
-        return '/portal/retail';
+      // 1. Accommodation providers & agencies (property rentals remain under Accommodation)
+      if (
+        category === 'ACCOMMODATION' ||
+        ((orgType === 'PROVIDER' || orgType === 'AGENCY') &&
+          !['FOOD', 'MECHANICS', 'SERVICES'].includes(category))
+      ) {
+        return '/accommodation';
       }
-      if (category === 'SERVICES' || category === 'MECHANICS') {
-        return '/portal/business/appointments';
+
+      // 2. Specialized commercial categories
+      if (category === 'RETAIL') {
+        return '/retail';
       }
       if (category === 'FOOD') {
-        return '/portal/business/orders';
+        return '/food';
+      }
+      if (category === 'MECHANICS') {
+        return '/mechanics';
+      }
+      if (category === 'SERVICES') {
+        return '/services';
+      }
+      if (category === 'RENTALS') {
+        return '/rentals';
       }
 
-      // 2. Organization Type determines sector dashboard
-      if (orgType === 'PROVIDER' || orgType === 'AGENCY') {
-        return '/portal';
-      }
-
+      // 3. Fallback by organization type
       if (orgType === 'RETAIL') {
-        return '/portal/retail';
+        return '/retail';
       }
 
       // Safe fallback when organization context is incomplete:
-      // Do NOT default to PROVIDER (/portal). Direct to user profile to complete setup.
+      // Do NOT default to PROVIDER. Direct to user profile to complete setup.
       return '/settings/profile';
     }
     default:
@@ -326,7 +359,10 @@ export const getDashboardHeading = (user: Partial<User> | null | undefined): str
       if (category === 'FOOD') {
         return 'Food Business Dashboard';
       }
-      if (category === 'RETAIL') {
+      if (category === 'RENTALS' && orgType !== 'PROVIDER' && orgType !== 'AGENCY') {
+        return 'Rentals Dashboard';
+      }
+      if (category === 'RETAIL' && orgType !== 'PROVIDER' && orgType !== 'AGENCY') {
         return 'Retail Business Dashboard';
       }
 
@@ -389,6 +425,42 @@ export const isAuthorizedRouteForUser = (
     return role === 'STUDENT';
   }
 
+  // Business Portal clean routes
+  if (route === '/accommodation' || route.startsWith('/accommodation/')) {
+    if (role !== 'ORG_STAFF') return false;
+    if (['FOOD', 'MECHANICS', 'SERVICES'].includes(category)) return false;
+    return orgType === 'PROVIDER' || orgType === 'AGENCY' || category === 'ACCOMMODATION';
+  }
+
+  if (route === '/retail' || route.startsWith('/retail/')) {
+    if (role !== 'ORG_STAFF') return false;
+    if (['SERVICES', 'MECHANICS', 'FOOD'].includes(category)) return false;
+    if ((orgType === 'PROVIDER' || orgType === 'AGENCY') && category !== 'RETAIL') return false;
+    return orgType === 'RETAIL' || category === 'RETAIL';
+  }
+
+  if (route === '/food' || route.startsWith('/food?')) {
+    if (role !== 'ORG_STAFF') return false;
+    return category === 'FOOD' || orgType === 'RETAIL';
+  }
+
+  if (route === '/mechanics' || route.startsWith('/mechanics/')) {
+    return role === 'ORG_STAFF' && category === 'MECHANICS';
+  }
+
+  if (route === '/services' || route.startsWith('/services/')) {
+    return role === 'ORG_STAFF' && category === 'SERVICES';
+  }
+
+  if (route === '/rentals' || route.startsWith('/rentals/')) {
+    return (
+      role === 'ORG_STAFF' &&
+      category === 'RENTALS' &&
+      orgType !== 'PROVIDER' &&
+      orgType !== 'AGENCY'
+    );
+  }
+
   // Portal routes
   if (route.startsWith('/portal')) {
     if (role !== 'ORG_STAFF') return false;
@@ -407,7 +479,11 @@ export const isAuthorizedRouteForUser = (
       route.startsWith('/portal/business/availability') ||
       route.startsWith('/portal/business/customers')
     ) {
-      return category === 'SERVICES' || category === 'MECHANICS';
+      return (
+        category === 'SERVICES' ||
+        category === 'MECHANICS' ||
+        (category === 'RENTALS' && orgType !== 'PROVIDER' && orgType !== 'AGENCY')
+      );
     }
 
     // Food business routes

@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuth, getCurrentUser, User } from "@/utils/auth";
+import { getStudentPortalUrl } from "@/utils/sso";
 import { useState, useEffect } from "react";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { canUseBusinessCapability } from "@/utils/capabilities";
@@ -1072,8 +1073,8 @@ export default function Sidebar({ role }: { role: string }) {
               </div>
             </div>
           </div>
-          <Link
-            href="/"
+          <a
+            href={getStudentPortalUrl()}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 mb-2 bg-surface border border-border-strong rounded-xl text-text-primary hover:bg-surface-muted transition-all font-medium text-sm shadow-sm"
           >
             <svg
@@ -1090,7 +1091,7 @@ export default function Sidebar({ role }: { role: string }) {
               <line x1="10" y1="14" x2="21" y2="3" />
             </svg>
             Visit Site
-          </Link>
+          </a>
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-surface border border-border-strong rounded-xl text-text-primary hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all font-medium text-sm shadow-sm"

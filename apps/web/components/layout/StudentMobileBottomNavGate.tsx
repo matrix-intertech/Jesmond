@@ -1,15 +1,17 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import MobileBottomNav from "./MobileBottomNav";
-import { getCurrentUser, type User } from "@/utils/auth";
+import { getCurrentUser, isBusinessHost, type User } from "@/utils/auth";
 
 const hiddenPrefixes = [
  "/login",
  "/register",
  "/forgot-password",
  "/reset-password",
+ "/business",
+ "/auth/callback",
 ];
 
 const protectedPrefixes = [
@@ -24,10 +26,16 @@ const protectedPrefixes = [
 export default function StudentMobileBottomNavGate() {
  const pathname = usePathname();
  const [user, setUser] = useState<User | null>(null);
+ const [isBusinessDomain, setIsBusinessDomain] = useState(false);
 
  useEffect(() => {
  setUser(getCurrentUser());
+ setIsBusinessDomain(isBusinessHost());
  }, []);
+
+ if (isBusinessDomain) {
+ return null;
+ }
 
  if (hiddenPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
  return null;

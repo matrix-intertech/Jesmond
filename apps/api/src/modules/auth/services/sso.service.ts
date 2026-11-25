@@ -331,7 +331,7 @@ export class SsoService {
    * Verifies if a user has active business organization credentials.
    * Enforces backend authorization so non-business users cannot access the Business Portal.
    */
-  async checkBusinessAccess(userId: string) {
+  async checkBusinessAccess(userId: string, requestedOrgId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -376,6 +376,15 @@ export class SsoService {
     }));
 
     const hasBusinessAccess = isAdmin || activeOrgs.length > 0;
+    const normalizedRequestedOrgId = requestedOrgId?.trim();
+    const matchedOrg = normalizedRequestedOrgId
+      ? activeOrgs.find((o) => o.organizationId === normalizedRequestedOrgId) ||
+        null
+      : null;
+    const activeOrganization =
+      matchedOrg || (activeOrgs.length === 1 ? activeOrgs[0] : null);
+    const requiresOrganizationSelection =
+      activeOrgs.length > 1 && !matchedOrg;
 
     return {
       userId: user.id,
@@ -383,8 +392,9 @@ export class SsoService {
       role: user.role,
       hasBusinessAccess,
       isAdmin,
+      requiresOrganizationSelection,
       organizations: activeOrgs,
-      activeOrganization: activeOrgs.length > 0 ? activeOrgs[0] : null,
+      activeOrganization,
     };
   }
 

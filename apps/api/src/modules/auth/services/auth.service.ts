@@ -430,14 +430,24 @@ export class AuthService {
       },
     });
 
+    const hasMultipleOrgs = user.orgStaffRoles.length > 1;
     const activeRole =
-      user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
+      user.orgStaffRoles.length === 1 ? user.orgStaffRoles[0] : undefined;
     const organizationId = activeRole?.organizationId;
     const orgType = activeRole?.organization?.type;
     const businessCategory = activeRole?.organization?.businessCategory;
     const orgRole = activeRole?.role;
     const permissions = activeRole?.permissions || [];
     const retailBranchId = activeRole?.retailBranchId;
+    const organizations = user.orgStaffRoles.map((staff) => ({
+      organizationId: staff.organizationId,
+      organizationName: staff.organization?.name,
+      orgType: staff.organization?.type,
+      businessCategory: staff.organization?.businessCategory,
+      role: staff.role,
+      permissions: staff.permissions,
+      retailBranchId: staff.retailBranchId,
+    }));
 
     const payload = {
       sub: user.id,
@@ -450,6 +460,8 @@ export class AuthService {
 
     return {
       access_token,
+      requiresOrganizationSelection: hasMultipleOrgs,
+      organizations,
       user: {
         id: user.id,
         email: user.email,
@@ -1016,14 +1028,24 @@ export class AuthService {
       },
     });
 
+    const hasMultipleOrgs = user.orgStaffRoles.length > 1;
     const activeRole =
-      user.orgStaffRoles.length > 0 ? user.orgStaffRoles[0] : undefined;
+      user.orgStaffRoles.length === 1 ? user.orgStaffRoles[0] : undefined;
     const organizationId = activeRole?.organizationId;
     const orgType = activeRole?.organization?.type;
     const businessCategory = activeRole?.organization?.businessCategory;
     const orgRole = activeRole?.role;
     const permissions = activeRole?.permissions || [];
     const retailBranchId = activeRole?.retailBranchId;
+    const organizations = user.orgStaffRoles.map((staff) => ({
+      organizationId: staff.organizationId,
+      organizationName: staff.organization?.name,
+      orgType: staff.organization?.type,
+      businessCategory: staff.organization?.businessCategory,
+      role: staff.role,
+      permissions: staff.permissions,
+      retailBranchId: staff.retailBranchId,
+    }));
 
     const payload = {
       sub: user.id,
@@ -1036,6 +1058,8 @@ export class AuthService {
 
     return {
       access_token,
+      requiresOrganizationSelection: hasMultipleOrgs,
+      organizations,
       user: {
         id: user.id,
         email: user.email,

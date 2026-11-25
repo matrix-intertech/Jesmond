@@ -3,16 +3,17 @@ import { test, expect } from '@playwright/test';
 test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', () => {
 
   const setupAuthSession = async (page: any, user: any, token = 'mock-valid-jwt.eyJzdWIiOiJ1c2VyLTEifQ.sig') => {
-    const corsHeaders = {
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': '*',
-      'Access-Control-Allow-Methods': '*',
-    };
-
     // Intercept all requests containing /api/v1/ via RegExp so 127.0.0.1, localhost, or relative URLs are all matched
     await page.route(/\/api\/v1\//, async (route: any) => {
-      if (route.request().method() === 'OPTIONS') {
+      const req = route.request();
+      const corsHeaders = {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Access-Control-Allow-Origin': req.headers()['origin'] || 'http://localhost:3005',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Organization-Id, Cache-Control, Pragma',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      };
+      if (req.method() === 'OPTIONS') {
         await route.fulfill({ status: 204, headers: corsHeaders });
         return;
       }
@@ -179,9 +180,9 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     await setupAuthSession(page, serviceProviderUser);
     await page.goto('/portal/retail');
 
-    // Redirection boundary should intercept and redirect to /portal/business/appointments
-    await page.waitForURL('**/portal/business/appointments', { timeout: 10_000 });
-    expect(page.url()).toContain('/portal/business/appointments');
+    // Redirection boundary should intercept and redirect to /services
+    await page.waitForURL('**/services', { timeout: 10_000 });
+    expect(page.url()).toContain('/services');
   });
 
   test('8. Browser Refresh maintains authenticated session', async ({ page }) => {
@@ -204,14 +205,21 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
 
   test('9. Expired or Revoked Session (401) redirects to login', async ({ page }) => {
     await page.route(/\/api\/v1\//, async (route: any) => {
+      const req = route.request();
+      const corsHeaders = {
+        'Access-Control-Allow-Origin': req.headers()['origin'] || 'http://localhost:3005',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Organization-Id, Cache-Control, Pragma',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      };
+      if (req.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders });
+        return;
+      }
       await route.fulfill({
         status: 401,
         contentType: 'application/json',
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': '*',
-          'Access-Control-Allow-Methods': '*',
-        },
+        headers: corsHeaders,
         body: JSON.stringify({ message: 'Unauthorized session' }),
       });
     });

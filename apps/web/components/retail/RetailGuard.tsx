@@ -95,10 +95,18 @@ export default function RetailGuard({
         return;
       }
 
-      const isApptBusiness = userCat === "SERVICES" || userCat === "MECHANICS";
+      const isNonRetailCommerceCategory =
+        userCat === "SERVICES" ||
+        userCat === "MECHANICS" ||
+        userCat === "FOOD" ||
+        (userCat === "RENTALS" &&
+          user.orgType !== "PROVIDER" &&
+          user.orgType !== "AGENCY");
       const currentPath =
         typeof window !== "undefined" ? window.location.pathname : "";
       const isCommerceOnlyRoute =
+        currentPath === "/retail" ||
+        currentPath.startsWith("/retail/") ||
         currentPath === "/portal/retail" ||
         currentPath.startsWith("/portal/retail/pos") ||
         currentPath.startsWith("/portal/retail/catalog") ||
@@ -108,8 +116,8 @@ export default function RetailGuard({
         currentPath.startsWith("/portal/retail/terminals") ||
         currentPath.startsWith("/portal/retail/employees");
 
-      if (isApptBusiness && isCommerceOnlyRoute) {
-        router.replace("/portal/business/appointments");
+      if (isNonRetailCommerceCategory && isCommerceOnlyRoute) {
+        router.replace(getDashboardRouteForUser(user));
         return;
       }
 

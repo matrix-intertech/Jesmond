@@ -3,8 +3,18 @@
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getCurrentUser, User, setCurrentUser, getAccessToken } from '@/utils/auth';
-import { checkBusinessAccess, logoutBusinessSession } from '@/utils/sso';
+import {
+  getCurrentUser,
+  User,
+  setCurrentUser,
+  getAccessToken,
+  getDashboardRouteForUser,
+} from '@/utils/auth';
+import {
+  checkBusinessAccess,
+  logoutBusinessSession,
+  resolveBusinessAuthDestination,
+} from '@/utils/sso';
 import { cleanAbn, formatAbn, validateAbnChecksum } from '@/utils/abn';
 import {
   Building2,
@@ -150,8 +160,13 @@ function BusinessOnboardingContent() {
       // Check existing business organization access
       try {
         const status = await checkBusinessAccess();
-        if (status.hasBusinessAccess) {
-          router.replace('/portal');
+        const resolution = resolveBusinessAuthDestination(cur, status);
+        if (resolution.action === 'redirect') {
+          router.replace(resolution.destination);
+          return;
+        }
+        if (resolution.action === 'select_organization') {
+          router.replace('/business/login');
           return;
         }
       } catch (err) {
@@ -360,20 +375,18 @@ function BusinessOnboardingContent() {
     }
   };
 
-  // Get destination dashboard URL based on category
+  // Get destination dashboard URL based on centralized resolver
   const getDestinationDashboard = useCallback(() => {
-    switch (form.category) {
-      case 'ACCOMMODATION':
-        return '/portal';
-      case 'RETAIL':
-        return '/portal/retail';
-      case 'FOOD':
-        return '/portal/business/orders';
-      case 'SERVICES':
-        return '/portal/business/appointments';
-      default:
-        return '/portal';
+    const currentUser = getCurrentUser();
+    if (currentUser && (currentUser.orgType || currentUser.businessCategory)) {
+      return getDashboardRouteForUser(currentUser);
     }
+    const fallbackOrgType = form.category === 'ACCOMMODATION' ? 'PROVIDER' : 'RETAIL';
+    return getDashboardRouteForUser({
+      role: 'ORG_STAFF',
+      orgType: fallbackOrgType,
+      businessCategory: form.category === 'ACCOMMODATION' ? undefined : form.category,
+    });
   }, [form.category]);
 
   const handleLaunchDashboard = () => {

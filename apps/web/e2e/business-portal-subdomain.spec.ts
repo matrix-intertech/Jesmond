@@ -142,5 +142,81 @@ test.describe('Phase 2 — Business Portal Frontend & Subdomain Routing', () => 
     const sessionToken = await page.evaluate(() => sessionStorage.getItem('access_token'));
     expect(sessionToken).toBeNull();
   });
+
+  const viewports = [
+    { name: 'mobile-440x956', width: 440, height: 956 },
+    { name: 'mobile-390x844', width: 390, height: 844 },
+    { name: 'mobile-375x812', width: 375, height: 812 },
+    { name: 'desktop-1440x900', width: 1440, height: 900 },
+  ];
+
+  for (const vp of viewports) {
+    test(`Business Portal layout has no bottom white strip, no public mobile nav, and zero overflow at ${vp.width}x${vp.height}`, async ({
+      page,
+    }) => {
+      const consoleErrors: string[] = [];
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') consoleErrors.push(msg.text());
+      });
+
+      const baseUrl = process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.BASE_URL || 'http://localhost:3005';
+      const parsed = new URL(baseUrl);
+      const businessLoginUrl = `${parsed.protocol}//business.${parsed.host}/login`;
+
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto(businessLoginUrl);
+
+      await expect(page.getByText('Sign in to Business Portal')).toBeVisible();
+
+      // Public mobile bottom nav must NOT be rendered/visible on Business Portal
+      await expect(page.locator('nav[aria-label="Primary mobile navigation"]')).toHaveCount(0);
+      await expect(page.getByRole('link', { name: 'Guide' })).toHaveCount(0);
+
+      // No horizontal overflow
+      const hasOverflow = await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      );
+      expect(hasOverflow).toBe(false);
+
+      // Root background must be dark brown (#1A100A -> rgb(26, 16, 10)), not white/light
+      const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(bodyBg).toBe('rgb(26, 16, 10)');
+
+      // Footer must be accessible and flush with bottom of document (no 92px white gap)
+      const footer = page.locator('footer');
+      await footer.scrollIntoViewIfNeeded();
+      await expect(footer).toBeVisible();
+      const gapBelowFooter = await page.evaluate(() => {
+        const f = document.querySelector('footer');
+        if (!f) return -1;
+        const rect = f.getBoundingClientRect();
+        const docBottom = Math.max(document.documentElement.scrollHeight, window.innerHeight);
+        const footerBottomInDoc = rect.bottom + window.scrollY;
+        return Math.round(docBottom - footerBottomInDoc);
+      });
+      expect(gapBelowFooter).toBeLessThanOrEqual(2);
+
+      // Capture screenshot for visual verification
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.screenshot({
+        path: `C:/Users/Shikhar/.gemini/antigravity/brain/3dc3351f-37ff-48b7-98d1-a24657b912b1/screenshots/business-mobile-fix/${vp.name}.png`,
+        fullPage: false,
+      });
+
+      expect(consoleErrors).toEqual([]);
+    });
+  }
+
+  test('Main public website still renders mobile bottom navigation at 440x956', async ({ page }) => {
+    await page.setViewportSize({ width: 440, height: 956 });
+    await page.goto('/');
+
+    const mobileNav = page.locator('nav[aria-label="Primary mobile navigation"]');
+    await expect(mobileNav).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Home' })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Search' })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Businesses' })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Guide' })).toBeVisible();
+  });
 });
 

@@ -17,7 +17,15 @@ export default function BusinessLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full flex flex-col bg-[#1A100A] text-[#FFF9EF] font-sans selection:bg-[#EA8A32] selection:text-[#120D09] overflow-x-hidden">
+    <div className="min-h-dvh w-full flex flex-col bg-[#1A100A] text-[#FFF9EF] font-sans selection:bg-[#EA8A32] selection:text-[#120D09] overflow-x-hidden">
+      <style>{`
+        html, body {
+          background-color: #1A100A !important;
+        }
+        .student-mobile-bottom-nav {
+          display: none !important;
+        }
+      `}</style>
       {/* Full-Width Enterprise Header */}
       <header className="w-full border-b border-[rgba(214,166,79,0.22)] bg-[#120D09]/95 backdrop-blur-md sticky top-0 z-50">
         <div className="w-full px-3 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-2 sm:gap-4">
@@ -67,7 +75,7 @@ export default function BusinessLayout({
       <main className="flex-1 w-full flex flex-col justify-center">{children}</main>
 
       {/* Full-Width Enterprise Footer */}
-      <footer className="w-full border-t border-[rgba(214,166,79,0.22)] bg-[#120D09] py-5 text-xs text-[#C9B69C]">
+      <footer className="w-full border-t border-[rgba(214,166,79,0.22)] bg-[#120D09] pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-xs text-[#C9B69C]">
         <div className="w-full px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>&copy; {new Date().getFullYear()} Jesmond Holdings Pty Ltd. All rights reserved.</p>
           <div className="flex items-center space-x-6">

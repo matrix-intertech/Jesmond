@@ -87,7 +87,12 @@ export class SsoController {
   @UseGuards(JwtAuthGuard)
   @Get('business-check')
   async checkBusinessAccess(@Request() req: any) {
-    return this.ssoService.checkBusinessAccess(req.user.id);
+    const requestedOrgId = req?.headers?.['x-organization-id'] as
+      | string
+      | undefined;
+    return requestedOrgId
+      ? this.ssoService.checkBusinessAccess(req.user.id, requestedOrgId)
+      : this.ssoService.checkBusinessAccess(req.user.id);
   }
 
   /**

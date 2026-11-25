@@ -167,10 +167,22 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       // Exactly one active membership: automatic selection is safe and permissible
       activeRole = activeStaffRoles[0];
     } else if (activeStaffRoles.length > 1) {
-      // Multiple active memberships: require explicit organization selection
-      throw new ForbiddenException(
-        'Multiple active organization memberships found. Explicit organization selection is required via the X-Organization-Id header.',
-      );
+      // Allow multi-org discovery and logout endpoints without X-Organization-Id
+      const requestPath = (
+        req?.originalUrl ||
+        req?.url ||
+        req?.path ||
+        ''
+      ).toLowerCase();
+      const isOrgDiscoveryRoute =
+        requestPath.includes('/auth/sso/business-check') ||
+        requestPath.includes('/auth/sso/logout');
+      if (!isOrgDiscoveryRoute) {
+        // Multiple active memberships: require explicit organization selection
+        throw new ForbiddenException(
+          'Multiple active organization memberships found. Explicit organization selection is required via the X-Organization-Id header.',
+        );
+      }
     }
 
     const organizationId = activeRole?.organizationId;

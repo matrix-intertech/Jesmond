@@ -9,6 +9,7 @@ import {
   setCurrentUser,
   getDashboardRouteForUser,
   isAuthorizedRouteForUser,
+  isBusinessHost,
 } from '@/utils/auth';
 import { getBusinessPortalUrl } from '@/utils/sso';
 import { CountrySelector } from '@/components/ui/CountrySelector';
@@ -122,6 +123,32 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
     setMode(newMode);
   };
 
+  const routeAfterAuth = useCallback(
+    async (authenticatedUser: any, returnUrl?: string | null) => {
+      const hasOrgContext = !!(
+        authenticatedUser?.organizationId ||
+        authenticatedUser?.orgType ||
+        authenticatedUser?.businessCategory
+      );
+
+      if (authenticatedUser?.role === 'ORG_STAFF' && hasOrgContext && !isBusinessHost()) {
+        const targetPath =
+          returnUrl && isAuthorizedRouteForUser(authenticatedUser, returnUrl)
+            ? returnUrl
+            : getDashboardRouteForUser(authenticatedUser);
+        window.location.href = `${getBusinessPortalUrl()}${targetPath}`;
+        return;
+      }
+
+      if (returnUrl && isAuthorizedRouteForUser(authenticatedUser, returnUrl)) {
+        router.push(returnUrl);
+      } else {
+        router.push(getDashboardRouteForUser(authenticatedUser));
+      }
+    },
+    [router],
+  );
+
   // 1. Handle Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,12 +176,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
       setAccessToken(data.access_token);
       setCurrentUser(data.user);
 
-      const returnUrl = searchParams.get('returnUrl');
-      if (returnUrl && isAuthorizedRouteForUser(data.user, returnUrl)) {
-        router.push(returnUrl);
-      } else {
-        router.push(getDashboardRouteForUser(data.user));
-      }
+      await routeAfterAuth(data.user, searchParams.get('returnUrl'));
     } catch (err: any) {
       setError(err.message === 'Failed to fetch' ? 'Unable to connect to server. Please try again.' : err.message);
     } finally {
@@ -273,7 +295,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
 
         setAccessToken(data.access_token);
         setCurrentUser(data.user);
-        router.push(getDashboardRouteForUser(data.user));
+        await routeAfterAuth(data.user, searchParams.get('returnUrl'));
       } catch (err: any) {
         lastVerificationAttemptRef.current = null;
         setError(

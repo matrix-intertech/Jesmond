@@ -37,7 +37,7 @@ export default function ProviderPortalPage() {
       if (currentUser) {
         setUser(currentUser);
         const targetRoute = getDashboardRouteForUser(currentUser);
-        if (targetRoute !== '/portal') {
+        if (targetRoute !== '/portal' && targetRoute !== '/accommodation') {
           router.replace(targetRoute);
           return;
         }

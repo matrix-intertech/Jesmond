@@ -68,6 +68,27 @@ export function middleware(request: NextRequest) {
       url.pathname = '/business/onboarding';
       return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
     }
+
+    // 3. Canonical business category dashboard routes on business subdomain
+    if (pathname === '/accommodation' || pathname.startsWith('/accommodation/')) {
+      url.pathname = pathname.replace(/^\/accommodation/, '/portal');
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
+
+    if (pathname === '/retail' || pathname.startsWith('/retail/')) {
+      url.pathname = pathname.replace(/^\/retail/, '/portal/retail');
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
+
+    if (pathname === '/food') {
+      url.pathname = '/portal/business/orders';
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
+
+    if (pathname === '/mechanics' || pathname === '/services' || pathname === '/rentals') {
+      url.pathname = '/portal/business/appointments';
+      return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+    }
   }
 
   return NextResponse.next({

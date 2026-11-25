@@ -7,8 +7,16 @@ import {
   setAccessToken,
   setCurrentUser,
   getDashboardRouteForUser,
+  isAuthorizedRouteForUser,
+  User,
 } from '@/utils/auth';
-import { checkBusinessAccess, initiateSsoAuthorization } from '@/utils/sso';
+import {
+  checkBusinessAccess,
+  initiateSsoAuthorization,
+  resolveBusinessAuthDestination,
+  applyActiveOrganizationToUser,
+  BusinessOrganizationSummary,
+} from '@/utils/sso';
 import {
   Building2,
   Lock,
@@ -31,8 +39,21 @@ function BusinessLoginContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [ssoLoading, setSsoLoading] = useState(false);
+  const [pendingUser, setPendingUser] = useState<User | null>(null);
+  const [orgChoices, setOrgChoices] = useState<BusinessOrganizationSummary[]>([]);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const handleSelectOrganization = (org: BusinessOrganizationSummary) => {
+    if (!pendingUser) return;
+    const updatedUser = applyActiveOrganizationToUser(pendingUser, org);
+    const returnUrl = searchParams.get('returnUrl');
+    if (returnUrl && isAuthorizedRouteForUser(updatedUser, returnUrl)) {
+      router.push(returnUrl);
+    } else {
+      router.push(getDashboardRouteForUser(updatedUser));
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,17 +85,22 @@ function BusinessLoginContent() {
 
       // Verify business authorization on backend
       const businessStatus = await checkBusinessAccess();
+      const resolution = resolveBusinessAuthDestination(
+        data.user,
+        businessStatus,
+        searchParams.get('returnUrl'),
+      );
 
-      if (businessStatus.hasBusinessAccess) {
-        const returnUrl = searchParams.get('returnUrl');
-        if (returnUrl && returnUrl.startsWith('/portal')) {
-          router.push(returnUrl);
-        } else {
-          router.push(getDashboardRouteForUser(data.user));
-        }
-      } else {
+      if (resolution.action === 'redirect') {
+        router.push(resolution.destination);
+      } else if (resolution.action === 'select_organization') {
+        setPendingUser(data.user);
+        setOrgChoices(resolution.organizations);
+      } else if (resolution.action === 'onboarding') {
         // Authenticated user exists but has no business organization profile
         router.push('/business/onboarding');
+      } else {
+        throw new Error(resolution.message);
       }
     } catch (err: any) {
       if (err.message === 'Failed to fetch') {
@@ -225,6 +251,34 @@ function BusinessLoginContent() {
             </div>
           )}
 
+          {orgChoices.length > 0 ? (
+            <div className="space-y-3">
+              <div className="p-3 rounded-xl bg-[#24160D] border border-[rgba(214,166,79,0.25)]">
+                <p className="text-xs font-semibold text-[#F3D69A]">Select Organization</p>
+                <p className="text-xs text-[#C9B69C] mt-1">
+                  Your account has access to multiple business organizations. Choose which dashboard to open:
+                </p>
+              </div>
+              <div className="space-y-2">
+                {orgChoices.map((org) => (
+                  <button
+                    key={org.organizationId}
+                    type="button"
+                    onClick={() => handleSelectOrganization(org)}
+                    className="w-full text-left p-4 rounded-xl bg-[#24160D] hover:bg-[#2F1D12] border border-[rgba(214,166,79,0.28)] hover:border-[#EA8A32] transition flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <div className="text-sm font-bold text-[#FFF9EF]">{org.organizationName}</div>
+                      <div className="text-[11px] text-[#C9B69C] mt-0.5">
+                        {org.businessCategory || org.orgType} • Role: {org.role}
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#EA8A32] shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-medium text-[#FFF9EF] mb-1.5">Business Email Address</label>
@@ -286,6 +340,7 @@ function BusinessLoginContent() {
               )}
             </button>
           </form>
+          )}
 
           <div className="my-6 flex items-center">
             <div className="flex-1 border-t border-[rgba(214,166,79,0.2)]" />

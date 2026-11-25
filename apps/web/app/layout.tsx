@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import AppViewportWrapper from "@/components/layout/AppViewportWrapper";
 import StudentMobileBottomNavGate from "@/components/layout/StudentMobileBottomNavGate";
 import { PushNotificationInitializer } from "@/components/notifications/PushNotificationInitializer";
 import { getSiteUrl } from "@/utils/site";
@@ -79,7 +80,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <PushNotificationInitializer />
-        <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</div>
+        <AppViewportWrapper>{children}</AppViewportWrapper>
         <StudentMobileBottomNavGate />
       </body>
     </html>

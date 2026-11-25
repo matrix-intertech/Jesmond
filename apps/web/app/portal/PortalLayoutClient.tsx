@@ -38,18 +38,46 @@ export default function PortalLayoutClient({
     }
 
     const userCategory = (usr.businessCategory || "").toUpperCase();
-    const effectiveOrgType = usr.orgType || (userCategory === "RETAIL" || userCategory === "SERVICES" || userCategory === "MECHANICS" || userCategory === "FOOD" ? "RETAIL" : undefined);
-    if (!effectiveOrgType && !usr.businessCategory) {
+    const userOrgType = (usr.orgType || "").toUpperCase();
+    if (!userOrgType && !userCategory) {
       router.replace("/settings/profile");
       return false;
     }
 
-    const userOrgType = effectiveOrgType || usr.orgType;
+    const isProviderOrAgency = userOrgType === "PROVIDER" || userOrgType === "AGENCY";
     const isAppointmentBusiness = userCategory === "SERVICES" || userCategory === "MECHANICS";
+    const isVehicleRentalBusiness = userCategory === "RENTALS" && !isProviderOrAgency;
     const isFoodBusiness = userCategory === "FOOD";
-    const isRetailBusiness = userCategory === "RETAIL" || (userOrgType === "RETAIL" && !isAppointmentBusiness && !isFoodBusiness);
-    const isRetailRoute = pathname.startsWith("/portal/retail");
+    const isRetailBusiness =
+      !isProviderOrAgency &&
+      !isAppointmentBusiness &&
+      !isVehicleRentalBusiness &&
+      !isFoodBusiness &&
+      (userCategory === "RETAIL" || userOrgType === "RETAIL");
+    const isAccommodationBusiness =
+      userCategory === "ACCOMMODATION" ||
+      (isProviderOrAgency && !isAppointmentBusiness && !isFoodBusiness);
+
+    const isRetailRoute =
+      pathname === "/retail" ||
+      pathname.startsWith("/retail/") ||
+      pathname.startsWith("/portal/retail");
+    const isFoodRoute =
+      pathname === "/food" ||
+      pathname.startsWith("/portal/business/orders") ||
+      pathname.startsWith("/portal/business/menu");
+    const isAppointmentOrRentalRoute =
+      pathname === "/mechanics" ||
+      pathname === "/services" ||
+      pathname === "/rentals" ||
+      pathname.startsWith("/portal/business/appointments") ||
+      pathname.startsWith("/portal/business/services") ||
+      pathname.startsWith("/portal/business/staff") ||
+      pathname.startsWith("/portal/business/availability") ||
+      pathname.startsWith("/portal/business/customers");
     const isAccommodationRoute =
+      pathname === "/accommodation" ||
+      pathname.startsWith("/accommodation/") ||
       pathname === "/portal" ||
       pathname.startsWith("/portal/properties") ||
       pathname.startsWith("/portal/applications") ||
@@ -58,23 +86,31 @@ export default function PortalLayoutClient({
       pathname.startsWith("/portal/leads") ||
       pathname.startsWith("/portal/agency");
 
-    if (isAppointmentBusiness && (pathname === "/portal" || pathname === "/portal/retail" || isAccommodationRoute)) {
-      router.replace("/portal/business/appointments");
+    const targetDashboard = getDashboardRouteForUser(usr);
+
+    if (
+      (isAppointmentBusiness || isVehicleRentalBusiness) &&
+      (isAccommodationRoute || isRetailRoute || isFoodRoute)
+    ) {
+      router.replace(targetDashboard);
       return false;
     }
 
-    if (isFoodBusiness && (pathname === "/portal" || isAccommodationRoute)) {
-      router.replace("/portal/business/orders");
+    if (isFoodBusiness && (isAccommodationRoute || isRetailRoute || isAppointmentOrRentalRoute)) {
+      router.replace(targetDashboard);
       return false;
     }
 
-    if (isRetailBusiness && isAccommodationRoute) {
-      router.replace("/portal/retail");
+    if (isRetailBusiness && (isAccommodationRoute || isFoodRoute || isAppointmentOrRentalRoute)) {
+      router.replace(targetDashboard);
       return false;
     }
 
-    if ((userOrgType === "PROVIDER" || userOrgType === "AGENCY") && !isRetailBusiness && !isAppointmentBusiness && !isFoodBusiness && (isRetailRoute || pathname.startsWith("/portal/business"))) {
-      router.replace("/portal");
+    if (
+      isAccommodationBusiness &&
+      (isRetailRoute || isFoodRoute || isAppointmentOrRentalRoute)
+    ) {
+      router.replace(targetDashboard);
       return false;
     }
 

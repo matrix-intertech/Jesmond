@@ -3,7 +3,38 @@
  * RFC 7636 Proof Key for Code Exchange (S256) and Cross-Subdomain Authorization
  */
 
-import { setAccessToken, setCurrentUser, clearAuth, User } from './auth';
+import {
+  getAccessToken,
+  setAccessToken,
+  setCurrentUser,
+  clearAuth,
+  getSelectedOrganizationId,
+  setSelectedOrganizationId,
+  getDashboardRouteForUser,
+  isAuthorizedRouteForUser,
+  User,
+} from './auth';
+
+export interface BusinessOrganizationSummary {
+  organizationId: string;
+  organizationName: string;
+  orgType: string;
+  businessCategory?: string;
+  status?: string;
+  role: string;
+  permissions: string[];
+  retailBranchId?: string | null;
+}
+
+export interface BusinessAccessStatus {
+  hasBusinessAccess: boolean;
+  isAdmin: boolean;
+  requiresOrganizationSelection?: boolean;
+  organizations: BusinessOrganizationSummary[];
+  activeOrganization: BusinessOrganizationSummary | null;
+  error?: string;
+  statusCode?: number;
+}
 
 /**
  * Base64URL encoder without padding (RFC 7636 Section 3)
@@ -125,7 +156,7 @@ export async function initiateSsoAuthorization(options?: {
   redirectUri?: string;
   scope?: string;
 }): Promise<{ redirectUrl: string; code: string; state: string }> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || localStorage.getItem('token') : null;
+  const token = getAccessToken();
   if (!token) {
     throw new Error('You must be signed in to perform Single Sign-On');
   }
@@ -252,48 +283,122 @@ export async function completeSsoExchange(
 /**
  * Checks if the currently authenticated user has active business organization credentials.
  */
-export async function checkBusinessAccess(): Promise<{
-  hasBusinessAccess: boolean;
-  isAdmin: boolean;
-  organizations: Array<{
-    organizationId: string;
-    organizationName: string;
-    orgType: string;
-    businessCategory?: string;
-    role: string;
-    permissions: string[];
-    retailBranchId?: string | null;
-  }>;
-  activeOrganization: any;
-}> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || localStorage.getItem('token') : null;
+export async function checkBusinessAccess(
+  overrideOrgId?: string,
+): Promise<BusinessAccessStatus> {
+  const token = getAccessToken();
+  const selectedOrgId = overrideOrgId ?? getSelectedOrganizationId();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-  const response = await fetch(`${apiUrl}/api/v1/auth/sso/business-check`, {
-    method: 'GET',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    credentials: 'include',
-  });
+  try {
+    const response = await fetch(`${apiUrl}/api/v1/auth/sso/business-check`, {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(selectedOrgId ? { 'X-Organization-Id': selectedOrgId } : {}),
+      },
+      credentials: 'include',
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return {
+        hasBusinessAccess: false,
+        isAdmin: false,
+        requiresOrganizationSelection: false,
+        organizations: [],
+        activeOrganization: null,
+        error: `Business access verification failed (HTTP ${response.status})`,
+        statusCode: response.status,
+      };
+    }
+
+    return response.json();
+  } catch (err: any) {
     return {
       hasBusinessAccess: false,
       isAdmin: false,
+      requiresOrganizationSelection: false,
       organizations: [],
       activeOrganization: null,
+      error: err?.message || 'Unable to verify business access',
     };
   }
+}
 
-  return response.json();
+/**
+ * Merges an authenticated user with a selected/active business organization
+ * and persists the selection in session state.
+ */
+export function applyActiveOrganizationToUser(
+  user: User,
+  org: BusinessOrganizationSummary,
+): User {
+  setSelectedOrganizationId(org.organizationId);
+  const updatedUser: User = {
+    ...user,
+    organizationId: org.organizationId,
+    orgType: org.orgType,
+    businessCategory: org.businessCategory,
+    orgRole: org.role,
+    permissions: org.permissions,
+    retailBranchId: org.retailBranchId ?? undefined,
+  };
+  setCurrentUser(updatedUser);
+  return updatedUser;
+}
+
+/**
+ * Centralized post-authentication business routing resolver.
+ * Determines whether the user needs org selection, onboarding, or direct dashboard redirect.
+ */
+export function resolveBusinessAuthDestination(
+  user: User,
+  accessStatus: BusinessAccessStatus,
+  returnUrl?: string | null,
+):
+  | { action: 'select_organization'; organizations: BusinessOrganizationSummary[] }
+  | { action: 'onboarding' }
+  | { action: 'error'; message: string }
+  | { action: 'redirect'; destination: string; user: User } {
+  if (accessStatus.error) {
+    return { action: 'error', message: accessStatus.error };
+  }
+
+  if (!accessStatus.hasBusinessAccess) {
+    return { action: 'onboarding' };
+  }
+
+  const orgs = accessStatus.organizations || [];
+  let resolvedUser = user;
+
+  if (accessStatus.activeOrganization) {
+    resolvedUser = applyActiveOrganizationToUser(
+      user,
+      accessStatus.activeOrganization,
+    );
+  } else if (orgs.length > 1 || accessStatus.requiresOrganizationSelection) {
+    return { action: 'select_organization', organizations: orgs };
+  } else if (orgs.length === 1) {
+    resolvedUser = applyActiveOrganizationToUser(user, orgs[0]);
+  }
+
+  if (returnUrl && isAuthorizedRouteForUser(resolvedUser, returnUrl)) {
+    return { action: 'redirect', destination: returnUrl, user: resolvedUser };
+  }
+
+  return {
+    action: 'redirect',
+    destination: getDashboardRouteForUser(resolvedUser),
+    user: resolvedUser,
+  };
 }
 
 /**
  * Logs out of the current portal session, revokes DB session and clears host cookies.
  */
 export async function logoutBusinessSession(): Promise<void> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') || localStorage.getItem('token') : null;
+  const token = getAccessToken();
+  const selectedOrgId = getSelectedOrganizationId();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
   try {
@@ -302,6 +407,7 @@ export async function logoutBusinessSession(): Promise<void> {
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(selectedOrgId ? { 'X-Organization-Id': selectedOrgId } : {}),
       },
       credentials: 'include',
       body: JSON.stringify({}),

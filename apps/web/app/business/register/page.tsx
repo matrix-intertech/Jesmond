@@ -103,7 +103,7 @@ function BusinessRegisterContent() {
           dateOfBirth: new Date(dateOfBirth).toISOString(),
           organizationName: organizationName.trim(),
           organizationType: businessCategory === 'ACCOMMODATION' ? 'PROVIDER' : 'RETAIL',
-          businessCategory,
+          businessCategory: businessCategory === 'ACCOMMODATION' ? undefined : businessCategory,
           turnstileToken: turnstileToken || undefined,
         }),
       });
