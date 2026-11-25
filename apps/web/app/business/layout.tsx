@@ -1,7 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Building2, ShieldCheck, ArrowUpRight } from 'lucide-react';
+import Image from 'next/image';
+import { ShieldCheck, ArrowUpRight } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Business Portal | Jesmond Partner & Commercial Platform',
@@ -16,57 +17,69 @@ export default function BusinessLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 font-sans selection:bg-brand-purple selection:text-white">
-      {/* Top Professional Header */}
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/business/login" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-purple to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-900/30 group-hover:scale-105 transition-transform">
-                <Building2 className="w-5 h-5 text-white" />
+    <div className="min-h-screen w-full flex flex-col bg-[#1A100A] text-[#FFF9EF] font-sans selection:bg-[#EA8A32] selection:text-[#120D09] overflow-x-hidden">
+      {/* Full-Width Enterprise Header */}
+      <header className="w-full border-b border-[rgba(214,166,79,0.22)] bg-[#120D09]/95 backdrop-blur-md sticky top-0 z-50">
+        <div className="w-full px-3 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center min-w-0">
+            <Link href="/business/login" className="flex items-center gap-2 sm:gap-3 group min-w-0">
+              <div className="px-2 py-1 sm:px-2.5 rounded-lg bg-[#FFF9EF] border border-[#D6A64F]/40 shadow-sm shrink-0 group-hover:border-[#EA8A32] transition-colors">
+                <Image
+                  src="/assets/logo_navbar.png"
+                  alt="Jesmond"
+                  width={120}
+                  height={32}
+                  className="h-6 sm:h-7 w-auto object-contain"
+                  priority
+                />
               </div>
-              <div className="flex flex-col">
-                <span className="font-outfit font-extrabold text-lg text-white tracking-tight flex items-center gap-1.5">
-                  Jesmond <span className="text-xs px-2 py-0.5 rounded-full bg-brand-purple/20 text-brand-purple border border-brand-purple/30 font-semibold uppercase tracking-wider">Business</span>
+              <div className="flex flex-col min-w-0">
+                <span className="font-outfit font-extrabold text-sm sm:text-lg text-[#FFF9EF] tracking-tight flex items-center gap-1.5 sm:gap-2">
+                  <span>Jesmond</span>
+                  <span className="text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-[#D6A64F]/15 text-[#F3D69A] border border-[#D6A64F]/35 font-semibold uppercase tracking-wider shrink-0">
+                    Business
+                  </span>
                 </span>
-                <span className="text-[11px] text-slate-400 font-medium">Enterprise & Partner Platform</span>
+                <span className="hidden sm:block text-[11px] text-[#C9B69C] font-medium truncate">
+                  Enterprise &amp; Partner Platform
+                </span>
               </div>
             </Link>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/50 border border-emerald-800/40 px-3 py-1.5 rounded-full">
-              <ShieldCheck className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-emerald-300 bg-emerald-950/50 border border-[#D6A64F]/30 px-3 py-1.5 rounded-full">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#D6A64F]" />
               <span>Isolated Enterprise Portal</span>
             </div>
             <a
               href="https://jesmond.com.au"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-800"
+              className="text-[11px] sm:text-xs text-[#C9B69C] hover:text-[#FFF9EF] flex items-center gap-1 transition-colors px-2 sm:px-3 py-1.5 rounded-lg hover:bg-[#24160D] border border-transparent hover:border-[rgba(214,166,79,0.22)] whitespace-nowrap"
             >
               <span>Student Portal</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <ArrowUpRight className="w-3.5 h-3.5 text-[#D6A64F]" />
             </a>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-center">{children}</main>
+      {/* Main Content Area — Full Width */}
+      <main className="flex-1 w-full flex flex-col justify-center">{children}</main>
 
-      {/* Enterprise Footer */}
-      <footer className="border-t border-slate-800 bg-slate-950 py-6 text-xs text-slate-500 text-center">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Full-Width Enterprise Footer */}
+      <footer className="w-full border-t border-[rgba(214,166,79,0.22)] bg-[#120D09] py-5 text-xs text-[#C9B69C]">
+        <div className="w-full px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>&copy; {new Date().getFullYear()} Jesmond Holdings Pty Ltd. All rights reserved.</p>
           <div className="flex items-center space-x-6">
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">
+            <Link href="/terms" className="hover:text-[#F3D69A] transition-colors">
               Terms of Service
             </Link>
-            <Link href="/privacy" className="hover:text-slate-400 transition-colors">
+            <Link href="/privacy" className="hover:text-[#F3D69A] transition-colors">
               Privacy Policy
             </Link>
-            <a href="mailto:support@jesmond.com.au" className="hover:text-slate-400 transition-colors">
+            <a href="mailto:support@jesmond.com.au" className="hover:text-[#F3D69A] transition-colors">
               Business Support
             </a>
           </div>
