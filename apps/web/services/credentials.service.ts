@@ -1,4 +1,23 @@
 import { getApiUrl } from "@/utils/api";
+import { getCurrentUser, getSelectedOrganizationId } from "@/utils/auth";
+
+function buildCredentialHeaders(
+  token?: string | null,
+  includeJson = false,
+): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  const orgId = getSelectedOrganizationId() || getCurrentUser()?.organizationId;
+  if (orgId) {
+    headers["X-Organization-Id"] = orgId;
+  }
+  return headers;
+}
 
 export interface CredentialDocumentDto {
   id: string;
@@ -48,10 +67,11 @@ export interface RequirementsResponseDto {
 }
 
 export async function getCredentialsRequirements(
-  token: string,
+  token?: string | null,
 ): Promise<RequirementsResponseDto> {
   const res = await fetch(`${getApiUrl()}/api/v1/business/credentials/requirements`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: buildCredentialHeaders(token),
+    credentials: "include",
     cache: "no-store",
   });
   if (!res.ok) {
@@ -196,15 +216,13 @@ export async function submitCredentials(token: string): Promise<any> {
   return res.json();
 }
 
-export async function dismissCompletionReminder(token: string): Promise<any> {
+export async function dismissCompletionReminder(token?: string | null): Promise<any> {
   const res = await fetch(
     `${getApiUrl()}/api/v1/business/credentials/completion/dismiss`,
     {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: buildCredentialHeaders(token, true),
+      credentials: "include",
       body: JSON.stringify({}),
     },
   );

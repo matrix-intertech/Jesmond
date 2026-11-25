@@ -3,14 +3,27 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import Image from "next/image";
-import { isAuthenticated, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import {
+  isAuthenticated,
+  getCurrentUser,
+  getDashboardRouteForUser,
+  getPortalDashboardUrlForUser,
+  isBusinessHost,
+  User,
+} from "@/utils/auth";
+import {
+  checkBusinessAccess,
+  getBusinessPortalUrl,
+  resolveBusinessAuthDestination,
+} from "@/utils/sso";
 import { CompactChatPanel } from "../chat/CompactChatPanel";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 
 export function GlobalNav() {
+ const router = useRouter();
  const [isScrolled, setIsScrolled] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
@@ -24,10 +37,11 @@ export function GlobalNav() {
 
  useEffect(() => {
  const user = getCurrentUser();
+    const businessUrl = getBusinessPortalUrl();
     setAuthStatus({
       isAuth: isAuthenticated(),
       role: user?.role,
-      dashboardRoute: getDashboardRouteForUser(user),
+      dashboardRoute: getPortalDashboardUrlForUser(user, businessUrl),
     });
  }, []);
 
@@ -40,9 +54,61 @@ export function GlobalNav() {
  return () => window.removeEventListener('openCompactChat', handleOpenChat);
  }, []);
 
- const getDashboardRoute = (role?: string) => {
+ const getDashboardRoute = () => {
     if (authStatus.dashboardRoute) return authStatus.dashboardRoute;
-    return getDashboardRouteForUser(getCurrentUser());
+    return getPortalDashboardUrlForUser(getCurrentUser(), getBusinessPortalUrl());
+  };
+
+  const handleDashboardClick = async (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    closeMobileMenu = false,
+  ) => {
+    if (closeMobileMenu) {
+      setIsMobileMenuOpen(false);
+    }
+
+    const user = getCurrentUser();
+    if (!isAuthenticated() || !user) {
+      e.preventDefault();
+      router.push('/login');
+      return;
+    }
+
+    if (user.role !== 'ORG_STAFF') {
+      return;
+    }
+
+    e.preventDefault();
+    const businessBase = getBusinessPortalUrl().replace(/\/+$/, '');
+    const accessStatus = await checkBusinessAccess();
+
+    if (!accessStatus.error) {
+      const resolution = resolveBusinessAuthDestination(user as User, accessStatus);
+      if (resolution.action === 'redirect') {
+        const dest = isBusinessHost()
+          ? resolution.destination
+          : `${businessBase}${resolution.destination}`;
+        window.location.href = dest;
+        return;
+      }
+      if (resolution.action === 'select_organization') {
+        window.location.href = isBusinessHost() ? '/business/login' : `${businessBase}/login`;
+        return;
+      }
+      if (resolution.action === 'onboarding') {
+        window.location.href = isBusinessHost()
+          ? '/business/onboarding'
+          : `${businessBase}/onboarding`;
+        return;
+      }
+    }
+
+    const fallbackUrl = getPortalDashboardUrlForUser(user, businessBase);
+    if (fallbackUrl.startsWith('http://') || fallbackUrl.startsWith('https://')) {
+      window.location.href = fallbackUrl;
+    } else {
+      router.push(fallbackUrl);
+    }
   };
 
  useEffect(() => {
@@ -190,7 +256,8 @@ export function GlobalNav() {
  My Orders
  </Link>
  <Link
- href={getDashboardRoute(authStatus.role)}
+ href={getDashboardRoute()}
+ onClick={(e) => handleDashboardClick(e, false)}
  className="text-sm font-semibold text-white bg-accent hover:bg-accent transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
  >
  Dashboard
@@ -321,8 +388,8 @@ export function GlobalNav() {
  My Orders
  </Link>
  <Link
- href={getDashboardRoute(authStatus.role)}
- onClick={() => setIsMobileMenuOpen(false)}
+ href={getDashboardRoute()}
+ onClick={(e) => handleDashboardClick(e, true)}
  className="w-full text-center py-4 rounded-xl bg-accent text-lg font-semibold text-white shadow-lg"
  >
  Dashboard

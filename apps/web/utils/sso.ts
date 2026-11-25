@@ -365,6 +365,15 @@ export function resolveBusinessAuthDestination(
   }
 
   if (!accessStatus.hasBusinessAccess) {
+    // Allow incomplete business accounts (ORG_STAFF with org/category context)
+    // to enter their dashboard instead of forcing them through /onboarding.
+    if (user.role === 'ORG_STAFF' && (user.orgType || user.businessCategory)) {
+      return {
+        action: 'redirect',
+        destination: getDashboardRouteForUser(user),
+        user,
+      };
+    }
     return { action: 'onboarding' };
   }
 

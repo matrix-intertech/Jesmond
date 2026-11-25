@@ -375,7 +375,7 @@ test.describe('Business Credentials & Verification System (e2e)', () => {
     const modal = page.locator('[data-testid="business-verification-modal"]');
     await expect(modal).toBeVisible({ timeout: 5000 });
 
-    await expect(modal).toContainText('Verify Your Business Credentials');
+    await expect(modal).toContainText('Complete Your Business Profile');
     await expect(modal).toContainText('Newcastle Auto Care');
     await expect(modal).toContainText('Motor Vehicle Repairer Licence');
 

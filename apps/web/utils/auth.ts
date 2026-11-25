@@ -316,6 +316,29 @@ export const getDashboardRouteForUser = (user: Partial<User> | null | undefined)
 };
 
 /**
+ * Resolves the full destination URL (including business subdomain when on the
+ * public/student host) for Dashboard entry points such as GlobalNav.
+ */
+export const getPortalDashboardUrlForUser = (
+  user: Partial<User> | null | undefined,
+  businessPortalBaseUrl: string,
+): string => {
+  const route = getDashboardRouteForUser(user);
+  if (!user || user.role !== 'ORG_STAFF') {
+    return route;
+  }
+
+  const normalizedBase = businessPortalBaseUrl.replace(/\/+$/, '');
+  const targetPath = route === '/settings/profile' ? '/onboarding' : route;
+
+  if (isBusinessHost()) {
+    return route === '/settings/profile' ? '/business/onboarding' : route;
+  }
+
+  return `${normalizedBase}${targetPath}`;
+};
+
+/**
  * Resolves the display heading for a user's dashboard based on their
  * role, organization type, and business category.
  *
