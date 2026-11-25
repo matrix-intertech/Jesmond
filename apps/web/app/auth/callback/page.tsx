@@ -9,7 +9,12 @@ import {
   applyActiveOrganizationToUser,
   BusinessOrganizationSummary,
 } from '@/utils/sso';
-import { getDashboardRouteForUser, User } from '@/utils/auth';
+import {
+  getDashboardRouteForUser,
+  getAccessToken,
+  establishSharedSession,
+  User,
+} from '@/utils/auth';
 import { Loader2, ShieldCheck, AlertCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
@@ -56,6 +61,13 @@ function SsoCallbackContent() {
       try {
         if (isMounted) setStatus('exchanging');
         const exchangeResult = await completeSsoExchange(code, state);
+        const exchangedToken = getAccessToken();
+        if (exchangedToken) {
+          await establishSharedSession(
+            exchangedToken,
+            exchangeResult.user?.organizationId,
+          );
+        }
 
         if (isMounted) setStatus('verifying');
         // Validate business organization permissions on the backend

@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
@@ -147,7 +148,7 @@ function InventoryWorkspaceContent() {
 
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branchId}/receive`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branchId}/receive`, {
  method: "POST",
  headers: {
  Authorization: `Bearer ${token}`,
@@ -200,7 +201,7 @@ function InventoryWorkspaceContent() {
 
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog/products`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/products`, {
  method: "POST",
  headers: {
  Authorization: `Bearer ${token}`,
@@ -219,7 +220,7 @@ function InventoryWorkspaceContent() {
  const newProd = await res.json();
  const initStock = parseInt(registerInitialStock, 10);
  if (!isNaN(initStock) && initStock > 0 && branchId) {
- await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branchId}/receive`, {
+ await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branchId}/receive`, {
  method: "POST",
  headers: {
  Authorization: `Bearer ${token}`,
@@ -255,7 +256,7 @@ function InventoryWorkspaceContent() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branch}/movements?productId=${prodId}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branch}/movements?productId=${prodId}`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -279,7 +280,7 @@ function InventoryWorkspaceContent() {
  }
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branch}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branch}`, {
  headers: { Authorization: `Bearer ${token}` },
  });
 
@@ -310,7 +311,7 @@ function InventoryWorkspaceContent() {
  return;
  }
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {
@@ -410,7 +411,7 @@ function InventoryWorkspaceContent() {
 
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/inventory/${branchId}/${selectedItem.productId}/adjust`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branchId}/${selectedItem.productId}/adjust`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth, getCurrentUser } from "@/utils/auth";
 import { canUseBusinessCapability } from "@/utils/capabilities";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 
@@ -42,7 +42,7 @@ function RetailOverviewContent() {
 
  try {
  const headers = { Authorization: `Bearer ${token}` };
- const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+ const apiUrl = getApiUrl();
 
  // Fetch parallel
  const [termRes, custRes, statsRes, recentOrdersRes, branchRes] = await Promise.all([

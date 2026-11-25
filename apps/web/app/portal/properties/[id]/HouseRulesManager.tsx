@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function HouseRulesManager({ propertyId, initialHouseRule, onAuthError, onUpdate }: { propertyId: string, initialHouseRule: any, onAuthError: () => void, onUpdate: () => void }) {
  const [isEditing, setIsEditing] = useState(false);
@@ -40,7 +40,7 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
  setError('');
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${propertyId}/house-rules`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${propertyId}/house-rules`, {
  method: 'PUT',
  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify(form)

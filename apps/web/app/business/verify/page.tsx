@@ -1,9 +1,10 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { setAccessToken, setCurrentUser } from '@/utils/auth';
+import { setAccessToken, setCurrentUser, establishSharedSession } from '@/utils/auth';
 import { checkBusinessAccess, resolveBusinessAuthDestination } from '@/utils/sso';
 import { ShieldCheck, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
@@ -45,7 +46,7 @@ function BusinessVerifyContent() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/verify-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,6 +61,7 @@ function BusinessVerifyContent() {
 
       if (data.access_token) {
         setAccessToken(data.access_token);
+        await establishSharedSession(data.access_token, data.user?.organizationId);
       }
       if (data.user) {
         setCurrentUser(data.user);
@@ -91,7 +93,7 @@ function BusinessVerifyContent() {
     setResending(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

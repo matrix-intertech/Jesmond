@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAccessToken, clearAuth, User } from '@/utils/auth';
-import { fetchFeatureFlag, handleApiError } from '@/utils/api';
+import { getApiUrl, fetchFeatureFlag, handleApiError } from '@/utils/api';
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -28,7 +28,7 @@ export default function AdminDashboardPage() {
  if (!token) return;
 
  // Load pending properties with unified error handling
- const pendingRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/pending`, {
+ const pendingRes = await fetch(`${getApiUrl()}/api/v1/admin/properties/pending`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const pendingStatus = await handleApiError(pendingRes, () => { clearAuth(); router.replace('/login'); });
@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
  try {
  const token = getAccessToken();
  if (!token) return;
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features/PAYMENTS_BOOKING`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/features/PAYMENTS_BOOKING`, {
  method: 'PATCH',
  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({ enabled: enable }),

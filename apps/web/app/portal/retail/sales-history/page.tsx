@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -58,7 +59,7 @@ function SalesHistoryContent() {
  return;
  }
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {

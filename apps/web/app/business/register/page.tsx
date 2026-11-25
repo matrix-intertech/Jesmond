@@ -1,4 +1,5 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
@@ -87,7 +88,7 @@ function BusinessRegisterContent() {
     const lastName = nameParts.slice(1).join(' ') || 'User';
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

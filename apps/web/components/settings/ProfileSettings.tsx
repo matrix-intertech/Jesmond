@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import { CountrySelector } from "@/components/ui/CountrySelector";
 
 interface ProfileData {
@@ -49,7 +49,7 @@ export default function ProfileSettings() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/profile`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/profile`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -82,7 +82,7 @@ export default function ProfileSettings() {
  setSuccess("");
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/profile`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/profile`, {
  method: 'PATCH',
  headers: {
  'Authorization': `Bearer ${token}`,

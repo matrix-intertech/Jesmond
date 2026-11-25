@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 
 export function SaveButton({ propertyId }: { propertyId: string }) {
@@ -17,7 +17,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
  try {
  const token = getAccessToken();
  if (!token) { return; }
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/saved`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/saved`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, onAuthError);
@@ -43,7 +43,7 @@ export function SaveButton({ propertyId }: { propertyId: string }) {
  const method = isSaved ? 'DELETE' : 'POST';
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${propertyId}/save`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/${propertyId}/save`, {
  method,
  headers: { 'Authorization': `Bearer ${token}` }
  });

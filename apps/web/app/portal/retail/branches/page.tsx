@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
@@ -41,7 +41,7 @@ export default function BranchesPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -88,7 +88,7 @@ export default function BranchesPage() {
  const token = getAccessToken();
  try {
  const isEdit = !!editingBranch;
- const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches${isEdit ? `/${editingBranch.id}` : ''}`;
+ const url = `${getApiUrl()}/api/v1/retail/branches${isEdit ? `/${editingBranch.id}` : ''}`;
 
  const payload: any = {
  name: formData.name,

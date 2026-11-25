@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import PageHeader from '@/components/ui/PageHeader';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = getApiUrl();
 
 interface UserRow {
  id: string;

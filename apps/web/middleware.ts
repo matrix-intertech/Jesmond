@@ -31,6 +31,7 @@ export function middleware(request: NextRequest) {
     // 1. Root path on business subdomain: rewrite to /portal or /business/login
     if (pathname === '/') {
       const hasBusinessSession =
+        request.cookies.has('jesmond_sso_session') ||
         request.cookies.has('__Host-business-session') ||
         request.cookies.has('business-session') ||
         request.cookies.has('access_token');

@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { getAccessToken } from "@/utils/auth";
@@ -28,7 +29,7 @@ export default function SecuritySettings() {
  const fetchSecurityData = async () => {
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/security`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/security`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -47,7 +48,7 @@ export default function SecuritySettings() {
  try {
  setError("");
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/security/2fa-setup`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/security/2fa-setup`, {
  method: 'POST',
  headers: { Authorization: `Bearer ${token}` }
  });
@@ -67,7 +68,7 @@ export default function SecuritySettings() {
  try {
  setError("");
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/security/2fa-verify`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/security/2fa-verify`, {
  method: 'POST',
  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({ code: verificationCode })
@@ -92,7 +93,7 @@ export default function SecuritySettings() {
  try {
  setError("");
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/security/2fa-disable`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/security/2fa-disable`, {
  method: 'POST',
  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({ code })
@@ -113,7 +114,7 @@ export default function SecuritySettings() {
  if (!confirm("Are you sure you want to log out this session?")) return;
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/sessions/${id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/sessions/${id}`, {
  method: 'DELETE',
  headers: { Authorization: `Bearer ${token}` }
  });
@@ -140,7 +141,7 @@ export default function SecuritySettings() {
  setPasswordSubmitting(true);
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/security/change-password`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/security/change-password`, {
  method: 'POST',
  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({ currentPassword, newPassword })

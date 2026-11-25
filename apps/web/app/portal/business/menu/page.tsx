@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -55,7 +56,7 @@ export default function MenuManagementPage() {
     const token = getAccessToken();
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -76,7 +77,7 @@ export default function MenuManagementPage() {
       return;
     }
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/menu`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/menu`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -106,7 +107,7 @@ export default function MenuManagementPage() {
     const token = getAccessToken();
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/menu/${menuId}`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/menu/${menuId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -137,7 +138,7 @@ export default function MenuManagementPage() {
     const method = isEdit ? 'PATCH' : 'POST';
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${url}`, {
+      const res = await fetch(`${getApiUrl()}${url}`, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -166,7 +167,7 @@ export default function MenuManagementPage() {
     const token = getAccessToken();
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/food/menu/${m.id}`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/menu/${m.id}`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -192,7 +193,7 @@ export default function MenuManagementPage() {
     const method = isEdit ? 'PATCH' : 'POST';
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${url}`, {
+      const res = await fetch(`${getApiUrl()}${url}`, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -221,7 +222,7 @@ export default function MenuManagementPage() {
     const token = getAccessToken();
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/food/menu/categories/${c.id}`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/menu/categories/${c.id}`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -247,7 +248,7 @@ export default function MenuManagementPage() {
     const method = isEdit ? 'PATCH' : 'POST';
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${url}`, {
+      const res = await fetch(`${getApiUrl()}${url}`, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -277,7 +278,7 @@ export default function MenuManagementPage() {
     const token = getAccessToken();
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/food/menu/items/${i.id}`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/menu/items/${i.id}`, {
         method: "PATCH",
         headers: {
           "Authorization": `Bearer ${token}`,

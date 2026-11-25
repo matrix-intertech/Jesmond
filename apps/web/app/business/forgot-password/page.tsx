@@ -1,4 +1,5 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
@@ -15,7 +16,7 @@ function BusinessForgotPasswordContent() {
     setMessage('');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

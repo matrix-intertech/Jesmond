@@ -1,3 +1,4 @@
+import { getApiUrl } from '@/utils/api';
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
 import Link from "next/link";
@@ -58,7 +59,7 @@ export default async function UniversitiesPage({
   let error = false;
 
   try {
-    const apiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const apiUrl = process.env.INTERNAL_API_URL || getApiUrl();
     const queryStr = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
     const res = await fetch(`${apiUrl}/api/v1/locations/universities${queryStr}`, {
       cache: 'no-store',

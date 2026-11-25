@@ -1,6 +1,7 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -8,6 +9,8 @@ import {
   setCurrentUser,
   getDashboardRouteForUser,
   isAuthorizedRouteForUser,
+  establishSharedSession,
+  restoreUserSession,
   User,
 } from '@/utils/auth';
 import {
@@ -41,8 +44,38 @@ function BusinessLoginContent() {
   const [ssoLoading, setSsoLoading] = useState(false);
   const [pendingUser, setPendingUser] = useState<User | null>(null);
   const [orgChoices, setOrgChoices] = useState<BusinessOrganizationSummary[]>([]);
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Auto-recognize existing shared SSO session across .jesmond.com.au
+  useEffect(() => {
+    let active = true;
+    const checkExistingSession = async () => {
+      const restored = await restoreUserSession();
+      if (!active || restored.status !== 'ok' || !restored.user) return;
+      const businessStatus = await checkBusinessAccess();
+      if (!active) return;
+      const resolution = resolveBusinessAuthDestination(
+        restored.user,
+        businessStatus,
+        searchParams.get('returnUrl'),
+      );
+      if (resolution.action === 'redirect') {
+        router.replace(resolution.destination);
+      } else if (resolution.action === 'select_organization') {
+        setPendingUser(restored.user);
+        setOrgChoices(resolution.organizations);
+      } else if (resolution.action === 'onboarding') {
+        router.replace('/business/onboarding');
+      }
+    };
+    void checkExistingSession();
+    return () => {
+      active = false;
+    };
+  }, [router, searchParams]);
 
   const handleSelectOrganization = (org: BusinessOrganizationSummary) => {
     if (!pendingUser) return;
@@ -61,7 +94,7 @@ function BusinessLoginContent() {
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,34 +113,72 @@ function BusinessLoginContent() {
         throw new Error(data.message || 'Login failed. Please check your credentials.');
       }
 
-      setAccessToken(data.access_token);
-      setCurrentUser(data.user);
-
-      // Verify business authorization on backend
-      const businessStatus = await checkBusinessAccess();
-      const resolution = resolveBusinessAuthDestination(
-        data.user,
-        businessStatus,
-        searchParams.get('returnUrl'),
-      );
-
-      if (resolution.action === 'redirect') {
-        router.push(resolution.destination);
-      } else if (resolution.action === 'select_organization') {
-        setPendingUser(data.user);
-        setOrgChoices(resolution.organizations);
-      } else if (resolution.action === 'onboarding') {
-        // Authenticated user exists but has no business organization profile
-        router.push('/business/onboarding');
-      } else {
-        throw new Error(resolution.message);
+      if (data.mfaRequired && data.mfaToken) {
+        setMfaToken(data.mfaToken);
+        setMfaCode('');
+        return;
       }
+
+      await finalizeAuthenticatedUser(data.access_token, data.user);
     } catch (err: any) {
       if (err.message === 'Failed to fetch') {
         setError('Unable to connect to business authentication server. Please try again later.');
       } else {
         setError(err.message);
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const finalizeAuthenticatedUser = async (accessToken: string, loggedInUser: User) => {
+    setAccessToken(accessToken);
+    setCurrentUser(loggedInUser);
+    await establishSharedSession(accessToken, loggedInUser?.organizationId);
+
+    const businessStatus = await checkBusinessAccess();
+    const resolution = resolveBusinessAuthDestination(
+      loggedInUser,
+      businessStatus,
+      searchParams.get('returnUrl'),
+    );
+
+    if (resolution.action === 'redirect') {
+      router.push(resolution.destination);
+    } else if (resolution.action === 'select_organization') {
+      setPendingUser(loggedInUser);
+      setOrgChoices(resolution.organizations);
+    } else if (resolution.action === 'onboarding') {
+      router.push('/business/onboarding');
+    } else {
+      throw new Error(resolution.message);
+    }
+  };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaToken) return;
+    setError('');
+    setLoading(true);
+    try {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/auth/login/2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ mfaToken, code: mfaCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid or expired verification code.');
+      }
+      await finalizeAuthenticatedUser(data.access_token, data.user);
+    } catch (err: any) {
+      setError(
+        err.message === 'Failed to fetch'
+          ? 'Unable to connect to business authentication server. Please try again later.'
+          : err.message,
+      );
     } finally {
       setLoading(false);
     }
@@ -278,6 +349,59 @@ function BusinessLoginContent() {
                 ))}
               </div>
             </div>
+          ) : mfaToken ? (
+          <form onSubmit={handleMfaSubmit} className="space-y-5">
+            <div className="p-3 rounded-xl bg-[#24160D] border border-[rgba(214,166,79,0.25)]">
+              <p className="text-xs font-semibold text-[#F3D69A]">Two-Factor Authentication Required</p>
+              <p className="text-xs text-[#C9B69C] mt-1">
+                Enter the 6-digit authenticator code for your partner account to continue.
+              </p>
+            </div>
+            <div>
+              <label htmlFor="business-mfa-code" className="block text-xs font-medium text-[#FFF9EF] mb-1.5">
+                6-Digit Verification Code
+              </label>
+              <input
+                id="business-mfa-code"
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                required
+                value={mfaCode}
+                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="123456"
+                className="w-full py-2.5 px-3.5 text-center tracking-widest text-lg font-mono font-bold rounded-xl !bg-[#24160D] !border-[rgba(214,166,79,0.25)] !text-[#FFF9EF] placeholder:!text-[#C9B69C]/60 focus:outline-none focus:ring-2 focus:ring-[#EA8A32] focus:!border-[#D6A64F] transition"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || mfaCode.length !== 6}
+              className="w-full py-3 px-4 rounded-xl font-bold text-sm text-[#120D09] bg-gradient-to-r from-[#EA8A32] via-[#D6A64F] to-[#F3D69A] hover:brightness-105 transition-all shadow-lg shadow-[#EA8A32]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Verifying Code...</span>
+                </>
+              ) : (
+                <>
+                  <span>Verify &amp; Sign In</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMfaToken(null);
+                setMfaCode('');
+                setError('');
+              }}
+              className="w-full py-2 text-xs text-[#C9B69C] hover:text-[#FFF9EF] transition-colors"
+            >
+              Back to password sign in
+            </button>
+          </form>
           ) : (
           <form onSubmit={handleLogin} className="space-y-5">
             <div>

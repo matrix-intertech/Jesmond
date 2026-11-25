@@ -1,6 +1,6 @@
 'use client';
 import { clearAuth, getAccessToken } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { useRouter, useParams } from 'next/navigation';
@@ -23,7 +23,7 @@ export default function AdminPropertyReviewPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -50,7 +50,7 @@ export default function AdminPropertyReviewPage() {
  if (!confirm('Approve and publish this property?')) return;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/approve`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/approve`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });
@@ -70,7 +70,7 @@ export default function AdminPropertyReviewPage() {
  if (!rejectReason) return;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/reject`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/reject`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -95,7 +95,7 @@ export default function AdminPropertyReviewPage() {
  if (!confirm('Are you sure you want to deactivate/unpublish this property?')) return;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/unpublish`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/unpublish`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });
@@ -115,7 +115,7 @@ export default function AdminPropertyReviewPage() {
  if (!confirm('Are you sure you want to reactivate/republish this property?')) return;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/republish`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/republish`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });
@@ -135,7 +135,7 @@ export default function AdminPropertyReviewPage() {
  if (!confirm(`This will update the verification status for this property to ${statusValue}. Proceed?`)) return;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${id}/verification`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/verification`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,

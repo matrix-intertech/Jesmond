@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import Link from 'next/link';
 
 interface Application {
@@ -46,7 +46,7 @@ export default function ProviderApplicationsPage() {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/applications/provider`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, onAuthError);
@@ -74,7 +74,7 @@ export default function ProviderApplicationsPage() {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${applicationId}/${action}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/applications/${applicationId}/${action}`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });

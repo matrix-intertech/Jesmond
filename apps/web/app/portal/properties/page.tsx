@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getAccessToken, clearAuth, getCurrentUser } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
@@ -32,7 +32,7 @@ export default function PortalPropertiesPage() {
 
  setLoading(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -66,7 +66,7 @@ export default function PortalPropertiesPage() {
 
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/agency/my/members`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -110,7 +110,7 @@ export default function PortalPropertiesPage() {
 
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/agency/properties/${selectedProperty.id}/team`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/properties/${selectedProperty.id}/team`, {
  method: 'PUT',
  headers: {
  'Content-Type': 'application/json',

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import StatCard from "@/components/ui/StatCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
@@ -42,7 +42,7 @@ export default function StudentDashboardPage() {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const appRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/my`, {
+ const appRes = await fetch(`${getApiUrl()}/api/v1/applications/my`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const appStatus = await handleApiError(appRes, onAuthError);
@@ -54,7 +54,7 @@ export default function StudentDashboardPage() {
  setError('Failed to load applications.');
  }
 
- const flagRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/payments/status`);
+ const flagRes = await fetch(`${getApiUrl()}/api/v1/payments/status`);
  if (flagRes.ok) {
  const flagData = await flagRes.json();
  setPaymentsEnabled(flagData.enabled);
@@ -78,7 +78,7 @@ export default function StudentDashboardPage() {
       const token = getAccessToken();
       if (!token) { onAuthError(); return; }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/payments/create-checkout`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/payments/create-checkout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -114,7 +114,7 @@ export default function StudentDashboardPage() {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/${applicationId}/withdraw`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/applications/${applicationId}/withdraw`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });

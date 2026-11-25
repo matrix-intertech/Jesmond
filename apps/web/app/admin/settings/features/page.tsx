@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function FeaturesPage() {
  const router = useRouter();
@@ -17,7 +17,7 @@ export default function FeaturesPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/features`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -42,7 +42,7 @@ export default function FeaturesPage() {
  setSubmitting(key);
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/features/${key}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/features/${key}`, {
  method: 'PATCH',
  headers: {
  'Authorization': `Bearer ${token}`,

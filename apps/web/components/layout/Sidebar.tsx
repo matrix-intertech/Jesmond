@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { clearAuth, getCurrentUser, User } from "@/utils/auth";
-import { getStudentPortalUrl } from "@/utils/sso";
+import { getStudentPortalUrl, logoutBusinessSession } from "@/utils/sso";
 import { useState, useEffect } from "react";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { canUseBusinessCapability } from "@/utils/capabilities";
@@ -961,9 +961,8 @@ export default function Sidebar({ role }: { role: string }) {
     return true;
   });
 
-  const handleLogout = () => {
-    clearAuth();
-    router.push("/login");
+  const handleLogout = async () => {
+    await logoutBusinessSession();
   };
 
   return (

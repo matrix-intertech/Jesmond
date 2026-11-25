@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
 import { getAccessToken } from "@/utils/auth";
@@ -18,7 +19,7 @@ export default function EnquirySettings() {
  const fetchPreferences = async () => {
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/enquiries`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/enquiries`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -36,7 +37,7 @@ export default function EnquirySettings() {
  setSaving(true);
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/enquiries`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/enquiries`, {
  method: 'PATCH',
  headers: {
  Authorization: `Bearer ${token}`,

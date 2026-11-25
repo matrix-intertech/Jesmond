@@ -1,4 +1,5 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -27,7 +28,7 @@ function ResetPasswordForm() {
  const handleResend = async () => {
  if (cooldown > 0) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/forgot-password`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/auth/forgot-password`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({ email }),
@@ -55,7 +56,7 @@ function ResetPasswordForm() {
  setMessage('');
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/auth/reset-password`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/auth/reset-password`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json' },
  body: JSON.stringify({ email, otp, newPassword }),

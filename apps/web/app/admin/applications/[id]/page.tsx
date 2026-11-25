@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function AdminApplicationDetailPage() {
@@ -19,7 +19,7 @@ export default function AdminApplicationDetailPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/applications/${id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/applications/${id}`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });

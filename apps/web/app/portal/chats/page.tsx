@@ -1,11 +1,12 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { getAccessToken, clearAuth } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = getApiUrl();
 const placeholderImage = "/assets/property-placeholder.png";
 
 const getPropertyImage = (property: any) =>

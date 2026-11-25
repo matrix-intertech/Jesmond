@@ -7,7 +7,7 @@ import Link from 'next/link';
 import EmptyState from "@/components/ui/EmptyState";
 import { getAccessToken, clearAuth } from '@/utils/auth';
 import { useRouter } from 'next/navigation';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import { formatLocation } from '@/utils/location';
 
 interface SavedProperty {
@@ -41,7 +41,7 @@ export default function StudentSavedPage() {
  const token = getAccessToken();
  if (!token) return;
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/saved`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/saved`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, onAuthError);
@@ -62,7 +62,7 @@ export default function StudentSavedPage() {
  const unsaveProperty = async (id: string, e: React.MouseEvent) => {
  e.preventDefault();
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/${id}/save`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/${id}/save`, {
  method: 'DELETE',
  headers: { 'Authorization': `Bearer ${token}` }
  });

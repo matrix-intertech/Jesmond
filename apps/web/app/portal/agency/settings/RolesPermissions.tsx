@@ -1,3 +1,4 @@
+import { getApiUrl } from '@/utils/api';
 import React, { useEffect, useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
@@ -67,7 +68,7 @@ export default function RolesPermissions() {
  setLoading(true);
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/roles`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my/roles`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -106,8 +107,8 @@ export default function RolesPermissions() {
  try {
  const token = getAccessToken();
  const url = editingRole
- ? `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/roles/${editingRole.id}`
- : `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/roles`;
+ ? `${getApiUrl()}/api/v1/agency/my/roles/${editingRole.id}`
+ : `${getApiUrl()}/api/v1/agency/my/roles`;
 
  const res = await fetch(url, {
  method: editingRole ? 'PUT' : 'POST',
@@ -138,7 +139,7 @@ export default function RolesPermissions() {
 
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/roles/${role.id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my/roles/${role.id}`, {
  method: 'DELETE',
  headers: { Authorization: `Bearer ${token}` }
  });

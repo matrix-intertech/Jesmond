@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function PropertyDefaultsSettings() {
  const router = useRouter();
@@ -21,7 +21,7 @@ export default function PropertyDefaultsSettings() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/property-defaults`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/property-defaults`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -50,7 +50,7 @@ export default function PropertyDefaultsSettings() {
  setSuccess("");
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/provider/property-defaults`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/property-defaults`, {
  method: 'PATCH',
  headers: {
  'Authorization': `Bearer ${token}`,

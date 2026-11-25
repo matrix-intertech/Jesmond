@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -7,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { clearAuth, getAccessToken } from "@/utils/auth";
 import ChatConversation from "@/components/chat/ChatConversation";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = getApiUrl();
 const placeholderImage = "/assets/property-placeholder.png";
 
 const getPropertyImage = (property: any) =>

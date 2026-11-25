@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import Link from 'next/link';
 
 interface Enquiry {
@@ -45,7 +45,7 @@ export default function ProviderEnquiriesPage() {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/enquiries`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/enquiries`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, onAuthError);
@@ -69,7 +69,7 @@ export default function ProviderEnquiriesPage() {
  const token = getAccessToken();
  if (!token) { onAuthError(); return; }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/enquiries/${enquiryId}/status`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/enquiries/${enquiryId}/status`, {
  method: 'PUT',
  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({ status: newStatus })

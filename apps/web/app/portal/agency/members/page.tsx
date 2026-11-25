@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import React, { useEffect, useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
@@ -60,13 +61,13 @@ export default function AgencyMembersPage() {
  try {
  const token = getAccessToken();
  const [memRes, propRes, rolesRes] = await Promise.all([
- fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/members`, {
+ fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
  headers: { Authorization: `Bearer ${token}` }
  }),
- fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/properties/my`, {
+ fetch(`${getApiUrl()}/api/v1/properties/my`, {
  headers: { Authorization: `Bearer ${token}` }
  }),
- fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/roles`, {
+ fetch(`${getApiUrl()}/api/v1/agency/my/roles`, {
  headers: { Authorization: `Bearer ${token}` }
  })
  ]);
@@ -85,7 +86,7 @@ export default function AgencyMembersPage() {
  e.preventDefault();
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/members`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
  body: JSON.stringify(inviteData)
@@ -107,7 +108,7 @@ export default function AgencyMembersPage() {
  try {
  const token = getAccessToken();
  const res = await fetch(
- `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/members/${member.id}/role`,
+ `${getApiUrl()}/api/v1/agency/my/members/${member.id}/role`,
  {
  method: 'PUT',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -125,7 +126,7 @@ export default function AgencyMembersPage() {
  if (!confirm('Are you sure you want to remove this team member?')) return;
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/members/${id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members/${id}`, {
  method: 'DELETE',
  headers: { Authorization: `Bearer ${token}` }
  });
@@ -165,7 +166,7 @@ export default function AgencyMembersPage() {
  try {
  const token = getAccessToken();
  const res = await fetch(
- `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my/members/${selectedMember.id}/permissions`,
+ `${getApiUrl()}/api/v1/agency/my/members/${selectedMember.id}/permissions`,
  {
  method: 'PUT',
  headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

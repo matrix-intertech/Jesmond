@@ -1,9 +1,10 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect, useCallback } from "react";
 import { getAccessToken } from "@/utils/auth";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = getApiUrl();
 
 export function useUnreadChatCount() {
   const [unreadCount, setUnreadCount] = useState(0);

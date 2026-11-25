@@ -1,7 +1,8 @@
+import { getApiUrl } from '@/utils/api';
 import { useState, useEffect } from 'react';
 import { getAccessToken } from '@/utils/auth';
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = getApiUrl();
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);

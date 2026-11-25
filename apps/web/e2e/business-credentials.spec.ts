@@ -7,9 +7,11 @@ test.describe('Business Credentials & Verification System (e2e)', () => {
   test.beforeAll(async () => {
     try {
       mockApiServer = http.createServer((req, res) => {
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', '*');
-        res.setHeader('Access-Control-Allow-Headers', '*');
+        const reqOrigin = req.headers.origin || 'http://localhost:3005';
+        res.setHeader('Access-Control-Allow-Origin', reqOrigin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Organization-Id, Cache-Control, Pragma');
         res.setHeader('Content-Type', 'application/json');
 
         if (req.method === 'OPTIONS') {

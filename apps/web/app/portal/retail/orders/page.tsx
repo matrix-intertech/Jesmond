@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -77,7 +78,7 @@ function OrdersContent() {
         params.append('fulfillmentType', typeFilter);
       }
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders?${params.toString()}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders?${params.toString()}`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {
@@ -126,7 +127,7 @@ function OrdersContent() {
  setUpdatingId(orderId);
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${orderId}/status`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${orderId}/status`, {
  method: 'PATCH',
  headers: {
  Authorization: `Bearer ${token}`,

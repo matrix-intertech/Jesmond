@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getAccessToken, clearAuth, User, getCurrentUser, getDashboardRouteForUser, getDashboardHeading } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -52,7 +52,7 @@ export default function ProviderPortalPage() {
       }
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -69,7 +69,7 @@ export default function ProviderPortalPage() {
  }
 
  try {
- const appRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications/provider`, {
+ const appRes = await fetch(`${getApiUrl()}/api/v1/applications/provider`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const appStatus = await handleApiError(appRes, onAuthError);

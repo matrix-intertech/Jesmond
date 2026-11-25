@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import EmptyState from "@/components/ui/EmptyState";
@@ -39,7 +39,7 @@ export default function TerminalsPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/terminals`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/terminals`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -60,7 +60,7 @@ export default function TerminalsPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {
@@ -98,7 +98,7 @@ export default function TerminalsPage() {
  const token = getAccessToken();
  try {
  const isEdit = !!editingTerminal;
- const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/terminals${isEdit ? `/${editingTerminal.id}` : ''}`;
+ const url = `${getApiUrl()}/api/v1/retail/terminals${isEdit ? `/${editingTerminal.id}` : ''}`;
 
  const payload: any = {
  name: formData.name,

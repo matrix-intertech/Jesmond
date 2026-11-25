@@ -1,6 +1,6 @@
 'use client';
 import { clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,7 +21,7 @@ export default function AdminPropertiesPage() {
  setLoading(true);
  try {
  const endpoint = tab === 'pending' ? 'pending' : 'active';
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/${endpoint}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${endpoint}`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });

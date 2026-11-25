@@ -9,7 +9,7 @@ import LocationPicker from '@/components/ui/LocationPicker';
 import { LocationAutocomplete, LocationResult } from '@/components/location/LocationAutocomplete';
 import { getAccessToken, clearAuth } from '@/utils/auth';
 
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import HierarchyManager from './HierarchyManager';
 import ResidentManager from './ResidentManager';
 import HouseRulesManager from './HouseRulesManager';
@@ -48,12 +48,12 @@ export default function AccommodationManagementPage() {
 
 
  useEffect(() => {
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/amenities`)
+ fetch(`${getApiUrl()}/api/v1/locations/amenities`)
  .then(res => res.json())
  .then(data => setAllAmenities(data))
  .catch(err => console.log('Failed to load amenities. Ensure API is running.', err.message));
 
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/states`)
+ fetch(`${getApiUrl()}/api/v1/locations/states`)
  .then(res => res.json())
  .then(data => { setStates(data); setStatesLoading(false); })
  .catch(() => setStatesLoading(false));
@@ -64,7 +64,7 @@ export default function AccommodationManagementPage() {
  if (!token) return;
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  const status = await handleApiError(res, onAuthError);
@@ -94,12 +94,12 @@ export default function AccommodationManagementPage() {
  if (data.suburb?.cityId) setSelectedCityId(data.suburb.cityId);
 
  if (data.suburb?.city?.stateId) {
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${data.suburb.city.stateId}`)
+ fetch(`${getApiUrl()}/api/v1/locations/cities?stateId=${data.suburb.city.stateId}`)
  .then(r => r.json())
  .then(cData => setCities(Array.isArray(cData) ? cData : []));
  }
  if (data.suburb?.cityId) {
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${data.suburb.cityId}`)
+ fetch(`${getApiUrl()}/api/v1/locations/suburbs?cityId=${data.suburb.cityId}`)
  .then(r => r.json())
  .then(sData => setSuburbs(Array.isArray(sData) ? sData : []));
  }
@@ -126,7 +126,7 @@ export default function AccommodationManagementPage() {
  formData.append('file', file);
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/media`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/media`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` },
  body: formData
@@ -157,7 +157,7 @@ export default function AccommodationManagementPage() {
  if (!stateId) { setCities([]); return; }
  setCitiesLoading(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${stateId}`);
+ const res = await fetch(`${getApiUrl()}/api/v1/locations/cities?stateId=${stateId}`);
  const data = await res.json();
  setCities(Array.isArray(data) ? data : []);
  } catch (err) {} finally { setCitiesLoading(false); }
@@ -171,7 +171,7 @@ export default function AccommodationManagementPage() {
  if (!cityId) { setSuburbs([]); return; }
  setSuburbsLoading(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${cityId}`);
+ const res = await fetch(`${getApiUrl()}/api/v1/locations/suburbs?cityId=${cityId}`);
  const data = await res.json();
  setSuburbs(Array.isArray(data) ? data : []);
  } catch (err) {} finally { setSuburbsLoading(false); }
@@ -203,7 +203,7 @@ export default function AccommodationManagementPage() {
 
  if (locationResult && locationResult.suburb) {
  try {
- const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/match`);
+ const url = new URL(`${getApiUrl()}/api/v1/locations/match`);
  url.searchParams.append('suburb', locationResult.suburb);
  if (locationResult.city) url.searchParams.append('city', locationResult.city);
 
@@ -254,7 +254,7 @@ export default function AccommodationManagementPage() {
  setSelectedStateId(matchedState.id);
 
  setCitiesLoading(true);
- const cityRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/cities?stateId=${matchedState.id}`);
+ const cityRes = await fetch(`${getApiUrl()}/api/v1/locations/cities?stateId=${matchedState.id}`);
  const cityData = await cityRes.json();
  const loadedCities = Array.isArray(cityData) ? cityData : [];
  setCities(loadedCities);
@@ -277,7 +277,7 @@ export default function AccommodationManagementPage() {
  setSelectedCityId(matchedCity.id);
 
  setSuburbsLoading(true);
- const suburbRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
+ const suburbRes = await fetch(`${getApiUrl()}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
  const suburbData = await suburbRes.json();
  const loadedSuburbs = Array.isArray(suburbData) ? suburbData : [];
  setSuburbs(loadedSuburbs);
@@ -297,7 +297,7 @@ export default function AccommodationManagementPage() {
  // FALLBACK TO GEOGRAPHIC DISTANCE RESOLUTION
  if (!matchedSuburb) {
  try {
- const nearestRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/nearest?lat=${lat}&lng=${lng}&stateId=${matchedState.id}`);
+ const nearestRes = await fetch(`${getApiUrl()}/api/v1/locations/nearest?lat=${lat}&lng=${lng}&stateId=${matchedState.id}`);
  if (nearestRes.ok) {
  const nearestData = await nearestRes.json();
  if (nearestData && nearestData.id) {
@@ -306,7 +306,7 @@ export default function AccommodationManagementPage() {
  if (matchedCity) {
  setSelectedCityId(matchedCity.id);
  setSuburbsLoading(true);
- const suburbRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
+ const suburbRes = await fetch(`${getApiUrl()}/api/v1/locations/suburbs?cityId=${matchedCity.id}`);
  const loadedSuburbs = await suburbRes.json();
  setSuburbs(loadedSuburbs);
  setSuburbsLoading(false);
@@ -358,7 +358,7 @@ export default function AccommodationManagementPage() {
  const token = getAccessToken();
  setIsSubmitting(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}`, {
  method: 'PUT',
  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({
@@ -393,7 +393,7 @@ export default function AccommodationManagementPage() {
  const token = getAccessToken();
  setIsSubmitting(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms/${roomId}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/rooms/${roomId}`, {
  method: 'DELETE',
  headers: { 'Authorization': `Bearer ${token}` }
  });
@@ -410,7 +410,7 @@ export default function AccommodationManagementPage() {
  const token = getAccessToken();
  setIsSubmitting(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/amenities`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/amenities`, {
  method: 'PUT',
  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
  body: JSON.stringify({ amenities: selectedAmenities })
@@ -430,7 +430,7 @@ export default function AccommodationManagementPage() {
  const token = getAccessToken();
  setIsSubmitting(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/rooms`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -464,7 +464,7 @@ export default function AccommodationManagementPage() {
  const token = getAccessToken();
  setIsSubmitting(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/rooms/${roomId}/availability`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/rooms/${roomId}/availability`, {
  method: 'PUT',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -496,7 +496,7 @@ export default function AccommodationManagementPage() {
  const token = getAccessToken();
  setIsSubmitting(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${id}/submit`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/submit`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` }
  });

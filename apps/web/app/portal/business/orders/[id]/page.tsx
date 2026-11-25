@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
 import { getAccessToken, getCurrentUser } from "@/utils/auth";
@@ -24,7 +25,7 @@ export default function BusinessFoodOrderDetailPage() {
 
   const fetchOrder = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/business/orders/${id}`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/business/orders/${id}`, {
         headers: { Authorization: `Bearer ${getAccessToken()}` }
       });
       if (res.ok) {
@@ -43,7 +44,7 @@ export default function BusinessFoodOrderDetailPage() {
   const updateStatus = async (status: string) => {
     setUpdating(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/business/orders/${id}/status`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/food/business/orders/${id}/status`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

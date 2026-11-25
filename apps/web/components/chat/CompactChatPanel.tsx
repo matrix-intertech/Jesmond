@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { MessageCircle, X, ChevronLeft, Loader2 } from "lucide-react";
@@ -9,7 +10,7 @@ import ChatConversation from "./ChatConversation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = getApiUrl();
 
 const formatConversationTime = (dateValue: string) => {
  const date = new Date(dateValue);

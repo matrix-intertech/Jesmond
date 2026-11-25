@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -40,7 +41,7 @@ export default function FoodOrderConfirmationPage() {
   const fetchOrder = async () => {
     try {
       const token = getAccessToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/food/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,

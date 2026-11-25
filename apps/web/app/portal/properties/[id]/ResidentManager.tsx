@@ -4,7 +4,7 @@ import { CountrySelector } from "@/components/ui/CountrySelector";
 
 import { useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function ResidentManager({ propertyId, initialResidents, onAuthError, onUpdate }: { propertyId: string, initialResidents: any[], onAuthError: () => void, onUpdate: () => void }) {
  const [residents, setResidents] = useState<any[]>(initialResidents || []);
@@ -71,8 +71,8 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
 
  try {
  const url = currentResident
- ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${propertyId}/residents/${currentResident.id}`
- : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${propertyId}/residents`;
+ ? `${getApiUrl()}/api/v1/properties/my/${propertyId}/residents/${currentResident.id}`
+ : `${getApiUrl()}/api/v1/properties/my/${propertyId}/residents`;
 
  const res = await fetch(url, {
  method: currentResident ? 'PUT' : 'POST',
@@ -100,7 +100,7 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  if (!confirm('Are you sure you want to remove this resident?')) return;
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/my/${propertyId}/residents/${residentId}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${propertyId}/residents/${residentId}`, {
  method: 'DELETE',
  headers: { 'Authorization': `Bearer ${token}` }
  });

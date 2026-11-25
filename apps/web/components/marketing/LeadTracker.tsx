@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useRef } from 'react';
 import { getAccessToken } from '@/utils/auth';
@@ -27,7 +28,7 @@ export function LeadTracker({ organizationId, propertyId }: { organizationId: st
  };
 
  try {
- await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/leads/track`, {
+ await fetch(`${getApiUrl()}/api/v1/leads/track`, {
  method: 'POST',
  headers,
  body: JSON.stringify({

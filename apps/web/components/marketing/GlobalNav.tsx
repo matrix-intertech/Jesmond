@@ -12,6 +12,7 @@ import {
   getDashboardRouteForUser,
   getPortalDashboardUrlForUser,
   isBusinessHost,
+  restoreUserSession,
   User,
 } from "@/utils/auth";
 import {
@@ -38,11 +39,24 @@ export function GlobalNav() {
  useEffect(() => {
  const user = getCurrentUser();
     const businessUrl = getBusinessPortalUrl();
+    const hasLocalAuth = isAuthenticated();
     setAuthStatus({
-      isAuth: isAuthenticated(),
+      isAuth: hasLocalAuth,
       role: user?.role,
       dashboardRoute: getPortalDashboardUrlForUser(user, businessUrl),
     });
+
+    if (!hasLocalAuth) {
+      void restoreUserSession().then((res) => {
+        if (res.status === 'ok' && res.user) {
+          setAuthStatus({
+            isAuth: true,
+            role: res.user.role,
+            dashboardRoute: getPortalDashboardUrlForUser(res.user, businessUrl),
+          });
+        }
+      });
+    }
  }, []);
 
  useEffect(() => {

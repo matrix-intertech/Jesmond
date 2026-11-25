@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getAccessToken } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function ProfileCompletionBanner() {
  const router = useRouter();
@@ -24,7 +24,7 @@ export default function ProfileCompletionBanner() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/profile`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/profile`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => {});

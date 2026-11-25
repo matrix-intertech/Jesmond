@@ -1,8 +1,8 @@
 export function getApiUrl(): string {
   if (typeof window !== 'undefined') {
-    // In browser, use configured NEXT_PUBLIC_API_URL or relative path.
-    // Never fallback to localhost/127.0.0.1:3001 in browser to avoid leaking requests to visitor localhost.
-    return process.env.NEXT_PUBLIC_API_URL || '';
+    // Browser requests always use same-origin /api/v1/* BFF proxy
+    // so HttpOnly session cookies and server-side Bearer injection work seamlessly.
+    return '';
   }
   return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || '';
 }

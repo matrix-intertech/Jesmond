@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useFoodCart } from "@/providers/FoodCartProvider";
 import { useEffect, useState, useRef } from "react";
@@ -51,7 +52,7 @@ export default function FoodCheckoutPage() {
 
     try {
       const token = getAccessToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
 
       const payload = {
         branchId,

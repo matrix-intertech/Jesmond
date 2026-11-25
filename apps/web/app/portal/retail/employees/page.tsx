@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
@@ -61,8 +61,8 @@ function EmployeesPageContent() {
  if (!token) return;
  try {
  const [empRes, brRes] = await Promise.all([
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees`, { headers: { Authorization: `Bearer ${token}` } }),
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, { headers: { Authorization: `Bearer ${token}` } })
+ fetch(`${getApiUrl()}/api/v1/retail/employees`, { headers: { Authorization: `Bearer ${token}` } }),
+ fetch(`${getApiUrl()}/api/v1/retail/branches`, { headers: { Authorization: `Bearer ${token}` } })
  ]);
 
  await handleApiError(empRes, () => { clearAuth(); router.replace('/login'); });
@@ -110,7 +110,7 @@ function EmployeesPageContent() {
 
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees/${empId}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/employees/${empId}`, {
  method: 'DELETE',
  headers: { 'Authorization': `Bearer ${token}` },
  });
@@ -131,7 +131,7 @@ function EmployeesPageContent() {
  const token = getAccessToken();
  try {
  const isEdit = !!editingEmployee;
- const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees${isEdit ? `/${editingEmployee.id}` : ''}`;
+ const url = `${getApiUrl()}/api/v1/retail/employees${isEdit ? `/${editingEmployee.id}` : ''}`;
 
  let payload: any = {};
  if (isEdit) {

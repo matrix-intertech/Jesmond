@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
 import { useFoodCart } from "@/providers/FoodCartProvider";
@@ -53,7 +54,7 @@ export default function PublicFoodMenu({
     if (initialMenus && initialMenus.length > 0) return;
     async function fetchMenu() {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/menu/public/${branchId}`);
+        const res = await fetch(`${getApiUrl()}/api/v1/food/menu/public/${branchId}`);
         if (!res.ok) {
           throw new Error('Failed to load menu');
         }

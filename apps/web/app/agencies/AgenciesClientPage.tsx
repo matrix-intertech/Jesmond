@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -40,7 +41,7 @@ export default function AgenciesClientPage() {
  const params = new URLSearchParams({ page: String(page), limit: '12' });
  if (search) params.set('search', search);
  const res = await fetch(
- `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/public?${params}`
+ `${getApiUrl()}/api/v1/agency/public?${params}`
  );
  if (res.ok) {
  const json = await res.json();

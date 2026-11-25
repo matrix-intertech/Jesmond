@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function PlatformSettingsPage() {
  const router = useRouter();
@@ -29,10 +29,10 @@ export default function PlatformSettingsPage() {
  if (!token) return;
  try {
  const [settingsRes, propsRes] = await Promise.all([
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/settings/platform`, {
+ fetch(`${getApiUrl()}/api/v1/admin/settings/platform`, {
  headers: { Authorization: `Bearer ${token}` },
  }),
- fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/properties/active`, {
+ fetch(`${getApiUrl()}/api/v1/admin/properties/active`, {
  headers: { Authorization: `Bearer ${token}` },
  })
  ]);
@@ -68,7 +68,7 @@ export default function PlatformSettingsPage() {
  setSuccess("");
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/admin/settings/platform`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/admin/settings/platform`, {
  method: 'PATCH',
  headers: {
  'Authorization': `Bearer ${token}`,

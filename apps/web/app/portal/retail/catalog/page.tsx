@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -49,7 +49,7 @@ function CatalogPageContent() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  if (res.ok) {
@@ -73,7 +73,7 @@ function CatalogPageContent() {
  return;
  }
  try {
- let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog`;
+ let url = `${getApiUrl()}/api/v1/retail/catalog`;
  const params = new URLSearchParams();
  if (branchId) params.append('branchId', branchId);
  if (search) params.append('search', search);
@@ -131,7 +131,7 @@ function CatalogPageContent() {
     const token = getAccessToken();
     if (!token) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/v1/retail/catalog/products/${p.id}`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/products/${p.id}`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -171,7 +171,7 @@ function CatalogPageContent() {
  };
 
  const endpoint = editingProductId ? `/api/v1/retail/catalog/products/${editingProductId}` : "/api/v1/retail/catalog/products";
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}${endpoint}`, {
+      const res = await fetch(`${getApiUrl()}${endpoint}`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,
@@ -389,7 +389,7 @@ function CatalogPageContent() {
  formDataToUpload.append('file', file);
 
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/catalog/products/media`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/products/media`, {
  method: 'POST',
  headers: { 'Authorization': `Bearer ${token}` },
  body: formDataToUpload

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAccessToken, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 
 export function PropertyActions({ propertyId, roomTypes, showContactDetails, providerContact }: { propertyId: string, roomTypes: any[], showContactDetails?: boolean, providerContact?: any }) {
@@ -52,7 +52,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
  setSuccess("");
  setLoading(true);
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/chat/init`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/chat/init`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',
@@ -82,7 +82,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
 
  try {
  const token = getAccessToken();
- let url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/properties/public/${propertyId}/enquiries`;
+ let url = `${getApiUrl()}/api/v1/properties/public/${propertyId}/enquiries`;
  const headers: any = { 'Content-Type': 'application/json' };
 
  let bodyPayload: any = { message };
@@ -123,7 +123,7 @@ export function PropertyActions({ propertyId, roomTypes, showContactDetails, pro
  const token = getAccessToken();
  if (!token) throw new Error("Please login to apply");
 
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/applications`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/applications`, {
  method: 'POST',
  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
  body: JSON.stringify({ propertyId, roomTypeId: showApply, moveInDate, durationMonths })

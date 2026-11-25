@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,7 +62,7 @@ export function AgencyDetailClient({ agency }: AgencyDetailClientProps) {
     setChatError('');
     setChatLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/chat/conversations/direct`, {
+      const res = await fetch(`${getApiUrl()}/api/v1/chat/conversations/direct`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

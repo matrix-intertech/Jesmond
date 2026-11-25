@@ -91,6 +91,71 @@ export const clearAuth = () => {
   localStorage.removeItem('user');
 };
 
+export async function establishSharedSession(
+  accessToken: string,
+  organizationId?: string | null,
+): Promise<void> {
+  if (typeof window === 'undefined' || !accessToken) return;
+  try {
+    await fetch('/api/auth/session/establish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        access_token: accessToken,
+        ...(organizationId ? { organizationId } : {}),
+      }),
+    });
+  } catch {
+    // Non-blocking in isolated unit tests
+  }
+}
+
+export async function syncSelectedOrganizationSession(
+  organizationId: string,
+): Promise<void> {
+  if (typeof window === 'undefined' || !organizationId) return;
+  try {
+    await fetch('/api/auth/session/select-org', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ organizationId }),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
+
+export async function revokeSharedSession(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    await fetch('/api/auth/session/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({}),
+    });
+  } catch {
+    // Non-blocking
+  }
+}
+
+export async function rotateSharedSession(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  try {
+    const res = await fetch('/api/auth/session/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({}),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export const isAuthenticated = (): boolean => {
   if (isBusinessHost()) {
     return !!getCurrentUser();
@@ -125,13 +190,55 @@ export async function restoreUserSession(options?: {
 
   const token = getAccessToken();
   const isBusiness = isBusinessHost();
+  const cached = getCurrentUser();
+  const selectedOrgId = getSelectedOrganizationId() || cached?.organizationId;
+
+  // When no in-memory/local token is present, check same-parent-domain BFF shared session cookie
+  if (!token) {
+    try {
+      const bffHeaders: Record<string, string> = {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      };
+      if (selectedOrgId) {
+        bffHeaders['X-Organization-Id'] = selectedOrgId;
+      }
+      const bffRes = await fetch('/api/auth/session', {
+        method: 'GET',
+        headers: bffHeaders,
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      if (bffRes.ok) {
+        const bffData = await bffRes.json();
+        if (bffData?.authenticated && bffData?.user?.id && bffData?.user?.role) {
+          const bffUser: User = {
+            id: bffData.user.id,
+            email: bffData.user.email || '',
+            role: bffData.user.role,
+            firstName: bffData.user.firstName,
+            lastName: bffData.user.lastName,
+            organizationId: bffData.user.organizationId,
+            orgType: bffData.user.orgType,
+            businessCategory: bffData.user.businessCategory,
+            orgRole: bffData.user.orgRole,
+            permissions: Array.isArray(bffData.user.permissions) ? bffData.user.permissions : undefined,
+            retailBranchId: bffData.user.retailBranchId,
+            accountStatus: bffData.user.accountStatus,
+          };
+          setCurrentUser(bffUser);
+          return { user: bffUser, status: 'ok' };
+        }
+      }
+    } catch {
+      // Fall through to standard backend check
+    }
+  }
 
   if (!token && !isBusiness) {
     clearAuth();
     return { user: null, status: 'unauthorized', error: 'No active session token' };
   }
 
-  const cached = getCurrentUser();
   const timeoutMs = options?.timeoutMs ?? 7000;
 
   // Security requirement: Protected dashboard authorization always requires a

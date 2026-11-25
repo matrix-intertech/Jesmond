@@ -1,3 +1,4 @@
+import { getApiUrl } from '@/utils/api';
 /**
  * Jesmond 2.0 — Single Sign-On (SSO) & PKCE Client Utilities
  * RFC 7636 Proof Key for Code Exchange (S256) and Cross-Subdomain Authorization
@@ -12,6 +13,8 @@ import {
   setSelectedOrganizationId,
   getDashboardRouteForUser,
   isAuthorizedRouteForUser,
+  syncSelectedOrganizationSession,
+  revokeSharedSession,
   User,
 } from './auth';
 
@@ -177,7 +180,7 @@ export async function initiateSsoAuthorization(options?: {
     sessionStorage.setItem('sso_redirect_uri', redirectUri);
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   const response = await fetch(`${apiUrl}/api/v1/auth/sso/authorize`, {
     method: 'POST',
     headers: {
@@ -236,7 +239,7 @@ export async function completeSsoExchange(
     throw new Error('Authentication session data missing. Please restart the sign-in flow.');
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
   const response = await fetch(`${apiUrl}/api/v1/auth/sso/exchange`, {
     method: 'POST',
     headers: {
@@ -288,7 +291,9 @@ export async function checkBusinessAccess(
 ): Promise<BusinessAccessStatus> {
   const token = getAccessToken();
   const selectedOrgId = overrideOrgId ?? getSelectedOrganizationId();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = token
+    ? getApiUrl()
+    : '';
 
   try {
     const response = await fetch(`${apiUrl}/api/v1/auth/sso/business-check`, {
@@ -334,6 +339,7 @@ export function applyActiveOrganizationToUser(
   org: BusinessOrganizationSummary,
 ): User {
   setSelectedOrganizationId(org.organizationId);
+  void syncSelectedOrganizationSession(org.organizationId);
   const updatedUser: User = {
     ...user,
     organizationId: org.organizationId,
@@ -408,9 +414,10 @@ export function resolveBusinessAuthDestination(
 export async function logoutBusinessSession(): Promise<void> {
   const token = getAccessToken();
   const selectedOrgId = getSelectedOrganizationId();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = getApiUrl();
 
   try {
+    await revokeSharedSession();
     await fetch(`${apiUrl}/api/v1/auth/sso/logout`, {
       method: 'POST',
       headers: {

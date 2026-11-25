@@ -69,7 +69,8 @@ export interface RequirementsResponseDto {
 export async function getCredentialsRequirements(
   token?: string | null,
 ): Promise<RequirementsResponseDto> {
-  const res = await fetch(`${getApiUrl()}/api/v1/business/credentials/requirements`, {
+  const base = token ? getApiUrl() : "";
+  const res = await fetch(`${base}/api/v1/business/credentials/requirements`, {
     headers: buildCredentialHeaders(token),
     credentials: "include",
     cache: "no-store",
@@ -217,8 +218,9 @@ export async function submitCredentials(token: string): Promise<any> {
 }
 
 export async function dismissCompletionReminder(token?: string | null): Promise<any> {
+  const base = token ? getApiUrl() : "";
   const res = await fetch(
-    `${getApiUrl()}/api/v1/business/credentials/completion/dismiss`,
+    `${base}/api/v1/business/credentials/completion/dismiss`,
     {
       method: "POST",
       headers: buildCredentialHeaders(token, true),

@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -17,7 +18,7 @@ type ChatConversationProps = {
  }) => void;
 };
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const apiBase = getApiUrl();
 const placeholderImage = "/assets/property-placeholder.png";
 const scrollBottomThreshold = 140;
 

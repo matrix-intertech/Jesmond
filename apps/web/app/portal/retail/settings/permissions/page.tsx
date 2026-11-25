@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { getAccessToken } from "@/utils/auth";
@@ -37,7 +38,7 @@ export default function EmployeePermissionsPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/employees`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -65,7 +66,7 @@ export default function EmployeePermissionsPage() {
  : [...(employee.permissions || []), permission];
 
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/employees/${employee.id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/employees/${employee.id}`, {
  method: 'PATCH',
  headers: {
  'Authorization': `Bearer ${token}`,

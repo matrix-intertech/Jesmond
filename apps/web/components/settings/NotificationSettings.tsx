@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import { Bell, Mail, ShieldAlert, CheckCircle2, AlertCircle, Lock } from "lucide-react";
 
 interface PreferenceItem {
@@ -28,7 +28,7 @@ export default function NotificationSettings() {
     { category: "SYSTEM_SECURITY", channel: "IN_APP", enabled: true },
   ]);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const apiBase = getApiUrl();
 
   useEffect(() => {
     const fetchPreferences = async () => {

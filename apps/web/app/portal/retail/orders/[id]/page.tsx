@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -22,7 +23,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
  const token = getAccessToken();
  if (!token) return router.replace('/login');
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${params.id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${params.id}`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -47,7 +48,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
  setStatusFeedback(null);
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/orders/${params.id}/status`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${params.id}/status`, {
  method: 'PATCH',
  headers: {
  Authorization: `Bearer ${token}`,

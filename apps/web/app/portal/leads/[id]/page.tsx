@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
-import { handleApiError } from '@/utils/api';
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { ArrowLeft, User, Building, Clock, Activity, Users } from 'lucide-react';
@@ -26,7 +26,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
 
  const fetchLead = async (token: string) => {
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/leads/my/${params.id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/leads/my/${params.id}`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  const resStatus = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -49,7 +49,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
 
  const fetchTeamMembers = async (token: string) => {
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/agency/my/members`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -78,7 +78,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
  setAssignError('');
  try {
  // Update status/temp
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/leads/my/${params.id}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/leads/my/${params.id}`, {
  method: 'PATCH',
  headers: {
  'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
  // If user is admin and changed assignment
  const isAdmin = currentUser?.role === 'ADMIN' || currentUser?.role === 'SUPER_ADMIN' || currentUser?.orgRole === 'ADMIN' || currentUser?.agencyRole === 'AGENCY_ADMIN';
  if (isAdmin) {
- const assignRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/leads/my/${params.id}/assign`, {
+ const assignRes = await fetch(`${getApiUrl()}/api/v1/leads/my/${params.id}/assign`, {
  method: 'POST',
  headers: {
  'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { getAccessToken } from "@/utils/auth";
@@ -20,7 +21,7 @@ export default function RetailSettingsIndex() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
  headers: { Authorization: `Bearer ${token}` }
  });
  if (res.ok) {
@@ -41,7 +42,7 @@ export default function RetailSettingsIndex() {
  setSaving(branchId);
  const token = getAccessToken();
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/branches/${branchId}`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/branches/${branchId}`, {
  method: 'PATCH',
  headers: {
  'Authorization': `Bearer ${token}`,

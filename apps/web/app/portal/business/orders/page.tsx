@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
 import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
@@ -43,7 +44,7 @@ export default function BusinessFoodOrdersPage() {
   const fetchOrders = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
-      const url = new URL(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/food/business/orders`);
+      const url = new URL(`${getApiUrl()}/api/v1/food/business/orders`);
       if (statusFilter) url.searchParams.append('status', statusFilter);
       url.searchParams.append('limit', '50'); // Ensure we fetch enough to group
 

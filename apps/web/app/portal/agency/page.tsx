@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import React, { useEffect, useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
@@ -24,7 +25,7 @@ export default function AgencyOverviewPage() {
  setState('permission_denied');
  return;
  }
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/agency/my`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/agency/my`, {
  headers: { Authorization: `Bearer ${token}` }
  });
 

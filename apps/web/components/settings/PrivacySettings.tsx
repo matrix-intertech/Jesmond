@@ -1,4 +1,5 @@
 "use client";
+import { getApiUrl } from '@/utils/api';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ export default function PrivacySettings() {
  const handleDownload = async () => {
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/data-export`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/data-export`, {
  headers: { 'Authorization': `Bearer ${token}` }
  });
  if (!res.ok) throw new Error("Failed to export data.");
@@ -43,7 +44,7 @@ export default function PrivacySettings() {
  setSuccess("");
  try {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/settings/delete-request`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/settings/delete-request`, {
  method: 'POST',
  headers: {
  'Authorization': `Bearer ${token}`,

@@ -1,4 +1,5 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
@@ -277,7 +278,7 @@ function BusinessOnboardingContent() {
 
     try {
       const token = getAccessToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
 
       // 1. Request server-verified single-use onboarding token
       const initRes = await fetch(`${apiUrl}/api/v1/organizations/onboard/initiate`, {

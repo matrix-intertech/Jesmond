@@ -1,4 +1,5 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 import { useState } from 'react';
 import { getAccessToken } from '@/utils/auth';
 
@@ -28,7 +29,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
 
  const apiFetch = async (url: string, method: string, body?: any) => {
  const token = getAccessToken();
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${url}`, {
+ const res = await fetch(`${getApiUrl()}${url}`, {
  method,
  headers: {
  'Authorization': `Bearer ${token}`,

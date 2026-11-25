@@ -1,4 +1,5 @@
 'use client';
+import { getApiUrl } from '@/utils/api';
 
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,6 +11,7 @@ import {
   getDashboardRouteForUser,
   isAuthorizedRouteForUser,
   isBusinessHost,
+  establishSharedSession,
 } from '@/utils/auth';
 import { getBusinessPortalUrl } from '@/utils/sso';
 import { CountrySelector } from '@/components/ui/CountrySelector';
@@ -64,6 +66,8 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
 
   // Login specific
   const [password, setPassword] = useState('');
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
   // Register specific
   const [firstName, setFirstName] = useState('');
@@ -156,7 +160,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,9 +177,47 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
         throw new Error(data.message || 'Login failed. Please check your credentials.');
       }
 
+      if (data.mfaRequired && data.mfaToken) {
+        setMfaToken(data.mfaToken);
+        setMfaCode('');
+        return;
+      }
+
       setAccessToken(data.access_token);
       setCurrentUser(data.user);
+      await establishSharedSession(data.access_token, data.user?.organizationId);
 
+      await routeAfterAuth(data.user, searchParams.get('returnUrl'));
+    } catch (err: any) {
+      setError(err.message === 'Failed to fetch' ? 'Unable to connect to server. Please try again.' : err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMfaLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaToken) return;
+    setError('');
+    setLoading(true);
+
+    try {
+      const apiUrl = getApiUrl();
+      const res = await fetch(`${apiUrl}/api/v1/auth/login/2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ mfaToken, code: mfaCode.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid or expired verification code.');
+      }
+
+      setAccessToken(data.access_token);
+      setCurrentUser(data.user);
+      await establishSharedSession(data.access_token, data.user?.organizationId);
       await routeAfterAuth(data.user, searchParams.get('returnUrl'));
     } catch (err: any) {
       setError(err.message === 'Failed to fetch' ? 'Unable to connect to server. Please try again.' : err.message);
@@ -213,7 +255,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const payload = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -246,6 +288,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
         if (data.user) {
           setCurrentUser(data.user);
         }
+        await establishSharedSession(data.access_token, data.user?.organizationId);
         router.push(data.user ? getDashboardRouteForUser(data.user) : '/student');
       } else {
         switchMode('login');
@@ -279,7 +322,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
       setLoading(true);
 
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/v1/auth/verify-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -295,6 +338,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
 
         setAccessToken(data.access_token);
         setCurrentUser(data.user);
+        await establishSharedSession(data.access_token, data.user?.organizationId);
         await routeAfterAuth(data.user, searchParams.get('returnUrl'));
       } catch (err: any) {
         lastVerificationAttemptRef.current = null;
@@ -335,7 +379,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
     if (resendCooldown > 0) return;
     setError('');
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -360,7 +404,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/auth/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -534,7 +578,51 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
             )}
 
             {/* MODE 1: LOGIN FORM */}
-            {mode === 'login' && (
+            {mode === 'login' && mfaToken && (
+              <form onSubmit={handleMfaLogin} className="space-y-5">
+                <div className="p-3.5 rounded-xl bg-indigo-50 border border-indigo-200 text-xs text-indigo-900">
+                  <p className="font-semibold">Two-Factor Authentication Required</p>
+                  <p className="mt-1 text-indigo-700">
+                    Enter the 6-digit verification code from your authenticator app.
+                  </p>
+                </div>
+                <div>
+                  <label htmlFor="student-mfa-code" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                    6-Digit Verification Code
+                  </label>
+                  <input
+                    id="student-mfa-code"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    required
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    className="w-full px-4 py-3 text-center tracking-widest text-lg font-mono font-bold rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading || mfaCode.length !== 6}
+                  className="w-full py-3.5 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-50"
+                >
+                  {loading ? 'Verifying Code...' : 'Verify & Sign In'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMfaToken(null);
+                    setMfaCode('');
+                    setError('');
+                  }}
+                  className="w-full py-2 text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                >
+                  Back to password sign in
+                </button>
+              </form>
+            )}
+            {mode === 'login' && !mfaToken && (
               <form onSubmit={handleLogin} className="space-y-5">
                 <div>
                   <label htmlFor="email-address" className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">

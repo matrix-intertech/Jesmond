@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAccessToken, clearAuth } from "@/utils/auth";
-import { handleApiError } from "@/utils/api";
+import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
@@ -45,7 +45,7 @@ export default function CustomersPage() {
  const token = getAccessToken();
  if (!token) return;
  try {
- const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/customers`, {
+ const res = await fetch(`${getApiUrl()}/api/v1/retail/customers`, {
  headers: { Authorization: `Bearer ${token}` },
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -94,7 +94,7 @@ export default function CustomersPage() {
  const token = getAccessToken();
  try {
  const isEdit = !!editingCustomer;
- const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/v1/retail/customers${isEdit ? `/${editingCustomer.id}` : ''}`;
+ const url = `${getApiUrl()}/api/v1/retail/customers${isEdit ? `/${editingCustomer.id}` : ''}`;
 
  // Cleanup empty strings to undefined
  const payload: any = {
