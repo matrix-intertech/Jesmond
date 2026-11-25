@@ -22,17 +22,15 @@ export default function BusinessLayout({
       <header className="w-full border-b border-[rgba(214,166,79,0.22)] bg-[#120D09]/95 backdrop-blur-md sticky top-0 z-50">
         <div className="w-full px-3 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center min-w-0">
-            <Link href="/business/login" className="flex items-center gap-2 sm:gap-3 group min-w-0">
-              <div className="px-2 py-1 sm:px-2.5 rounded-lg bg-[#FFF9EF] border border-[#D6A64F]/40 shadow-sm shrink-0 group-hover:border-[#EA8A32] transition-colors">
-                <Image
-                  src="/assets/logo_navbar.png"
-                  alt="Jesmond"
-                  width={120}
-                  height={32}
-                  className="h-6 sm:h-7 w-auto object-contain"
-                  priority
-                />
-              </div>
+            <Link href="/business/login" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
+              <Image
+                src="/assets/icon.png"
+                alt="Jesmond"
+                width={64}
+                height={44}
+                className="h-10 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform"
+                priority
+              />
               <div className="flex flex-col min-w-0">
                 <span className="font-outfit font-extrabold text-sm sm:text-lg text-[#FFF9EF] tracking-tight flex items-center gap-1.5 sm:gap-2">
                   <span>Jesmond</span>
