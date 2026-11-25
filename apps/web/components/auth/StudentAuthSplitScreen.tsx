@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   setAccessToken,
   setCurrentUser,
@@ -358,31 +359,33 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
-      {/* Top branding bar */}
-      <div className="max-w-6xl w-full mx-auto mb-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white flex items-center justify-center font-bold text-xl shadow-md group-hover:scale-105 transition-transform">
-            J
+    <div className="min-h-screen w-full grid grid-cols-1 lg:grid-cols-2 overflow-x-hidden bg-white">
+      {/* ========================================================================= */}
+      {/* LEFT PANEL: Student / Customer Experience (50% Desktop)                  */}
+      {/* ========================================================================= */}
+      <div className="w-full min-h-screen lg:min-h-0 bg-white flex flex-col justify-between p-6 sm:p-10 lg:px-14 lg:py-10">
+        {/* Top branding bar */}
+        <div className="max-w-md w-full mx-auto flex flex-wrap items-center justify-between gap-3 mb-8">
+          <Link href="/" className="flex items-center gap-3 group">
+            <Image
+              src="/assets/logo_navbar.png"
+              alt="Jesmond"
+              width={140}
+              height={36}
+              className="h-9 w-auto object-contain"
+              priority
+            />
+            <span className="text-[11px] text-slate-500 font-semibold tracking-wider uppercase border-l border-slate-200 pl-3">
+              Student &amp; Customer Portal
+            </span>
+          </Link>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Centralized Identity</span>
           </div>
-          <div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">Jesmond</span>
-            <span className="text-xs block text-slate-500 font-medium tracking-wide">STUDENT & CUSTOMER PORTAL</span>
-          </div>
-        </Link>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-          <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
-          <span>Centralized Identity</span>
         </div>
-      </div>
 
-      {/* Main Split Screen Container */}
-      <div className="max-w-6xl w-full mx-auto bg-white rounded-3xl shadow-2xl border border-slate-200/80 overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
-        
-        {/* ========================================================================= */}
-        {/* LEFT PANEL: Student / Customer Experience (7 Cols)                      */}
-        {/* ========================================================================= */}
-        <div className="lg:col-span-7 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+        <div className="max-w-md w-full mx-auto my-auto">
           <div>
             {/* Mode Switcher Tabs */}
             {mode !== 'verify' && (
@@ -848,7 +851,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
 
           {/* Bottom Switcher Footer */}
           {mode !== 'verify' && (
-            <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm">
+            <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between gap-3 text-xs sm:text-sm">
               {mode === 'login' && (
                 <p className="text-slate-500">
                   Don&apos;t have an account?{' '}
@@ -885,7 +888,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                   </button>
                 </p>
               )}
-              <div className="text-slate-400 flex items-center gap-1.5 text-xs">
+              <div className="text-slate-400 flex items-center gap-1.5 text-xs shrink-0">
                 <Lock className="w-3.5 h-3.5" />
                 <span>256-bit TLS Encrypted</span>
               </div>
@@ -893,74 +896,86 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
           )}
         </div>
 
-        {/* ========================================================================= */}
-        {/* RIGHT PANEL: Business Owners & Commercial Partners (5 Cols)             */}
-        {/* ========================================================================= */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-10 lg:p-12 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-slate-800 relative overflow-hidden">
-          {/* Subtle glow effect */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Left Panel Legal Footer */}
+        <div className="max-w-md w-full mx-auto mt-8 pt-4 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <span>© {new Date().getFullYear()} Jesmond. All rights reserved.</span>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-slate-600">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-600">Terms of Service</Link>
+            <Link href="/support" className="hover:text-slate-600">Support Center</Link>
+          </div>
+        </div>
+      </div>
 
-          <div className="relative z-10">
+      {/* ========================================================================= */}
+      {/* RIGHT PANEL: Business Owners & Commercial Partners (50% Desktop)         */}
+      {/* ========================================================================= */}
+      <div className="w-full bg-gradient-to-br from-[#231409] via-[#3A2110] to-[#1A0E06] text-amber-50 p-6 sm:p-10 lg:px-14 lg:py-10 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-amber-900/50 relative overflow-hidden">
+        {/* Subtle warm bronze/gold glow effects */}
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-lg w-full mx-auto my-auto relative z-10 flex flex-col justify-between">
+          <div>
             {/* Top Enterprise Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 mb-6">
-              <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Commercial & Partner Portal</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-400/30 mb-6">
+              <Building2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>Commercial &amp; Partner Portal</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-outfit">
               Manage your enterprise on Jesmond
             </h2>
 
-            <p className="mt-3 text-sm text-slate-300 leading-relaxed">
+            <p className="mt-3 text-sm text-amber-100/80 leading-relaxed">
               A dedicated operational workspace built for property managers, accommodation providers, retail merchants, dining establishments, and service businesses.
             </p>
 
             {/* Feature Highlights Grid */}
             <div className="mt-8 space-y-4">
-              <div className="flex items-start gap-3.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0 mt-0.5 text-indigo-300">
+              <div className="flex items-start gap-3.5 p-3.5 rounded-xl bg-amber-950/45 border border-amber-500/20 hover:bg-amber-900/40 hover:border-amber-400/35 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-400/25 flex items-center justify-center shrink-0 mt-0.5 text-amber-300">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Property & Accommodation Hosting</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h3 className="text-sm font-semibold text-white">Property &amp; Accommodation Hosting</h3>
+                  <p className="text-xs text-amber-100/70 mt-0.5">
                     Room listings, student leases, tenancy records, maintenance tickets, and occupancy tracking.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5 text-emerald-300">
+              <div className="flex items-start gap-3.5 p-3.5 rounded-xl bg-amber-950/45 border border-amber-500/20 hover:bg-amber-900/40 hover:border-amber-400/35 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-orange-500/20 border border-orange-400/25 flex items-center justify-center shrink-0 mt-0.5 text-orange-300">
                   <Store className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Retail POS & Live Inventory</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h3 className="text-sm font-semibold text-white">Retail POS &amp; Live Inventory</h3>
+                  <p className="text-xs text-amber-100/70 mt-0.5">
                     Integrated barcode scanning, automated stock sync, terminal dispatch, and customer receipts.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5 text-amber-300">
+              <div className="flex items-start gap-3.5 p-3.5 rounded-xl bg-amber-950/45 border border-amber-500/20 hover:bg-amber-900/40 hover:border-amber-400/35 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-yellow-500/20 border border-yellow-400/25 flex items-center justify-center shrink-0 mt-0.5 text-yellow-300">
                   <Utensils className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Food & Dining Operations</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h3 className="text-sm font-semibold text-white">Food &amp; Dining Operations</h3>
+                  <p className="text-xs text-amber-100/70 mt-0.5">
                     Live kitchen display (KDS), table management, takeaway orders, and menu configuration.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5 text-blue-300">
+              <div className="flex items-start gap-3.5 p-3.5 rounded-xl bg-amber-950/45 border border-amber-500/20 hover:bg-amber-900/40 hover:border-amber-400/35 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-amber-600/25 border border-amber-400/25 flex items-center justify-center shrink-0 mt-0.5 text-amber-200">
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Appointments & Bookings</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h3 className="text-sm font-semibold text-white">Appointments &amp; Bookings</h3>
+                  <p className="text-xs text-amber-100/70 mt-0.5">
                     Staff schedules, appointment calendars, client communications, and booking confirmations.
                   </p>
                 </div>
@@ -968,27 +983,27 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
             </div>
 
             {/* Subdomain Notice */}
-            <div className="mt-6 p-3.5 rounded-xl bg-indigo-900/40 border border-indigo-500/30 text-xs text-indigo-200">
+            <div className="mt-6 p-3.5 rounded-xl bg-[#2C180B]/90 border border-amber-500/30 text-xs text-amber-100">
               <div className="flex items-center gap-2 font-semibold text-white mb-1">
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
                 <span>Dedicated Business Subdomain</span>
               </div>
-              <p className="text-slate-300">
-                Operating at <span className="font-mono text-white bg-black/30 px-1.5 py-0.5 rounded">business.jesmond.com.au</span> with separate session boundaries and organization-based role controls.
+              <p className="text-amber-100/80">
+                Operating at <span className="font-mono text-amber-200 bg-black/35 border border-amber-500/20 px-1.5 py-0.5 rounded">business.jesmond.com.au</span> with separate session boundaries and organization-based role controls.
               </p>
             </div>
           </div>
 
           {/* Bottom Business CTA */}
-          <div className="mt-8 pt-6 border-t border-slate-800 relative z-10 space-y-3">
+          <div className="mt-8 pt-6 border-t border-amber-900/60 relative z-10 space-y-3">
             <a
               href={businessPortalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3.5 px-5 rounded-xl text-white font-semibold text-sm bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 group"
+              className="w-full py-3.5 px-5 rounded-xl text-white font-semibold text-sm bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:via-orange-500 hover:to-amber-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#231409] focus:ring-amber-400 shadow-lg shadow-orange-950/50 transition-all flex items-center justify-center gap-2 group"
             >
               <span>Continue as Business</span>
-              <ExternalLink className="w-4 h-4 text-indigo-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              <ExternalLink className="w-4 h-4 text-amber-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </a>
 
             <div className="text-center">
@@ -996,7 +1011,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                 href={`${businessPortalUrl}/register`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-slate-400 hover:text-white font-medium transition-colors inline-flex items-center gap-1"
+                className="text-xs text-amber-200/80 hover:text-white font-medium transition-colors inline-flex items-center gap-1"
               >
                 <span>New partner? Register your business</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -1004,15 +1019,6 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
             </div>
           </div>
         </div>
-
-      </div>
-
-      {/* Footer Info */}
-      <div className="max-w-6xl w-full mx-auto mt-6 text-center text-xs text-slate-400 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-        <span>© {new Date().getFullYear()} Jesmond. All rights reserved.</span>
-        <Link href="/privacy" className="hover:text-slate-600">Privacy Policy</Link>
-        <Link href="/terms" className="hover:text-slate-600">Terms of Service</Link>
-        <Link href="/support" className="hover:text-slate-600">Support Center</Link>
       </div>
     </div>
   );
