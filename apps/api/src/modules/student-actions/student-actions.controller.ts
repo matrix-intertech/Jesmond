@@ -20,28 +20,28 @@ export class StudentActionsController {
   constructor(private readonly studentActionsService: StudentActionsService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Get('saved')
   async getSavedProperties(@Request() req: any) {
     return this.studentActionsService.getSavedProperties(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Post(':id/save')
   async saveProperty(@Param('id') id: string, @Request() req: any) {
     return this.studentActionsService.saveProperty(req.user.id, id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Delete(':id/save')
   async unsaveProperty(@Param('id') id: string, @Request() req: any) {
     return this.studentActionsService.unsaveProperty(req.user.id, id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.STUDENT)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Post(':id/enquiries')
   async createEnquiry(
     @Param('id') id: string,

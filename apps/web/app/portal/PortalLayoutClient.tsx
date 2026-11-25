@@ -28,7 +28,12 @@ export default function PortalLayoutClient({
 
   const authorize = useCallback((usr: User): boolean => {
     if (usr.role !== "ORG_STAFF") {
-      router.replace(getDashboardRouteForUser(usr));
+      const isBiz = typeof window !== 'undefined' && window.location.hostname.startsWith('business.');
+      if (isBiz) {
+        router.replace("/business/onboarding");
+      } else {
+        router.replace(getDashboardRouteForUser(usr));
+      }
       return false;
     }
 
@@ -86,7 +91,8 @@ export default function PortalLayoutClient({
 
     if (result.status === "unauthorized") {
       clearAuth();
-      router.replace("/login");
+      const isBiz = typeof window !== 'undefined' && window.location.hostname.startsWith('business.');
+      router.replace(isBiz ? "/business/login" : "/login");
       return;
     }
 

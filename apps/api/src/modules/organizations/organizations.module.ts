@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { OrganizationsController } from './controllers/organizations.controller';
 import { OfficesController } from './controllers/offices.controller';
 import { OrgStaffController } from './controllers/org-staff.controller';
@@ -13,7 +14,22 @@ import { AgencyService } from './services/agency.service';
 import { AgencyPermissionsService } from './services/agency-permissions.service';
 
 @Module({
-  imports: [],
+  imports: [
+    JwtModule.registerAsync({
+      useFactory: () => {
+        const secret = process.env.JWT_SECRET;
+        if (process.env.NODE_ENV === 'production' && !secret) {
+          throw new Error(
+            'JWT_SECRET must be explicitly configured in production environment.',
+          );
+        }
+        return {
+          secret: secret || 'fallback-secret-for-dev',
+          signOptions: { expiresIn: '15m' },
+        };
+      },
+    }),
+  ],
   controllers: [
     OrganizationsController,
     OfficesController,

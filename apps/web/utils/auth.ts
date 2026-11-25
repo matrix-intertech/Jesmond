@@ -15,14 +15,31 @@ export interface User {
   accountStatus?: string;
 }
 
+let inMemoryBusinessToken: string | null = null;
+
+export const isBusinessHost = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return window.location.hostname.toLowerCase().startsWith('business.');
+};
+
 export const getAccessToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  // Previously we used `access_token` and maybe `token` in some places. Let's standardize on `access_token`
+  if (isBusinessHost()) {
+    // Zero localStorage token storage on Business Portal
+    return inMemoryBusinessToken;
+  }
   return localStorage.getItem('access_token') || localStorage.getItem('token');
 };
 
 export const setAccessToken = (token: string) => {
   if (typeof window === 'undefined') return;
+  if (isBusinessHost()) {
+    // Zero localStorage/sessionStorage token exposure for business sessions
+    inMemoryBusinessToken = token;
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('token');
+    return;
+  }
   localStorage.setItem('access_token', token);
   // Remove old token key if it exists to clean up
   localStorage.removeItem('token');
@@ -50,12 +67,16 @@ export const setCurrentUser = (user: User | Partial<User> | null | undefined) =>
 
 export const clearAuth = () => {
   if (typeof window === 'undefined') return;
+  inMemoryBusinessToken = null;
   localStorage.removeItem('access_token');
   localStorage.removeItem('token');
   localStorage.removeItem('user');
 };
 
 export const isAuthenticated = (): boolean => {
+  if (isBusinessHost()) {
+    return !!getCurrentUser();
+  }
   return !!getAccessToken() && !!getCurrentUser();
 };
 
@@ -85,7 +106,9 @@ export async function restoreUserSession(options?: {
   }
 
   const token = getAccessToken();
-  if (!token) {
+  const isBusiness = isBusinessHost();
+
+  if (!token && !isBusiness) {
     clearAuth();
     return { user: null, status: 'unauthorized', error: 'No active session token' };
   }
@@ -102,13 +125,18 @@ export async function restoreUserSession(options?: {
 
   try {
     const apiUrl = getApiUrl();
+    const headers: Record<string, string> = {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      Pragma: 'no-cache',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        Pragma: 'no-cache',
-      },
+      headers,
+      credentials: 'include',
       cache: 'no-store',
       signal: controller.signal,
     });

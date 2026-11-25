@@ -39,12 +39,28 @@ async function bootstrap() {
     .filter(Boolean);
   const allowedOrigins = [
     ...corsOrigins,
+    'https://jesmond.com.au',
+    'https://business.jesmond.com.au',
     'http://127.0.0.1:3000',
     'http://localhost:3000',
+    'http://business.localhost:3000',
   ];
   app.enableCors({
-    origin: allowedOrigins,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin) return callback(null, true);
+      if (
+        allowedOrigins.includes(origin) ||
+        /^https:\/\/[a-zA-Z0-9-]+\.jesmond\.com\.au$/.test(origin) ||
+        /^http:\/\/[a-zA-Z0-9-]+\.localhost:3000$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, false);
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
 

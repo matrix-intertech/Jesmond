@@ -37,7 +37,7 @@ describe('API Tests', () => {
     expect(token).toBeDefined();
 
     let appRecord = await prisma.application.findFirst({
-      where: { studentId: user.id },
+      where: { studentId: user.id, status: 'PENDING_REVIEW' },
     });
     if (!appRecord) {
       const roomType = await prisma.roomType.findFirst();

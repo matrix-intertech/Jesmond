@@ -61,6 +61,36 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /**
+   * Atomically gets the value and deletes the key (GETDEL / burn-on-read).
+   * Guaranteed single-use consumption for SSO authorization codes.
+   */
+  async getDel<T>(key: string): Promise<T | null> {
+    if (!this.client || !this.isConnected) return null;
+    try {
+      let data: string | null = null;
+      if (typeof (this.client as any).getdel === 'function') {
+        data = await (this.client as any).getdel(key);
+      } else {
+        const lua = `local val = redis.call('get', KEYS[1]); if val then redis.call('del', KEYS[1]) end; return val`;
+        data = (await this.client.eval(lua, 1, key)) as string | null;
+      }
+      if (!data) return null;
+      return JSON.parse(data) as T;
+    } catch (e: any) {
+      // Fallback in case of version incompatibility or command error
+      try {
+        const lua = `local val = redis.call('get', KEYS[1]); if val then redis.call('del', KEYS[1]) end; return val`;
+        const fallbackData = (await this.client.eval(lua, 1, key)) as string | null;
+        if (!fallbackData) return null;
+        return JSON.parse(fallbackData) as T;
+      } catch (err: any) {
+        this.logger.warn(`Redis getDel error for key ${key}: ${err.message}`);
+        return null;
+      }
+    }
+  }
+
   async set(key: string, value: any, ttlSeconds: number = 45): Promise<void> {
     if (!this.client || !this.isConnected) return;
     try {

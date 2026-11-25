@@ -63,8 +63,8 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
     });
   });
 
-  describe('Multiple Organizations Without Header (Deterministic Fallback)', () => {
-    it('should select earliest created organization as deterministic primary when no header is passed, regardless of array order', async () => {
+  describe('Multiple Organizations Without Header (Explicit Selection Required)', () => {
+    it('should throw ForbiddenException when no X-Organization-Id header is passed for user with multiple active memberships', async () => {
       const orgA = {
         id: 'staff-1',
         organizationId: 'org-a',
@@ -80,23 +80,49 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
         organization: { id: 'org-b', type: OrgType.RETAIL },
       };
 
-      // Case 1: Array has Org B first
-      const mockUserReversed = {
+      // User belongs to both Org A and Org B
+      const mockUserMulti = {
         id: 'user-multi',
         email: 'multi@example.com',
         role: UserRole.ORG_STAFF,
         accountStatus: AccountStatus.ACTIVE,
-        orgStaffRoles: [orgB, orgA], // Org B is index 0
+        orgStaffRoles: [orgB, orgA],
       };
 
-      prisma.user.findUnique.mockResolvedValue(mockUserReversed);
+      prisma.user.findUnique.mockResolvedValue(mockUserMulti);
 
       const req = { headers: {} };
       const payload = { sub: 'user-multi' };
 
+      await expect(strategy.validate(req, payload)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should automatically select active organization when user belongs to exactly one organization', async () => {
+      const orgA = {
+        id: 'staff-1',
+        organizationId: 'org-a',
+        role: UserRole.ORG_STAFF,
+        createdAt: new Date('2024-01-01'),
+        organization: { id: 'org-a', type: OrgType.PROVIDER },
+      };
+
+      const mockUserSingle = {
+        id: 'user-single',
+        email: 'single@example.com',
+        role: UserRole.ORG_STAFF,
+        accountStatus: AccountStatus.ACTIVE,
+        orgStaffRoles: [orgA],
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUserSingle);
+
+      const req = { headers: {} };
+      const payload = { sub: 'user-single' };
+
       const result = await strategy.validate(req, payload);
 
-      // Must deterministically pick Org A because its createdAt is earlier
       expect(result.organizationId).toBe('org-a');
       expect(result.orgType).toBe(OrgType.PROVIDER);
       expect(result.orgRole).toBe(UserRole.ORG_STAFF);
@@ -355,6 +381,110 @@ describe('JwtStrategy - Multi-Organization Context & Tenant Isolation', () => {
           { sub: 'user-session', sessionId: 'session-expired' },
         ),
       ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should validate and attach sessionId to user when present', async () => {
+      const mockUser = {
+        id: 'user-valid-session',
+        email: 'validsession@example.com',
+        role: UserRole.ORG_STAFF,
+        accountStatus: AccountStatus.ACTIVE,
+        orgStaffRoles: [],
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+      prisma.session.findUnique.mockResolvedValue({
+        id: 'session-active-123',
+        isRevoked: false,
+        expiresAt: new Date(Date.now() + 1000000),
+      });
+
+      const result = await strategy.validate(
+        {},
+        { sub: 'user-valid-session', sessionId: 'session-active-123' },
+      );
+
+      expect(result.id).toBe('user-valid-session');
+      expect(result.sessionId).toBe('session-active-123');
+    });
+
+    it('should preserve legacy JWT compatibility when sessionId is absent', async () => {
+      const mockUser = {
+        id: 'user-legacy',
+        email: 'legacy@example.com',
+        role: UserRole.STUDENT,
+        accountStatus: AccountStatus.ACTIVE,
+        orgStaffRoles: [],
+      };
+
+      prisma.user.findUnique.mockResolvedValue(mockUser);
+
+      const result = await strategy.validate(
+        {},
+        { sub: 'user-legacy' }, // No sessionId in legacy token
+      );
+
+      expect(result.id).toBe('user-legacy');
+      expect(result.role).toBe(UserRole.STUDENT);
+      expect(result.sessionId).toBeUndefined();
+      expect(prisma.session.findUnique).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('extractJwtFromCookie (Portal Isolation & Disambiguation)', () => {
+    // Dynamic import of extractJwtFromCookie
+    const { extractJwtFromCookie } = require('./jwt.strategy');
+
+    it('should extract __Host-business-session when request is from business portal host', () => {
+      const req = {
+        headers: {
+          host: 'business.jesmond.com.au',
+          cookie: '__Host-business-session=biz.jwt.token; other=123',
+        },
+      };
+      expect(extractJwtFromCookie(req)).toBe('biz.jwt.token');
+    });
+
+    it('should extract __Host-student-session when request is from student portal host', () => {
+      const req = {
+        headers: {
+          host: 'jesmond.com.au',
+          cookie: '__Host-student-session=student.jwt.token',
+        },
+      };
+      expect(extractJwtFromCookie(req)).toBe('student.jwt.token');
+    });
+
+    it('should reject ambiguous conflicting cookies if host is untrusted or unapproved', () => {
+      const req = {
+        headers: {
+          host: 'untrusted-proxy.attacker.com',
+          cookie:
+            '__Host-business-session=biz.jwt.token; __Host-student-session=student.jwt.token',
+        },
+      };
+      // Must reject ambiguous differing cookies from untrusted host
+      expect(extractJwtFromCookie(req)).toBeNull();
+    });
+
+    it('should resolve to business cookie when both are present but host is verified business portal', () => {
+      const req = {
+        headers: {
+          host: 'business.jesmond.com.au',
+          cookie:
+            '__Host-business-session=biz.jwt.token; __Host-student-session=student.jwt.token',
+        },
+      };
+      expect(extractJwtFromCookie(req)).toBe('biz.jwt.token');
+    });
+
+    it('should extract fallback jesmond_session cookie', () => {
+      const req = {
+        headers: {
+          cookie: 'jesmond_session=fallback.jwt.token',
+        },
+      };
+      expect(extractJwtFromCookie(req)).toBe('fallback.jwt.token');
     });
   });
 });

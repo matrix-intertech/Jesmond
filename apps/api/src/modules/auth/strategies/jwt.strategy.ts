@@ -7,6 +7,83 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
+/**
+ * Extracts JWT token from either __Host-* session cookies or fallback session cookies.
+ * Disambiguates based on trusted portal host and rejects ambiguous conflicting inputs.
+ */
+export const extractJwtFromCookie = (req: any): string | null => {
+  if (!req) return null;
+  const cookieHeader = req.headers?.cookie || req.headers?.['cookie'];
+  if (!cookieHeader || typeof cookieHeader !== 'string') return null;
+
+  const cookieMap: Record<string, string> = {};
+  const cookies = cookieHeader.split(';');
+  for (const cookie of cookies) {
+    const [rawName, ...rest] = cookie.trim().split('=');
+    const cookieName = rawName?.trim();
+    if (cookieName) {
+      const val = rest.join('=').trim();
+      cookieMap[cookieName] = val ? decodeURIComponent(val) : '';
+    }
+  }
+
+  const businessToken =
+    cookieMap['__Host-business-session'] || cookieMap['business-session'];
+  const studentToken =
+    cookieMap['__Host-student-session'] || cookieMap['student-session'];
+  const fallbackToken =
+    cookieMap['jesmond_session'] || cookieMap['jesmond_token'];
+
+  // Inspect trusted host / origin headers (validated against approved whitelist)
+  const hostHeader = (
+    (req.headers?.host as string) ||
+    (req.headers?.['x-forwarded-host'] as string) ||
+    ''
+  ).toLowerCase().trim();
+
+  const originHeader = (
+    (req.headers?.origin as string) ||
+    (req.headers?.referer as string) ||
+    ''
+  ).toLowerCase().trim();
+
+  const isTrustedBusinessHost =
+    /^business\.jesmond\.com\.au(:[0-9]+)?$/.test(hostHeader) ||
+    /^business\.localhost(:[0-9]+)?$/.test(hostHeader) ||
+    originHeader.startsWith('https://business.jesmond.com.au') ||
+    originHeader.startsWith('http://business.localhost');
+
+  const isTrustedStudentHost =
+    /^(www\.)?jesmond\.com\.au(:[0-9]+)?$/.test(hostHeader) ||
+    /^(localhost|127\.0\.0\.1)(:[0-9]+)?$/.test(hostHeader) ||
+    originHeader.startsWith('https://jesmond.com.au') ||
+    originHeader.startsWith('http://localhost') ||
+    originHeader.startsWith('http://127.0.0.1');
+
+  // If conflicting, different cookies are provided for both portals
+  if (businessToken && studentToken && businessToken !== studentToken) {
+    if (isTrustedBusinessHost) {
+      return businessToken;
+    }
+    if (isTrustedStudentHost) {
+      return studentToken;
+    }
+    // Ambiguous and untrusted host: reject ambiguous conflicting session cookies
+    return null;
+  }
+
+  if (isTrustedBusinessHost && businessToken) {
+    return businessToken;
+  }
+
+  if (isTrustedStudentHost && studentToken) {
+    return studentToken;
+  }
+
+  // Single portal cookie present
+  return businessToken || studentToken || fallbackToken || null;
+};
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly prisma: PrismaService) {
@@ -17,7 +94,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       );
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        ExtractJwt.fromAuthHeaderAsBearerToken(),
+        extractJwtFromCookie,
+      ]),
       ignoreExpiration: false,
       secretOrKey: secret || 'fallback-secret-for-dev',
       passReqToCallback: true,
@@ -63,34 +143,34 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     let activeRole: (typeof user.orgStaffRoles)[number] | undefined = undefined;
 
-    if (activeStaffRoles.length > 0) {
-      const requestedOrgId = (
-        (req?.headers?.['x-organization-id'] as string) ||
-        (typeof req?.header === 'function'
-          ? req.header('x-organization-id')
-          : undefined) ||
-        (typeof req?.get === 'function'
-          ? req.get('x-organization-id')
-          : undefined)
-      )?.trim();
+    const requestedOrgId = (
+      (req?.headers?.['x-organization-id'] as string) ||
+      (typeof req?.header === 'function'
+        ? req.header('x-organization-id')
+        : undefined) ||
+      (typeof req?.get === 'function'
+        ? req.get('x-organization-id')
+        : undefined)
+    )?.trim();
 
-      if (requestedOrgId) {
-        const matched = activeStaffRoles.find(
-          (r) => r.organizationId === requestedOrgId,
+    if (requestedOrgId) {
+      const matched = activeStaffRoles.find(
+        (r) => r.organizationId === requestedOrgId,
+      );
+      if (!matched) {
+        throw new ForbiddenException(
+          'You do not have access to the requested organization.',
         );
-        if (!matched) {
-          throw new ForbiddenException(
-            'You do not have access to the requested organization.',
-          );
-        }
-        activeRole = matched;
-      } else {
-        // Deterministic primary organization (earliest created active membership)
-        activeRole = [...activeStaffRoles].sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-        )[0];
       }
+      activeRole = matched;
+    } else if (activeStaffRoles.length === 1) {
+      // Exactly one active membership: automatic selection is safe and permissible
+      activeRole = activeStaffRoles[0];
+    } else if (activeStaffRoles.length > 1) {
+      // Multiple active memberships: require explicit organization selection
+      throw new ForbiddenException(
+        'Multiple active organization memberships found. Explicit organization selection is required via the X-Organization-Id header.',
+      );
     }
 
     const organizationId = activeRole?.organizationId;
@@ -104,6 +184,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: user.id,
       email: user.email,
       role: user.role,
+      sessionId: payload.sessionId,
       organizationId,
       orgType,
       businessCategory,

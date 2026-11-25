@@ -7,6 +7,7 @@ import {
   Get,
   UseGuards,
   Request,
+  Response,
   Header,
 } from '@nestjs/common';
 import { AuthService } from '../services/auth.service';
@@ -44,10 +45,55 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async login(@Request() req: any, @Body() dto: LoginDto) {
+  async login(
+    @Request() req: any,
+    @Response({ passthrough: true }) res: any,
+    @Body() dto: LoginDto,
+  ) {
     const ipAddress = req.ip;
     const userAgent = req.headers['user-agent'];
-    return this.authService.login(dto, { ipAddress, userAgent });
+    const result = await this.authService.login(dto, { ipAddress, userAgent });
+
+    const hostHeader = (
+      (req.headers?.['x-forwarded-host'] as string) ||
+      (req.headers?.host as string) ||
+      ''
+    ).toLowerCase().trim();
+
+    const originHeader = (
+      (req.headers?.origin as string) ||
+      (req.headers?.referer as string) ||
+      ''
+    ).toLowerCase().trim();
+
+    const isBusiness =
+      hostHeader.startsWith('business.') ||
+      originHeader.includes('business.');
+
+    const isProd =
+      process.env.NODE_ENV === 'production' ||
+      process.env.COOKIE_SECURE === 'true';
+    const isSecureContext = isProd || req.secure || req.headers['x-forwarded-proto'] === 'https';
+
+    const cookieName = isSecureContext
+      ? isBusiness
+        ? '__Host-business-session'
+        : '__Host-student-session'
+      : isBusiness
+        ? 'business-session'
+        : 'student-session';
+
+    if (res?.cookie && result.access_token) {
+      res.cookie(cookieName, result.access_token, {
+        httpOnly: true,
+        secure: isSecureContext,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    }
+
+    return result;
   }
 
   @HttpCode(HttpStatus.OK)

@@ -20,9 +20,8 @@ import { UserRole } from '@prisma/client';
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-  @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.STUDENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Post()
   async createApplication(
     @Body()
@@ -43,9 +42,8 @@ export class ApplicationsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-  @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.STUDENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Get('my')
   async getMyApplications(@Request() req: any) {
     return this.applicationsService.getMyApplications(req.user.id);
@@ -93,9 +91,8 @@ export class ApplicationsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
-  @OrgTypes(OrgType.PROVIDER)
-  @Roles(UserRole.STUDENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.STUDENT, UserRole.ORG_STAFF)
   @Post(':id/withdraw')
   async withdrawApplication(@Param('id') id: string, @Request() req: any) {
     return this.applicationsService.withdrawApplication(req.user.id, id);
