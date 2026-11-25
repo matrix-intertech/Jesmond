@@ -5,7 +5,17 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AppointmentStatus, Prisma, UserRole, ServiceLocationType } from '@prisma/client';
+import {
+  AppointmentStatus,
+  Prisma,
+  UserRole,
+  ServiceLocationType,
+  NotificationEventType,
+  OutboxStatus,
+  ReminderType,
+  ReminderRecipientType,
+  ReminderStatus,
+} from '@prisma/client';
 import { CreateCustomerAddressDto } from '../../customer-addresses/dtos/customer-address.dto';
 
 import { NotificationsService } from '../../notifications/notifications.service';
@@ -287,30 +297,35 @@ export class AppointmentsService {
         },
       });
 
+      // Write APPOINTMENT_REQUESTED event inside the same PostgreSQL transaction
+      await tx.notificationOutbox.create({
+        data: {
+          eventType: NotificationEventType.APPOINTMENT_REQUESTED,
+          aggregateType: 'APPOINTMENT',
+          aggregateId: appointment.id,
+          payload: {
+            appointmentId: appointment.id,
+            organizationId: appointment.organizationId,
+            branchId: appointment.branchId,
+            customerId: appointment.customerId,
+            serviceName: appointment.serviceName,
+            startTime: (appointment.startTime ? new Date(appointment.startTime) : new Date(data.startTime)).toISOString(),
+            endTime: (appointment.endTime ? new Date(appointment.endTime) : new Date(data.endTime)).toISOString(),
+            timezone: appointment.timezone,
+            price: appointment.price,
+            currency: appointment.currency,
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+
       return appointment;
     });
 
-    // Async Notification (Non-blocking) after successful commit
-    this.notificationsService
-      .createNotification({
-        recipientId: result.customerId,
-        type: 'APPOINTMENT_REQUESTED',
-        title: 'Appointment Request Submitted',
-        body: `Your appointment request for ${result.serviceName} has been received and is pending approval.`,
-        actionUrl: `/my-appointments/${result.id}`,
-      })
-      .catch(console.error);
-
-    // Non-blocking WhatsApp and Email notifications for booking request
+    // Non-blocking WhatsApp notification for booking request (In-App & Email handled authoritatively via NotificationOutbox)
     this.appointmentWhatsAppService
       .notifyBookingRequestReceived(result.id)
       .catch((err) => console.error('Failed WA appt request received', err));
-    this.appointmentEmailService
-      .notifyAppointmentRequestReceived(result.id)
-      .catch((err) => console.error('Failed Email appt request received', err));
-    this.appointmentEmailService
-      .notifyProviderNewAppointment(result.id)
-      .catch((err) => console.error('Failed Email provider new appt', err));
 
     return result;
   }
@@ -336,6 +351,42 @@ export class AppointmentsService {
         throw new BadRequestException('Invalid status transition');
       }
 
+      // Cancel any scheduled reminders in transaction
+      await tx.appointmentReminder.updateMany({
+        where: { appointmentId, status: ReminderStatus.SCHEDULED },
+        data: {
+          status: ReminderStatus.CANCELLED,
+          cancelledAt: new Date(),
+          cancellationReason: reason || 'Customer cancelled appointment',
+        },
+      });
+
+      // Write APPOINTMENT_CANCELLED to outbox in transaction
+      await tx.notificationOutbox.create({
+        data: {
+          eventType: NotificationEventType.APPOINTMENT_CANCELLED,
+          aggregateType: 'APPOINTMENT',
+          aggregateId: appointmentId,
+          payload: {
+            appointmentId,
+            organizationId: appointment.organizationId,
+            cancelledByUserId: customerId,
+            customerId: appointment.customerId,
+            staffUserId: appointment.staffId
+              ? (
+                  await tx.orgStaff.findUnique({
+                    where: { id: appointment.staffId },
+                    select: { userId: true },
+                  })
+                )?.userId || null
+              : null,
+            serviceName: appointment.serviceName,
+            cancellationReason: reason || 'Customer cancelled appointment',
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+
       return tx.appointment.update({
         where: { id: appointmentId },
         data: {
@@ -352,23 +403,10 @@ export class AppointmentsService {
       });
     });
 
-    // Async Notification
-    this.notificationsService
-      .createNotification({
-        recipientId: customerId,
-        type: 'APPOINTMENT_CANCELLED',
-        title: 'Appointment Cancelled',
-        body: `Your appointment has been cancelled.`,
-      })
-      .catch(console.error);
-
-    // Non-blocking WhatsApp and Email notifications
+    // Non-blocking WhatsApp notification (In-App & Email handled authoritatively via NotificationOutbox)
     this.appointmentWhatsAppService
       .notifyAppointmentCancelled(appointmentId, reason)
       .catch((err) => console.error('Failed WA appt cancelled', err));
-    this.appointmentEmailService
-      .notifyAppointmentCancelled(appointmentId, reason)
-      .catch((err) => console.error('Failed Email appt cancelled', err));
 
     return result;
   }
@@ -601,27 +639,108 @@ export class AppointmentsService {
         },
       });
 
+      // Durable reminders in PostgreSQL
+      const startTimeMs = confirmed.startTime.getTime();
+      const nowMs = Date.now();
+      const time24h = new Date(startTimeMs - 24 * 60 * 60 * 1000);
+      const time1h = new Date(startTimeMs - 60 * 60 * 1000);
+
+      const staffUser = confirmed.staffId
+        ? await tx.orgStaff.findUnique({
+            where: { id: confirmed.staffId },
+            select: { userId: true },
+          })
+        : null;
+
+      // 1. Reminders for Customer
+      if (time24h.getTime() > nowMs) {
+        await tx.appointmentReminder.create({
+          data: {
+            appointmentId,
+            reminderType: ReminderType.BEFORE_24_HOURS,
+            recipientType: ReminderRecipientType.CUSTOMER,
+            recipientUserId: confirmed.customerId,
+            scheduledFor: time24h,
+            timezone: confirmed.timezone,
+            scheduleVersion: 1,
+            status: ReminderStatus.SCHEDULED,
+          },
+        });
+      }
+      if (time1h.getTime() > nowMs) {
+        await tx.appointmentReminder.create({
+          data: {
+            appointmentId,
+            reminderType: ReminderType.BEFORE_1_HOUR,
+            recipientType: ReminderRecipientType.CUSTOMER,
+            recipientUserId: confirmed.customerId,
+            scheduledFor: time1h,
+            timezone: confirmed.timezone,
+            scheduleVersion: 1,
+            status: ReminderStatus.SCHEDULED,
+          },
+        });
+      }
+
+      // 2. Reminders for Assigned Professional (if active & different user)
+      if (staffUser?.userId && staffUser.userId !== confirmed.customerId) {
+        if (time24h.getTime() > nowMs) {
+          await tx.appointmentReminder.create({
+            data: {
+              appointmentId,
+              reminderType: ReminderType.BEFORE_24_HOURS,
+              recipientType: ReminderRecipientType.ASSIGNED_STAFF,
+              recipientUserId: staffUser.userId,
+              scheduledFor: time24h,
+              timezone: confirmed.timezone,
+              scheduleVersion: 1,
+              status: ReminderStatus.SCHEDULED,
+            },
+          });
+        }
+        if (time1h.getTime() > nowMs) {
+          await tx.appointmentReminder.create({
+            data: {
+              appointmentId,
+              reminderType: ReminderType.BEFORE_1_HOUR,
+              recipientType: ReminderRecipientType.ASSIGNED_STAFF,
+              recipientUserId: staffUser.userId,
+              scheduledFor: time1h,
+              timezone: confirmed.timezone,
+              scheduleVersion: 1,
+              status: ReminderStatus.SCHEDULED,
+            },
+          });
+        }
+      }
+
+      // 3. Emit APPOINTMENT_CONFIRMED into Outbox in transaction
+      await tx.notificationOutbox.create({
+        data: {
+          eventType: NotificationEventType.APPOINTMENT_CONFIRMED,
+          aggregateType: 'APPOINTMENT',
+          aggregateId: appointmentId,
+          payload: {
+            appointmentId,
+            organizationId: confirmed.organizationId,
+            customerId: confirmed.customerId,
+            staffUserId: staffUser?.userId || null,
+            serviceName: confirmed.serviceName,
+            startTime: confirmed.startTime.toISOString(),
+            endTime: confirmed.endTime.toISOString(),
+            timezone: confirmed.timezone,
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+
       return confirmed;
     });
 
-    // Async Notification
-    this.notificationsService
-      .createNotification({
-        recipientId: result.customerId,
-        type: 'APPOINTMENT_APPROVED',
-        title: 'Appointment Confirmed',
-        body: `Your appointment for ${result.serviceName} has been confirmed.`,
-        actionUrl: `/my-appointments/${result.id}`,
-      })
-      .catch(console.error);
-
-    // Non-blocking WhatsApp and Email notifications
+    // Non-blocking WhatsApp notification (In-App, Email & Reminders handled authoritatively via NotificationOutbox)
     this.appointmentWhatsAppService
       .notifyAppointmentConfirmed(result.id)
       .catch((err) => console.error('Failed WA appt confirmed', err));
-    this.appointmentEmailService
-      .notifyAppointmentConfirmed(result.id)
-      .catch((err) => console.error('Failed Email appt confirmed', err));
 
     return result;
   }
@@ -647,6 +766,33 @@ export class AppointmentsService {
         );
       }
 
+      // Cancel any scheduled reminders in transaction
+      await tx.appointmentReminder.updateMany({
+        where: { appointmentId, status: ReminderStatus.SCHEDULED },
+        data: {
+          status: ReminderStatus.CANCELLED,
+          cancelledAt: new Date(),
+          cancellationReason: reason || 'Appointment rejected by business',
+        },
+      });
+
+      // Write APPOINTMENT_REJECTED to Outbox in transaction
+      await tx.notificationOutbox.create({
+        data: {
+          eventType: NotificationEventType.APPOINTMENT_REJECTED,
+          aggregateType: 'APPOINTMENT',
+          aggregateId: appointmentId,
+          payload: {
+            appointmentId,
+            organizationId,
+            customerId: appointment.customerId,
+            serviceName: appointment.serviceName,
+            rejectionReason: reason || 'Appointment declined',
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+
       return tx.appointment.update({
         where: { id: appointmentId },
         data: {
@@ -663,16 +809,7 @@ export class AppointmentsService {
       });
     });
 
-    // Async Notification
-    this.notificationsService
-      .createNotification({
-        recipientId: result.customerId,
-        type: 'APPOINTMENT_REJECTED',
-        title: 'Appointment Request Declined',
-        body: `Your appointment request for ${result.serviceName} could not be approved.`,
-      })
-      .catch(console.error);
-
+    // In-App & Email notifications handled authoritatively via NotificationOutbox
     return result;
   }
 
@@ -725,6 +862,73 @@ export class AppointmentsService {
         );
       }
 
+      if (status === AppointmentStatus.CANCELLED || status === AppointmentStatus.REJECTED) {
+        await tx.appointmentReminder.updateMany({
+          where: { appointmentId, status: ReminderStatus.SCHEDULED },
+          data: {
+            status: ReminderStatus.CANCELLED,
+            cancelledAt: new Date(),
+            cancellationReason: reason || `Appointment marked as ${status}`,
+          },
+        });
+
+        await tx.notificationOutbox.create({
+          data: {
+            eventType:
+              status === AppointmentStatus.CANCELLED
+                ? NotificationEventType.APPOINTMENT_CANCELLED
+                : NotificationEventType.APPOINTMENT_REJECTED,
+            aggregateType: 'APPOINTMENT',
+            aggregateId: appointmentId,
+            payload: {
+              appointmentId,
+              organizationId,
+              customerId: appointment.customerId,
+              staffUserId: appointment.staffId
+                ? (
+                    await tx.orgStaff.findUnique({
+                      where: { id: appointment.staffId },
+                      select: { userId: true },
+                    })
+                  )?.userId || null
+                : null,
+              serviceName: appointment.serviceName,
+              cancellationReason: reason || `Appointment marked as ${status}`,
+              rejectionReason: reason || `Appointment marked as ${status}`,
+            },
+            status: OutboxStatus.PENDING,
+          },
+        });
+      }
+
+      if (status === AppointmentStatus.CONFIRMED) {
+        await tx.notificationOutbox.create({
+          data: {
+            eventType: NotificationEventType.APPOINTMENT_CONFIRMED,
+            aggregateType: 'APPOINTMENT',
+            aggregateId: appointmentId,
+            payload: {
+              appointmentId,
+              organizationId,
+              customerId: appointment.customerId,
+              staffUserId: appointment.staffId
+                ? (
+                    await tx.orgStaff.findUnique({
+                      where: { id: appointment.staffId },
+                      select: { userId: true },
+                    })
+                  )?.userId || null
+                : null,
+              serviceName: appointment.serviceName,
+              startTime: appointment.startTime.toISOString(),
+              endTime: appointment.endTime.toISOString(),
+              timezone: appointment.timezone,
+            },
+            status: OutboxStatus.PENDING,
+          },
+        });
+      }
+
       return tx.appointment.update({
         where: { id: appointmentId },
         data: {
@@ -746,38 +950,215 @@ export class AppointmentsService {
       });
     });
 
-    // Async Notification
-    this.notificationsService
-      .createNotification({
-        recipientId: result.customerId,
-        type: 'APPOINTMENT_STATUS_CHANGED',
-        title: 'Appointment Status Updated',
-        body: `Your appointment status is now ${status}.`,
-        actionUrl: `/my-appointments/${result.id}`,
-      })
-      .catch(console.error);
+    // Non-outbox statuses (IN_PROGRESS, COMPLETED, NO_SHOW) still emit status notification
+    if (
+      status !== AppointmentStatus.CANCELLED &&
+      status !== AppointmentStatus.REJECTED &&
+      status !== AppointmentStatus.CONFIRMED
+    ) {
+      this.notificationsService
+        .createNotification({
+          recipientId: result.customerId,
+          type: 'APPOINTMENT_STATUS_CHANGED',
+          title: 'Appointment Status Updated',
+          body: `Your appointment status is now ${status}.`,
+          actionUrl: `/my-appointments/${result.id}`,
+        })
+        .catch(console.error);
+    }
 
-    // Non-blocking WhatsApp and Email notifications
+    // Non-blocking WhatsApp notifications (In-App & Email handled authoritatively via NotificationOutbox)
     if (status === AppointmentStatus.CANCELLED) {
       this.appointmentWhatsAppService
         .notifyAppointmentCancelled(appointmentId, reason)
         .catch((err) => console.error('Failed WA appt cancelled', err));
-      this.appointmentEmailService
-        .notifyAppointmentCancelled(appointmentId, reason)
-        .catch((err) => console.error('Failed Email appt cancelled', err));
     } else if (status === AppointmentStatus.CONFIRMED) {
       this.appointmentWhatsAppService
         .notifyAppointmentConfirmed(appointmentId)
         .catch((err) => console.error('Failed WA appt confirmed', err));
-      this.appointmentEmailService
-        .notifyAppointmentConfirmed(appointmentId)
-        .catch((err) => console.error('Failed Email appt confirmed', err));
     }
 
     return result;
   }
 
-  // 11. Get Eligible Staff for Appointment
+  // 11. Reschedule Appointment
+  async rescheduleAppointment(params: {
+    appointmentId: string;
+    userId: string;
+    isBusiness: boolean;
+    newStartTime: Date;
+    newEndTime: Date;
+    timezone?: string;
+    reason?: string;
+  }) {
+    const { appointmentId, userId, isBusiness, newStartTime, newEndTime, timezone, reason } = params;
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const appointment = await tx.appointment.findUnique({
+        where: { id: appointmentId },
+      });
+
+      if (!appointment) {
+        throw new NotFoundException('Appointment not found');
+      }
+
+      if (
+        appointment.status === AppointmentStatus.CANCELLED ||
+        appointment.status === AppointmentStatus.REJECTED ||
+        appointment.status === AppointmentStatus.COMPLETED
+      ) {
+        throw new BadRequestException(
+          `Cannot reschedule appointment in status ${appointment.status}`,
+        );
+      }
+
+      if (!isBusiness && appointment.customerId !== userId) {
+        throw new ForbiddenException('Cannot reschedule this appointment');
+      }
+
+      // Check current max scheduleVersion
+      const latestReminder = await tx.appointmentReminder.findFirst({
+        where: { appointmentId },
+        orderBy: { scheduleVersion: 'desc' },
+      });
+      const newVersion = (latestReminder?.scheduleVersion || 1) + 1;
+
+      // Cancel existing active reminders
+      await tx.appointmentReminder.updateMany({
+        where: { appointmentId, status: ReminderStatus.SCHEDULED },
+        data: {
+          status: ReminderStatus.CANCELLED,
+          cancelledAt: new Date(),
+          cancellationReason: 'RESCHEDULED',
+        },
+      });
+
+      const updated = await tx.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          startTime: newStartTime,
+          endTime: newEndTime,
+          timezone: timezone || appointment.timezone,
+          statusHistory: {
+            create: {
+              status: appointment.status,
+              changedById: userId,
+              reason: reason || 'Appointment rescheduled',
+            },
+          },
+        },
+      });
+
+      // If appointment was CONFIRMED, create new version reminders
+      if (updated.status === AppointmentStatus.CONFIRMED) {
+        const startTimeMs = newStartTime.getTime();
+        const nowMs = Date.now();
+        const time24h = new Date(startTimeMs - 24 * 60 * 60 * 1000);
+        const time1h = new Date(startTimeMs - 60 * 60 * 1000);
+
+        if (time24h.getTime() > nowMs) {
+          await tx.appointmentReminder.create({
+            data: {
+              appointmentId,
+              reminderType: ReminderType.BEFORE_24_HOURS,
+              recipientType: ReminderRecipientType.CUSTOMER,
+              recipientUserId: updated.customerId,
+              scheduledFor: time24h,
+              timezone: updated.timezone,
+              scheduleVersion: newVersion,
+              status: ReminderStatus.SCHEDULED,
+            },
+          });
+        }
+        if (time1h.getTime() > nowMs) {
+          await tx.appointmentReminder.create({
+            data: {
+              appointmentId,
+              reminderType: ReminderType.BEFORE_1_HOUR,
+              recipientType: ReminderRecipientType.CUSTOMER,
+              recipientUserId: updated.customerId,
+              scheduledFor: time1h,
+              timezone: updated.timezone,
+              scheduleVersion: newVersion,
+              status: ReminderStatus.SCHEDULED,
+            },
+          });
+        }
+
+        if (updated.staffId) {
+          const staffUser = await tx.orgStaff.findUnique({
+            where: { id: updated.staffId },
+            select: { userId: true },
+          });
+          if (staffUser?.userId && staffUser.userId !== updated.customerId) {
+            if (time24h.getTime() > nowMs) {
+              await tx.appointmentReminder.create({
+                data: {
+                  appointmentId,
+                  reminderType: ReminderType.BEFORE_24_HOURS,
+                  recipientType: ReminderRecipientType.ASSIGNED_STAFF,
+                  recipientUserId: staffUser.userId,
+                  scheduledFor: time24h,
+                  timezone: updated.timezone,
+                  scheduleVersion: newVersion,
+                  status: ReminderStatus.SCHEDULED,
+                },
+              });
+            }
+            if (time1h.getTime() > nowMs) {
+              await tx.appointmentReminder.create({
+                data: {
+                  appointmentId,
+                  reminderType: ReminderType.BEFORE_1_HOUR,
+                  recipientType: ReminderRecipientType.ASSIGNED_STAFF,
+                  recipientUserId: staffUser.userId,
+                  scheduledFor: time1h,
+                  timezone: updated.timezone,
+                  scheduleVersion: newVersion,
+                  status: ReminderStatus.SCHEDULED,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // Write APPOINTMENT_RESCHEDULED to Outbox in transaction
+      await tx.notificationOutbox.create({
+        data: {
+          eventType: NotificationEventType.APPOINTMENT_RESCHEDULED,
+          aggregateType: 'APPOINTMENT',
+          aggregateId: appointmentId,
+          payload: {
+            appointmentId,
+            organizationId: updated.organizationId,
+            customerId: updated.customerId,
+            staffUserId: updated.staffId
+              ? (
+                  await tx.orgStaff.findUnique({
+                    where: { id: updated.staffId },
+                    select: { userId: true },
+                  })
+                )?.userId || null
+              : null,
+            oldStartTime: appointment.startTime.toISOString(),
+            newStartTime: newStartTime.toISOString(),
+            serviceName: updated.serviceName,
+            timezone: updated.timezone,
+            scheduleVersion: newVersion,
+            reason,
+          },
+          status: OutboxStatus.PENDING,
+        },
+      });
+
+      return updated;
+    });
+
+    return result;
+  }
+
+  // 12. Get Eligible Staff for Appointment
   async getEligibleStaffForAppointment(
     appointmentId: string,
     organizationId: string,

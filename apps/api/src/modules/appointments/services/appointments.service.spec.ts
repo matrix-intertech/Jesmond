@@ -59,6 +59,14 @@ describe('AppointmentsService', () => {
       organization: {
         findUnique: jest.fn(),
       },
+      notificationOutbox: {
+        create: jest.fn().mockResolvedValue({ id: 'outbox-1' }),
+      },
+      appointmentReminder: {
+        create: jest.fn().mockResolvedValue({ id: 'rem-1' }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -300,6 +308,11 @@ describe('AppointmentsService', () => {
         customerId: 'cust-1',
         serviceName: 'General Consultation',
         status: 'PENDING_APPROVAL',
+        startTime,
+        endTime,
+        timezone: 'Australia/Sydney',
+        price: 100,
+        currency: 'AUD',
       });
 
       const result = await service.createPendingAppointment({
@@ -323,8 +336,16 @@ describe('AppointmentsService', () => {
         }),
       );
       expect(waService.notifyBookingRequestReceived).toHaveBeenCalledWith('appt-123');
-      expect(emailService.notifyAppointmentRequestReceived).toHaveBeenCalledWith('appt-123');
-      expect(emailService.notifyProviderNewAppointment).toHaveBeenCalledWith('appt-123');
+      expect(prisma.notificationOutbox.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            eventType: 'APPOINTMENT_REQUESTED',
+            aggregateId: 'appt-123',
+          }),
+        }),
+      );
+      expect(emailService.notifyAppointmentRequestReceived).not.toHaveBeenCalled();
+      expect(emailService.notifyProviderNewAppointment).not.toHaveBeenCalled();
     });
   });
 

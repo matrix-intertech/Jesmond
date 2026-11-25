@@ -92,7 +92,13 @@ export default function Header({ user: propUser }: HeaderProps) {
         )}
       </div>
       <div className="flex items-center gap-4 shrink-0">
-        <NotificationDropdown />
+        <NotificationDropdown
+          organizationId={
+            effectiveUser?.role === "ORG_STAFF"
+              ? effectiveUser?.organizationId || undefined
+              : undefined
+          }
+        />
       </div>
     </header>
   );

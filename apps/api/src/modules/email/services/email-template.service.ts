@@ -291,6 +291,24 @@ export class EmailTemplateService {
       `,
     },
 
+    // 12b. APPOINTMENT_REJECTED
+    [EmailEvent.APPOINTMENT_REJECTED]: {
+      subject: () => 'Your appointment request could not be confirmed',
+      requiredVariables: ['customer_name', 'service_name'],
+      renderText: (vars) =>
+        `Hi ${vars.customer_name},\n\nUnfortunately, your appointment request for ${vars.service_name} could not be confirmed by the business.\n\nReason: ${vars.reason || 'Not specified'}\n\nPlease visit Jesmond to choose another time or service.\n\nRegards,\nJesmond Team`,
+      renderHtmlBody: (vars) => `
+        <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #0f172a;">Appointment Request Declined</h2>
+        <p style="margin: 0 0 16px 0;">Hi ${escapeHtml(vars.customer_name)},</p>
+        <p style="margin: 0 0 16px 0;">Unfortunately, your appointment request for <strong>${escapeHtml(vars.service_name)}</strong> could not be confirmed by the business.</p>
+        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 14px 18px; margin: 20px 0; border-radius: 0 8px 8px 0; color: #991b1b;">
+          <strong>Reason:</strong> ${escapeHtml(vars.reason || 'Not specified')}
+        </div>
+        <p style="margin: 0 0 16px 0;">Please visit Jesmond to choose another available time or service.</p>
+        <p style="margin: 24px 0 0 0;">Regards,<br><strong>Jesmond Team</strong></p>
+      `,
+    },
+
     // 13. APPOINTMENT_REMINDER
     [EmailEvent.APPOINTMENT_REMINDER]: {
       subject: () => 'Reminder: your upcoming Jesmond appointment',
@@ -306,6 +324,44 @@ export class EmailTemplateService {
           <span style="font-weight: 600; color: #0f172a;">Time:</span> ${escapeHtml(vars.appointment_time)}
         </div>
         <p style="margin: 0 0 16px 0;">We look forward to seeing you.</p>
+        <p style="margin: 24px 0 0 0;">Regards,<br><strong>Jesmond Team</strong></p>
+      `,
+    },
+
+    // 13b. APPOINTMENT_REMINDER_24H
+    [EmailEvent.APPOINTMENT_REMINDER_24H]: {
+      subject: () => 'Reminder: Your appointment is tomorrow',
+      requiredVariables: ['customer_name', 'service_name', 'appointment_time'],
+      renderText: (vars) =>
+        `Hi ${vars.customer_name},\n\nThis is a friendly reminder that your appointment for ${vars.service_name} is scheduled for tomorrow at ${vars.appointment_time}.\n\nIf you need to reschedule or cancel, please visit your Jesmond dashboard.\n\nRegards,\nJesmond Team`,
+      renderHtmlBody: (vars) => `
+        <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #0f172a;">Appointment Reminder (Tomorrow)</h2>
+        <p style="margin: 0 0 16px 0;">Hi ${escapeHtml(vars.customer_name)},</p>
+        <p style="margin: 0 0 16px 0;">This is a friendly reminder that your appointment for <strong>${escapeHtml(vars.service_name)}</strong> is scheduled for tomorrow:</p>
+        <div style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 14px 18px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          <span style="font-weight: 600; color: #0f172a;">Service:</span> ${escapeHtml(vars.service_name)}<br>
+          <span style="font-weight: 600; color: #0f172a;">Scheduled Time:</span> ${escapeHtml(vars.appointment_time)}
+        </div>
+        <p style="margin: 0 0 16px 0;">If you need to reschedule or make changes, please visit your account dashboard.</p>
+        <p style="margin: 24px 0 0 0;">Regards,<br><strong>Jesmond Team</strong></p>
+      `,
+    },
+
+    // 13c. APPOINTMENT_REMINDER_1H
+    [EmailEvent.APPOINTMENT_REMINDER_1H]: {
+      subject: () => 'Reminder: Your appointment starts in 1 hour',
+      requiredVariables: ['customer_name', 'service_name', 'appointment_time'],
+      renderText: (vars) =>
+        `Hi ${vars.customer_name},\n\nYour appointment for ${vars.service_name} starts in 1 hour at ${vars.appointment_time}.\n\nWe look forward to seeing you shortly.\n\nRegards,\nJesmond Team`,
+      renderHtmlBody: (vars) => `
+        <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #0f172a;">Appointment Starts in 1 Hour</h2>
+        <p style="margin: 0 0 16px 0;">Hi ${escapeHtml(vars.customer_name)},</p>
+        <p style="margin: 0 0 16px 0;">Your appointment for <strong>${escapeHtml(vars.service_name)}</strong> starts in approximately 1 hour:</p>
+        <div style="background-color: #f8fafc; border-left: 4px solid #f59e0b; padding: 14px 18px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+          <span style="font-weight: 600; color: #0f172a;">Service:</span> ${escapeHtml(vars.service_name)}<br>
+          <span style="font-weight: 600; color: #0f172a;">Time:</span> ${escapeHtml(vars.appointment_time)}
+        </div>
+        <p style="margin: 0 0 16px 0;">We look forward to seeing you shortly.</p>
         <p style="margin: 24px 0 0 0;">Regards,<br><strong>Jesmond Team</strong></p>
       `,
     },

@@ -100,4 +100,29 @@ export class AppointmentsController {
       reason,
     );
   }
+
+  // 7. Request reschedule
+  @UseGuards(JwtAuthGuard)
+  @Post('my/:id/reschedule')
+  async rescheduleAppointment(
+    @Param('id') id: string,
+    @Body('newStartTime') newStartTime: string,
+    @Body('newEndTime') newEndTime: string,
+    @Body('timezone') timezone: string,
+    @Body('reason') reason: string,
+    @Request() req: any,
+  ) {
+    if (!newStartTime || !newEndTime) {
+      throw new BadRequestException('newStartTime and newEndTime are required');
+    }
+    return this.appointmentsService.rescheduleAppointment({
+      appointmentId: id,
+      userId: req.user.id,
+      isBusiness: false,
+      newStartTime: new Date(newStartTime),
+      newEndTime: new Date(newEndTime),
+      timezone,
+      reason,
+    });
+  }
 }

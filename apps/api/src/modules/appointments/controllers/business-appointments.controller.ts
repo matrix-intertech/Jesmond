@@ -134,6 +134,32 @@ export class BusinessAppointmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @Post(':id/reschedule')
+  async rescheduleAppointment(
+    @Param('id') id: string,
+    @Body('newStartTime') newStartTime: string,
+    @Body('newEndTime') newEndTime: string,
+    @Body('timezone') timezone: string,
+    @Body('reason') reason: string,
+    @Request() req: any,
+  ) {
+    if (!newStartTime || !newEndTime) {
+      throw new BadRequestException('newStartTime and newEndTime are required');
+    }
+    return this.appointmentsService.rescheduleAppointment({
+      appointmentId: id,
+      userId: req.user.id,
+      isBusiness: true,
+      newStartTime: new Date(newStartTime),
+      newEndTime: new Date(newEndTime),
+      timezone,
+      reason,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireCapability(BusinessCapability.APPOINTMENTS)
   @Get(':id/eligible-staff')
   async getEligibleStaff(@Param('id') id: string, @Request() req: any) {
     return this.appointmentsService.getEligibleStaffForAppointment(

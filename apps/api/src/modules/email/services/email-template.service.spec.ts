@@ -24,11 +24,11 @@ describe('EmailTemplateService', () => {
     });
   });
 
-  describe('All 19 Events Coverage', () => {
+  describe('All Events Coverage', () => {
     const allEvents: EmailEvent[] = Object.values(EmailEvent);
 
-    it('should have exactly 19 registered email events', () => {
-      expect(allEvents).toHaveLength(19);
+    it('should have exactly 22 registered email events', () => {
+      expect(allEvents).toHaveLength(22);
     });
 
     it.each(allEvents)('should successfully retrieve template for event %s', (event) => {
@@ -172,6 +172,18 @@ describe('EmailTemplateService', () => {
       expect(res.text).toContain('Your appointment for Haircut on Fri, Nov 6, 2:00 PM has been confirmed.');
     });
 
+    // 12b. APPOINTMENT_REJECTED
+    it('should correctly render APPOINTMENT_REJECTED', () => {
+      const res = service.render(EmailEvent.APPOINTMENT_REJECTED, {
+        customer_name: 'Charlie Brown',
+        service_name: 'Haircut',
+        reason: 'Fully booked',
+      });
+      expect(res.subject).toBe('Your appointment request could not be confirmed');
+      expect(res.text).toContain('Reason: Fully booked');
+      expect(res.html).toContain('Fully booked');
+    });
+
     // 13. APPOINTMENT_REMINDER
     it('should correctly render APPOINTMENT_REMINDER', () => {
       const res = service.render(EmailEvent.APPOINTMENT_REMINDER, {
@@ -181,6 +193,30 @@ describe('EmailTemplateService', () => {
       });
       expect(res.subject).toBe('Reminder: your upcoming Jesmond appointment');
       expect(res.text).toContain('This is a reminder of your Haircut appointment on Fri, Nov 6, 2:00 PM.');
+    });
+
+    // 13b. APPOINTMENT_REMINDER_24H
+    it('should correctly render APPOINTMENT_REMINDER_24H', () => {
+      const res = service.render(EmailEvent.APPOINTMENT_REMINDER_24H, {
+        customer_name: 'Charlie Brown',
+        service_name: 'Haircut',
+        appointment_time: 'Fri, Nov 6, 2:00 PM',
+      });
+      expect(res.subject).toBe('Reminder: Your appointment is tomorrow');
+      expect(res.text).toContain('scheduled for tomorrow at Fri, Nov 6, 2:00 PM');
+      expect(res.html).toContain('Appointment Reminder (Tomorrow)');
+    });
+
+    // 13c. APPOINTMENT_REMINDER_1H
+    it('should correctly render APPOINTMENT_REMINDER_1H', () => {
+      const res = service.render(EmailEvent.APPOINTMENT_REMINDER_1H, {
+        customer_name: 'Charlie Brown',
+        service_name: 'Haircut',
+        appointment_time: 'Fri, Nov 6, 2:00 PM',
+      });
+      expect(res.subject).toBe('Reminder: Your appointment starts in 1 hour');
+      expect(res.text).toContain('starts in 1 hour at Fri, Nov 6, 2:00 PM');
+      expect(res.html).toContain('Appointment Starts in 1 Hour');
     });
 
     // 14. APPOINTMENT_CANCELLED

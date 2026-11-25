@@ -1,114 +1,159 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { getAccessToken } from '@/utils/auth';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useNotificationPolling, NotificationItem } from '@/hooks/useNotificationPolling';
 import { usePushSubscription } from '@/hooks/usePushSubscription';
+import { CheckCheck, Bell, ExternalLink } from 'lucide-react';
 
-export function NotificationDropdown() {
-    const [open, setOpen] = useState(false);
-    const [notifications, setNotifications] = useState<any[]>([]);
-    const [unreadCount, setUnreadCount] = useState(0);
-    const { isSupported, permission, subscribe } = usePushSubscription();
+interface NotificationDropdownProps {
+  organizationId?: string | null;
+}
 
-    const fetchNotifications = async () => {
-        const token = getAccessToken();
-        if (!token) return;
+function formatRelativeTime(dateStr: string): string {
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / (60 * 1000));
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return new Date(dateStr).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+  } catch {
+    return '';
+  }
+}
 
-        try {
-            const headers = { 'Authorization': `Bearer ${token}` };
-            const res = await fetch('/api/v1/notifications?limit=5', { headers });
-            if (res.ok) {
-                const data = await res.json();
-                setNotifications(data.data || []);
-            }
-            const countRes = await fetch('/api/v1/notifications/unread-count', { headers });
-            if (countRes.ok) {
-                const countData = await countRes.json();
-                setUnreadCount(countData.count || 0);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
+export function NotificationDropdown({ organizationId }: NotificationDropdownProps) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
 
-    useEffect(() => {
-        fetchNotifications();
-        const interval = setInterval(fetchNotifications, 60000);
-        return () => clearInterval(interval);
-    }, []);
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+  } = useNotificationPolling({ organizationId, limit: 10 });
 
-    const markAsRead = async (id: string) => {
-        const token = getAccessToken();
-        if (!token) return;
+  const { isSupported, permission, subscribe } = usePushSubscription();
 
-        try {
-            await fetch(`/api/v1/notifications/${id}/read`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            fetchNotifications();
-        } catch (e) {
-            console.error(e);
-        }
-    };
+  const handleNotificationClick = async (n: NotificationItem) => {
+    if (!n.isRead) {
+      await markAsRead(n.id);
+    }
+    if (n.actionUrl) {
+      setOpen(false);
+      router.push(n.actionUrl);
+    }
+  };
 
-    return (
-        <div className="relative">
-            <button
-                onClick={() => setOpen(!open)}
-                className="relative p-2 text-text-muted hover:text-text-secondary hover:bg-surface-muted rounded-full transition"
-                aria-label="Notifications"
-            >
-                {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-accent/100 rounded-full ring-2 ring-white"></span>
-                )}
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-            </button>
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="relative p-2 text-text-muted hover:text-text-secondary hover:bg-surface-muted rounded-full transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+        aria-label="Notifications"
+        data-testid="notification-bell-button"
+      >
+        {unreadCount > 0 && (
+          <span
+            data-testid="notification-unread-badge"
+            className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 bg-accent text-white text-[10px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none"
+          >
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
+        )}
+        <Bell className="w-5 h-5" />
+      </button>
 
-            {open && (
-                <div className="absolute right-0 mt-2 w-80 bg-surface border border-border-strong shadow-lg rounded-xl overflow-hidden z-50">
-                    <div className="p-4 border-b border-border-subtle font-semibold text-text-primary flex justify-between items-center">
-                        <span>Notifications ({unreadCount})</span>
-                    </div>
-
-                    {isSupported && permission === 'default' && (
-                        <div className="p-3 bg-info-bg border-b border-border-strong flex flex-col gap-2">
-                            <p className="text-xs text-brand-indigo">Enable push notifications to stay updated on new messages.</p>
-                            <button
-                                onClick={() => {
-                                    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-                                    if (vapidKey) subscribe(vapidKey);
-                                }}
-                                className="text-xs font-semibold bg-primary text-white py-1 px-3 rounded w-max hover:bg-brand-purple transition"
-                            >
-                                Enable
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="max-h-96 overflow-y-auto">
-                        {notifications.length === 0 ? (
-                            <div className="p-4 text-center text-text-secondary">No notifications</div>
-                        ) : (
-                            notifications.map((n) => (
-                                <div key={n.id} onClick={() => markAsRead(n.id)} className={`p-4 border-b border-border-subtle cursor-pointer hover:bg-surface-lavender ${n.isRead ? 'opacity-70' : 'bg-info-bg/20'}`}>
-                                    <p className="text-sm font-medium text-text-primary">{n.title}</p>
-                                    <p className="text-xs text-text-secondary mt-1">{n.body}</p>
-                                    {n.actionUrl && (
-                                        <Link href={n.actionUrl} className="text-xs text-accent mt-2 inline-block">
-                                            View
-                                        </Link>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+      {open && (
+        <div
+          data-testid="notification-dropdown-panel"
+          className="absolute right-0 mt-2 w-84 sm:w-96 bg-surface border border-border-strong shadow-xl rounded-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+        >
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-border-subtle flex justify-between items-center bg-surface-muted/50">
+            <span className="font-semibold text-sm text-text-primary flex items-center gap-2">
+              Notifications
+              {unreadCount > 0 && (
+                <span className="text-xs font-normal text-text-muted">({unreadCount} unread)</span>
+              )}
+            </span>
+            {unreadCount > 0 && (
+              <button
+                onClick={() => markAllAsRead()}
+                className="text-xs text-primary hover:text-primary-hover font-medium flex items-center gap-1 transition"
+                data-testid="mark-all-read-button"
+              >
+                <CheckCheck size={14} />
+                Mark all read
+              </button>
             )}
+          </div>
+
+          {/* Web Push Prompt if default */}
+          {isSupported && permission === 'default' && (
+            <div className="p-3 bg-info-bg/50 border-b border-border-subtle flex flex-col gap-2">
+              <p className="text-xs text-brand-indigo">Enable browser notifications to stay updated immediately.</p>
+              <button
+                onClick={() => {
+                  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+                  if (vapidKey) subscribe(vapidKey);
+                }}
+                className="text-xs font-semibold bg-primary text-white py-1 px-3 rounded w-max hover:bg-brand-purple transition"
+              >
+                Enable
+              </button>
+            </div>
+          )}
+
+          {/* Notifications List */}
+          <div className="max-h-96 overflow-y-auto divide-y divide-border-subtle">
+            {notifications.length === 0 ? (
+              <div className="p-8 text-center text-text-secondary text-sm">
+                No notifications yet
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <div
+                  key={n.id}
+                  onClick={() => handleNotificationClick(n)}
+                  className={`p-3.5 cursor-pointer transition hover:bg-surface-lavender/60 flex items-start gap-3 ${
+                    n.isRead ? 'opacity-75 bg-transparent' : 'bg-primary/5'
+                  }`}
+                  data-testid={`notification-item-${n.id}`}
+                >
+                  <span
+                    className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                      n.isRead ? 'bg-transparent' : 'bg-accent'
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-sm font-medium truncate ${n.isRead ? 'text-text-secondary' : 'text-text-primary'}`}>
+                        {n.title}
+                      </p>
+                      <span className="text-[11px] text-text-muted shrink-0">
+                        {formatRelativeTime(n.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-text-secondary mt-0.5 line-clamp-2">
+                      {n.body}
+                    </p>
+                    {n.actionUrl && (
+                      <span className="text-[11px] text-primary hover:underline mt-1.5 inline-flex items-center gap-1">
+                        View details <ExternalLink size={10} />
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }

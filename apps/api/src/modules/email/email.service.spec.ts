@@ -216,6 +216,32 @@ describe('EmailService', () => {
       expect(cancelled).toBe(true);
       expect(emailQueue.getJob).toHaveBeenCalledWith('reminder_123');
     });
+
+    it('should fail safely without in-memory setTimeout fallback in production when BullMQ/Redis fails', async () => {
+      const prevEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      emailQueue.add.mockRejectedValueOnce(new Error('ECONNREFUSED 127.0.0.1:6379'));
+
+      try {
+        const result = await service.sendEmailAsync({
+          event: EmailEvent.ORDER_CONFIRMED,
+          recipient: 'buyer@example.com',
+          variables: { order_number: 'ORD-555', customer_name: 'Alice' },
+          idempotencyKey: 'prod_fail_555',
+        });
+
+        expect(result.success).toBe(false);
+        expect(result.status).toBe(EmailNotificationStatus.FAILED);
+        expect(result.error).toContain('Durable email queue unavailable in production');
+        expect(logService.updateFailure).toHaveBeenCalledWith(
+          'log-123',
+          expect.stringContaining('Durable email queue unavailable in production'),
+          false,
+        );
+      } finally {
+        process.env.NODE_ENV = prevEnv;
+      }
+    });
   });
 
   describe('executeQueuedEmail (Appointment status verification)', () => {

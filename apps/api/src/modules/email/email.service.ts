@@ -160,6 +160,7 @@ export class EmailService {
         success: true,
         logId: log?.id,
         status: EmailNotificationStatus.SENT,
+        messageId: result.messageId,
       };
     } else {
       const errorMsg = result.error || 'Nodemailer dispatch failure';
@@ -240,6 +241,7 @@ export class EmailService {
     }
 
     // Enqueue in BullMQ if queue is available
+    let queueError: string | undefined;
     if (this.emailQueue) {
       try {
         await this.emailQueue.add(
@@ -261,15 +263,29 @@ export class EmailService {
           status: EmailNotificationStatus.QUEUED,
         };
       } catch (queueErr: any) {
-        this.logger.warn(
-          `Email BullMQ queue failed (${queueErr.message}); falling back to asynchronous direct dispatch.`,
-        );
+        queueError = queueErr?.message || 'BullMQ enqueue failed';
+        this.logger.warn(`Email BullMQ queue failed (${queueError}).`);
       }
+    } else {
+      queueError = 'Email BullMQ queue is unavailable';
     }
 
-    // Non-durable in-process fallback if BullMQ/Redis is unavailable.
-    // Note: Pending in-memory timeouts will not survive process restarts.
-    // If a restart occurs, records remain observable in Postgres with QUEUED status.
+    // Production must fail safely when Redis/BullMQ is unavailable — never use in-memory setTimeout fallback.
+    if (process.env.NODE_ENV === 'production') {
+      const failReason = `Durable email queue unavailable in production: ${queueError}`;
+      this.logger.error(failReason);
+      if (log) {
+        await this.logService.updateFailure(log.id, failReason, false);
+      }
+      return {
+        success: false,
+        logId: log?.id,
+        status: EmailNotificationStatus.FAILED,
+        error: failReason,
+      };
+    }
+
+    // Non-production (development/test) fallback when Redis is offline locally.
     const delay = delayMs || 0;
     setTimeout(() => {
       this.sendEmail(options).catch((err) =>

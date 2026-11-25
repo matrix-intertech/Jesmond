@@ -9,6 +9,7 @@ import { WhatsAppModule } from '../whatsapp/whatsapp.module';
 import { EmailModule } from '../email/email.module';
 import { AppointmentWhatsAppService } from './services/appointment-whatsapp.service';
 import { AppointmentEmailService } from './services/appointment-email.service';
+import { AppointmentReminderService } from './services/appointment-reminder.service';
 
 @Module({
   imports: [PrismaModule, NotificationsModule, WhatsAppModule, EmailModule],
@@ -18,12 +19,14 @@ import { AppointmentEmailService } from './services/appointment-email.service';
     AvailabilityService,
     AppointmentWhatsAppService,
     AppointmentEmailService,
+    AppointmentReminderService,
   ],
   exports: [
     AppointmentsService,
     AvailabilityService,
     AppointmentWhatsAppService,
     AppointmentEmailService,
+    AppointmentReminderService,
   ],
 })
 export class AppointmentsModule { }

@@ -30,5 +30,6 @@ export interface SendEmailResult {
   status?: EmailNotificationStatus | string;
   error?: string;
   skippedReason?: string;
+  messageId?: string;
 }
 

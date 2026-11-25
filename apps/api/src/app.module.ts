@@ -30,6 +30,7 @@ import { EmailModule } from './modules/email/email.module';
 import { CredentialsModule } from './modules/credentials/credentials.module';
 import { BusinessNameRequestsModule } from './modules/business-name-requests/business-name-requests.module';
 import { CustomerAddressesModule } from './modules/customer-addresses/customer-addresses.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { CustomerAddressesModule } from './modules/customer-addresses/customer-a
     CredentialsModule,
     BusinessNameRequestsModule,
     CustomerAddressesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
