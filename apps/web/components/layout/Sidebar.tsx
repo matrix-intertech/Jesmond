@@ -17,9 +17,19 @@ import { canUseBusinessCapability } from "@/utils/capabilities";
  * Uses the existing inline SVG icons from the project to avoid adding new dependencies.
  * Role-based navigation items are defined in a simple config object.
  */
+type NavSection = "overview" | "operations" | "compliance" | "settings";
+
+const SECTION_ORDER: Record<NavSection, number> = {
+  overview: 0,
+  operations: 1,
+  compliance: 2,
+  settings: 3,
+};
+
 interface NavItem {
   href: string;
   label: string;
+  section: NavSection;
   // Inline SVG markup for the icon (lightweight, no external library).
   icon: ReactNode;
   roles: ("SUPER_ADMIN" | "ADMIN" | "ORG_STAFF" | "STUDENT")[];
@@ -32,6 +42,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin",
     label: "Dashboard",
+    section: "overview",
     icon: (
       <svg
         className="w-5 h-5"
@@ -52,6 +63,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/properties",
     label: "Properties",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -71,6 +83,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/users",
     label: "Users",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -92,6 +105,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/applications",
     label: "Applications",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -111,6 +125,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/settings",
     label: "Settings",
+    section: "settings",
     icon: (
       <svg
         className="w-5 h-5"
@@ -130,6 +145,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/credentials",
     label: "Business Credentials",
+    section: "compliance",
     icon: (
       <svg
         className="w-5 h-5"
@@ -148,6 +164,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/credentials/abn-exemptions",
     label: "ABN Exemptions",
+    section: "compliance",
     icon: (
       <svg
         className="w-5 h-5"
@@ -168,6 +185,7 @@ const navConfig: NavItem[] = [
   {
     href: "/admin/business-name-requests",
     label: "Name Change Requests",
+    section: "compliance",
     icon: (
       <svg
         className="w-5 h-5"
@@ -188,6 +206,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal",
     label: "Dashboard",
+    section: "overview",
     icon: (
       <svg
         className="w-5 h-5"
@@ -209,6 +228,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/properties",
     label: "My Properties",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -229,6 +249,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/applications",
     label: "Applications",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -249,6 +270,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/enquiries",
     label: "Enquiries",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -268,6 +290,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/chats",
     label: "Chats",
+    section: "operations",
     icon: <MessageCircle className="w-5 h-5" />,
     roles: ["ORG_STAFF"],
     orgTypes: ["PROVIDER"],
@@ -275,6 +298,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/agency",
     label: "Agency",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -297,6 +321,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/leads",
     label: "Leads",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -319,6 +344,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/settings",
     label: "Settings",
+    section: "settings",
     icon: (
       <svg
         className="w-5 h-5"
@@ -339,6 +365,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/retail/settings",
     label: "Settings",
+    section: "settings",
     icon: (
       <svg
         className="w-5 h-5"
@@ -360,6 +387,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/business/verification",
     label: "Verification & Licences",
+    section: "compliance",
     icon: (
       <svg
         className="w-5 h-5"
@@ -380,6 +408,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["APPOINTMENTS"],
     href: "/portal/business/appointments",
     label: "Dashboard",
+    section: "overview",
     icon: (
       <svg
         className="w-5 h-5"
@@ -401,6 +430,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["APPOINTMENTS"],
     href: "/portal/business/appointments?tab=list",
     label: "Appointments",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -423,6 +453,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["APPOINTMENT_SERVICES"],
     href: "/portal/business/services",
     label: "Services",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -446,6 +477,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["APPOINTMENT_STAFF"],
     href: "/portal/business/staff",
     label: "Staff & Professionals",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -468,6 +500,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["APPOINTMENT_STAFF"],
     href: "/portal/business/availability",
     label: "Availability & Time Off",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -488,6 +521,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["APPOINTMENT_CUSTOMERS"],
     href: "/portal/business/customers",
     label: "Customers",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -511,6 +545,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["CATALOG"],
     href: "/portal/retail",
     label: "Business Overview",
+    section: "overview",
     icon: (
       <svg
         className="w-5 h-5"
@@ -533,6 +568,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/retail/business",
     label: "Business Profile",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -553,6 +589,7 @@ const navConfig: NavItem[] = [
   {
     href: "/portal/retail/branches",
     label: "Business Branches",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -575,6 +612,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["CATALOG"],
     href: "/portal/retail/employees",
     label: "Employees",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -599,6 +637,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["POS"],
     href: "/portal/retail/terminals",
     label: "Business Terminals",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -628,6 +667,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["ORDERS"],
     href: "/portal/retail/customers",
     label: "Business Customers",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -651,6 +691,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["CATALOG"],
     href: "/portal/retail/catalog",
     label: "Business Catalog",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -672,6 +713,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["INVENTORY"],
     href: "/portal/retail/inventory",
     label: "Inventory",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -694,6 +736,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["ORDERS"],
     href: "/portal/retail/orders",
     label: "Orders",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -719,6 +762,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["ORDERS"],
     href: "/portal/retail/sales-history",
     label: "Sales History",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -740,6 +784,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["POS"],
     href: "/portal/retail/pos",
     label: "POS",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -762,6 +807,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["MENU"],
     href: "/portal/business/menu",
     label: "Menu Management",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -785,6 +831,7 @@ const navConfig: NavItem[] = [
     requiredCapabilities: ["ORDERS"],
     href: "/portal/business/orders",
     label: "Food Orders",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -809,6 +856,7 @@ const navConfig: NavItem[] = [
   {
     href: "/student",
     label: "Dashboard",
+    section: "overview",
     icon: (
       <svg
         className="w-5 h-5"
@@ -829,6 +877,7 @@ const navConfig: NavItem[] = [
   {
     href: "/search",
     label: "Search Accommodation",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -848,6 +897,7 @@ const navConfig: NavItem[] = [
   {
     href: "/student/saved",
     label: "Saved",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -866,12 +916,14 @@ const navConfig: NavItem[] = [
   {
     href: "/messages",
     label: "Messages",
+    section: "operations",
     icon: <MessageCircle className="w-5 h-5" />,
     roles: ["STUDENT"],
   },
   {
     href: "/student#applications",
     label: "My Applications",
+    section: "operations",
     icon: (
       <svg
         className="w-5 h-5"
@@ -893,6 +945,7 @@ const navConfig: NavItem[] = [
   {
     href: "/settings/profile",
     label: "Settings",
+    section: "settings",
     icon: (
       <svg
         className="w-5 h-5"
@@ -961,6 +1014,11 @@ export default function Sidebar({ role }: { role: string }) {
     return true;
   });
 
+  // Sort stably by standardized section order: overview -> operations -> compliance -> settings
+  const orderedItems = [...visibleItems].sort(
+    (a, b) => SECTION_ORDER[a.section] - SECTION_ORDER[b.section],
+  );
+
   const handleLogout = async () => {
     await logoutBusinessSession();
   };
@@ -1023,8 +1081,13 @@ export default function Sidebar({ role }: { role: string }) {
             </svg>
           </button>
         </div>
-        <ul className="flex-1 overflow-y-auto px-4 space-y-1 mt-2">
-          {visibleItems.map((item) => {
+        <ul className="flex-1 overflow-y-auto px-4 space-y-1 mt-2" data-testid="sidebar-nav-list">
+          {orderedItems.map((item, idx) => {
+            const prevSection = idx > 0 ? orderedItems[idx - 1].section : item.section;
+            const showDivider =
+              idx > 0 &&
+              prevSection !== item.section &&
+              (item.section === "compliance" || item.section === "settings");
             const isSettingsItem = item.href === "/settings/profile";
             const isActive =
               pathname === item.href ||
@@ -1035,7 +1098,11 @@ export default function Sidebar({ role }: { role: string }) {
                 !isSettingsItem &&
                 !!pathname?.startsWith(`${item.href}/`));
             return (
-              <li key={item.href}>
+              <li
+                key={item.href}
+                data-section={item.section}
+                className={showDivider ? "pt-2 mt-2 border-t border-border-subtle" : undefined}
+              >
                 <Link
                   href={item.href}
                   onClick={() => setOpen(false)}
