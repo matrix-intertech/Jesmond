@@ -777,6 +777,23 @@ test.describe('Cross-Domain SSO Security Remediation & BFF Verification', () => 
     await expect(page.getByRole('menuitem', { name: 'Business Settings' })).toBeVisible();
     await expect(page.getByRole('menuitem', { name: 'Logout' })).toBeVisible();
 
+    // Verify portaled dropdown renders outside <nav> and is not clipped below the navbar
+    const dropdownLayout = await page.evaluate(() => {
+      const nav = document.querySelector('nav[aria-label="Main Navigation"]');
+      const menu = document.getElementById('nav-profile-menu');
+      const navRect = nav?.getBoundingClientRect();
+      const menuRect = menu?.getBoundingClientRect();
+      return {
+        isOutsideNav: Boolean(menu && nav && !nav.contains(menu)),
+        menuHeight: menuRect?.height || 0,
+        menuBottom: menuRect?.bottom || 0,
+        navBottom: navRect?.bottom || 0,
+      };
+    });
+    expect(dropdownLayout.isOutsideNav).toBe(true);
+    expect(dropdownLayout.menuHeight).toBeGreaterThan(150);
+    expect(dropdownLayout.menuBottom).toBeGreaterThan(dropdownLayout.navBottom + 100);
+
     // Escape closes menu
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu', { name: 'User Profile Menu' })).toHaveCount(0);

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,7 +36,12 @@ export function GlobalNav() {
  const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
  const profileMenuRef = useRef<HTMLDivElement>(null);
+ const profileMenuPortalRef = useRef<HTMLDivElement>(null);
  const profileTriggerRef = useRef<HTMLButtonElement>(null);
+ const [menuPosition, setMenuPosition] = useState<{ top: number; right: number }>({
+   top: 72,
+   right: 16,
+ });
  const [authStatus, setAuthStatus] = useState<{
    isAuth: boolean;
    user: User | null;
@@ -172,11 +178,27 @@ export function GlobalNav() {
     router.push('/login');
   };
 
+  const updateMenuPosition = useCallback(() => {
+    const trigger = profileTriggerRef.current;
+    if (!trigger || typeof window === 'undefined') return;
+    const rect = trigger.getBoundingClientRect();
+    const menuWidth = 240;
+    const maxRight = Math.max(12, window.innerWidth - menuWidth - 12);
+    const computedRight = Math.max(12, Math.min(window.innerWidth - rect.right, maxRight));
+    const computedTop = Math.max(12, Math.min(rect.bottom + 8, window.innerHeight - 16));
+    setMenuPosition({ top: computedTop, right: computedRight });
+  }, []);
+
   useEffect(() => {
     if (!isProfileMenuOpen) return;
 
+    updateMenuPosition();
+
     const handlePointerDown = (e: MouseEvent) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      const inTrigger = profileMenuRef.current?.contains(target);
+      const inPortalMenu = profileMenuPortalRef.current?.contains(target);
+      if (!inTrigger && !inPortalMenu) {
         setIsProfileMenuOpen(false);
       }
     };
@@ -189,7 +211,7 @@ export function GlobalNav() {
       }
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
         const items = Array.from(
-          profileMenuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') || [],
+          profileMenuPortalRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') || [],
         );
         if (!items.length) return;
         e.preventDefault();
@@ -206,13 +228,19 @@ export function GlobalNav() {
       }
     };
 
+    const handleReposition = () => updateMenuPosition();
+
     document.addEventListener('mousedown', handlePointerDown);
     window.addEventListener('keydown', handleMenuKeyDown);
+    window.addEventListener('resize', handleReposition, { passive: true });
+    window.addEventListener('scroll', handleReposition, { passive: true });
     return () => {
       document.removeEventListener('mousedown', handlePointerDown);
       window.removeEventListener('keydown', handleMenuKeyDown);
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition);
     };
-  }, [isProfileMenuOpen]);
+  }, [isProfileMenuOpen, updateMenuPosition]);
 
   const handleDashboardClick = async (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -433,12 +461,14 @@ export function GlobalNav() {
  aria-hidden="true"
  />
  </button>
- {isProfileMenuOpen && (
+ {isProfileMenuOpen && typeof document !== 'undefined' && createPortal(
  <div
+ ref={profileMenuPortalRef}
  id="nav-profile-menu"
  role="menu"
  aria-label="User Profile Menu"
- className="absolute right-0 mt-2 w-60 rounded-2xl bg-surface border border-border-strong/80 shadow-xl py-2 z-[120]"
+ style={{ position: 'fixed', top: `${menuPosition.top}px`, right: `${menuPosition.right}px` }}
+ className="w-60 rounded-2xl bg-surface border border-border-strong/80 shadow-xl py-2 z-[200]"
  >
  <div className="px-4 py-2.5 border-b border-border-subtle">
  <p className="text-sm font-bold text-primary truncate">{getUserDisplayName(activeUser)}</p>
@@ -491,7 +521,8 @@ export function GlobalNav() {
  <span>Logout</span>
  </button>
  </div>
- </div>
+ </div>,
+ document.body,
  )}
  </div>
  </>
