@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 interface ApplicationDetail {
@@ -49,10 +49,10 @@ export default function ApplicationDetailPage() {
  const fetchApplication = async () => {
  try {
  const token = getAccessToken();
- if (!token) { onAuthError(); return; }
+ if (!hasBrowserAuth()) { onAuthError(); return; }
 
  const res = await fetch(`${getApiUrl()}/api/v1/applications/provider/${id}`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {
@@ -78,7 +78,7 @@ export default function ApplicationDetailPage() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/applications/${id}/${action}`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
 
  const status = await handleApiError(res, onAuthError);

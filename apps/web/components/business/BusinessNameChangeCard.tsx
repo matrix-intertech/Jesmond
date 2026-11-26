@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl } from "@/utils/api";
 import {
   Clock,
@@ -35,16 +35,16 @@ export default function BusinessNameChangeCard({
 
   const fetchRequests = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       const apiUrl = getApiUrl();
       const [currentRes, historyRes] = await Promise.all([
         fetch(`${apiUrl}/api/v1/business/name-change-requests/current`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
         fetch(`${apiUrl}/api/v1/business/name-change-requests/history`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
       ]);
 
@@ -78,7 +78,7 @@ export default function BusinessNameChangeCard({
       const res = await fetch(
         `${apiUrl}/api/v1/business/name-change-requests/${requestId}/documents/${docId}/signed-url`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }
       );
       if (res.ok) {

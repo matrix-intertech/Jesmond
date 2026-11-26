@@ -63,10 +63,13 @@ function SsoCallbackContent() {
         const exchangeResult = await completeSsoExchange(code, state);
         const exchangedToken = getAccessToken();
         if (exchangedToken) {
-          await establishSharedSession(
+          const ssoRes = await establishSharedSession(
             exchangedToken,
             exchangeResult.user?.organizationId,
           );
+          if (!ssoRes.ok) {
+            throw new Error(ssoRes.message || 'Unable to establish shared portal session. Please try again.');
+          }
         }
 
         if (isMounted) setStatus('verifying');

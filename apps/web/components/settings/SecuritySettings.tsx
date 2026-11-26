@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders } from "@/utils/auth";
 import { LogOut, Monitor, Smartphone, Tablet } from "lucide-react";
 
 export default function SecuritySettings() {
@@ -30,7 +30,7 @@ export default function SecuritySettings() {
  try {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/security`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  const data = await res.json();
@@ -50,7 +50,7 @@ export default function SecuritySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/security/2fa-setup`, {
  method: 'POST',
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const data = await res.json();
  if (res.ok) {
@@ -70,7 +70,7 @@ export default function SecuritySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/security/2fa-verify`, {
  method: 'POST',
- headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ code: verificationCode })
  });
  const data = await res.json();
@@ -95,7 +95,7 @@ export default function SecuritySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/security/2fa-disable`, {
  method: 'POST',
- headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ code })
  });
  if (res.ok) {
@@ -116,7 +116,7 @@ export default function SecuritySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/sessions/${id}`, {
  method: 'DELETE',
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setSessions(sessions.filter((s) => s.id !== id));
@@ -143,7 +143,7 @@ export default function SecuritySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/security/change-password`, {
  method: 'POST',
- headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ currentPassword, newPassword })
  });
  const data = await res.json();

@@ -46,10 +46,11 @@ export const getAccessToken = (): string | null => {
   return localStorage.getItem('access_token') || localStorage.getItem('token');
 };
 
-export const setAccessToken = (token: string) => {
+export const setAccessToken = (token: string, role?: string) => {
   if (typeof window === 'undefined') return;
-  if (isBusinessHost()) {
-    // Zero localStorage/sessionStorage token exposure for business sessions
+  const effectiveRole = role || getCurrentUser()?.role;
+  if (isBusinessHost() || (effectiveRole && effectiveRole !== 'STUDENT')) {
+    // Zero localStorage/sessionStorage token exposure for business/admin SSO sessions
     inMemoryBusinessToken = token;
     localStorage.removeItem('access_token');
     localStorage.removeItem('token');
@@ -91,13 +92,179 @@ export const clearAuth = () => {
   localStorage.removeItem('user');
 };
 
+const AUTH_SYNC_CHANNEL = 'jesmond_auth_sync';
+const AUTH_LOGOUT_STORAGE_KEY = 'jesmond_auth_logout_at';
+
+export interface SharedSessionEstablishResult {
+  ok: boolean;
+  status?: number;
+  message?: string;
+}
+
+export interface SharedSessionRevokeResult {
+  ok: boolean;
+  backendRevoked: boolean;
+  message?: string;
+}
+
+export function broadcastAuthLogout(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(AUTH_LOGOUT_STORAGE_KEY, String(Date.now()));
+  } catch {}
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const ch = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+      ch.postMessage({ type: 'logout', ts: Date.now() });
+      ch.close();
+    }
+  } catch {}
+}
+
+export function subscribeToAuthSync(onLogout: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === AUTH_LOGOUT_STORAGE_KEY && e.newValue) {
+      onLogout();
+    }
+  };
+  window.addEventListener('storage', handleStorage);
+
+  let ch: BroadcastChannel | null = null;
+  try {
+    if (typeof BroadcastChannel !== 'undefined') {
+      ch = new BroadcastChannel(AUTH_SYNC_CHANNEL);
+      ch.onmessage = (event) => {
+        if (event?.data?.type === 'logout') {
+          onLogout();
+        }
+      };
+    }
+  } catch {}
+
+  return () => {
+    window.removeEventListener('storage', handleStorage);
+    try {
+      ch?.close();
+    } catch {}
+  };
+}
+
+export interface SharedSessionRevalidationHandlers {
+  onAuthenticated?: (user: User) => void;
+  onUnauthorized: () => void;
+  onForbidden?: (message: string) => void;
+  onTransientError?: (message: string) => void;
+  pollIntervalMs?: number;
+}
+
+/**
+ * Revalidates the shared BFF session across subdomains (e.g. jesmond.com.au <->
+ * business.jesmond.com.au) on window focus, document visibilitychange, and optional
+ * lightweight polling, since BroadcastChannel/localStorage are origin-scoped.
+ *
+ * Isolated student sessions on the main portal are skipped.
+ */
+export function subscribeToSharedSessionRevalidation(
+  handlers: SharedSessionRevalidationHandlers,
+): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  let active = true;
+  let inFlight = false;
+  let lastCheckAt = 0;
+  const MIN_GAP_MS = 1500;
+
+  const runCheck = async (force = false) => {
+    if (!active || inFlight) return;
+    const current = getCurrentUser();
+    if (!isBusinessHost() && current?.role === 'STUDENT') {
+      return;
+    }
+    if (!current && !isBusinessHost()) {
+      return;
+    }
+    const now = Date.now();
+    if (!force && now - lastCheckAt < MIN_GAP_MS) {
+      return;
+    }
+
+    inFlight = true;
+    lastCheckAt = now;
+    try {
+      const result = await restoreUserSession({ forceRefresh: true });
+      if (!active) return;
+
+      if (result.status === 'ok' && result.user) {
+        handlers.onAuthenticated?.(result.user);
+      } else if (result.status === 'unauthorized') {
+        clearAuth();
+        broadcastAuthLogout();
+        handlers.onUnauthorized();
+      } else if (result.status === 'forbidden') {
+        handlers.onForbidden?.(result.error || 'Access restricted.');
+      } else if (result.status === 'error' || result.status === 'timeout') {
+        handlers.onTransientError?.(
+          result.error || 'Unable to verify session right now.',
+        );
+      }
+    } finally {
+      inFlight = false;
+    }
+  };
+
+  const handleFocus = () => {
+    void runCheck(true);
+  };
+  const handleVisibility = () => {
+    if (document.visibilityState === 'visible') {
+      void runCheck(true);
+    }
+  };
+
+  window.addEventListener('focus', handleFocus);
+  document.addEventListener('visibilitychange', handleVisibility);
+
+  const pollMs = handlers.pollIntervalMs ?? 60_000;
+  const timer =
+    pollMs > 0
+      ? window.setInterval(() => {
+          if (document.visibilityState === 'visible') {
+            void runCheck(false);
+          }
+        }, pollMs)
+      : null;
+
+  const unsubscribeSameOrigin = subscribeToAuthSync(() => {
+    if (!active) return;
+    const current = getCurrentUser();
+    if (!current || current.role !== 'STUDENT' || isBusinessHost()) {
+      clearAuth();
+      handlers.onUnauthorized();
+    }
+  });
+
+  return () => {
+    active = false;
+    window.removeEventListener('focus', handleFocus);
+    document.removeEventListener('visibilitychange', handleVisibility);
+    if (timer !== null) {
+      window.clearInterval(timer);
+    }
+    unsubscribeSameOrigin();
+  };
+}
+
 export async function establishSharedSession(
   accessToken: string,
   organizationId?: string | null,
-): Promise<void> {
-  if (typeof window === 'undefined' || !accessToken) return;
+): Promise<SharedSessionEstablishResult> {
+  if (typeof window === 'undefined' || !accessToken) {
+    return { ok: false, status: 400, message: 'Missing session credentials.' };
+  }
   try {
-    await fetch('/api/auth/session/establish', {
+    const res = await fetch('/api/auth/session/establish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -106,38 +273,75 @@ export async function establishSharedSession(
         ...(organizationId ? { organizationId } : {}),
       }),
     });
+
+    if (res.ok) {
+      // Remove any non-student localStorage token once shared HttpOnly BFF session is active
+      const role = getCurrentUser()?.role;
+      if (role && role !== 'STUDENT') {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('token');
+      }
+      return { ok: true, status: res.status };
+    }
+
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) {
+      return { ok: false, status: 401, message: data?.message || 'Your session could not be verified. Please sign in again.' };
+    }
+    if (res.status === 403) {
+      return { ok: false, status: 403, message: data?.message || 'This account is not permitted to establish a shared portal session.' };
+    }
+    if (res.status === 503) {
+      return { ok: false, status: 503, message: 'Authentication service is temporarily unavailable. Please try again shortly.' };
+    }
+    return { ok: false, status: res.status, message: data?.message || 'Unable to establish shared session.' };
   } catch {
-    // Non-blocking in isolated unit tests
+    return { ok: false, status: 503, message: 'Unable to reach the authentication service. Please check your connection.' };
   }
 }
 
 export async function syncSelectedOrganizationSession(
   organizationId: string,
-): Promise<void> {
-  if (typeof window === 'undefined' || !organizationId) return;
+): Promise<boolean> {
+  if (typeof window === 'undefined' || !organizationId) return false;
   try {
-    await fetch('/api/auth/session/select-org', {
+    const res = await fetch('/api/auth/session/select-org', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ organizationId }),
     });
+    return res.ok;
   } catch {
-    // Non-blocking
+    return false;
   }
 }
 
-export async function revokeSharedSession(): Promise<void> {
-  if (typeof window === 'undefined') return;
+export async function revokeSharedSession(): Promise<SharedSessionRevokeResult> {
+  if (typeof window === 'undefined') {
+    return { ok: false, backendRevoked: false, message: 'No browser context' };
+  }
   try {
-    await fetch('/api/auth/session/logout', {
+    const res = await fetch('/api/auth/session/logout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({}),
     });
+    const data = await res.json().catch(() => ({}));
+    broadcastAuthLogout();
+    return {
+      ok: res.ok,
+      backendRevoked: Boolean(data?.backendRevoked ?? res.ok),
+      message: data?.message,
+    };
   } catch {
-    // Non-blocking
+    broadcastAuthLogout();
+    return {
+      ok: false,
+      backendRevoked: false,
+      message: 'Unable to confirm backend session revocation.',
+    };
   }
 }
 
@@ -157,10 +361,31 @@ export async function rotateSharedSession(): Promise<boolean> {
 }
 
 export const isAuthenticated = (): boolean => {
-  if (isBusinessHost()) {
-    return !!getCurrentUser();
+  const user = getCurrentUser();
+  if (!user) return false;
+  if (isBusinessHost() || user.role !== 'STUDENT') {
+    return true;
   }
-  return !!getAccessToken() && !!getCurrentUser();
+  return !!getAccessToken();
+};
+
+export const hasBrowserAuth = (): boolean => {
+  return !!getAccessToken() || isAuthenticated();
+};
+
+export const buildAuthHeaders = (
+  extraHeaders?: Record<string, string>,
+): Record<string, string> => {
+  const headers: Record<string, string> = { ...(extraHeaders || {}) };
+  const token = getAccessToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const selectedOrgId = getSelectedOrganizationId() || getCurrentUser()?.organizationId;
+  if (selectedOrgId && !headers['X-Organization-Id'] && !headers['x-organization-id']) {
+    headers['X-Organization-Id'] = selectedOrgId;
+  }
+  return headers;
 };
 
 export interface SessionRestoreResult {
@@ -192,9 +417,14 @@ export async function restoreUserSession(options?: {
   const isBusiness = isBusinessHost();
   const cached = getCurrentUser();
   const selectedOrgId = getSelectedOrganizationId() || cached?.organizationId;
+  const isIsolatedStudentSession = !isBusiness && cached?.role === 'STUDENT' && !!token;
+  const timeoutMs = options?.timeoutMs ?? 7000;
+  const bffController = new AbortController();
+  const bffTimer = setTimeout(() => bffController.abort(), timeoutMs);
 
-  // When no in-memory/local token is present, check same-parent-domain BFF shared session cookie
-  if (!token) {
+  // Non-student portals and cross-domain sessions use the Redis-backed BFF session as primary source of truth.
+  // Isolated student sessions on the main portal validate directly via /api/v1/auth/me without business SSO.
+  if (!isIsolatedStudentSession) {
     try {
       const bffHeaders: Record<string, string> = {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -207,10 +437,19 @@ export async function restoreUserSession(options?: {
         headers: bffHeaders,
         credentials: 'include',
         cache: 'no-store',
+        signal: bffController.signal,
       });
       if (bffRes.ok) {
         const bffData = await bffRes.json();
+        clearTimeout(bffTimer);
         if (bffData?.authenticated && bffData?.user?.id && bffData?.user?.role) {
+          if (isBusiness && bffData.user.role === 'STUDENT') {
+            return {
+              user: null,
+              status: 'forbidden',
+              error: 'Student accounts cannot access the Business Portal.',
+            };
+          }
           const bffUser: User = {
             id: bffData.user.id,
             email: bffData.user.email || '',
@@ -228,18 +467,39 @@ export async function restoreUserSession(options?: {
           setCurrentUser(bffUser);
           return { user: bffUser, status: 'ok' };
         }
+      } else if (bffRes.status === 503) {
+        clearTimeout(bffTimer);
+        return {
+          user: null,
+          status: 'error',
+          error: 'Authentication session store is temporarily unavailable. Please retry.',
+        };
+      } else if (bffRes.status === 401) {
+        clearTimeout(bffTimer);
+        clearAuth();
+        return { user: null, status: 'unauthorized', error: 'Session expired. Please log in again.' };
       }
-    } catch {
-      // Fall through to standard backend check
+      clearTimeout(bffTimer);
+    } catch (err: unknown) {
+      clearTimeout(bffTimer);
+      const errObj = err instanceof Error ? err : new Error(String(err));
+      if (errObj.name === 'AbortError' || errObj.message.includes('aborted')) {
+        return {
+          user: null,
+          status: 'timeout',
+          error: 'Authentication request timed out while contacting server. Please retry.',
+        };
+      }
+      // Fall through to backend check if BFF endpoint is unreachable in isolated unit tests
     }
+  } else {
+    clearTimeout(bffTimer);
   }
 
   if (!token && !isBusiness) {
     clearAuth();
     return { user: null, status: 'unauthorized', error: 'No active session token' };
   }
-
-  const timeoutMs = options?.timeoutMs ?? 7000;
 
   // Security requirement: Protected dashboard authorization always requires a
   // successful server-validated session response. Cached data is never used

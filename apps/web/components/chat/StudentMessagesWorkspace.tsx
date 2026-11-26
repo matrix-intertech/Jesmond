@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { clearAuth, getAccessToken } from "@/utils/auth";
+import { clearAuth, getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import ChatConversation from "@/components/chat/ChatConversation";
 
 const apiBase = getApiUrl();
@@ -22,7 +22,7 @@ const getPropertyImage = (property: any) =>
 
 const getUserIdFromToken = () => {
  const token = getAccessToken();
- if (!token) return null;
+ if (!hasBrowserAuth()) return null;
 
  try {
  const tokenPayload = JSON.parse(atob(token.split(".")[1]));
@@ -61,13 +61,13 @@ export default function StudentMessagesWorkspace({ selectedConversationId }: Stu
  useEffect(() => {
  const fetchConversations = async () => {
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.push("/login");
  return;
  }
  try {
  const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();

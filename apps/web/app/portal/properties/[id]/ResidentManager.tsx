@@ -3,7 +3,7 @@
 import { CountrySelector } from "@/components/ui/CountrySelector";
 
 import { useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function ResidentManager({ propertyId, initialResidents, onAuthError, onUpdate }: { propertyId: string, initialResidents: any[], onAuthError: () => void, onUpdate: () => void }) {
@@ -76,7 +76,7 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
 
  const res = await fetch(url, {
  method: currentResident ? 'PUT' : 'POST',
- headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(payload)
  });
 
@@ -102,7 +102,7 @@ export default function ResidentManager({ propertyId, initialResidents, onAuthEr
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${propertyId}/residents/${residentId}`, {
  method: 'DELETE',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (await handleApiError(res, onAuthError) === 'ok') {
  setToast('Resident removed');

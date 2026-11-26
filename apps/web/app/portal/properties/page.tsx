@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAccessToken, clearAuth, getCurrentUser } from '@/utils/auth';
+import { getAccessToken, clearAuth, getCurrentUser, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -28,12 +28,12 @@ export default function PortalPropertiesPage() {
 
  const fetchProperties = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  setLoading(true);
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -67,7 +67,7 @@ export default function PortalPropertiesPage() {
  try {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  const members = await res.json();
@@ -112,10 +112,7 @@ export default function PortalPropertiesPage() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/agency/properties/${selectedProperty.id}/team`, {
  method: 'PUT',
- headers: {
- 'Content-Type': 'application/json',
- Authorization: `Bearer ${token}`
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ assignments })
  });
 

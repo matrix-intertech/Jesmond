@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 import { Bell, Mail, ShieldAlert, CheckCircle2, AlertCircle, Lock } from "lucide-react";
 
@@ -33,11 +33,11 @@ export default function NotificationSettings() {
   useEffect(() => {
     const fetchPreferences = async () => {
       const token = getAccessToken();
-      if (!token) return;
+      if (!hasBrowserAuth()) return;
 
       try {
         const res = await fetch(`${apiBase}/api/v1/notification-preferences`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         });
 
         const status = await handleApiError(res, () => {
@@ -96,10 +96,7 @@ export default function NotificationSettings() {
       const token = getAccessToken();
       const res = await fetch(`${apiBase}/api/v1/notification-preferences`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json", }),
         body: JSON.stringify({ preferences }),
       });
 

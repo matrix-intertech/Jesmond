@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -58,11 +58,11 @@ function EmployeesPageContent() {
  const fetchData = async () => {
  setLoading(true);
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const [empRes, brRes] = await Promise.all([
- fetch(`${getApiUrl()}/api/v1/retail/employees`, { headers: { Authorization: `Bearer ${token}` } }),
- fetch(`${getApiUrl()}/api/v1/retail/branches`, { headers: { Authorization: `Bearer ${token}` } })
+ fetch(`${getApiUrl()}/api/v1/retail/employees`, { headers: buildAuthHeaders() }),
+ fetch(`${getApiUrl()}/api/v1/retail/branches`, { headers: buildAuthHeaders() })
  ]);
 
  await handleApiError(empRes, () => { clearAuth(); router.replace('/login'); });
@@ -112,7 +112,7 @@ function EmployeesPageContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/employees/${empId}`, {
  method: 'DELETE',
- headers: { 'Authorization': `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  fetchData();
@@ -152,10 +152,7 @@ function EmployeesPageContent() {
 
  const res = await fetch(url, {
  method: isEdit ? 'PATCH' : 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(payload)
  });
 

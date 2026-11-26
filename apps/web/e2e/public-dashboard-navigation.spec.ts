@@ -91,6 +91,32 @@ async function seedPublicSession(
     });
   });
 
+  if (user.role !== 'STUDENT') {
+    const orgs = options?.organizations || [];
+    const activeOrg = options?.activeOrganization || (orgs.length === 1 ? orgs[0] : null);
+    const resolved = activeOrg
+      ? {
+          ...user,
+          organizationId: activeOrg.organizationId,
+          orgType: activeOrg.orgType,
+          businessCategory: activeOrg.businessCategory,
+          orgRole: activeOrg.role,
+          permissions: activeOrg.permissions || ['*'],
+        }
+      : user;
+    await page.route('**/api/auth/session', async (route: any) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          authenticated: true,
+          user: resolved,
+          organizationId: resolved?.organizationId || null,
+        }),
+      });
+    });
+  }
+
   await page.addInitScript((u: any) => {
     localStorage.setItem('access_token', 'mock-public-jwt');
     localStorage.setItem('user', JSON.stringify(u));
@@ -110,7 +136,8 @@ test.describe('Public Website Dynamic Dashboard Navigation', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${MAIN_HOST}/`);
 
-    const dashboardLink = page.getByRole('link', { name: 'Dashboard' }).first();
+    await page.getByTestId('nav-profile-trigger').click();
+    const dashboardLink = page.getByRole('menuitem', { name: 'Dashboard' });
     await expect(dashboardLink).toBeVisible();
     await expect(dashboardLink).toHaveAttribute('href', '/student');
     await dashboardLink.click();
@@ -155,11 +182,12 @@ test.describe('Public Website Dynamic Dashboard Navigation', () => {
 
       await seedPublicSession(page, user, { organizations: [org], activeOrganization: org });
 
-      // Desktop header Dashboard
+      // Desktop header Profile Dropdown -> Dashboard
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto(`${MAIN_HOST}/`);
 
-      const desktopDashboard = page.getByRole('link', { name: 'Dashboard' }).first();
+      await page.getByTestId('nav-profile-trigger').click();
+      const desktopDashboard = page.getByRole('menuitem', { name: 'Dashboard' });
       await expect(desktopDashboard).toBeVisible();
       await expect(desktopDashboard).toHaveAttribute('href', `${BUSINESS_HOST}${tc.path}`);
       await desktopDashboard.click();
@@ -218,7 +246,8 @@ test.describe('Public Website Dynamic Dashboard Navigation', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${MAIN_HOST}/`);
 
-    const dashboardLink = page.getByRole('link', { name: 'Dashboard' }).first();
+    await page.getByTestId('nav-profile-trigger').click();
+    const dashboardLink = page.getByRole('menuitem', { name: 'Dashboard' });
     await expect(dashboardLink).toBeVisible();
     await dashboardLink.click();
 
@@ -245,7 +274,8 @@ test.describe('Public Website Dynamic Dashboard Navigation', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${MAIN_HOST}/`);
 
-    const dashboardLink = page.getByRole('link', { name: 'Dashboard' }).first();
+    await page.getByTestId('nav-profile-trigger').click();
+    const dashboardLink = page.getByRole('menuitem', { name: 'Dashboard' });
     await expect(dashboardLink).toBeVisible();
     await expect(dashboardLink).toHaveAttribute('href', `${BUSINESS_HOST}/onboarding`);
     await dashboardLink.click();

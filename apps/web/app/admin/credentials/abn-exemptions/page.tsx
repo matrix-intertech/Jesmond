@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, hasBrowserAuth } from "@/utils/auth";
 import {
   getAdminAbnExemptionQueue,
   reviewAdminAbnExemption,
@@ -30,7 +30,7 @@ export default function AdminAbnExemptionsPage() {
 
   const loadQueue = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setLoading(true);
@@ -54,7 +54,7 @@ export default function AdminAbnExemptionsPage() {
   const handleDecision = async (decision: "APPROVED" | "REJECTED") => {
     if (!selectedOrg) return;
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmittingReview(true);

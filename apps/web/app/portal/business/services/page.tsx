@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser, buildAuthHeaders } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   Loader2,
@@ -107,10 +107,10 @@ export default function BusinessServicesPage() {
       // Fetch services & categories in parallel
       const [servicesRes, categoriesRes] = await Promise.all([
         fetch(`${getApiUrl()}/api/v1/business-appointments/services`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
         fetch(`${getApiUrl()}/api/v1/business-appointments/categories?includeInactive=true`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
       ]);
 
@@ -208,10 +208,7 @@ export default function BusinessServicesPage() {
 
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 
@@ -257,7 +254,7 @@ export default function BusinessServicesPage() {
         `${getApiUrl()}/api/v1/business-appointments/services/${service.id}/delete`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         },
       );
       if (!res.ok) {
@@ -315,10 +312,7 @@ export default function BusinessServicesPage() {
 
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 
@@ -357,7 +351,7 @@ export default function BusinessServicesPage() {
         `${getApiUrl()}/api/v1/business-appointments/categories/${cat.id}/delete`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         },
       );
 
@@ -383,10 +377,7 @@ export default function BusinessServicesPage() {
         `${getApiUrl()}/api/v1/business-appointments/services/${service.id}/category`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ categoryId: null }),
         },
       );

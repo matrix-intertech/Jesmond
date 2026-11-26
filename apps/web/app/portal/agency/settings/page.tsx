@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 import { getApiUrl } from '@/utils/api';
 import RolesPermissions from './RolesPermissions';
 
@@ -28,7 +28,7 @@ export default function AgencySettingsPage() {
       const token = getAccessToken();
       const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/agency/my`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: buildAuthHeaders()
       });
       if (res.ok) {
         const data = await res.json();
@@ -54,7 +54,7 @@ export default function AgencySettingsPage() {
       const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/agency/my`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(formData)
       });
       if (res.ok) {

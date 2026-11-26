@@ -4,7 +4,7 @@ import { getApiUrl } from '@/utils/api';
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Barcode, Scan, Plus, PackageCheck, PackagePlus, AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 import { UniversalBarcodeScanner, ScannedProduct } from "@/components/barcode";
@@ -150,10 +150,7 @@ function InventoryWorkspaceContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branchId}/receive`, {
  method: "POST",
- headers: {
- Authorization: `Bearer ${token}`,
- "Content-Type": "application/json",
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json", }),
  body: JSON.stringify({
  productId: receivingProduct.id,
  quantity: qty,
@@ -203,10 +200,7 @@ function InventoryWorkspaceContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/products`, {
  method: "POST",
- headers: {
- Authorization: `Bearer ${token}`,
- "Content-Type": "application/json",
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json", }),
  body: JSON.stringify({
  name: registerName.trim(),
  sku: registerSku.trim(),
@@ -222,10 +216,7 @@ function InventoryWorkspaceContent() {
  if (!isNaN(initStock) && initStock > 0 && branchId) {
  await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branchId}/receive`, {
  method: "POST",
- headers: {
- Authorization: `Bearer ${token}`,
- "Content-Type": "application/json",
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json", }),
  body: JSON.stringify({
  productId: newProd.id,
  quantity: initStock,
@@ -254,10 +245,10 @@ function InventoryWorkspaceContent() {
  if (!branch || !prodId) return;
  setMovementsLoading(true);
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branch}/movements?productId=${prodId}`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setMovements(await res.json());
@@ -274,14 +265,14 @@ function InventoryWorkspaceContent() {
  setLoading(true);
  setError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.replace('/login');
  return;
  }
 
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branch}`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
 
  if (res.ok) {
@@ -306,13 +297,13 @@ function InventoryWorkspaceContent() {
  setLoading(true);
  setError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.replace('/login');
  return;
  }
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();
@@ -413,10 +404,7 @@ function InventoryWorkspaceContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/inventory/${branchId}/${selectedItem.productId}/adjust`, {
  method: 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ quantity: actualQty, reason: adjReason || "Manual Adjustment" })
  });
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders } from "@/utils/auth";
 import {
   X,
   Clock,
@@ -149,10 +149,7 @@ export default function EditStaffScheduleModal({
         `${getApiUrl()}/api/v1/business-appointments/staff/${staff.id}/working-hours`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({
             workingHours,
             serviceIds: selectedServiceIds,

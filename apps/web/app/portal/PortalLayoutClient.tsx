@@ -8,9 +8,11 @@ import BusinessVerificationReminder from "@/components/credentials/BusinessVerif
 import {
   restoreUserSession,
   clearAuth,
+  subscribeToSharedSessionRevalidation,
   User,
   getDashboardRouteForUser,
 } from "@/utils/auth";
+import { logoutBusinessSession } from "@/utils/sso";
 import { AlertCircle, RefreshCw, LogOut } from "lucide-react";
 
 export default function PortalLayoutClient({
@@ -156,6 +158,23 @@ export default function PortalLayoutClient({
     initAuth();
   }, [initAuth]);
 
+  useEffect(() => {
+    return subscribeToSharedSessionRevalidation({
+      onAuthenticated: (refreshedUser) => {
+        setUser(refreshedUser);
+      },
+      onUnauthorized: () => {
+        clearAuth();
+        const isBiz = typeof window !== 'undefined' && window.location.hostname.startsWith('business.');
+        router.replace(isBiz ? "/business/login" : "/login");
+      },
+      onForbidden: (msg) => {
+        setError(msg);
+        setIsAuthorized(false);
+      },
+    });
+  }, [router]);
+
   if (!isAuthorized) {
     if (error) {
       return (
@@ -178,7 +197,7 @@ export default function PortalLayoutClient({
               </button>
               <button
                 type="button"
-                onClick={() => { clearAuth(); router.replace("/login"); }}
+                onClick={() => { void logoutBusinessSession("/login"); }}
                 className="inline-flex items-center justify-center px-4 py-2 border border-border text-text-secondary rounded-lg text-sm font-medium hover:bg-surface-muted transition-colors"
               >
                 <LogOut size={16} className="mr-2" />

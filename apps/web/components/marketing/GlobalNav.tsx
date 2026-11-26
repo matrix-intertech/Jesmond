@@ -4,20 +4,22 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ChevronDown, LayoutDashboard, Settings, Building2, LogOut } from "lucide-react";
 import Image from "next/image";
 import {
   isAuthenticated,
   getCurrentUser,
-  getDashboardRouteForUser,
+  clearAuth,
   getPortalDashboardUrlForUser,
   isBusinessHost,
   restoreUserSession,
+  subscribeToSharedSessionRevalidation,
   User,
 } from "@/utils/auth";
 import {
   checkBusinessAccess,
   getBusinessPortalUrl,
+  logoutBusinessSession,
   resolveBusinessAuthDestination,
 } from "@/utils/sso";
 import { CompactChatPanel } from "../chat/CompactChatPanel";
@@ -31,32 +33,66 @@ export function GlobalNav() {
   const mobileDialogRef = useRef<HTMLDivElement>(null);
  const [isChatOpen, setIsChatOpen] = useState(false);
  const [initialConversationId, setInitialConversationId] = useState<string | null>(null);
- const [authStatus, setAuthStatus] = useState<{ isAuth: boolean, role?: string, dashboardRoute?: string }>({ isAuth: false });
+ const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+ const profileMenuRef = useRef<HTMLDivElement>(null);
+ const profileTriggerRef = useRef<HTMLButtonElement>(null);
+ const [authStatus, setAuthStatus] = useState<{
+   isAuth: boolean;
+   user: User | null;
+   role?: string;
+   dashboardRoute?: string;
+ }>({ isAuth: false, user: null });
  const pathname = usePathname();
  const isMessagesActive = pathname === "/messages" || pathname.startsWith("/messages/");
  const unreadChatCount = useUnreadChatCount();
 
  useEffect(() => {
- const user = getCurrentUser();
+    let active = true;
+    const user = getCurrentUser();
     const businessUrl = getBusinessPortalUrl();
     const hasLocalAuth = isAuthenticated();
     setAuthStatus({
       isAuth: hasLocalAuth,
+      user: hasLocalAuth ? user : null,
       role: user?.role,
       dashboardRoute: getPortalDashboardUrlForUser(user, businessUrl),
     });
 
-    if (!hasLocalAuth) {
-      void restoreUserSession().then((res) => {
-        if (res.status === 'ok' && res.user) {
-          setAuthStatus({
-            isAuth: true,
-            role: res.user.role,
-            dashboardRoute: getPortalDashboardUrlForUser(res.user, businessUrl),
-          });
-        }
-      });
-    }
+    void restoreUserSession().then((res) => {
+      if (!active) return;
+      if (res.status === 'ok' && res.user) {
+        setAuthStatus({
+          isAuth: true,
+          user: res.user,
+          role: res.user.role,
+          dashboardRoute: getPortalDashboardUrlForUser(res.user, businessUrl),
+        });
+      } else if (res.status === 'unauthorized') {
+        setAuthStatus({ isAuth: false, user: null });
+      }
+    });
+
+    const unsubscribe = subscribeToSharedSessionRevalidation({
+      onAuthenticated: (refreshedUser) => {
+        if (!active) return;
+        setAuthStatus({
+          isAuth: true,
+          user: refreshedUser,
+          role: refreshedUser.role,
+          dashboardRoute: getPortalDashboardUrlForUser(refreshedUser, businessUrl),
+        });
+      },
+      onUnauthorized: () => {
+        if (!active) return;
+        setAuthStatus({ isAuth: false, user: null });
+        setIsProfileMenuOpen(false);
+      },
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
  }, []);
 
  useEffect(() => {
@@ -70,8 +106,113 @@ export function GlobalNav() {
 
  const getDashboardRoute = () => {
     if (authStatus.dashboardRoute) return authStatus.dashboardRoute;
-    return getPortalDashboardUrlForUser(getCurrentUser(), getBusinessPortalUrl());
+    return getPortalDashboardUrlForUser(authStatus.user || getCurrentUser(), getBusinessPortalUrl());
   };
+
+  const activeUser = authStatus.user || getCurrentUser();
+
+  const getUserDisplayName = (u: User | null): string => {
+    if (!u) return 'Account';
+    const full = `${u.firstName || ''} ${u.lastName || ''}`.trim();
+    return full || u.email || 'Account';
+  };
+
+  const getUserInitials = (u: User | null): string => {
+    if (!u) return 'U';
+    const f = (u.firstName || '').trim();
+    const l = (u.lastName || '').trim();
+    if (f && l) return `${f[0]}${l[0]}`.toUpperCase();
+    if (f) return f.slice(0, 2).toUpperCase();
+    if (u.email) return u.email.slice(0, 2).toUpperCase();
+    return 'U';
+  };
+
+  const getSettingsRoute = (u: User | null): string => {
+    if (u?.role === 'ADMIN' || u?.role === 'SUPER_ADMIN') {
+      return '/admin/settings/profile';
+    }
+    if (isBusinessHost()) {
+      return '/portal/settings/profile';
+    }
+    return '/settings/profile';
+  };
+
+  const canAccessBusinessSettings = (u: User | null): boolean => {
+    if (!u || u.role !== 'ORG_STAFF') return false;
+    if (u.orgRole === 'ADMIN') return true;
+    const perms = u.permissions;
+    if (!perms || perms.length === 0) return false;
+    return (
+      perms.includes('*') ||
+      perms.includes('settings:manage') ||
+      perms.includes('business:manage')
+    );
+  };
+
+  const getBusinessSettingsRoute = (): string => {
+    if (isBusinessHost()) {
+      return '/portal/settings/business';
+    }
+    const businessBase = getBusinessPortalUrl().replace(/\/+$/, '');
+    return `${businessBase}/portal/settings/business`;
+  };
+
+  const handleProfileLogout = async (closeMobileMenu = false) => {
+    setIsProfileMenuOpen(false);
+    if (closeMobileMenu) {
+      setIsMobileMenuOpen(false);
+    }
+    const current = activeUser;
+    if (!current || current.role !== 'STUDENT' || isBusinessHost()) {
+      await logoutBusinessSession('/login');
+      return;
+    }
+    clearAuth();
+    setAuthStatus({ isAuth: false, user: null });
+    router.push('/login');
+  };
+
+  useEffect(() => {
+    if (!isProfileMenuOpen) return;
+
+    const handlePointerDown = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    const handleMenuKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsProfileMenuOpen(false);
+        profileTriggerRef.current?.focus();
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
+        const items = Array.from(
+          profileMenuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') || [],
+        );
+        if (!items.length) return;
+        e.preventDefault();
+        const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+        if (e.key === 'Home') {
+          items[0].focus();
+        } else if (e.key === 'End') {
+          items[items.length - 1].focus();
+        } else if (e.key === 'ArrowDown') {
+          items[(currentIndex + 1) % items.length].focus();
+        } else {
+          items[(currentIndex - 1 + items.length) % items.length].focus();
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('keydown', handleMenuKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      window.removeEventListener('keydown', handleMenuKeyDown);
+    };
+  }, [isProfileMenuOpen]);
 
   const handleDashboardClick = async (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -269,13 +410,90 @@ export function GlobalNav() {
  >
  My Orders
  </Link>
+ <div className="relative" ref={profileMenuRef}>
+ <button
+ ref={profileTriggerRef}
+ type="button"
+ onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+ aria-haspopup="menu"
+ aria-expanded={isProfileMenuOpen}
+ aria-controls="nav-profile-menu"
+ data-testid="nav-profile-trigger"
+ className="inline-flex items-center gap-2.5 text-sm font-semibold text-primary bg-surface-muted/80 hover:bg-surface-muted border border-border-strong/70 transition-colors pl-1.5 pr-3.5 py-1.5 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-accent"
+ >
+ <span
+ aria-hidden="true"
+ className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-accent text-white text-xs font-bold shrink-0"
+ >
+ {getUserInitials(activeUser)}
+ </span>
+ <span className="max-w-[140px] truncate">{getUserDisplayName(activeUser)}</span>
+ <ChevronDown
+ className={`w-4 h-4 text-text-secondary transition-transform duration-150 ${isProfileMenuOpen ? 'rotate-180' : ''}`}
+ aria-hidden="true"
+ />
+ </button>
+ {isProfileMenuOpen && (
+ <div
+ id="nav-profile-menu"
+ role="menu"
+ aria-label="User Profile Menu"
+ className="absolute right-0 mt-2 w-60 rounded-2xl bg-surface border border-border-strong/80 shadow-xl py-2 z-[120]"
+ >
+ <div className="px-4 py-2.5 border-b border-border-subtle">
+ <p className="text-sm font-bold text-primary truncate">{getUserDisplayName(activeUser)}</p>
+ {activeUser?.email && (
+ <p className="text-xs text-text-secondary truncate">{activeUser.email}</p>
+ )}
+ </div>
+ <div className="py-1">
  <Link
  href={getDashboardRoute()}
- onClick={(e) => handleDashboardClick(e, false)}
- className="text-sm font-semibold text-white bg-accent hover:bg-accent transition-colors px-5 py-2.5 rounded-full shadow-sm active:scale-95 duration-200"
+ role="menuitem"
+ onClick={(e) => {
+ setIsProfileMenuOpen(false);
+ void handleDashboardClick(e, false);
+ }}
+ className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-surface-muted hover:text-accent transition-colors focus:outline-none focus:bg-surface-muted"
  >
- Dashboard
+ <LayoutDashboard className="w-4 h-4 shrink-0" aria-hidden="true" />
+ <span>Dashboard</span>
  </Link>
+ <Link
+ href={getSettingsRoute(activeUser)}
+ role="menuitem"
+ onClick={() => setIsProfileMenuOpen(false)}
+ className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-surface-muted hover:text-accent transition-colors focus:outline-none focus:bg-surface-muted"
+ >
+ <Settings className="w-4 h-4 shrink-0" aria-hidden="true" />
+ <span>Settings</span>
+ </Link>
+ {canAccessBusinessSettings(activeUser) && (
+ <Link
+ href={getBusinessSettingsRoute()}
+ role="menuitem"
+ onClick={() => setIsProfileMenuOpen(false)}
+ className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-primary hover:bg-surface-muted hover:text-accent transition-colors focus:outline-none focus:bg-surface-muted"
+ >
+ <Building2 className="w-4 h-4 shrink-0" aria-hidden="true" />
+ <span>Business Settings</span>
+ </Link>
+ )}
+ </div>
+ <div className="border-t border-border-subtle pt-1">
+ <button
+ type="button"
+ role="menuitem"
+ onClick={() => void handleProfileLogout(false)}
+ className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left focus:outline-none focus:bg-rose-50"
+ >
+ <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
+ <span>Logout</span>
+ </button>
+ </div>
+ </div>
+ )}
+ </div>
  </>
  ) : (
  <>
@@ -401,13 +619,56 @@ export function GlobalNav() {
  >
  My Orders
  </Link>
+ <div className="rounded-2xl border border-border-strong/70 bg-surface-muted/40 p-4 flex flex-col gap-2" data-testid="mobile-profile-menu">
+ <div className="flex items-center gap-3 pb-3 border-b border-border-subtle">
+ <span
+ aria-hidden="true"
+ className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-accent text-white text-sm font-bold shrink-0"
+ >
+ {getUserInitials(activeUser)}
+ </span>
+ <div className="min-w-0">
+ <p className="text-base font-bold text-primary truncate">{getUserDisplayName(activeUser)}</p>
+ {activeUser?.email && (
+ <p className="text-xs text-text-secondary truncate">{activeUser.email}</p>
+ )}
+ </div>
+ </div>
  <Link
  href={getDashboardRoute()}
  onClick={(e) => handleDashboardClick(e, true)}
- className="w-full text-center py-4 rounded-xl bg-accent text-lg font-semibold text-white shadow-lg"
+ className="w-full text-center py-3.5 rounded-xl bg-accent text-base font-semibold text-white shadow-sm flex items-center justify-center gap-2"
  >
- Dashboard
+ <LayoutDashboard className="w-4 h-4" aria-hidden="true" />
+ <span>Dashboard</span>
  </Link>
+ <Link
+ href={getSettingsRoute(activeUser)}
+ onClick={() => setIsMobileMenuOpen(false)}
+ className="w-full py-3 px-4 rounded-xl border border-border-strong text-base font-semibold text-primary flex items-center gap-2.5"
+ >
+ <Settings className="w-4 h-4" aria-hidden="true" />
+ <span>Settings</span>
+ </Link>
+ {canAccessBusinessSettings(activeUser) && (
+ <Link
+ href={getBusinessSettingsRoute()}
+ onClick={() => setIsMobileMenuOpen(false)}
+ className="w-full py-3 px-4 rounded-xl border border-border-strong text-base font-semibold text-primary flex items-center gap-2.5"
+ >
+ <Building2 className="w-4 h-4" aria-hidden="true" />
+ <span>Business Settings</span>
+ </Link>
+ )}
+ <button
+ type="button"
+ onClick={() => void handleProfileLogout(true)}
+ className="w-full py-3 px-4 rounded-xl border border-rose-200 text-base font-semibold text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 text-left"
+ >
+ <LogOut className="w-4 h-4" aria-hidden="true" />
+ <span>Logout</span>
+ </button>
+ </div>
  </>
  ) : (
  <>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import Link from 'next/link';
 
@@ -43,10 +43,10 @@ export default function ProviderEnquiriesPage() {
  const fetchEnquiries = async () => {
  try {
  const token = getAccessToken();
- if (!token) { onAuthError(); return; }
+ if (!hasBrowserAuth()) { onAuthError(); return; }
 
  const res = await fetch(`${getApiUrl()}/api/v1/properties/enquiries`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {
@@ -67,11 +67,11 @@ export default function ProviderEnquiriesPage() {
  setActionLoadingId(enquiryId);
  try {
  const token = getAccessToken();
- if (!token) { onAuthError(); return; }
+ if (!hasBrowserAuth()) { onAuthError(); return; }
 
  const res = await fetch(`${getApiUrl()}/api/v1/properties/enquiries/${enquiryId}/status`, {
  method: 'PUT',
- headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ status: newStatus })
  });
 

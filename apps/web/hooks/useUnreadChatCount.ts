@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect, useCallback } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 
 const apiBase = getApiUrl();
 
@@ -11,7 +11,7 @@ export function useUnreadChatCount() {
 
   const fetchUnreadCount = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) {
+    if (!hasBrowserAuth()) {
       setUnreadCount(0);
       return;
     }
@@ -24,7 +24,7 @@ export function useUnreadChatCount() {
       if (!userId) return;
 
       const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildAuthHeaders(),
       });
 
       if (res.ok) {

@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 
 const ALL_PERMISSIONS = [
@@ -36,10 +36,10 @@ export default function EmployeePermissionsPage() {
 
  const fetchEmployees = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/employees`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setEmployees(await res.json());
@@ -68,10 +68,7 @@ export default function EmployeePermissionsPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/employees/${employee.id}`, {
  method: 'PATCH',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ permissions: newPermissions })
  });
  if (res.ok) {

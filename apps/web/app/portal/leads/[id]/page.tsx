@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken, getCurrentUser, clearAuth } from '@/utils/auth';
+import { getAccessToken, getCurrentUser, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatusBadge from '@/components/ui/StatusBadge';
@@ -27,7 +27,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
  const fetchLead = async (token: string) => {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/leads/my/${params.id}`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const resStatus = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (resStatus === 'ok') {
@@ -50,7 +50,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
  const fetchTeamMembers = async (token: string) => {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setTeamMembers(await res.json());
@@ -72,7 +72,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
 
  const handleUpdate = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  setSaving(true);
  setAssignError('');
@@ -80,10 +80,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
  // Update status/temp
  const res = await fetch(`${getApiUrl()}/api/v1/leads/my/${params.id}`, {
  method: 'PATCH',
- headers: {
- 'Content-Type': 'application/json',
- Authorization: `Bearer ${token}`
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ status, temperature })
  });
 
@@ -96,10 +93,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
  if (isAdmin) {
  const assignRes = await fetch(`${getApiUrl()}/api/v1/leads/my/${params.id}/assign`, {
  method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- Authorization: `Bearer ${token}`
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ targetStaffId: assignedTo || null })
  });
  if (!assignRes.ok) {

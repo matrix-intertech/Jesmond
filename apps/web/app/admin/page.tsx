@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken, clearAuth, User } from '@/utils/auth';
+import { getAccessToken, clearAuth, User, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, fetchFeatureFlag, handleApiError } from '@/utils/api';
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import PageHeader from '@/components/ui/PageHeader';
@@ -25,11 +25,11 @@ export default function AdminDashboardPage() {
  const init = async () => {
  try {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  // Load pending properties with unified error handling
  const pendingRes = await fetch(`${getApiUrl()}/api/v1/admin/properties/pending`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const pendingStatus = await handleApiError(pendingRes, () => { clearAuth(); router.replace('/login'); });
  if (pendingStatus === 'ok') {
@@ -64,10 +64,10 @@ export default function AdminDashboardPage() {
  const enable = pendingAction === 'enable';
  try {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  const res = await fetch(`${getApiUrl()}/api/v1/admin/features/PAYMENTS_BOOKING`, {
  method: 'PATCH',
- headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ enabled: enable }),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.push('/login'); });

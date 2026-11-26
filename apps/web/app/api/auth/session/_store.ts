@@ -16,6 +16,26 @@ declare global {
   var __jesmondBffSessionStore: Map<string, BffSessionRecord> | undefined;
   // eslint-disable-next-line no-var
   var __jesmondBffRedisClient: Redis | undefined;
+  // eslint-disable-next-line no-var
+  var __jesmondPendingRevokedHandles: Set<string> | undefined;
+}
+
+function getPendingRevokedHandles(): Set<string> {
+  if (!globalThis.__jesmondPendingRevokedHandles) {
+    globalThis.__jesmondPendingRevokedHandles = new Set<string>();
+  }
+  return globalThis.__jesmondPendingRevokedHandles;
+}
+
+export function markHandlePendingRevocation(handle: string): void {
+  if (!handle) return;
+  const set = getPendingRevokedHandles();
+  // Cap in-memory tombstone set size to prevent unbounded growth during prolonged outages
+  if (set.size >= 10_000) {
+    const oldest = set.values().next().value;
+    if (oldest) set.delete(oldest);
+  }
+  set.add(handle);
 }
 
 function getMemoryStore(): Map<string, BffSessionRecord> {
@@ -55,6 +75,21 @@ function getRedisClient(): Redis | null {
 
     client.on('error', (err) => {
       console.error('[BffSessionStore] Redis connection error:', err?.message || 'Unknown error');
+    });
+
+    client.on('ready', () => {
+      const pending = getPendingRevokedHandles();
+      if (pending.size === 0) return;
+      for (const h of Array.from(pending)) {
+        void client
+          .del(redisKey(h))
+          .then(() => {
+            pending.delete(h);
+          })
+          .catch(() => {
+            // Retain in pending set until a future Redis command succeeds
+          });
+      }
     });
 
     globalThis.__jesmondBffRedisClient = client;
@@ -99,6 +134,19 @@ export async function getBffSession(
   handle: string,
 ): Promise<BffSessionRecord | null> {
   if (!handle) return null;
+
+  const pending = getPendingRevokedHandles();
+  if (pending.has(handle)) {
+    const redis = getRedisClient();
+    if (redis) {
+      await redis.del(redisKey(handle));
+      pending.delete(handle);
+    } else {
+      getMemoryStore().delete(handle);
+      pending.delete(handle);
+    }
+    return null;
+  }
 
   const redis = getRedisClient();
   if (redis) {

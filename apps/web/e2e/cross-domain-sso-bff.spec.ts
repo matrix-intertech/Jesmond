@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 import http from 'http';
+import {
+  saveBffSession,
+  getBffSession,
+  markHandlePendingRevocation,
+} from '../app/api/auth/session/_store';
 
 const MAIN_HOST = process.env.PLAYWRIGHT_TEST_BASE_URL || process.env.BASE_URL || 'http://localhost:3005';
 const BUSINESS_HOST = (() => {
@@ -68,7 +73,8 @@ test.describe('Cross-Domain SSO Security Remediation & BFF Verification', () => 
     });
 
     await page.goto(`${MAIN_HOST}/`);
-    const dashboardLink = page.getByRole('link', { name: 'Dashboard' }).first();
+    await page.getByTestId('nav-profile-trigger').click();
+    const dashboardLink = page.getByRole('menuitem', { name: 'Dashboard' });
     await expect(dashboardLink).toBeVisible({ timeout: 10_000 });
     await expect(dashboardLink).toHaveAttribute('href', `${BUSINESS_HOST}/mechanics`);
 
@@ -543,5 +549,583 @@ test.describe('Cross-Domain SSO Security Remediation & BFF Verification', () => 
     await page.getByRole('button', { name: /Verify & Sign In/i }).click();
     await page.waitForURL('**/retail', { timeout: 15_000 });
     expect(establishCount).toBe(1);
+  });
+
+  test('8. Fail-closed establishSharedSession: 503 on /api/auth/session/establish surfaces error and blocks redirect', async ({
+    page,
+  }) => {
+    const bizUser = {
+      id: 'usr-est-fail',
+      email: 'fail@retail.example.com',
+      role: 'ORG_STAFF',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      organizationId: 'org-est-fail',
+      orgRole: 'ADMIN',
+      permissions: ['*'],
+    };
+
+    await page.route(/\/api\/v1\//, async (route) => {
+      const req = route.request();
+      const corsHeaders = getCorsHeaders(req);
+      if (req.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders });
+        return;
+      }
+      const url = req.url();
+      if (url.includes('/auth/login')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify({ access_token: MOCK_JWT, user: bizUser }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ message: 'Unauthorized' }),
+      });
+    });
+
+    await page.route('**/api/auth/session/establish', async (route) => {
+      await route.fulfill({
+        status: 503,
+        contentType: 'application/json',
+        body: JSON.stringify({ message: 'Session store unavailable' }),
+      });
+    });
+
+    await page.goto(`${BUSINESS_HOST}/login`);
+    await page.locator('input[type="email"]').fill(bizUser.email);
+    await page.locator('input[type="password"]').fill('Password123!');
+    await page.getByRole('button', { name: /Sign In to Dashboard/i }).click();
+
+    await expect(
+      page.getByText(/Authentication service is temporarily unavailable/i),
+    ).toBeVisible();
+    expect(page.url()).toContain('/login');
+  });
+
+  test('9. Student isolation: student login never calls /api/auth/session/establish, and BFF rejects STUDENT tokens with 403', async ({
+    page,
+    request,
+  }) => {
+    let establishCalled = false;
+    const studentUser = {
+      id: 'stu-iso-1',
+      email: 'student.iso@jesmond.com.au',
+      role: 'STUDENT',
+      firstName: 'Sam',
+      lastName: 'Student',
+    };
+
+    await page.route('**/api/auth/session/establish', async (route) => {
+      establishCalled = true;
+      await route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
+    });
+
+    await page.route(/\/api\/v1\//, async (route) => {
+      const req = route.request();
+      const corsHeaders = getCorsHeaders(req);
+      if (req.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders });
+        return;
+      }
+      if (req.url().includes('/auth/login')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify({ access_token: MOCK_JWT, user: studentUser }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify({ ...studentUser, user: studentUser }),
+      });
+    });
+
+    await page.goto(`${MAIN_HOST}/login`);
+    await page.locator('input[type="email"]').fill(studentUser.email);
+    await page.locator('input[type="password"]').fill('Password123!');
+    await page.getByRole('button', { name: /Sign In/i }).click();
+    await page.waitForURL('**/student', { timeout: 15_000 });
+    expect(establishCalled).toBe(false);
+
+    // Server-side BFF establish must also reject STUDENT role with 403
+    const server = await startMockBackend((req, res) => {
+      if (req.url === '/api/v1/auth/sso/business-check') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            userId: studentUser.id,
+            role: 'STUDENT',
+            hasBusinessAccess: false,
+            isAdmin: false,
+            organizations: [],
+          }),
+        );
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    try {
+      const res = await request.post(`${MAIN_HOST}/api/auth/session/establish`, {
+        headers: {
+          Origin: MAIN_HOST,
+          'Content-Type': 'application/json',
+        },
+        data: { access_token: MOCK_JWT },
+      });
+      expect(res.status()).toBe(403);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  });
+
+  test('10. Header profile dropdown (desktop & mobile), role-based Business Settings visibility, email fallback, and cross-tab shared logout', async ({
+    context,
+    page,
+  }) => {
+    const bizAdmin = {
+      id: 'usr-drop-1',
+      email: 'owner@retail.example.com',
+      role: 'ORG_STAFF',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      organizationId: 'org-drop-1',
+      orgRole: 'ADMIN',
+      permissions: ['*'],
+    };
+
+    let sessionActive = true;
+
+    const setupRoutes = async (p: any, userObj: any) => {
+      await p.route('**/api/auth/session', async (route: any) => {
+        if (!sessionActive) {
+          await route.fulfill({
+            status: 401,
+            contentType: 'application/json',
+            body: JSON.stringify({ authenticated: false, user: null }),
+          });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            authenticated: true,
+            user: userObj,
+            organizationId: userObj.organizationId || null,
+          }),
+        });
+      });
+
+      await p.route('**/api/auth/session/logout', async (route: any) => {
+        sessionActive = false;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, backendRevoked: true }),
+        });
+      });
+
+      await p.route(/\/api\/v1\//, async (route: any) => {
+        const req = route.request();
+        const corsHeaders = getCorsHeaders(req);
+        if (req.method() === 'OPTIONS') {
+          await route.fulfill({ status: 204, headers: corsHeaders });
+          return;
+        }
+        if (req.url().includes('/auth/me')) {
+          if (!sessionActive) {
+            await route.fulfill({ status: 401, headers: corsHeaders, body: JSON.stringify({ message: 'Unauthorized' }) });
+            return;
+          }
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            headers: corsHeaders,
+            body: JSON.stringify({ ...userObj, user: userObj }),
+          });
+          return;
+        }
+        await route.fulfill({ status: 200, contentType: 'application/json', headers: corsHeaders, body: JSON.stringify({}) });
+      });
+    };
+
+    // 1. Business Admin without first/last name -> email fallback + Business Settings visible
+    await setupRoutes(page, bizAdmin);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${MAIN_HOST}/`);
+
+    const trigger = page.getByTestId('nav-profile-trigger');
+    await expect(trigger).toBeVisible();
+    await expect(trigger).toContainText('owner@retail.example.com');
+    await trigger.click();
+
+    await expect(page.getByRole('menuitem', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Settings', exact: true })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Business Settings' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Logout' })).toBeVisible();
+
+    // Escape closes menu
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('menu', { name: 'User Profile Menu' })).toHaveCount(0);
+
+    // Mobile profile menu also shows Business Settings and Logout
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('button', { name: /Open Navigation Menu/i }).click();
+    const mobileProfile = page.getByTestId('mobile-profile-menu');
+    await expect(mobileProfile).toBeVisible();
+    await expect(mobileProfile.getByRole('link', { name: 'Business Settings' })).toBeVisible();
+    await expect(mobileProfile.getByRole('button', { name: 'Logout' })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    // Open second tab on main portal and verify cross-tab logout sync
+    const secondTab = await context.newPage();
+    await setupRoutes(secondTab, bizAdmin);
+    await secondTab.setViewportSize({ width: 1440, height: 900 });
+    await secondTab.goto(`${MAIN_HOST}/`);
+    await expect(secondTab.getByTestId('nav-profile-trigger')).toBeVisible();
+
+    // Logout from first tab
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.getByTestId('nav-profile-trigger').click();
+    await page.getByRole('menuitem', { name: 'Logout' }).click();
+
+    await expect(secondTab.getByRole('link', { name: 'Log in' }).first()).toBeVisible({ timeout: 10_000 });
+    await secondTab.close();
+  });
+
+  test('11. Cross-subdomain open-tab logout sync via focus/visibility revalidation (MAIN_HOST <-> BUSINESS_HOST) and transient 503 resilience', async ({
+    context,
+  }) => {
+    const bizAdmin = {
+      id: 'usr-xsub-1',
+      email: 'crosssub@retail.example.com',
+      role: 'ORG_STAFF',
+      firstName: 'Cross',
+      lastName: 'Subdomain',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      organizationId: 'org-xsub-1',
+      orgRole: 'ADMIN',
+      permissions: ['*'],
+    };
+
+    let sessionMode: 'ok' | '503' | '401' = 'ok';
+
+    const attachRoutes = async (p: any) => {
+      await p.route('**/api/auth/session', async (route: any) => {
+        if (sessionMode === '503') {
+          await route.fulfill({
+            status: 503,
+            contentType: 'application/json',
+            body: JSON.stringify({ authenticated: false, user: null, error: 'Session store unavailable' }),
+          });
+          return;
+        }
+        if (sessionMode === '401') {
+          await route.fulfill({
+            status: 401,
+            contentType: 'application/json',
+            body: JSON.stringify({ authenticated: false, user: null }),
+          });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            authenticated: true,
+            user: bizAdmin,
+            organizationId: bizAdmin.organizationId,
+          }),
+        });
+      });
+
+      await p.route('**/api/auth/session/logout', async (route: any) => {
+        sessionMode = '401';
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, redisDeleted: true, backendRevoked: true }),
+        });
+      });
+
+      await p.route(/\/api\/v1\//, async (route: any) => {
+        const req = route.request();
+        const corsHeaders = getCorsHeaders(req);
+        if (req.method() === 'OPTIONS') {
+          await route.fulfill({ status: 204, headers: corsHeaders });
+          return;
+        }
+        if (req.url().includes('/business/credentials/requirements')) {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            headers: corsHeaders,
+            body: JSON.stringify({
+              organizationId: bizAdmin.organizationId,
+              organizationName: 'Cross Subdomain Retail',
+              businessCategory: 'RETAIL',
+              overallStatus: 'VERIFIED',
+              isCompleted: true,
+              requirements: [],
+            }),
+          });
+          return;
+        }
+        await route.fulfill({ status: 200, contentType: 'application/json', headers: corsHeaders, body: JSON.stringify([]) });
+      });
+    };
+
+    const mainTab = await context.newPage();
+    const bizTab = await context.newPage();
+    await attachRoutes(mainTab);
+    await attachRoutes(bizTab);
+
+    // 1. Open both portals simultaneously (different origins: MAIN_HOST vs BUSINESS_HOST)
+    await mainTab.setViewportSize({ width: 1440, height: 900 });
+    await mainTab.goto(`${MAIN_HOST}/`);
+    await expect(mainTab.getByTestId('nav-profile-trigger')).toBeVisible({ timeout: 10_000 });
+
+    await bizTab.setViewportSize({ width: 1440, height: 900 });
+    await bizTab.goto(`${BUSINESS_HOST}/retail`);
+    await expect(bizTab.getByTestId('dashboard-header-title')).toBeVisible({ timeout: 10_000 });
+
+    // 2. Temporary 503 outage on focus must NOT log out the open Business Portal tab
+    sessionMode = '503';
+    await bizTab.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await bizTab.waitForTimeout(300);
+    expect(bizTab.url()).toContain('/retail');
+
+    // 3. Logout from MAIN_HOST -> focus on BUSINESS_HOST tab must detect 401 and redirect to /business/login
+    sessionMode = 'ok';
+    await mainTab.getByTestId('nav-profile-trigger').click();
+    await mainTab.getByRole('menuitem', { name: 'Logout' }).click();
+    await mainTab.waitForURL('**/login', { timeout: 10_000 });
+
+    await bizTab.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await bizTab.waitForURL(/\/(business\/)?login/, { timeout: 10_000 });
+    expect(bizTab.url()).toMatch(/\/(business\/)?login/);
+
+    // 4. Reverse direction: both tabs open, logout from BUSINESS_HOST -> focus on MAIN_HOST tab detects 401
+    sessionMode = 'ok';
+    await mainTab.goto(`${MAIN_HOST}/`);
+    await expect(mainTab.getByTestId('nav-profile-trigger')).toBeVisible({ timeout: 10_000 });
+    await bizTab.goto(`${BUSINESS_HOST}/retail`);
+    await expect(bizTab.getByTestId('dashboard-header-title')).toBeVisible({ timeout: 10_000 });
+
+    await bizTab.getByRole('button', { name: /Sign Out|Log Out/i }).first().click();
+    await bizTab.waitForURL('**/login', { timeout: 10_000 });
+
+    await mainTab.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await expect(mainTab.getByRole('link', { name: 'Log in' }).first()).toBeVisible({ timeout: 10_000 });
+
+    await mainTab.close();
+    await bizTab.close();
+  });
+
+  test('12. Logout resilience: backend outage returns 502 with cookies cleared & Redis deleted; non-student BFF 401 does not fall back to /api/v1/auth/me', async ({
+    page,
+    request,
+  }) => {
+    // Part A: Real BFF logout when backend is unreachable (502, redisDeleted: true, backendRevoked: false, cookies cleared)
+    const server = await startMockBackend((req, res) => {
+      if (req.url === '/api/v1/auth/sso/business-check') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            userId: 'usr-logout-resil',
+            role: 'ORG_STAFF',
+            hasBusinessAccess: true,
+            isAdmin: false,
+            organizations: [{ organizationId: 'org-1', orgType: 'RETAIL', businessCategory: 'RETAIL', role: 'ADMIN' }],
+          }),
+        );
+        return;
+      }
+      if (req.url === '/api/v1/auth/sso/logout') {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ message: 'Internal error' }));
+        return;
+      }
+      res.writeHead(404);
+      res.end();
+    });
+
+    try {
+      const estRes = await request.post(`${MAIN_HOST}/api/auth/session/establish`, {
+        headers: { Origin: MAIN_HOST, 'Content-Type': 'application/json' },
+        data: { access_token: MOCK_JWT, organizationId: 'org-1' },
+      });
+      expect(estRes.status()).toBe(200);
+      const setCookie = estRes.headers()['set-cookie'] || '';
+      const handleMatch = setCookie.match(/jesmond_sso_session=([^;]+)/);
+      expect(handleMatch).toBeTruthy();
+      const handle = handleMatch![1];
+
+      const logoutRes = await request.post(`${MAIN_HOST}/api/auth/session/logout`, {
+        headers: {
+          Origin: MAIN_HOST,
+          'Content-Type': 'application/json',
+          Cookie: `jesmond_sso_session=${handle}`,
+        },
+        data: {},
+      });
+      expect(logoutRes.status()).toBe(502);
+      const logoutBody = await logoutRes.json();
+      expect(logoutBody.success).toBe(false);
+      expect(logoutBody.redisDeleted).toBe(true);
+      expect(logoutBody.backendRevoked).toBe(false);
+      expect(logoutRes.headers()['set-cookie']).toContain('jesmond_sso_session=;');
+
+      // Verify Redis handle is unusable even though backend returned 500
+      const postLogoutSession = await request.get(`${MAIN_HOST}/api/auth/session`, {
+        headers: { Cookie: `jesmond_sso_session=${handle}` },
+      });
+      expect(postLogoutSession.status()).toBe(401);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+
+    // Part B: Non-student BFF 401 must NOT fall back to /api/v1/auth/me even if localStorage has a stale token
+    let meCalls = 0;
+    await page.route('**/api/auth/session', async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ authenticated: false, user: null }),
+      });
+    });
+    await page.route('**/api/v1/auth/me', async (route) => {
+      meCalls += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 'usr-stale', email: 'stale@retail.example.com', role: 'ORG_STAFF' }),
+      });
+    });
+
+    await page.goto(`${MAIN_HOST}/`);
+    await page.evaluate(() => {
+      localStorage.setItem('access_token', 'stale-non-student-token');
+      localStorage.setItem('user', JSON.stringify({ id: 'usr-stale', email: 'stale@retail.example.com', role: 'ORG_STAFF' }));
+    });
+    await page.goto(`${MAIN_HOST}/portal/retail`);
+    await page.waitForURL('**/login', { timeout: 10_000 });
+    expect(meCalls).toBe(0);
+  });
+
+  test('13. Redis outage recovery blocks replayed pending-revocation handles; Business settings page loads after full reload without localStorage tokens', async ({
+    page,
+  }) => {
+    // Part A: Pending-revocation tombstone blocks replay after store recovery
+    const handle = 'orphan-handle-outage-test';
+    await saveBffSession(handle, {
+      accessToken: MOCK_JWT,
+      organizationId: 'org-1',
+      userId: 'usr-1',
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60_000,
+    });
+    markHandlePendingRevocation(handle);
+    const afterRecovery = await getBffSession(handle);
+    expect(afterRecovery).toBeNull();
+    // Subsequent lookup remains null (handle deleted from store)
+    expect(await getBffSession(handle)).toBeNull();
+
+    // Part B: Full reload on BUSINESS_HOST/portal/settings/business with zero localStorage tokens
+    const bizUser = {
+      id: 'usr-settings-reload',
+      email: 'settings@retail.example.com',
+      role: 'ORG_STAFF',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      organizationId: 'org-settings-reload',
+      orgRole: 'ADMIN',
+      permissions: ['*'],
+    };
+
+    let businessSettingsFetched = false;
+    await page.route('**/api/auth/session', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          authenticated: true,
+          user: bizUser,
+          organizationId: bizUser.organizationId,
+        }),
+      });
+    });
+
+    await page.route(/\/api\/v1\//, async (route) => {
+      const req = route.request();
+      const corsHeaders = getCorsHeaders(req);
+      if (req.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders });
+        return;
+      }
+      if (req.url().includes('/settings/provider/business')) {
+        businessSettingsFetched = true;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify({
+            name: 'Reloaded Retail Pty Ltd',
+            abn: '51824753556',
+            timezone: 'Australia/Sydney',
+            isPubliclyVisible: true,
+          }),
+        });
+        return;
+      }
+      if (req.url().includes('/business/credentials/requirements')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers: corsHeaders,
+          body: JSON.stringify({
+            organizationId: bizUser.organizationId,
+            organizationName: 'Reloaded Retail Pty Ltd',
+            businessCategory: 'RETAIL',
+            overallStatus: 'VERIFIED',
+            isCompleted: true,
+            requirements: [],
+          }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: corsHeaders,
+        body: JSON.stringify([]),
+      });
+    });
+
+    await page.goto(`${BUSINESS_HOST}/portal/settings/business`);
+    await expect(page.locator('input[value="Reloaded Retail Pty Ltd"]')).toBeVisible({
+      timeout: 15_000,
+    });
+    expect(businessSettingsFetched).toBe(true);
+    const hasLocalTokens = await page.evaluate(() => ({
+      access_token: localStorage.getItem('access_token'),
+      token: localStorage.getItem('token'),
+    }));
+    expect(hasLocalTokens.access_token).toBeNull();
+    expect(hasLocalTokens.token).toBeNull();
   });
 });

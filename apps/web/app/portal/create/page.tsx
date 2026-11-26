@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import LocationPicker from '@/components/ui/LocationPicker';
 import { LocationAutocomplete, LocationResult } from '@/components/location/LocationAutocomplete';
-import { getAccessToken, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { handleApiError, getApiUrl } from '@/utils/api';
 
 export default function CreatePropertyPage() {
@@ -303,7 +303,7 @@ export default function CreatePropertyPage() {
  console.log(`[CreateProperty] validation: ${Math.round(t1 - t0)}ms`);
 
  const token = getAccessToken();
- if (!token) { onAuthError(); return; }
+ if (!hasBrowserAuth()) { onAuthError(); return; }
  try {
  const apiUrl = getApiUrl();
  const { bedrooms, bathrooms, parkingSpaces, ...restFormData } = formData;
@@ -311,10 +311,7 @@ export default function CreatePropertyPage() {
  const t2 = performance.now();
  const res = await fetch(`${apiUrl}/api/v1/properties`, {
  method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'Authorization': `Bearer ${token}`
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({
  ...restFormData,
  lat: parseFloat(formData.lat),
@@ -351,7 +348,7 @@ export default function CreatePropertyPage() {
  try {
  const upRes = await fetch(`${apiUrl}/api/v1/properties/my/${createdProperty.id}/media`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  body: mData
  });
  if (!upRes.ok) failedUploads++;

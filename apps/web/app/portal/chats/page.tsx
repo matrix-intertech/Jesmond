@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -42,13 +42,13 @@ export default function HostChatsPage() {
  useEffect(() => {
  const fetchConversations = async () => {
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.push("/login");
  return;
  }
  try {
  const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();

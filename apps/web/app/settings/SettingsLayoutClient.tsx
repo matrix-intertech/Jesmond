@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import DashboardShell from "@/components/layout/DashboardShell";
 import SettingsLayout, { SettingsLink } from "@/components/layout/SettingsLayout";
-import { restoreUserSession, clearAuth, User } from "@/utils/auth";
+import { restoreUserSession, clearAuth, subscribeToSharedSessionRevalidation, User } from "@/utils/auth";
+import { logoutBusinessSession } from "@/utils/sso";
 import { AlertCircle, RefreshCw, LogOut, User as UserIcon, Shield, Bell, Lock, MapPin } from "lucide-react";
 
 const links: SettingsLink[] = [
@@ -56,6 +57,22 @@ export default function SettingsLayoutClient({ children }: { children: React.Rea
     initAuth();
   }, [initAuth]);
 
+  useEffect(() => {
+    return subscribeToSharedSessionRevalidation({
+      onAuthenticated: (refreshedUser) => {
+        setUser(refreshedUser);
+      },
+      onUnauthorized: () => {
+        clearAuth();
+        router.replace("/login");
+      },
+      onForbidden: (msg) => {
+        setError(msg);
+        setIsAuthorized(false);
+      },
+    });
+  }, [router]);
+
   if (!isAuthorized) {
     if (error) {
       return (
@@ -78,7 +95,14 @@ export default function SettingsLayoutClient({ children }: { children: React.Rea
               </button>
               <button
                 type="button"
-                onClick={() => { clearAuth(); router.replace("/login"); }}
+                onClick={() => {
+                  if (!user || user.role !== "STUDENT") {
+                    void logoutBusinessSession("/login");
+                  } else {
+                    clearAuth();
+                    router.replace("/login");
+                  }
+                }}
                 className="inline-flex items-center justify-center px-4 py-2 border border-border text-text-secondary rounded-lg text-sm font-medium hover:bg-surface-muted transition-colors"
               >
                 <LogOut size={16} className="mr-2" />

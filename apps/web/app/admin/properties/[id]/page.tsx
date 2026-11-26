@@ -1,5 +1,5 @@
 'use client';
-import { clearAuth, getAccessToken } from '@/utils/auth';
+import { clearAuth, getAccessToken, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import { SafeImage } from '@/components/ui/SafeImage';
@@ -21,10 +21,10 @@ export default function AdminPropertyReviewPage() {
 
  const fetchProperty = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -52,7 +52,7 @@ export default function AdminPropertyReviewPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/approve`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -72,10 +72,7 @@ export default function AdminPropertyReviewPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/reject`, {
  method: 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ reason: rejectReason })
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
@@ -97,7 +94,7 @@ export default function AdminPropertyReviewPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/unpublish`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -117,7 +114,7 @@ export default function AdminPropertyReviewPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/republish`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -137,10 +134,7 @@ export default function AdminPropertyReviewPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${id}/verification`, {
  method: 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ status: statusValue })
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });

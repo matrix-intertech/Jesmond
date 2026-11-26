@@ -1,7 +1,7 @@
 'use client';
 import { getApiUrl } from '@/utils/api';
 import { useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 
 export default function HierarchyManager({ property, fetchProperty, isPending }: any) {
  const [expandedBuildings, setExpandedBuildings] = useState<string[]>([]);
@@ -31,10 +31,7 @@ export default function HierarchyManager({ property, fetchProperty, isPending }:
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}${url}`, {
  method,
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: body ? JSON.stringify(body) : undefined
  });
  if (!res.ok) {

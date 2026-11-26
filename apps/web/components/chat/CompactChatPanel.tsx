@@ -5,7 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { MessageCircle, X, ChevronLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import ChatConversation from "./ChatConversation";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPortal } from "react-dom";
@@ -86,14 +86,14 @@ export function CompactChatPanel({ onClose, initialConversationId }: { onClose: 
  useEffect(() => {
  const fetchConversations = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  try {
  const payload = JSON.parse(atob(token.split(".")[1]));
  setUserId(payload.sub);
 
  const res = await fetch(`${apiBase}/api/v1/chat/conversations`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();

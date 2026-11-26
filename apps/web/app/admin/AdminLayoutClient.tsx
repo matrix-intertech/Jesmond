@@ -3,7 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import DashboardShell from '@/components/layout/DashboardShell';
-import { restoreUserSession, clearAuth, User, getDashboardRouteForUser } from '@/utils/auth';
+import { restoreUserSession, clearAuth, subscribeToSharedSessionRevalidation, User, getDashboardRouteForUser } from '@/utils/auth';
+import { logoutBusinessSession } from '@/utils/sso';
 import { AlertCircle, RefreshCw, LogOut } from 'lucide-react';
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
@@ -51,6 +52,22 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     initAuth();
   }, [initAuth]);
 
+  useEffect(() => {
+    return subscribeToSharedSessionRevalidation({
+      onAuthenticated: (refreshedUser) => {
+        setUser(refreshedUser);
+      },
+      onUnauthorized: () => {
+        clearAuth();
+        router.replace('/login');
+      },
+      onForbidden: (msg) => {
+        setError(msg);
+        setIsAuthorized(false);
+      },
+    });
+  }, [router]);
+
   if (!isAuthorized) {
     if (error) {
       return (
@@ -73,7 +90,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
               </button>
               <button
                 type="button"
-                onClick={() => { clearAuth(); router.replace('/login'); }}
+                onClick={() => { void logoutBusinessSession('/login'); }}
                 className="inline-flex items-center justify-center px-4 py-2 border border-border text-text-secondary rounded-lg text-sm font-medium hover:bg-surface-muted transition-colors"
               >
                 <LogOut size={16} className="mr-2" />

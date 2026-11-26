@@ -1,6 +1,6 @@
 import { getApiUrl } from '@/utils/api';
 import React, { useEffect, useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 interface CustomRole {
@@ -69,7 +69,7 @@ export default function RolesPermissions() {
  try {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my/roles`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setRoles(await res.json());
@@ -112,7 +112,7 @@ export default function RolesPermissions() {
 
  const res = await fetch(url, {
  method: editingRole ? 'PUT' : 'POST',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(formData)
  });
 
@@ -141,7 +141,7 @@ export default function RolesPermissions() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my/roles/${role.id}`, {
  method: 'DELETE',
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) fetchRoles();
  else alert(await res.text());

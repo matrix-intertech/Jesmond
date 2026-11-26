@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, hasBrowserAuth } from "@/utils/auth";
 import {
   getAdminCredentialsQueue,
   reviewAdminCredential,
@@ -44,7 +44,7 @@ export default function AdminCredentialsPage() {
 
   const loadQueue = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setLoading(true);
@@ -86,7 +86,7 @@ export default function AdminCredentialsPage() {
   ) => {
     if (!selectedItem) return;
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmittingReview(true);
@@ -114,7 +114,7 @@ export default function AdminCredentialsPage() {
   const handleViewAdminDoc = async (docId: string) => {
     if (!selectedItem) return;
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       const res = await getAdminSignedDocumentUrl(token, selectedItem.id, docId);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -39,10 +39,10 @@ export default function BranchesPage() {
  const fetchBranches = async () => {
  setLoading(true);
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -99,10 +99,7 @@ export default function BranchesPage() {
 
  const res = await fetch(url, {
  method: isEdit ? 'PATCH' : 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(payload)
  });
 

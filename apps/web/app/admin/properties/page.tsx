@@ -1,5 +1,5 @@
 'use client';
-import { clearAuth } from '@/utils/auth';
+import { clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 import { useEffect, useState } from 'react';
@@ -16,13 +16,13 @@ export default function AdminPropertiesPage() {
 
  const fetchProperties = async (tab: 'pending' | 'active') => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  setLoading(true);
  try {
  const endpoint = tab === 'pending' ? 'pending' : 'active';
  const res = await fetch(`${getApiUrl()}/api/v1/admin/properties/${endpoint}`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {

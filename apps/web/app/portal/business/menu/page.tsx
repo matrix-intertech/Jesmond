@@ -3,7 +3,7 @@ import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 
 interface FoodMenuItem {
@@ -54,10 +54,10 @@ export default function MenuManagementPage() {
 
   const fetchBranches = async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -72,13 +72,13 @@ export default function MenuManagementPage() {
     setLoading(true);
     setError("");
     const token = getAccessToken();
-    if (!token) {
+    if (!hasBrowserAuth()) {
       router.replace('/login');
       return;
     }
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/food/menu`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildAuthHeaders(),
       });
 
       if (res.ok) {
@@ -105,10 +105,10 @@ export default function MenuManagementPage() {
 
   const fetchMenuDetails = async (menuId: string) => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/food/menu/${menuId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildAuthHeaders(),
       });
       if (res.ok) {
         const data = await res.json();
@@ -128,7 +128,7 @@ export default function MenuManagementPage() {
   const handleSaveMenu = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     const isEdit = !!menuForm.id;
     const url = isEdit 
@@ -140,10 +140,7 @@ export default function MenuManagementPage() {
     try {
       const res = await fetch(`${getApiUrl()}${url}`, {
         method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           name: menuForm.name,
           description: menuForm.description,
@@ -165,14 +162,11 @@ export default function MenuManagementPage() {
 
   const toggleMenuStatus = async (m: FoodMenu) => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/food/menu/${m.id}`, {
         method: "PATCH",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ isActive: !m.isActive })
       });
       if (res.ok) fetchMenus();
@@ -183,7 +177,7 @@ export default function MenuManagementPage() {
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     const isEdit = !!categoryForm.id;
     const url = isEdit 
@@ -195,10 +189,7 @@ export default function MenuManagementPage() {
     try {
       const res = await fetch(`${getApiUrl()}${url}`, {
         method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           menuId: categoryForm.menuId,
           name: categoryForm.name,
@@ -220,14 +211,11 @@ export default function MenuManagementPage() {
 
   const toggleCategoryStatus = async (c: FoodMenuCategory) => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/food/menu/categories/${c.id}`, {
         method: "PATCH",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ isActive: !c.isActive })
       });
       if (res.ok && selectedMenu) fetchMenuDetails(selectedMenu.id);
@@ -238,7 +226,7 @@ export default function MenuManagementPage() {
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     const isEdit = !!itemForm.id;
     const url = isEdit 
@@ -250,10 +238,7 @@ export default function MenuManagementPage() {
     try {
       const res = await fetch(`${getApiUrl()}${url}`, {
         method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           categoryId: itemForm.categoryId,
           name: itemForm.name,
@@ -276,14 +261,11 @@ export default function MenuManagementPage() {
 
   const toggleItemStatus = async (i: FoodMenuItem) => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/food/menu/items/${i.id}`, {
         method: "PATCH",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ isActive: !i.isActive })
       });
       if (res.ok && selectedMenu) fetchMenuDetails(selectedMenu.id);

@@ -132,9 +132,12 @@ function BusinessLoginContent() {
   };
 
   const finalizeAuthenticatedUser = async (accessToken: string, loggedInUser: User) => {
-    setAccessToken(accessToken);
+    const ssoRes = await establishSharedSession(accessToken, loggedInUser?.organizationId);
+    if (!ssoRes.ok) {
+      throw new Error(ssoRes.message || 'Unable to establish shared portal session. Please try again.');
+    }
     setCurrentUser(loggedInUser);
-    await establishSharedSession(accessToken, loggedInUser?.organizationId);
+    setAccessToken(accessToken, loggedInUser?.role);
 
     const businessStatus = await checkBusinessAccess();
     const resolution = resolveBusinessAuthDestination(

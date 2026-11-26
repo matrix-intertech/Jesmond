@@ -3,7 +3,7 @@ import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import RetailGuard from "@/components/retail/RetailGuard";
@@ -64,7 +64,7 @@ function OrdersContent() {
  setLoading(true);
  setError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.replace('/login');
  return;
  }
@@ -79,7 +79,7 @@ function OrdersContent() {
       }
 
  const res = await fetch(`${getApiUrl()}/api/v1/retail/orders?${params.toString()}`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const result = await res.json();
@@ -129,10 +129,7 @@ function OrdersContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${orderId}/status`, {
  method: 'PATCH',
- headers: {
- Authorization: `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ status: newStatus })
  });
  if (res.ok) {

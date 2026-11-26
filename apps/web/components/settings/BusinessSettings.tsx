@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, isAuthenticated, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from "@/utils/api";
 import BusinessNameChangeCard from "@/components/business/BusinessNameChangeCard";
 
@@ -22,11 +22,12 @@ export default function BusinessSettings() {
   useEffect(() => {
     const fetchProfile = async () => {
       const token = getAccessToken();
-      if (!token) return;
+      if (!token && !isAuthenticated()) return;
       try {
         const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/v1/settings/provider/business`, {
-          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         const status = await handleApiError(res, () => {
           clearAuth();
@@ -62,10 +63,7 @@ export default function BusinessSettings() {
       const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/settings/provider/business`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json', }),
         body: JSON.stringify(data),
       });
       if (res.ok) {
@@ -90,10 +88,10 @@ export default function BusinessSettings() {
         onNameUpdated={() => {
           // Re-fetch
           const token = getAccessToken();
-          if (!token) return;
+          if (!hasBrowserAuth()) return;
           const apiUrl = getApiUrl();
           fetch(`${apiUrl}/api/v1/settings/provider/business`, {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: buildAuthHeaders(),
           })
             .then((res) => res.json())
             .then((json) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, hasBrowserAuth } from "@/utils/auth";
 import {
   getCredentialsRequirements,
   verifyAbn,
@@ -67,7 +67,7 @@ export default function BusinessVerificationPage() {
 
   const loadRequirements = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setLoading(true);
@@ -112,7 +112,7 @@ export default function BusinessVerificationPage() {
     }
 
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setAbnVerifying(true);
@@ -142,7 +142,7 @@ export default function BusinessVerificationPage() {
     }
 
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmittingExemption(true);
@@ -164,7 +164,7 @@ export default function BusinessVerificationPage() {
     if (!form || !form.licenceNumber) return;
 
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSavingDraft(true);
@@ -197,7 +197,7 @@ export default function BusinessVerificationPage() {
     }
 
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setUploadingDoc(credentialId);
@@ -215,7 +215,7 @@ export default function BusinessVerificationPage() {
   // Open Signed Document URL
   const handleViewDocument = async (credentialId: string, docId: string) => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       const res = await getDocumentSignedUrl(token, credentialId, docId);
@@ -228,7 +228,7 @@ export default function BusinessVerificationPage() {
   // Submit Credentials Handler
   const handleSubmit = async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmitting(true);

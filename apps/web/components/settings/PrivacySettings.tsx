@@ -3,7 +3,7 @@ import { getApiUrl } from '@/utils/api';
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders } from "@/utils/auth";
 import { Download, Trash2 } from "lucide-react";
 
 export default function PrivacySettings() {
@@ -17,7 +17,7 @@ export default function PrivacySettings() {
  try {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/data-export`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (!res.ok) throw new Error("Failed to export data.");
 
@@ -46,10 +46,7 @@ export default function PrivacySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/delete-request`, {
  method: 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ reason })
  });
  if (res.ok) {

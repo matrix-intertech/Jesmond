@@ -15,7 +15,7 @@ import {
   Building,
 } from 'lucide-react';
 import { getApiUrl } from '@/utils/api';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 import type { ResolvedLocationData } from './BusinessLocationMapInner';
 
 // Dynamically load the Leaflet map picker to avoid SSR issues
@@ -333,10 +333,7 @@ export default function BusinessLocationModal({
       const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/retail/businesses/location`, {
         method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json', }),
         body: JSON.stringify({
           address: fullAddr,
           lat: finalLat,

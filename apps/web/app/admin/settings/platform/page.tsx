@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function PlatformSettingsPage() {
@@ -26,14 +26,14 @@ export default function PlatformSettingsPage() {
  useEffect(() => {
  const fetchData = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const [settingsRes, propsRes] = await Promise.all([
  fetch(`${getApiUrl()}/api/v1/admin/settings/platform`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  }),
  fetch(`${getApiUrl()}/api/v1/admin/properties/active`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  })
  ]);
 
@@ -70,10 +70,7 @@ export default function PlatformSettingsPage() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/admin/settings/platform`, {
  method: 'PATCH',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(data)
  });
  if (res.ok) {

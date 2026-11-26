@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -47,10 +47,10 @@ function CatalogPageContent() {
 
  const fetchBranches = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();
@@ -68,7 +68,7 @@ function CatalogPageContent() {
  setLoading(true);
  setError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.replace('/login');
  return;
  }
@@ -83,7 +83,7 @@ function CatalogPageContent() {
  }
 
  const res = await fetch(url, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
 
  if (res.ok) {
@@ -129,14 +129,11 @@ function CatalogPageContent() {
   const toggleProductStatus = async (p: Product) => {
     if (!confirm(`Are you sure you want to ${p.active ? "deactivate" : "activate"} this product?`)) return;
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/products/${p.id}`, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ isActive: !p.active })
       });
       if (res.ok) fetchProducts();
@@ -159,7 +156,7 @@ function CatalogPageContent() {
  setFormSuccess("");
 
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  try {
  const payload: any = {
@@ -173,10 +170,7 @@ function CatalogPageContent() {
  const endpoint = editingProductId ? `/api/v1/retail/catalog/products/${editingProductId}` : "/api/v1/retail/catalog/products";
       const res = await fetch(`${getApiUrl()}${endpoint}`, {
  method: 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(payload)
  });
 
@@ -391,7 +385,7 @@ function CatalogPageContent() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog/products/media`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  body: formDataToUpload
  });
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser, buildAuthHeaders } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 import {
@@ -69,7 +69,7 @@ export default function BusinessAppointmentsDashboard() {
       setError(null);
       const token = getAccessToken();
       const res = await fetch(`${getApiUrl()}/api/v1/business-appointments`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: buildAuthHeaders(),
       });
       if (!res.ok) throw new Error("Failed to fetch appointments");
       const data = await res.json();
@@ -108,7 +108,7 @@ export default function BusinessAppointmentsDashboard() {
       const res = await fetch(
         `${getApiUrl()}/api/v1/business-appointments/${appointmentId}/eligible-staff`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         },
       );
       if (!res.ok) throw new Error("Failed to load eligible staff");
@@ -135,10 +135,7 @@ export default function BusinessAppointmentsDashboard() {
         `${getApiUrl()}/api/v1/business-appointments/${selectedAppointment.id}/approve`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ staffId: selectedStaffId }),
         },
       );
@@ -164,10 +161,7 @@ export default function BusinessAppointmentsDashboard() {
         `${getApiUrl()}/api/v1/business-appointments/${selectedAppointment.id}/reject`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ reason: rejectReason }),
         },
       );
@@ -193,10 +187,7 @@ export default function BusinessAppointmentsDashboard() {
         `${getApiUrl()}/api/v1/business-appointments/${id}/status`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ status }),
         },
       );

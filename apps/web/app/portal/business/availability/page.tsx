@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser, buildAuthHeaders } from "@/utils/auth";
 import { formatAudPrice } from "@/utils/pricing";
 import {
   formatLocalDate,
@@ -192,16 +192,16 @@ export default function BusinessAvailabilityPage() {
 
       const [staffRes, blocksRes, servicesRes, apptsRes] = await Promise.all([
         fetch(`${getApiUrl()}/api/v1/business-appointments/staff`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
         fetch(`${getApiUrl()}/api/v1/business-appointments/time-off`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
         fetch(`${getApiUrl()}/api/v1/business-appointments/services`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
         fetch(`${getApiUrl()}/api/v1/business-appointments`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
       ]);
 
@@ -329,10 +329,7 @@ export default function BusinessAvailabilityPage() {
 
       const res = await fetch(url, {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 
@@ -363,7 +360,7 @@ export default function BusinessAvailabilityPage() {
         `${getApiUrl()}/api/v1/business-appointments/time-off/${block.id}/delete`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         },
       );
 
@@ -453,10 +450,7 @@ export default function BusinessAvailabilityPage() {
 
       const res = await fetch(`${getApiUrl()}/api/v1/business-appointments/offline`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
 

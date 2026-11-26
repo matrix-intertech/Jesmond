@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function PropertyDefaultsSettings() {
@@ -19,10 +19,10 @@ export default function PropertyDefaultsSettings() {
  useEffect(() => {
  const fetchDefaults = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/property-defaults`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -52,10 +52,7 @@ export default function PropertyDefaultsSettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/property-defaults`, {
  method: 'PATCH',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(data)
  });
  if (res.ok) {

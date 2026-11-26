@@ -3,7 +3,7 @@ import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import RetailGuard from "@/components/retail/RetailGuard";
@@ -54,13 +54,13 @@ function SalesHistoryContent() {
  setLoading(true);
  setError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.replace('/login');
  return;
  }
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/orders`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();

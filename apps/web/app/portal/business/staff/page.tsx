@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser, buildAuthHeaders } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   Loader2,
@@ -154,10 +154,7 @@ function AddStaffModal({ onClose, onSuccess, availableServices }: AddStaffModalP
         `${getApiUrl()}/api/v1/business-appointments/staff`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json", }),
           body: JSON.stringify({
             firstName: form.firstName.trim(),
             lastName: form.lastName.trim() || undefined,
@@ -566,7 +563,7 @@ export default function BusinessStaffPage() {
       const token = getAccessToken();
       const res = await fetch(
         `${getApiUrl()}/api/v1/business-appointments/staff`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: buildAuthHeaders() }
       );
       if (!res.ok) throw new Error("Failed to fetch staff members and professionals");
       const data = await res.json();
@@ -592,7 +589,7 @@ export default function BusinessStaffPage() {
       const token = getAccessToken();
       const res = await fetch(
         `${getApiUrl()}/api/v1/business-appointments/services`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: buildAuthHeaders() }
       );
       if (!res.ok) return;
       const data = await res.json();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function HouseRulesManager({ propertyId, initialHouseRule, onAuthError, onUpdate }: { propertyId: string, initialHouseRule: any, onAuthError: () => void, onUpdate: () => void }) {
@@ -42,7 +42,7 @@ export default function HouseRulesManager({ propertyId, initialHouseRule, onAuth
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${propertyId}/house-rules`, {
  method: 'PUT',
- headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(form)
  });
 

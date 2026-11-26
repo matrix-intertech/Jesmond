@@ -59,12 +59,15 @@ function BusinessVerifyContent() {
         throw new Error(data.message || 'Verification failed. Please check the code.');
       }
 
-      if (data.access_token) {
-        setAccessToken(data.access_token);
-        await establishSharedSession(data.access_token, data.user?.organizationId);
-      }
       if (data.user) {
         setCurrentUser(data.user);
+      }
+      if (data.access_token) {
+        const ssoRes = await establishSharedSession(data.access_token, data.user?.organizationId);
+        if (!ssoRes.ok) {
+          throw new Error(ssoRes.message || 'Unable to establish shared portal session. Please try again.');
+        }
+        setAccessToken(data.access_token, data.user?.role);
       }
 
       // Check if user has active business access

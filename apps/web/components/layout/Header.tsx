@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentUser, getDashboardHeading, getAccessToken, User } from "@/utils/auth";
+import { getCurrentUser, getDashboardHeading, getAccessToken, isAuthenticated, User } from "@/utils/auth";
 import { NotificationDropdown } from "../notifications/NotificationDropdown";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { getCredentialsRequirements } from "@/services/credentials.service";
@@ -41,10 +41,10 @@ export default function Header({ user: propUser }: HeaderProps) {
     }
 
     const token = getAccessToken();
-    if (!token) return;
+    if (!token && !isAuthenticated()) return;
 
     let mounted = true;
-    getCredentialsRequirements(token)
+    getCredentialsRequirements(token || undefined)
       .then((res) => {
         if (mounted) {
           setVerificationStatus(res.overallStatus || "NOT_SUBMITTED");

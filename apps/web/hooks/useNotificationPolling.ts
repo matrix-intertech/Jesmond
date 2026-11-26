@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 
 export interface NotificationItem {
   id: string;
@@ -35,16 +35,14 @@ export function useNotificationPolling(options?: UseNotificationPollingOptions) 
 
   const fetchNotifications = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) {
+    if (!hasBrowserAuth()) {
       setNotifications([]);
       setUnreadCount(0);
       return;
     }
 
     try {
-      const headers: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-      };
+      const headers: Record<string, string> = buildAuthHeaders();
       if (orgId) {
         headers["X-Organization-Id"] = orgId;
       }
@@ -133,7 +131,7 @@ export function useNotificationPolling(options?: UseNotificationPollingOptions) 
   const markAsRead = useCallback(
     async (id: string) => {
       const token = getAccessToken();
-      if (!token) return;
+      if (!hasBrowserAuth()) return;
 
       // Optimistic cache update
       setNotifications((prev) =>
@@ -142,9 +140,7 @@ export function useNotificationPolling(options?: UseNotificationPollingOptions) 
       setUnreadCount((prev) => Math.max(0, prev - 1));
 
       try {
-        const headers: Record<string, string> = {
-          Authorization: `Bearer ${token}`,
-        };
+        const headers: Record<string, string> = buildAuthHeaders();
         if (orgId) headers["X-Organization-Id"] = orgId;
 
         await fetch(`/api/v1/notifications/${id}/read`, {
@@ -162,7 +158,7 @@ export function useNotificationPolling(options?: UseNotificationPollingOptions) 
   // Immediate optimistic update on mark all as read
   const markAllAsRead = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     // Optimistic cache update
     setNotifications((prev) =>

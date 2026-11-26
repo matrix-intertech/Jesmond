@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import { useEffect, useState } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 
 interface Branch {
@@ -19,10 +19,10 @@ export default function RetailSettingsIndex() {
 
  const fetchBranches = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setBranches(await res.json());
@@ -44,10 +44,7 @@ export default function RetailSettingsIndex() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/branches/${branchId}`, {
  method: 'PATCH',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ [feature]: !currentValue })
  });
  if (res.ok) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAccessToken, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog';
 import PageHeader from '@/components/ui/PageHeader';
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
 
  const fetchUsers = useCallback(async (searchTerm: string, pageNum: number) => {
  const token = getAccessToken();
- if (!token) { clearAuth(); router.replace('/login'); return; }
+ if (!hasBrowserAuth()) { clearAuth(); router.replace('/login'); return; }
 
  setLoading(true);
  setError('');
@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
  const params = new URLSearchParams({ page: String(pageNum), limit: '25' });
  if (searchTerm) params.set('search', searchTerm);
  const res = await fetch(`${API_BASE}/api/v1/admin/users?${params}`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -134,7 +134,7 @@ export default function AdminUsersPage() {
  const performAction = async () => {
  if (!confirmUser || !confirmAction) return;
  const token = getAccessToken();
- if (!token) { clearAuth(); router.replace('/login'); return; }
+ if (!hasBrowserAuth()) { clearAuth(); router.replace('/login'); return; }
 
  setActionLoading(true);
  try {
@@ -144,7 +144,7 @@ export default function AdminUsersPage() {
 
  const res = await fetch(endpoint, {
  method: 'POST',
- headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {

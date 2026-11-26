@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser, buildAuthHeaders } from "@/utils/auth";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   Loader2,
@@ -53,7 +53,7 @@ export default function BusinessCustomersPage() {
       const res = await fetch(
         `${getApiUrl()}/api/v1/business-appointments/customers`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         },
       );
       if (!res.ok) throw new Error("Failed to fetch appointment customers");

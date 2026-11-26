@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { getApiUrl, handleApiError } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 import BusinessLocationModal from "@/components/business/BusinessLocationModal";
@@ -29,15 +29,15 @@ export default function BusinessProfilePage() {
 
   const fetchData = async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
     try {
       const apiUrl = getApiUrl();
       const [profileRes, locRes] = await Promise.all([
         fetch(`${apiUrl}/api/v1/retail/businesses/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         }),
         fetch(`${apiUrl}/api/v1/retail/businesses/location`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         })
       ]);
 
@@ -80,10 +80,7 @@ export default function BusinessProfilePage() {
       const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/v1/retail/businesses/profile`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           timezone: data.timezone,
           isPubliclyVisible: data.isPubliclyVisible,

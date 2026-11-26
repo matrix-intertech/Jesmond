@@ -23,8 +23,60 @@ async function mockBusinessAuthApis(
     hasBusinessAccess?: boolean;
     requiresOrganizationSelection?: boolean;
     rejectCrossOrgId?: string;
+    preAuthenticated?: boolean;
   },
 ) {
+  let sessionEstablished = !!options?.preAuthenticated;
+
+  await page.route('**/api/auth/session', async (route: any) => {
+    if (!sessionEstablished) {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ authenticated: false, user: null }),
+      });
+      return;
+    }
+    const activeOrg = options.activeOrganization || options.organizations?.[0];
+    const resolvedUser = activeOrg
+      ? {
+          ...options.user,
+          organizationId: activeOrg.organizationId,
+          orgType: activeOrg.orgType,
+          businessCategory: activeOrg.businessCategory,
+          orgRole: activeOrg.role,
+          permissions: activeOrg.permissions,
+        }
+      : options.user;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        user: resolvedUser,
+        organizationId: resolvedUser?.organizationId || null,
+      }),
+    });
+  });
+
+  await page.route('**/api/auth/session/establish', async (route: any) => {
+    sessionEstablished = true;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+
+  await page.route('**/api/auth/session/logout', async (route: any) => {
+    sessionEstablished = false;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, backendRevoked: true }),
+    });
+  });
+
   await page.route(/\/api\/v1\//, async (route: any) => {
     const req = route.request();
     const corsHeaders = getCorsHeaders(req);
@@ -442,7 +494,7 @@ test.describe('Business Authentication & Dashboard Routing Architecture', () => 
       permissions: ['*'],
     };
 
-    await mockBusinessAuthApis(page, { user, organizations: [org], activeOrganization: org });
+    await mockBusinessAuthApis(page, { user, organizations: [org], activeOrganization: org, preAuthenticated: true });
     await page.addInitScript((u) => {
       localStorage.setItem('user', JSON.stringify(u));
     }, user);
@@ -484,6 +536,7 @@ test.describe('Business Authentication & Dashboard Routing Architecture', () => 
       organizations: [retailOrg],
       activeOrganization: retailOrg,
       rejectCrossOrgId: 'org-foreign-999',
+      preAuthenticated: true,
     });
     await page.addInitScript((u) => {
       localStorage.setItem('user', JSON.stringify(u));

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders } from "@/utils/auth";
 import { getApiUrl } from "@/utils/api";
 import { X, Upload, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 
@@ -73,10 +73,7 @@ export default function BusinessNameChangeModal({
       // 1. Submit Request
       const res = await fetch(`${apiUrl}/api/v1/business/name-change-requests`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: buildAuthHeaders({ "Content-Type": "application/json", }),
         body: JSON.stringify({
           proposedName: trimmedProposed,
           reason: trimmedReason,
@@ -99,9 +96,7 @@ export default function BusinessNameChangeModal({
           `${apiUrl}/api/v1/business/name-change-requests/${createdRequest.id}/documents`,
           {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: buildAuthHeaders(),
             body: formData,
           }
         );

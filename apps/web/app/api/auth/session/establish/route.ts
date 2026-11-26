@@ -75,6 +75,17 @@ export async function POST(req: NextRequest) {
     }
 
     const verifyData = await verifyRes.json();
+    if (
+      verifyData.role === 'STUDENT' &&
+      !verifyData.hasBusinessAccess &&
+      !verifyData.isAdmin
+    ) {
+      return NextResponse.json(
+        { message: 'Student accounts cannot establish a business SSO session' },
+        { status: 403 },
+      );
+    }
+
     if (organizationId) {
       const hasOrg = (verifyData.organizations || []).some(
         (o: any) => o.organizationId === organizationId,

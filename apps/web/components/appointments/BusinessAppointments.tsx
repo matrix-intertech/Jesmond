@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getApiUrl } from '@/utils/api';
-import { getAccessToken, isAuthenticated } from '@/utils/auth';
+import { getAccessToken, isAuthenticated, buildAuthHeaders } from '@/utils/auth';
 import { formatAudPrice } from '@/utils/pricing';
 import {
   Calendar as CalendarIcon,
@@ -262,9 +262,7 @@ export default function BusinessAppointments({
     try {
       const token = getAccessToken();
       const res = await fetch(`${getApiUrl()}/api/v1/customer/addresses`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders(),
       });
       if (res.ok) {
         const data: CustomerAddressItem[] = await res.json();
@@ -371,10 +369,7 @@ export default function BusinessAppointments({
 
       const res = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload),
       });
 
@@ -519,10 +514,7 @@ export default function BusinessAppointments({
     try {
       const res = await fetch(`${getApiUrl()}/api/v1/appointments/request`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           branchId,
           serviceId: selectedServiceId,

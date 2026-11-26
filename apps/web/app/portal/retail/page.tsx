@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAccessToken, clearAuth, getCurrentUser } from "@/utils/auth";
+import { getAccessToken, clearAuth, getCurrentUser, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from "@/components/ui/PageHeader";
@@ -38,10 +38,10 @@ function RetailOverviewContent() {
  useEffect(() => {
  const fetchMetrics = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  try {
- const headers = { Authorization: `Bearer ${token}` };
+ const headers = buildAuthHeaders();
  const apiUrl = getApiUrl();
 
  // Fetch parallel

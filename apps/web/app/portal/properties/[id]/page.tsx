@@ -7,7 +7,7 @@ import { SafeImage } from '../../../../components/ui/SafeImage';
 import PageHeader from '@/components/ui/PageHeader';
 import LocationPicker from '@/components/ui/LocationPicker';
 import { LocationAutocomplete, LocationResult } from '@/components/location/LocationAutocomplete';
-import { getAccessToken, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 
 import { getApiUrl, handleApiError } from '@/utils/api';
 import HierarchyManager from './HierarchyManager';
@@ -61,11 +61,11 @@ export default function AccommodationManagementPage() {
 
  const fetchProperty = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
 
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {
@@ -128,7 +128,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/media`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  body: formData
  });
  const status = await handleApiError(res, onAuthError);
@@ -360,7 +360,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}`, {
  method: 'PUT',
- headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({
  ...editPropForm,
  lat: parseFloat(editPropForm.lat),
@@ -395,7 +395,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/rooms/${roomId}`, {
  method: 'DELETE',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (await handleApiError(res, onAuthError) === 'ok') {
  setToast('Room deleted successfully');
@@ -412,7 +412,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/amenities`, {
  method: 'PUT',
- headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ amenities: selectedAmenities })
  });
  if (await handleApiError(res, onAuthError) === 'ok') {
@@ -432,10 +432,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/rooms`, {
  method: 'POST',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({
  name: newRoom.name,
  description: newRoom.description,
@@ -466,10 +463,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/rooms/${roomId}/availability`, {
  method: 'PUT',
- headers: {
- 'Authorization': `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({
  date: availDate,
  available: parseInt(availCount)
@@ -498,7 +492,7 @@ export default function AccommodationManagementPage() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my/${id}/submit`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {

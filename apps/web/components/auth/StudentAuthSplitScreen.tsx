@@ -183,9 +183,15 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
         return;
       }
 
-      setAccessToken(data.access_token);
+      if (data.user?.role && data.user.role !== 'STUDENT') {
+        const ssoRes = await establishSharedSession(data.access_token, data.user?.organizationId);
+        if (!ssoRes.ok) {
+          throw new Error(ssoRes.message || 'Unable to establish shared portal session. Please try again.');
+        }
+      }
+
       setCurrentUser(data.user);
-      await establishSharedSession(data.access_token, data.user?.organizationId);
+      setAccessToken(data.access_token, data.user?.role);
 
       await routeAfterAuth(data.user, searchParams.get('returnUrl'));
     } catch (err: any) {
@@ -215,9 +221,15 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
         throw new Error(data.message || 'Invalid or expired verification code.');
       }
 
-      setAccessToken(data.access_token);
+      if (data.user?.role && data.user.role !== 'STUDENT') {
+        const ssoRes = await establishSharedSession(data.access_token, data.user?.organizationId);
+        if (!ssoRes.ok) {
+          throw new Error(ssoRes.message || 'Unable to establish shared portal session. Please try again.');
+        }
+      }
+
       setCurrentUser(data.user);
-      await establishSharedSession(data.access_token, data.user?.organizationId);
+      setAccessToken(data.access_token, data.user?.role);
       await routeAfterAuth(data.user, searchParams.get('returnUrl'));
     } catch (err: any) {
       setError(err.message === 'Failed to fetch' ? 'Unable to connect to server. Please try again.' : err.message);
@@ -288,7 +300,6 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
         if (data.user) {
           setCurrentUser(data.user);
         }
-        await establishSharedSession(data.access_token, data.user?.organizationId);
         router.push(data.user ? getDashboardRouteForUser(data.user) : '/student');
       } else {
         switchMode('login');
@@ -336,9 +347,16 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
           return;
         }
 
-        setAccessToken(data.access_token);
+        if (data.user?.role && data.user.role !== 'STUDENT') {
+          const ssoRes = await establishSharedSession(data.access_token, data.user?.organizationId);
+          if (!ssoRes.ok) {
+            lastVerificationAttemptRef.current = null;
+            setError(ssoRes.message || 'Unable to establish shared portal session. Please try again.');
+            return;
+          }
+        }
         setCurrentUser(data.user);
-        await establishSharedSession(data.access_token, data.user?.organizationId);
+        setAccessToken(data.access_token, data.user?.role);
         await routeAfterAuth(data.user, searchParams.get('returnUrl'));
       } catch (err: any) {
         lastVerificationAttemptRef.current = null;

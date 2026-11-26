@@ -65,6 +65,7 @@ export default function RetailGuard({
   const router = useRouter();
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [forbidden, setForbidden] = useState<boolean>(false);
+  const [transientError, setTransientError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -80,9 +81,21 @@ export default function RetailGuard({
       const sessionRes = await restoreUserSession();
       if (!mounted) return;
 
-      if (sessionRes.status !== "ok" || !sessionRes.user) {
+      if (sessionRes.status === "unauthorized") {
         router.push(
           `/login?redirect=${encodeURIComponent(window.location.pathname)}`,
+        );
+        return;
+      }
+
+      if (sessionRes.status === "forbidden") {
+        setForbidden(true);
+        return;
+      }
+
+      if (sessionRes.status !== "ok" || !sessionRes.user) {
+        setTransientError(
+          sessionRes.error || "Unable to verify session right now. Please retry.",
         );
         return;
       }
@@ -136,6 +149,21 @@ export default function RetailGuard({
       mounted = false;
     };
   }, [router, requirePermissions, requireAll]);
+
+  if (transientError) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[50vh] p-6 text-center">
+        <p className="text-sm text-text-secondary mb-4">{transientError}</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 rounded-lg bg-accent text-white text-sm font-semibold"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   if (authorized === null && !forbidden) {
     return (

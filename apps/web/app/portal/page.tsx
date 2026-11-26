@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAccessToken, clearAuth, User, getCurrentUser, getDashboardRouteForUser, getDashboardHeading } from '@/utils/auth';
+import { getAccessToken, clearAuth, User, getCurrentUser, getDashboardRouteForUser, getDashboardHeading, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import PageHeader from '@/components/ui/PageHeader';
 import StatCard from '@/components/ui/StatCard';
@@ -33,7 +33,7 @@ export default function ProviderPortalPage() {
       const token = getAccessToken();
       const currentUser = getCurrentUser();
 
-      if (!token) return;
+      if (!hasBrowserAuth()) return;
       if (currentUser) {
         setUser(currentUser);
         const targetRoute = getDashboardRouteForUser(currentUser);
@@ -53,7 +53,7 @@ export default function ProviderPortalPage() {
 
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/properties/my`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const status = await handleApiError(res, () => { clearAuth(); router.replace('/login'); });
  if (status === 'ok') {
@@ -70,7 +70,7 @@ export default function ProviderPortalPage() {
 
  try {
  const appRes = await fetch(`${getApiUrl()}/api/v1/applications/provider`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  const appStatus = await handleApiError(appRes, onAuthError);
  if (appStatus === 'ok') {

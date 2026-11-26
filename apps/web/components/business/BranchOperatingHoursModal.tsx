@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders } from "@/utils/auth";
 import {
   X,
   Clock,
@@ -69,7 +69,7 @@ export default function BranchOperatingHoursModal({
         const res = await fetch(
           `${getApiUrl()}/api/v1/business-appointments/branches/${branchId}/operating-hours`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: buildAuthHeaders(),
           }
         );
         if (!res.ok) throw new Error("Failed to load branch operating hours");
@@ -185,10 +185,7 @@ export default function BranchOperatingHoursModal({
         `${getApiUrl()}/api/v1/business-appointments/branches/${branchId}/operating-hours`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: buildAuthHeaders({ "Content-Type": "application/json" }),
           body: JSON.stringify({ operatingHours: hours }),
         }
       );

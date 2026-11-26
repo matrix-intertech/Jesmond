@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, isAuthenticated } from "@/utils/auth";
 import { getApiUrl, handleApiError } from '@/utils/api';
 
 export default function ProfileCompletionBanner() {
@@ -22,10 +22,11 @@ export default function ProfileCompletionBanner() {
 
  const fetchCompletionStatus = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!token && !isAuthenticated()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/settings/profile`, {
- headers: { Authorization: `Bearer ${token}` },
+ credentials: 'include',
+ headers: token ? { Authorization: `Bearer ${token}` } : {},
  });
  const status = await handleApiError(res, () => {});
  if (status === 'ok') {

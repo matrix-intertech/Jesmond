@@ -409,31 +409,21 @@ export function resolveBusinessAuthDestination(
 }
 
 /**
- * Logs out of the current portal session, revokes DB session and clears host cookies.
+ * Logs out of the current portal session, revokes the shared BFF + backend session,
+ * broadcasts cross-tab logout, and clears local auth state.
  */
-export async function logoutBusinessSession(): Promise<void> {
-  const token = getAccessToken();
-  const selectedOrgId = getSelectedOrganizationId();
-  const apiUrl = getApiUrl();
-
+export async function logoutBusinessSession(redirectTo = '/login'): Promise<void> {
   try {
-    await revokeSharedSession();
-    await fetch(`${apiUrl}/api/v1/auth/sso/logout`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(selectedOrgId ? { 'X-Organization-Id': selectedOrgId } : {}),
-      },
-      credentials: 'include',
-      body: JSON.stringify({}),
-    });
+    const result = await revokeSharedSession();
+    if (!result.backendRevoked) {
+      console.warn('Backend session revocation could not be confirmed:', result.message);
+    }
   } catch (err) {
     console.warn('Backend logout encountered error:', err);
   } finally {
     clearAuth();
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.href = redirectTo;
     }
   }
 }

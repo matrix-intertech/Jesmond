@@ -144,6 +144,28 @@ test.describe('Business Credentials & Verification System (e2e)', () => {
   const setupMechanicsSession = async (page: any, overrides: Partial<typeof mechanicsRequirements> = {}) => {
     let currentRequirements = { ...mechanicsRequirements, ...overrides };
 
+    await page.route('**/api/auth/session', async (route: any) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          authenticated: true,
+          user: {
+            id: 'usr-mechanic-1',
+            email: 'mechanic@newcastle.demo',
+            role: 'ORG_STAFF',
+            organizationId: 'org-mechanics-1',
+            orgType: 'RETAIL',
+            businessCategory: 'MECHANICS',
+            orgRole: 'ADMIN',
+            permissions: ['*'],
+            accountStatus: 'ACTIVE',
+          },
+          organizationId: 'org-mechanics-1',
+        }),
+      });
+    });
+
     await page.route(/\/api\/v1\//, async (route: any) => {
       if (route.request().method() === 'OPTIONS') {
         await route.fulfill({ status: 204, headers: corsHeaders });
@@ -464,6 +486,23 @@ test.describe('Business Credentials & Verification System (e2e)', () => {
   });
 
   test('4. Admin review queue and decision actions', async ({ page }) => {
+    await page.route('**/api/auth/session', async (route: any) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          authenticated: true,
+          user: {
+            id: 'admin-1',
+            email: 'admin@jesmond.com',
+            role: 'ADMIN',
+            accountStatus: 'ACTIVE',
+          },
+          organizationId: null,
+        }),
+      });
+    });
+
     // Admin session mock
     await page.route(/\/api\/v1\//, async (route: any) => {
       const url = route.request().url();

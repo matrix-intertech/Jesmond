@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import React, { useEffect, useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders } from '@/utils/auth';
 import { Plus, Shield, UserCheck, RefreshCw } from 'lucide-react';
 
 type AgencyRole = 'AGENCY_ADMIN' | 'TEAM_MEMBER';
@@ -62,13 +62,13 @@ export default function AgencyMembersPage() {
  const token = getAccessToken();
  const [memRes, propRes, rolesRes] = await Promise.all([
  fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  }),
  fetch(`${getApiUrl()}/api/v1/properties/my`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  }),
  fetch(`${getApiUrl()}/api/v1/agency/my/roles`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  })
  ]);
 
@@ -88,7 +88,7 @@ export default function AgencyMembersPage() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members`, {
  method: 'POST',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(inviteData)
  });
  if (res.ok) {
@@ -111,7 +111,7 @@ export default function AgencyMembersPage() {
  `${getApiUrl()}/api/v1/agency/my/members/${member.id}/role`,
  {
  method: 'PUT',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ agencyRole, customRoleId })
  }
  );
@@ -128,7 +128,7 @@ export default function AgencyMembersPage() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my/members/${id}`, {
  method: 'DELETE',
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) fetchData();
  } catch (e) {
@@ -169,7 +169,7 @@ export default function AgencyMembersPage() {
  `${getApiUrl()}/api/v1/agency/my/members/${selectedMember.id}/permissions`,
  {
  method: 'PUT',
- headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify({ propertyAssignments })
  }
  );

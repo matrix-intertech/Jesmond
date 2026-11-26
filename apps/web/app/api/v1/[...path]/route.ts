@@ -35,9 +35,8 @@ async function proxyRequest(
     try {
       const session = await getBffSession(handle);
       if (session) {
-        if (!forwardHeaders.has('authorization')) {
-          forwardHeaders.set('authorization', `Bearer ${session.accessToken}`);
-        }
+        // Server-side BFF session token is authoritative when present
+        forwardHeaders.set('authorization', `Bearer ${session.accessToken}`);
         const orgId =
           session.organizationId || req.cookies.get(SSO_ORG_COOKIE)?.value;
         if (orgId && !forwardHeaders.has('x-organization-id')) {

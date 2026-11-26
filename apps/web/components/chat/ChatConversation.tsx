@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
-import { clearAuth, getAccessToken } from "@/utils/auth";
+import { clearAuth, getAccessToken, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 
 type ChatConversationProps = {
  conversationId: string;
@@ -91,7 +91,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
  const markRead = async (token: string, latestMessageKey?: string) => {
  const res = await fetch(`${apiBase}/api/v1/chat/conversations/${conversationId}/read`, {
  method: "PATCH",
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
 
  if (res.ok && latestMessageKey && lastReadNotifiedKeyRef.current !== latestMessageKey) {
@@ -102,11 +102,11 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
 
  const fetchConversation = async (options?: { notifyParent?: boolean }) => {
  const token = getAccessToken();
- if (!token) return router.push("/login");
+ if (!hasBrowserAuth()) return router.push("/login");
 
  try {
  const res = await fetch(`${apiBase}/api/v1/chat/conversations/${conversationId}`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
 
  if (res.ok) {
@@ -181,7 +181,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
  setSending(true);
  setSendError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  setSending(false);
  router.push("/login");
  return;
@@ -190,10 +190,7 @@ export default function ChatConversation({ conversationId, backHref, embedded = 
  try {
  const res = await fetch(`${apiBase}/api/v1/chat/conversations/${conversationId}/messages`, {
  method: "POST",
- headers: {
- Authorization: `Bearer ${token}`,
- "Content-Type": "application/json",
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json", }),
  body: JSON.stringify({ encryptedPayload: messageText }),
  });
 

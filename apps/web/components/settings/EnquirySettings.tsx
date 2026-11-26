@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import { useState, useEffect } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, buildAuthHeaders } from "@/utils/auth";
 
 export default function EnquirySettings() {
  const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export default function EnquirySettings() {
  try {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/enquiries`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  const data = await res.json();
@@ -39,10 +39,7 @@ export default function EnquirySettings() {
  const token = getAccessToken();
  const res = await fetch(`${getApiUrl()}/api/v1/settings/provider/enquiries`, {
  method: 'PATCH',
- headers: {
- Authorization: `Bearer ${token}`,
- 'Content-Type': 'application/json'
- },
+ headers: buildAuthHeaders({ 'Content-Type': 'application/json' }),
  body: JSON.stringify(preferences)
  });
  if (res.ok) alert("Preferences saved successfully!");

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { getApiUrl } from "@/utils/api";
-import { getAccessToken, getCurrentUser, getDashboardRouteForUser } from "@/utils/auth";
+import { getAccessToken, getCurrentUser, getDashboardRouteForUser, buildAuthHeaders } from "@/utils/auth";
 import { canUseBusinessCapability } from "@/utils/capabilities";
 import { formatAudPrice } from "@/utils/pricing";
 import { getItemDateString, getItemTimeString, formatDisplayDate } from "@/utils/datetime";
@@ -120,7 +120,7 @@ export default function CustomerAppointmentHistoryPage() {
       const res = await fetch(
         `${getApiUrl()}/api/v1/business-appointments/customers/${customerId}/history`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: buildAuthHeaders(),
         },
       );
 

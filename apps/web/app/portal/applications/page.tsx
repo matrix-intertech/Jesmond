@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
-import { getAccessToken, clearAuth } from '@/utils/auth';
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { getApiUrl, handleApiError } from '@/utils/api';
 import Link from 'next/link';
 
@@ -44,10 +44,10 @@ export default function ProviderApplicationsPage() {
  const fetchApplications = async () => {
  try {
  const token = getAccessToken();
- if (!token) { onAuthError(); return; }
+ if (!hasBrowserAuth()) { onAuthError(); return; }
 
  const res = await fetch(`${getApiUrl()}/api/v1/applications/provider`, {
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  const status = await handleApiError(res, onAuthError);
  if (status === 'ok') {
@@ -72,11 +72,11 @@ export default function ProviderApplicationsPage() {
  setActionLoadingId(applicationId);
  try {
  const token = getAccessToken();
- if (!token) { onAuthError(); return; }
+ if (!hasBrowserAuth()) { onAuthError(); return; }
 
  const res = await fetch(`${getApiUrl()}/api/v1/applications/${applicationId}/${action}`, {
  method: 'POST',
- headers: { 'Authorization': `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
 
  const status = await handleApiError(res, onAuthError);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { getAccessToken } from "@/utils/auth";
+import { getAccessToken, hasBrowserAuth } from "@/utils/auth";
 import {
   getAdminNameRequestsQueue,
   startAdminNameRequestReview,
@@ -58,7 +58,7 @@ export default function AdminBusinessNameRequestsPage() {
 
   const loadQueue = useCallback(async () => {
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setLoading(true);
@@ -102,7 +102,7 @@ export default function AdminBusinessNameRequestsPage() {
   const handleStartReview = async () => {
     if (!selectedRequest) return;
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmittingAction(true);
@@ -126,7 +126,7 @@ export default function AdminBusinessNameRequestsPage() {
   const handleApprove = async () => {
     if (!selectedRequest) return;
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmittingAction(true);
@@ -161,7 +161,7 @@ export default function AdminBusinessNameRequestsPage() {
     }
 
     const token = getAccessToken();
-    if (!token) return;
+    if (!hasBrowserAuth()) return;
 
     try {
       setSubmittingAction(true);
@@ -189,7 +189,7 @@ export default function AdminBusinessNameRequestsPage() {
     setDownloadingDocId(docId);
     try {
       const token = getAccessToken();
-      if (!token) return;
+      if (!hasBrowserAuth()) return;
       const { signedUrl } = await getAdminNameRequestSignedDocumentUrl(
         token,
         requestId,

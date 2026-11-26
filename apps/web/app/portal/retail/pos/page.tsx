@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Barcode, Scan } from "lucide-react";
-import { getAccessToken, clearAuth } from "@/utils/auth";
+import { getAccessToken, clearAuth, buildAuthHeaders, hasBrowserAuth } from "@/utils/auth";
 import { handleApiError, getApiUrl } from "@/utils/api";
 import PageHeader from "@/components/ui/PageHeader";
 import { UniversalBarcodeScanner, ScannedProduct, HardwareBarcodeInput } from "@/components/barcode";
@@ -80,10 +80,10 @@ function POSPageContent() {
  // Fetch branches for the authenticated user's organization
  const fetchBranches = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/branches`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();
@@ -101,10 +101,10 @@ function POSPageContent() {
  // Fetch terminals list
  const fetchTerminals = async () => {
  const token = getAccessToken();
- if (!token) return;
+ if (!hasBrowserAuth()) return;
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/terminals`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
  if (res.ok) {
  const data = await res.json();
@@ -124,14 +124,14 @@ function POSPageContent() {
  setLoading(true);
  setError("");
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  router.replace('/login');
  return;
  }
 
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/catalog?branchId=${branch}`, {
- headers: { Authorization: `Bearer ${token}` },
+ headers: buildAuthHeaders(),
  });
 
  if (res.ok) {
@@ -382,10 +382,7 @@ function POSPageContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/orders`, {
  method: "POST",
- headers: {
- "Authorization": `Bearer ${token}`,
- "Content-Type": "application/json"
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json" }),
  body: JSON.stringify(payload)
  });
 
@@ -423,7 +420,7 @@ function POSPageContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${currentOrder.id}/cancel`, {
  method: "POST",
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  setCheckoutOpen(false);
@@ -451,10 +448,7 @@ function POSPageContent() {
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/payments/retry`, {
  method: "POST",
- headers: {
- "Authorization": `Bearer ${token}`,
- "Content-Type": "application/json"
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json" }),
  body: JSON.stringify({
  orderId: currentOrder.id,
  paymentMethod,
@@ -495,7 +489,7 @@ function POSPageContent() {
  const token = getAccessToken();
  try {
  const res = await fetch(`${getApiUrl()}/api/v1/retail/orders/${currentOrder.id}`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
  if (res.ok) {
  const order = await res.json();
@@ -547,10 +541,7 @@ function POSPageContent() {
  `${getApiUrl()}/api/v1/retail/pos/sandbox/simulate`,
  {
  method: "POST",
- headers: {
- Authorization: `Bearer ${token}`,
- "Content-Type": "application/json",
- },
+ headers: buildAuthHeaders({ "Content-Type": "application/json", }),
  body: JSON.stringify({ provider, transactionId, success }),
  }
  );

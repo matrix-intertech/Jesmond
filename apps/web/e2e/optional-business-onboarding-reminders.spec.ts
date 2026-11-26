@@ -18,9 +18,48 @@ async function setupBusinessSession(
   page: any,
   user: any,
   requirementsByOrg: Record<string, any>,
-  options?: { hasBusinessAccess?: boolean },
+  options?: { hasBusinessAccess?: boolean; startLoggedOut?: boolean },
 ) {
   let dismissCalls = 0;
+  let sessionEstablished = !options?.startLoggedOut;
+
+  await page.route('**/api/auth/session', async (route: any) => {
+    if (!sessionEstablished) {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ authenticated: false, user: null }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        authenticated: true,
+        user,
+        organizationId: user.organizationId || null,
+      }),
+    });
+  });
+
+  await page.route('**/api/auth/session/establish', async (route: any) => {
+    sessionEstablished = true;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+
+  await page.route('**/api/auth/session/logout', async (route: any) => {
+    sessionEstablished = false;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, backendRevoked: true }),
+    });
+  });
 
   await page.route(/\/api\/v1\//, async (route: any) => {
     const req = route.request();

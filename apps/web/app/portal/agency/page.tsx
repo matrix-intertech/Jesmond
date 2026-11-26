@@ -2,7 +2,7 @@
 import { getApiUrl } from '@/utils/api';
 
 import React, { useEffect, useState } from 'react';
-import { getAccessToken } from '@/utils/auth';
+import { getAccessToken, buildAuthHeaders, hasBrowserAuth } from '@/utils/auth';
 import { Building2, Users, Plus, AlertCircle, RefreshCw, Shield, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -21,12 +21,12 @@ export default function AgencyOverviewPage() {
  setState('loading');
  try {
  const token = getAccessToken();
- if (!token) {
+ if (!hasBrowserAuth()) {
  setState('permission_denied');
  return;
  }
  const res = await fetch(`${getApiUrl()}/api/v1/agency/my`, {
- headers: { Authorization: `Bearer ${token}` }
+ headers: buildAuthHeaders()
  });
 
  if (res.ok) {
