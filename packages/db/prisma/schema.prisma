@@ -102,6 +102,7 @@ model User {
   customerAddresses        CustomerAddress[]
   notificationPreferences  NotificationPreference[]
   appointmentReminders     AppointmentReminder[]
+  dashboardOnboardings     DashboardOnboarding[]
 
   @@index([email])
   @@index([phone])
@@ -2544,5 +2545,29 @@ model BusinessNameChangeDocument {
 
   @@index([requestId])
   @@index([organizationId])
+}
+
+enum DashboardOnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+model DashboardOnboarding {
+  id                String                    @id @default(uuid())
+  userId            String
+  user              User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dashboardId       String
+  tutorialVersion   Int                       @default(1)
+  status            DashboardOnboardingStatus @default(NOT_STARTED)
+  lastCompletedStep Int                       @default(0)
+  completedAt       DateTime?
+  skippedAt         DateTime?
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  @@unique([userId, dashboardId])
+  @@index([userId])
 }
 

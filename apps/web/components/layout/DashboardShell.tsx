@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { QuickstartProvider } from '../quickstart/QuickstartProvider';
 import type { ReactNode } from 'react';
 import { getCurrentUser, User } from '@/utils/auth';
 
@@ -29,16 +30,18 @@ export default function DashboardShell({ role, user: propUser, children }: Dashb
   const effectiveRole = (effectiveUser?.role as any) ?? role;
 
   return (
-    <div className="flex min-h-screen min-w-0 bg-surface-muted">
-      {/* Sidebar */}
-      <Sidebar role={effectiveRole as any} />
-      {/* Main area */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Header */}
-        <Header user={effectiveUser} />
-        {/* Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
+    <QuickstartProvider user={effectiveUser}>
+      <div className="flex min-h-screen min-w-0 bg-surface-muted">
+        {/* Sidebar */}
+        <Sidebar role={effectiveRole as any} />
+        {/* Main area */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* Header */}
+          <Header user={effectiveUser} />
+          {/* Content */}
+          <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
+        </div>
       </div>
-    </div>
+    </QuickstartProvider>
   );
 }

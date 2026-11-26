@@ -31,6 +31,7 @@ import { CredentialsModule } from './modules/credentials/credentials.module';
 import { BusinessNameRequestsModule } from './modules/business-name-requests/business-name-requests.module';
 import { CustomerAddressesModule } from './modules/customer-addresses/customer-addresses.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     BusinessNameRequestsModule,
     CustomerAddressesModule,
     NotificationsModule,
+    OnboardingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

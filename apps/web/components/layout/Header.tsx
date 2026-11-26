@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getCurrentUser, getDashboardHeading, getAccessToken, isAuthenticated, User } from "@/utils/auth";
 import { NotificationDropdown } from "../notifications/NotificationDropdown";
+import { QuickstartHeaderButton } from "../quickstart/QuickstartHeaderButton";
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { getCredentialsRequirements } from "@/services/credentials.service";
 
@@ -91,7 +92,8 @@ export default function Header({ user: propUser }: HeaderProps) {
           )
         )}
       </div>
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex items-center gap-3 shrink-0">
+        <QuickstartHeaderButton />
         <NotificationDropdown
           organizationId={
             effectiveUser?.role === "ORG_STAFF"
