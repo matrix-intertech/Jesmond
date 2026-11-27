@@ -6,7 +6,8 @@ import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { clearAuth, getCurrentUser, User } from "@/utils/auth";
+import { clearAuth, getCurrentUser, isBusinessHost, User } from "@/utils/auth";
+import { JesmondBusinessLogo } from "../branding/JesmondBusinessLogo";
 import { getStudentPortalUrl, logoutBusinessSession } from "@/utils/sso";
 import { useState, useEffect } from "react";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
@@ -1198,15 +1199,19 @@ export default function Sidebar({ role }: { role: string }) {
         className={`fixed inset-y-0 left-0 z-[70] flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-border-strong/60 bg-surface transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? "translate-x-0 shadow-2xl" : "-translate-x-[110%]"}`}
       >
         <div className="flex items-center justify-between px-6 py-6">
-          <Link href="/">
-            <Image
-              src="/assets/logo_navbar.png"
-              alt="Jesmond"
-              width={120}
-              height={30}
-              className="h-8 w-auto"
-              priority
-            />
+          <Link href="/" className="group">
+            {role === "ORG_STAFF" || isBusinessHost() ? (
+              <JesmondBusinessLogo size="sm" />
+            ) : (
+              <Image
+                src="/assets/logo_navbar.png"
+                alt="Jesmond"
+                width={120}
+                height={30}
+                className="h-8 w-auto"
+                priority
+              />
+            )}
           </Link>
           <button
             className="lg:hidden p-2 text-text-secondary hover:bg-surface-muted rounded-lg transition"

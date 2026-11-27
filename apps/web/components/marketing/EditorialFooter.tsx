@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FooterPricingLink } from "../subscriptions/FooterPricingLink";
-import Image from "next/image";
+import { FooterBrandLogo } from "../branding/FooterBrandLogo";
 
 export function EditorialFooter() {
   return (
@@ -14,7 +14,7 @@ export function EditorialFooter() {
           <div className="lg:col-span-4 flex flex-col justify-between">
             <div className="flex flex-col items-start">
               <Link href="/" className="block mb-4 group">
-                <Image src="/assets/logo_footer.png" alt="Jesmond" width={512} height={396} className="w-[190px] h-auto object-contain" />
+                <FooterBrandLogo />
               </Link>
               <p className="text-sm text-text-secondary font-light leading-relaxed max-w-[190px] mb-8 mt-2 text-left">
                 Australia's premium places and living platform. Designed for certainty, built for your journey.

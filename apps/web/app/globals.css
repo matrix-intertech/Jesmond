@@ -96,7 +96,7 @@
   /* Text */
   --text-primary: #FFF9EF;
   --text-secondary: #C9B69C;
-  --text-muted: #B09878;
+  --text-muted: #C2AD8E;
 
   /* Borders */
   --border-subtle: rgba(214, 166, 79, 0.16);
@@ -111,6 +111,15 @@
   --error-bg: rgba(239, 68, 68, 0.14);
   --info: #F3D69A;
   --info-bg: rgba(234, 138, 50, 0.16);
+
+  /* Crisp typography on dark espresso surfaces */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+[data-theme="business"] .font-light {
+  font-weight: 400;
 }
 
 [data-theme="business"] input:not([type="checkbox"]):not([type="radio"]),
@@ -241,6 +250,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
+  font-family: var(--font-outfit);
 }
 
 * {

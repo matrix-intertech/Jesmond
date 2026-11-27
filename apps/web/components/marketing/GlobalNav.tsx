@@ -25,10 +25,12 @@ import {
 } from "@/utils/sso";
 import { CompactChatPanel } from "../chat/CompactChatPanel";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
+import { JesmondBusinessLogo } from "../branding/JesmondBusinessLogo";
 
 export function GlobalNav() {
  const router = useRouter();
  const [isScrolled, setIsScrolled] = useState(false);
+ const [isBizHost, setIsBizHost] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuTriggerRef = useRef<HTMLButtonElement>(null);
   const mobileDialogRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,7 @@ export function GlobalNav() {
  const unreadChatCount = useUnreadChatCount();
 
  useEffect(() => {
+    setIsBizHost(isBusinessHost());
     let active = true;
     const user = getCurrentUser();
     const businessUrl = getBusinessPortalUrl();
@@ -382,7 +385,11 @@ export function GlobalNav() {
 
  {/* Logo */}
  <Link href="/" className="flex items-center gap-2 group relative z-50">
- <Image src="/assets/logo_navbar.png" alt="Jesmond" width={140} height={36} className="h-9 w-auto" priority />
+ {isBizHost || pathname === "/pricing" ? (
+   <JesmondBusinessLogo size="sm" />
+ ) : (
+   <Image src="/assets/logo_navbar.png" alt="Jesmond" width={140} height={36} className="h-9 w-auto" priority />
+ )}
  </Link>
 
  {/* Desktop Navigation Links */}

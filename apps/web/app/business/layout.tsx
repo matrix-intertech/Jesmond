@@ -1,8 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
+import { JesmondBusinessLogo } from '@/components/branding/JesmondBusinessLogo';
 
 export const metadata: Metadata = {
   title: 'Business Portal | Jesmond Partner & Commercial Platform',
@@ -18,38 +18,12 @@ export default function BusinessLayout({
 }) {
   return (
     <div className="min-h-dvh w-full flex flex-col bg-[#1A100A] text-[#FFF9EF] font-sans selection:bg-[#EA8A32] selection:text-[#120D09] overflow-x-hidden">
-      <style>{`
-        html, body {
-          background-color: #1A100A !important;
-        }
-        .student-mobile-bottom-nav {
-          display: none !important;
-        }
-      `}</style>
       {/* Full-Width Enterprise Header */}
       <header className="w-full border-b border-[rgba(214,166,79,0.22)] bg-[#120D09]/95 backdrop-blur-md sticky top-0 z-50">
         <div className="w-full px-3 sm:px-8 lg:px-12 h-16 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center min-w-0">
-            <Link href="/business/login" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
-              <Image
-                src="/assets/icon.png"
-                alt="Jesmond"
-                width={64}
-                height={44}
-                className="h-10 sm:h-11 w-auto object-contain shrink-0 group-hover:scale-105 transition-transform"
-                priority
-              />
-              <div className="flex flex-col min-w-0">
-                <span className="font-outfit font-extrabold text-sm sm:text-lg text-[#FFF9EF] tracking-tight flex items-center gap-1.5 sm:gap-2">
-                  <span>Jesmond</span>
-                  <span className="text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-[#D6A64F]/15 text-[#F3D69A] border border-[#D6A64F]/35 font-semibold uppercase tracking-wider shrink-0">
-                    Business
-                  </span>
-                </span>
-                <span className="hidden sm:block text-[11px] text-[#C9B69C] font-medium truncate">
-                  Enterprise &amp; Partner Platform
-                </span>
-              </div>
+            <Link href="/business/login" className="flex items-center group min-w-0">
+              <JesmondBusinessLogo />
             </Link>
           </div>
 

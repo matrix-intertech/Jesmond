@@ -597,10 +597,19 @@ test.describe('Phase 4 — Public Pricing, Subscription Modal & Business Subscri
 
     await page.goto(`${BUSINESS_HOST}/portal/retail`);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'business');
+    await expect(page.locator('nav').getByText('BUSINESS', { exact: true })).toBeVisible();
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'business');
     const bgColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
     expect(bgColor).toBe('rgb(26, 16, 10)');
+
+    // 4. Business Login & Privacy Policy on Business host show shared Jesmond BUSINESS logo (desktop & mobile)
+    await page.goto(`${BUSINESS_HOST}/business/login`);
+    await expect(page.locator('header').getByText('BUSINESS', { exact: true })).toBeVisible();
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${BUSINESS_HOST}/privacy`);
+    await expect(page.locator('nav').getByText('BUSINESS', { exact: true })).toBeVisible();
     expect(consoleErrors).toEqual([]);
   });
 });
