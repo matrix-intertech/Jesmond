@@ -49,20 +49,40 @@ export default function BusinessLayout({
       <main className="flex-1 w-full flex flex-col justify-center">{children}</main>
 
       {/* Full-Width Enterprise Footer */}
-      <footer className="w-full border-t border-[rgba(214,166,79,0.22)] bg-[#120D09] pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-xs text-[#C9B69C]">
-        <div className="w-full px-4 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>&copy; {new Date().getFullYear()} Jesmond Holdings Pty Ltd. All rights reserved.</p>
-          <div className="flex items-center space-x-6">
-            <Link href="/terms" className="hover:text-[#F3D69A] transition-colors">
+      <footer className="w-full border-t border-[rgba(214,166,79,0.22)] bg-[#120D09] pt-4 sm:pt-5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] sm:pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-xs text-[#C9B69C]">
+        <div className="w-full px-4 sm:px-8 lg:px-12 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between gap-3 sm:hidden pb-2.5 border-b border-[rgba(214,166,79,0.14)] w-full">
+            <JesmondBusinessLogo size="sm" />
+            <p className="text-[11px] text-[#C9B69C] text-right">
+              Partner Portal
+            </p>
+          </div>
+          <nav
+            aria-label="Business portal legal and support links"
+            className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-0 sm:gap-x-6 sm:order-2"
+          >
+            <Link
+              href="/terms"
+              className="inline-flex min-h-[44px] sm:min-h-0 items-center px-1.5 sm:px-0 whitespace-nowrap hover:text-[#F3D69A] transition-colors"
+            >
               Terms of Service
             </Link>
-            <Link href="/privacy" className="hover:text-[#F3D69A] transition-colors">
+            <Link
+              href="/privacy"
+              className="inline-flex min-h-[44px] sm:min-h-0 items-center px-1.5 sm:px-0 whitespace-nowrap hover:text-[#F3D69A] transition-colors"
+            >
               Privacy Policy
             </Link>
-            <a href="mailto:support@jesmond.com.au" className="hover:text-[#F3D69A] transition-colors">
+            <a
+              href="mailto:support@jesmond.com.au"
+              className="inline-flex min-h-[44px] sm:min-h-0 items-center px-1.5 sm:px-0 whitespace-nowrap hover:text-[#F3D69A] transition-colors"
+            >
               Business Support
             </a>
-          </div>
+          </nav>
+          <p className="text-center sm:text-left sm:order-1">
+            &copy; {new Date().getFullYear()} Jesmond Holdings Pty Ltd. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

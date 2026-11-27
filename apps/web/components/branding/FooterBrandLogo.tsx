@@ -16,8 +16,9 @@ export function FooterBrandLogo() {
 
   if (isBizHost || pathname === "/pricing") {
     return (
-      <div className="mb-4">
-        <JesmondBusinessLogo />
+      <div className="lg:mb-4">
+        <JesmondBusinessLogo size="sm" className="lg:hidden" />
+        <JesmondBusinessLogo className="hidden lg:inline-flex" />
       </div>
     );
   }
@@ -28,7 +29,7 @@ export function FooterBrandLogo() {
       alt="Jesmond"
       width={512}
       height={396}
-      className="w-[190px] h-auto object-contain"
+      className="w-[136px] sm:w-[160px] lg:w-[190px] h-auto object-contain"
     />
   );
 }
