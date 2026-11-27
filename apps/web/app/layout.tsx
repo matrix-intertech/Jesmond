@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 import "./globals.css";
 import AppViewportWrapper from "@/components/layout/AppViewportWrapper";
 import StudentMobileBottomNavGate from "@/components/layout/StudentMobileBottomNavGate";
@@ -65,13 +66,16 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const reqHeaders = await headers();
+  const isBusinessPortal = reqHeaders.get("x-portal") === "business";
+
   return (
-    <html lang="en">
+    <html lang="en" data-theme={isBusinessPortal ? "business" : undefined}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <a
           href="#main-content"

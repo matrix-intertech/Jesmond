@@ -16,22 +16,28 @@ export default function AppViewportWrapper({
     setIsBusinessDomain(isBusinessHost());
   }, []);
 
+  const isAdminRoute = pathname === "/admin" || pathname?.startsWith("/admin/");
   const isBusinessPortalContext =
-    isBusinessDomain ||
-    pathname === "/business" ||
-    pathname.startsWith("/business/") ||
-    pathname === "/auth/callback";
+    !isAdminRoute &&
+    (isBusinessDomain ||
+      pathname === "/business" ||
+      pathname.startsWith("/business/") ||
+      pathname === "/auth/callback");
 
   useEffect(() => {
     if (typeof document === "undefined") return;
     if (isBusinessPortalContext) {
+      document.documentElement.setAttribute("data-theme", "business");
       document.documentElement.style.backgroundColor = "#1A100A";
       document.body.style.backgroundColor = "#1A100A";
     } else {
+      if (pathname !== "/pricing") {
+        document.documentElement.removeAttribute("data-theme");
+      }
       document.documentElement.style.backgroundColor = "";
       document.body.style.backgroundColor = "";
     }
-  }, [isBusinessPortalContext]);
+  }, [isBusinessPortalContext, pathname]);
 
   if (isBusinessPortalContext) {
     return <div className="min-h-dvh bg-[#1A100A]">{children}</div>;

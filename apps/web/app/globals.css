@@ -58,6 +58,178 @@
   --info-bg: #EFF6FF;
 }
 
+/* Jesmond Business Portal Theme (business.jesmond.com.au & /pricing) */
+[data-theme="business"] {
+  --background: #1A100A;
+  --foreground: #FFF9EF;
+
+  /* Existing Jesmond Business Orangish-Gold Palette */
+  --brand-indigo: 234 138 50;          /* #EA8A32 */
+  --brand-purple: 214 166 79;          /* #D6A64F */
+  --brand-bright-purple: 243 214 154;  /* #F3D69A */
+  --brand-magenta: 234 138 50;         /* #EA8A32 */
+  --brand-hot-pink: 214 166 79;        /* #D6A64F */
+  --brand-orange: 234 138 50;          /* #EA8A32 */
+  --brand-orange-light: 243 214 154;   /* #F3D69A */
+
+  /* Semantic Brand Mapping */
+  --primary: 255 249 239;              /* #FFF9EF Warm Ivory for text-primary on dark surfaces */
+  --primary-foreground: 18 13 9;       /* #120D09 Deep Espresso */
+  --secondary: 36 22 13;               /* #24160D Elevated Espresso */
+  --secondary-foreground: 255 249 239; /* #FFF9EF Warm Ivory */
+  --accent: 234 138 50;                /* #EA8A32 Warm Burnt Orange */
+  --accent-foreground: 18 13 9;        /* #120D09 Deep Espresso */
+
+  /* Inputs */
+  --input-bg: #24160D;
+  --input-fg: #FFF9EF;
+  --input-placeholder: #C9B69C;
+  --input-border: rgba(214, 166, 79, 0.28);
+
+  /* Semantic Surfaces */
+  --surface: #120D09;
+  --surface-muted: #1A100A;
+  --surface-lavender: #24160D;
+  --surface-pink: #24160D;
+  --surface-orange: #24160D;
+
+  /* Text */
+  --text-primary: #FFF9EF;
+  --text-secondary: #C9B69C;
+  --text-muted: #B09878;
+
+  /* Borders */
+  --border-subtle: rgba(214, 166, 79, 0.16);
+  --border-strong: rgba(214, 166, 79, 0.28);
+
+  /* Status Colors */
+  --success: #34D399;
+  --success-bg: rgba(16, 185, 129, 0.14);
+  --warning: #F3D69A;
+  --warning-bg: rgba(214, 166, 79, 0.16);
+  --error: #FCA5A5;
+  --error-bg: rgba(239, 68, 68, 0.14);
+  --info: #F3D69A;
+  --info-bg: rgba(234, 138, 50, 0.16);
+}
+
+[data-theme="business"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="business"] textarea,
+[data-theme="business"] select {
+  color-scheme: dark;
+  background-color: var(--input-bg);
+  color: var(--input-fg);
+  border-color: var(--input-border);
+}
+
+[data-theme="business"] .bg-primary {
+  background-color: #EA8A32 !important;
+  color: #120D09 !important;
+}
+
+[data-theme="business"] .bg-accent.text-white {
+  color: #120D09 !important;
+}
+
+[data-theme="business"] .bg-white {
+  background-color: #120D09;
+}
+
+[data-theme="business"] .bg-gray-50,
+[data-theme="business"] .bg-slate-50 {
+  background-color: #1A100A;
+}
+
+[data-theme="business"] .bg-gray-100,
+[data-theme="business"] .bg-gray-200,
+[data-theme="business"] .bg-slate-100 {
+  background-color: #24160D;
+}
+
+[data-theme="business"] .text-gray-800,
+[data-theme="business"] .text-gray-900,
+[data-theme="business"] .text-slate-700,
+[data-theme="business"] .text-slate-800,
+[data-theme="business"] .text-slate-900,
+[data-theme="business"] .text-gray-700 {
+  color: #FFF9EF;
+}
+
+[data-theme="business"] .text-gray-500,
+[data-theme="business"] .text-gray-600,
+[data-theme="business"] .text-slate-500,
+[data-theme="business"] .text-slate-600 {
+  color: #C9B69C;
+}
+
+[data-theme="business"] .border-gray-200,
+[data-theme="business"] .border-gray-300,
+[data-theme="business"] .border-slate-100,
+[data-theme="business"] .border-slate-200 {
+  border-color: rgba(214, 166, 79, 0.25);
+}
+
+/* Indigo accents mapped to Business orangish-gold */
+[data-theme="business"] .bg-indigo-50 {
+  background-color: rgba(234, 138, 50, 0.14);
+}
+[data-theme="business"] .border-indigo-200 {
+  border-color: rgba(214, 166, 79, 0.32);
+}
+[data-theme="business"] .text-indigo-800 {
+  color: #F3D69A;
+}
+
+/* Semantic status indicators adapted for dark espresso surfaces (hue preserved) */
+[data-theme="business"] .bg-emerald-50 {
+  background-color: rgba(16, 185, 129, 0.14);
+}
+[data-theme="business"] .border-emerald-200 {
+  border-color: rgba(16, 185, 129, 0.32);
+}
+[data-theme="business"] .text-emerald-700,
+[data-theme="business"] .text-emerald-800 {
+  color: #6EE7B7;
+}
+
+[data-theme="business"] .bg-amber-50 {
+  background-color: rgba(245, 158, 11, 0.14);
+}
+[data-theme="business"] .border-amber-200 {
+  border-color: rgba(245, 158, 11, 0.32);
+}
+[data-theme="business"] .text-amber-700,
+[data-theme="business"] .text-amber-800 {
+  color: #FCD34D;
+}
+
+[data-theme="business"] .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.14);
+}
+[data-theme="business"] .border-red-200 {
+  border-color: rgba(239, 68, 68, 0.32);
+}
+[data-theme="business"] .text-red-700,
+[data-theme="business"] .text-red-800 {
+  color: #FCA5A5;
+}
+
+[data-theme="business"] .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.14);
+}
+[data-theme="business"] .border-blue-200 {
+  border-color: rgba(59, 130, 246, 0.32);
+}
+[data-theme="business"] .text-blue-700,
+[data-theme="business"] .text-blue-800 {
+  color: #93C5FD;
+}
+
+[data-theme="business"] :focus-visible {
+  outline: 2px solid rgb(var(--brand-orange));
+  outline-offset: 2px;
+}
+
 
 
 html,

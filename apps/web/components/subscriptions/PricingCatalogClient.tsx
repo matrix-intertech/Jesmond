@@ -120,7 +120,7 @@ export function PricingCatalogClient() {
           <div className="pt-2">
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#EA8A32] via-[#D6A64F] to-[#F3D69A] text-[#120D09] text-sm font-bold hover:brightness-105 transition"
             >
               Contact Support
             </Link>
@@ -249,12 +249,12 @@ export function PricingCatalogClient() {
                         / {matchedPrice.interval.toLowerCase()}
                       </span>
                       {matchedPrice.interval === "QUARTERLY" && (
-                        <div className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+                        <div className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#24160D] border border-[rgba(214,166,79,0.3)] text-[#F3D69A]">
                           5% quarterly discount applied
                         </div>
                       )}
                       {matchedPrice.interval === "ANNUAL" && (
-                        <div className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+                        <div className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#24160D] border border-[rgba(214,166,79,0.3)] text-[#F3D69A]">
                           15% annual discount applied
                         </div>
                       )}
@@ -267,7 +267,7 @@ export function PricingCatalogClient() {
                     <li key={feat.key} className="flex items-start gap-2">
                       <span
                         className={`mt-0.5 font-bold ${
-                          feat.enabled ? "text-emerald-600" : "text-text-muted"
+                          feat.enabled ? "text-[#EA8A32]" : "text-text-muted"
                         }`}
                       >
                         {feat.enabled ? "✓" : "—"}
@@ -299,7 +299,7 @@ export function PricingCatalogClient() {
                 ) : (
                   <Link
                     href="/contact"
-                    className="w-full py-3 rounded-xl bg-primary text-white font-medium text-center hover:opacity-90 transition"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#EA8A32] via-[#D6A64F] to-[#F3D69A] text-[#120D09] font-bold text-center hover:brightness-105 transition"
                   >
                     Contact Sales
                   </Link>

@@ -525,4 +525,82 @@ test.describe('Phase 4 — Public Pricing, Subscription Modal & Business Subscri
       await expect(page.getByTestId('business-subscription-panel')).toBeVisible();
     }
   });
+
+  test('Business subdomain & /pricing use orangish-gold theme while main site & admin stay isolated', async ({
+    page,
+  }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+      if (msg.type() === 'error' && msg.text().toLowerCase().includes('hydrat')) {
+        consoleErrors.push(msg.text());
+      }
+    });
+
+    // 1. /pricing uses Business theme even on main host
+    await page.route('**/api/v1/subscriptions/public/**', async (route: any) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: corsHeaders(route.request()),
+        body: JSON.stringify({ subscriptionsEnabled: false, checkoutEnabled: false, plans: [] }),
+      });
+    });
+    await page.goto(`${MAIN_HOST}/pricing`);
+    await expect(page.locator('[data-theme="business"]').first()).toBeVisible();
+
+    // 2. Main site stays on default theme (no data-theme="business" on <html>)
+    await page.goto(`${MAIN_HOST}/`);
+    await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'business');
+
+    // 3. Business subdomain sets data-theme="business" on <html> and preserves it on reload
+    await seedBusinessSession(page, {
+      id: 'biz-theme-user',
+      email: 'owner@biz.example.com',
+      role: 'ORG_STAFF',
+      orgType: 'RETAIL',
+      businessCategory: 'RETAIL',
+      organizationId: 'org-biz-theme',
+      orgRole: 'ADMIN',
+      permissions: ['*'],
+    });
+    await page.route(/\/api\/v1\//, async (route: any) => {
+      const req = route.request();
+      const headers = corsHeaders(req);
+      if (req.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers });
+        return;
+      }
+      if (req.url().includes('/auth/me')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          headers,
+          body: JSON.stringify({
+            id: 'biz-theme-user',
+            role: 'ORG_STAFF',
+            orgType: 'RETAIL',
+            businessCategory: 'RETAIL',
+            organizationId: 'org-biz-theme',
+            orgRole: 'ADMIN',
+            permissions: ['*'],
+          }),
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers,
+        body: JSON.stringify([]),
+      });
+    });
+
+    await page.goto(`${BUSINESS_HOST}/portal/retail`);
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'business');
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'business');
+    const bgColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(bgColor).toBe('rgb(26, 16, 10)');
+    expect(consoleErrors).toEqual([]);
+  });
 });
