@@ -637,6 +637,20 @@ test.describe('Phase 4 — Public Pricing, Subscription Modal & Business Subscri
     expect(termsMetrics.pSize).toBeGreaterThanOrEqual(16);
     expect(termsMetrics.pLineHeight / termsMetrics.pSize).toBeGreaterThanOrEqual(1.7);
     expect(termsMetrics.pWeight).toBeGreaterThanOrEqual(400);
+
+    // 6. Business modules across profiles inherit data-theme="business" on desktop & tablet
+    await page.setViewportSize({ width: 768, height: 1024 });
+    for (const modulePath of [
+      '/portal/retail/branches',
+      '/portal/retail/catalog',
+      '/portal/retail/inventory',
+      '/portal/retail/settings/subscription',
+    ]) {
+      await page.goto(`${BUSINESS_HOST}${modulePath}`);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'business');
+      const moduleBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(moduleBg).toBe('rgb(26, 16, 10)');
+    }
     expect(consoleErrors).toEqual([]);
   });
 });

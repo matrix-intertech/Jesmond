@@ -192,26 +192,50 @@
   border-color: rgba(214, 166, 79, 0.25);
 }
 
-/* Indigo accents mapped to Business orangish-gold */
-[data-theme="business"] .bg-indigo-50 {
+/* Indigo & Purple accents mapped to Business orangish-gold */
+[data-theme="business"] .bg-indigo-50,
+[data-theme="business"] .bg-purple-50 {
   background-color: rgba(234, 138, 50, 0.14);
 }
-[data-theme="business"] .border-indigo-200 {
+[data-theme="business"] .bg-purple-100 {
+  background-color: rgba(214, 166, 79, 0.2);
+}
+[data-theme="business"] .bg-purple-600,
+[data-theme="business"] .bg-purple-700 {
+  background-color: #EA8A32;
+  color: #120D09;
+}
+[data-theme="business"] .border-indigo-200,
+[data-theme="business"] .border-purple-100,
+[data-theme="business"] .border-purple-200 {
   border-color: rgba(214, 166, 79, 0.32);
 }
-[data-theme="business"] .text-indigo-800 {
+[data-theme="business"] .border-purple-600 {
+  border-color: #EA8A32;
+}
+[data-theme="business"] .text-indigo-300,
+[data-theme="business"] .text-indigo-800,
+[data-theme="business"] .text-purple-300,
+[data-theme="business"] .text-purple-400,
+[data-theme="business"] .text-purple-600,
+[data-theme="business"] .text-purple-700,
+[data-theme="business"] .text-purple-800 {
   color: #F3D69A;
 }
 
 /* Semantic status indicators adapted for dark espresso surfaces (hue preserved) */
-[data-theme="business"] .bg-emerald-50 {
+[data-theme="business"] .bg-emerald-50,
+[data-theme="business"] .bg-green-50 {
   background-color: rgba(16, 185, 129, 0.14);
 }
-[data-theme="business"] .border-emerald-200 {
+[data-theme="business"] .border-emerald-200,
+[data-theme="business"] .border-green-200 {
   border-color: rgba(16, 185, 129, 0.32);
 }
 [data-theme="business"] .text-emerald-700,
-[data-theme="business"] .text-emerald-800 {
+[data-theme="business"] .text-emerald-800,
+[data-theme="business"] .text-green-700,
+[data-theme="business"] .text-green-800 {
   color: #6EE7B7;
 }
 
@@ -226,25 +250,33 @@
   color: #FCD34D;
 }
 
-[data-theme="business"] .bg-red-50 {
+[data-theme="business"] .bg-red-50,
+[data-theme="business"] .bg-rose-50 {
   background-color: rgba(239, 68, 68, 0.14);
 }
-[data-theme="business"] .border-red-200 {
+[data-theme="business"] .border-red-200,
+[data-theme="business"] .border-rose-200 {
   border-color: rgba(239, 68, 68, 0.32);
 }
 [data-theme="business"] .text-red-700,
-[data-theme="business"] .text-red-800 {
+[data-theme="business"] .text-red-800,
+[data-theme="business"] .text-rose-700,
+[data-theme="business"] .text-rose-800 {
   color: #FCA5A5;
 }
 
-[data-theme="business"] .bg-blue-50 {
+[data-theme="business"] .bg-blue-50,
+[data-theme="business"] .bg-teal-50 {
   background-color: rgba(59, 130, 246, 0.14);
 }
-[data-theme="business"] .border-blue-200 {
+[data-theme="business"] .border-blue-200,
+[data-theme="business"] .border-teal-200 {
   border-color: rgba(59, 130, 246, 0.32);
 }
 [data-theme="business"] .text-blue-700,
-[data-theme="business"] .text-blue-800 {
+[data-theme="business"] .text-blue-800,
+[data-theme="business"] .text-teal-700,
+[data-theme="business"] .text-teal-800 {
   color: #93C5FD;
 }
 
