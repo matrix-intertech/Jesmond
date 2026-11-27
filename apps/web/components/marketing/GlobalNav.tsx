@@ -27,6 +27,9 @@ import { CompactChatPanel } from "../chat/CompactChatPanel";
 import { useUnreadChatCount } from "@/hooks/useUnreadChatCount";
 import { JesmondBusinessLogo } from "../branding/JesmondBusinessLogo";
 
+const ANON_SESSION_CHECK_COOLDOWN_MS = 30_000;
+let lastAnonSessionCheckAt = 0;
+
 export function GlobalNav() {
  const router = useRouter();
  const [isScrolled, setIsScrolled] = useState(false);
@@ -67,19 +70,31 @@ export function GlobalNav() {
       dashboardRoute: getPortalDashboardUrlForUser(user, businessUrl),
     });
 
-    void restoreUserSession().then((res) => {
-      if (!active) return;
-      if (res.status === 'ok' && res.user) {
-        setAuthStatus({
-          isAuth: true,
-          user: res.user,
-          role: res.user.role,
-          dashboardRoute: getPortalDashboardUrlForUser(res.user, businessUrl),
-        });
-      } else if (res.status === 'unauthorized') {
-        setAuthStatus({ isAuth: false, user: null });
+    const now = Date.now();
+    const shouldCheckSession =
+      hasLocalAuth ||
+      !!user ||
+      now - lastAnonSessionCheckAt >= ANON_SESSION_CHECK_COOLDOWN_MS;
+
+    if (shouldCheckSession) {
+      if (!hasLocalAuth && !user) {
+        lastAnonSessionCheckAt = now;
       }
-    });
+      void restoreUserSession().then((res) => {
+        if (!active) return;
+        if (res.status === 'ok' && res.user) {
+          lastAnonSessionCheckAt = 0;
+          setAuthStatus({
+            isAuth: true,
+            user: res.user,
+            role: res.user.role,
+            dashboardRoute: getPortalDashboardUrlForUser(res.user, businessUrl),
+          });
+        } else if (res.status === 'unauthorized') {
+          setAuthStatus({ isAuth: false, user: null });
+        }
+      });
+    }
 
     const unsubscribe = subscribeToSharedSessionRevalidation({
       onAuthenticated: (refreshedUser) => {

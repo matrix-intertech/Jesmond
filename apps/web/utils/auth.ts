@@ -405,6 +405,8 @@ export interface SessionRestoreResult {
  * - Automatically clears storage on 401 Unauthorized.
  * - Validates cache completeness (ensures ORG_STAFF with RETAIL has businessCategory).
  */
+let inFlightRestorePromise: Promise<SessionRestoreResult> | null = null;
+
 export async function restoreUserSession(options?: {
   forceRefresh?: boolean;
   timeoutMs?: number;
@@ -412,6 +414,28 @@ export async function restoreUserSession(options?: {
   if (typeof window === 'undefined') {
     return { user: null, status: 'unauthorized', error: 'No browser context' };
   }
+
+  if (!options?.forceRefresh && inFlightRestorePromise) {
+    return inFlightRestorePromise;
+  }
+
+  const runPromise = performRestoreUserSession(options).finally(() => {
+    if (inFlightRestorePromise === runPromise) {
+      inFlightRestorePromise = null;
+    }
+  });
+
+  if (!options?.forceRefresh) {
+    inFlightRestorePromise = runPromise;
+  }
+
+  return runPromise;
+}
+
+async function performRestoreUserSession(options?: {
+  forceRefresh?: boolean;
+  timeoutMs?: number;
+}): Promise<SessionRestoreResult> {
 
   const token = getAccessToken();
   const isBusiness = isBusinessHost();
