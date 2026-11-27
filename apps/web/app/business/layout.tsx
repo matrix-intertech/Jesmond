@@ -38,7 +38,7 @@ export default function BusinessLayout({
               rel="noopener noreferrer"
               className="text-[11px] sm:text-xs text-[#C9B69C] hover:text-[#FFF9EF] flex items-center gap-1 transition-colors px-2 sm:px-3 py-1.5 rounded-lg hover:bg-[#24160D] border border-transparent hover:border-[rgba(214,166,79,0.22)] whitespace-nowrap"
             >
-              <span>Student Portal</span>
+              <span>Jesmond Portal</span>
               <ArrowUpRight className="w-3.5 h-3.5 text-[#D6A64F]" />
             </a>
           </div>
