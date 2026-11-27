@@ -220,6 +220,7 @@
 }
 [data-theme="business"] .text-indigo-300,
 [data-theme="business"] .text-indigo-800,
+[data-theme="business"] .text-indigo-900,
 [data-theme="business"] .text-purple-300,
 [data-theme="business"] .text-purple-400,
 [data-theme="business"] .text-purple-600,
@@ -248,6 +249,11 @@
 [data-theme="business"] .text-green-800 {
   color: #6EE7B7;
 }
+[data-theme="business"] .text-emerald-900,
+[data-theme="business"] .text-emerald-950,
+[data-theme="business"] .text-green-900 {
+  color: #ECFDF5;
+}
 
 [data-theme="business"] .bg-amber-50,
 [data-theme="business"] .bg-amber-100,
@@ -257,15 +263,27 @@
 [data-theme="business"] [class*="bg-amber-100/"] {
   background-color: rgba(245, 158, 11, 0.16);
 }
-[data-theme="business"] .border-amber-200 {
-  border-color: rgba(245, 158, 11, 0.32);
+[data-theme="business"] .border-amber-200,
+[data-theme="business"] [class*="border-amber-300"] {
+  border-color: rgba(214, 166, 79, 0.38);
+}
+[data-theme="business"] .text-amber-600 {
+  color: #EA8A32;
 }
 [data-theme="business"] .text-amber-700,
 [data-theme="business"] .text-amber-800,
 [data-theme="business"] .text-orange-700,
 [data-theme="business"] .text-yellow-700,
 [data-theme="business"] .text-yellow-800 {
-  color: #FCD34D;
+  color: #F3D69A;
+}
+[data-theme="business"] .text-amber-900,
+[data-theme="business"] .text-amber-950 {
+  color: #FFF9EF;
+}
+[data-theme="business"] .bg-amber-600.text-white {
+  background-color: #EA8A32;
+  color: #120D09;
 }
 
 [data-theme="business"] .bg-red-50,
@@ -286,6 +304,10 @@
 [data-theme="business"] .text-rose-800 {
   color: #FCA5A5;
 }
+[data-theme="business"] .text-red-900,
+[data-theme="business"] .text-rose-900 {
+  color: #FEF2F2;
+}
 
 [data-theme="business"] .bg-blue-50,
 [data-theme="business"] .bg-blue-100,
@@ -305,6 +327,10 @@
 [data-theme="business"] .text-teal-700,
 [data-theme="business"] .text-teal-800 {
   color: #93C5FD;
+}
+[data-theme="business"] .text-blue-900,
+[data-theme="business"] .text-blue-950 {
+  color: #EFF6FF;
 }
 
 [data-theme="business"] :focus-visible {
