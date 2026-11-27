@@ -114,7 +114,7 @@ function RetailOverviewContent() {
  description="Monitor your retail operations, customers, and points of sale."
  />
 
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+ <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
  <StatCard
  label="Total Terminals"
  value={loading ? "-" : metrics.terminals.toString()}
@@ -125,24 +125,24 @@ function RetailOverviewContent() {
  value={loading ? "-" : metrics.customers.toString()}
  loading={loading}
  />
- <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
- <h4 className="text-sm font-medium text-text-secondary mb-2">Inventory Alerts</h4>
- <div className={`text-2xl font-bold ${metrics.lowStock > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-3.5 sm:p-6 flex flex-col justify-center min-w-0">
+ <h4 className="text-xs sm:text-sm font-medium text-text-secondary mb-1.5 sm:mb-2">Inventory Alerts</h4>
+ <div className={`text-xl sm:text-2xl font-bold break-words ${metrics.lowStock > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
  {loading ? '-' : `${metrics.lowStock} items low/out`}
  </div>
  </div>
- <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6 flex flex-col justify-center">
- <h4 className="text-sm font-medium text-text-secondary mb-2">Today's Revenue</h4>
- <div className="text-2xl font-bold text-primary">
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-3.5 sm:p-6 flex flex-col justify-center min-w-0">
+ <h4 className="text-xs sm:text-sm font-medium text-text-secondary mb-1.5 sm:mb-2">Today's Revenue</h4>
+ <div className="text-xl sm:text-2xl font-bold text-primary truncate">
  {loading ? '-' : `$${(metrics.revenue / 100).toFixed(2)}`}
  </div>
  </div>
  </div>
 
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
- <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-6">
+ <div className="bg-surface rounded-xl shadow-sm border border-border-strong p-4 sm:p-6">
  <h3 className="text-lg font-semibold text-primary mb-4">Quick Actions</h3>
- <div className="grid grid-cols-2 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
  {canUseBusinessCapability(userCategory, "POS") && (
             <button onClick={() => router.push('/portal/retail/pos')} className="p-4 border border-border-strong rounded-lg hover:bg-surface-lavender text-left transition-colors flex items-center gap-3">
  <div className="w-10 h-10 rounded-full bg-accent/10 text-accent flex items-center justify-center">

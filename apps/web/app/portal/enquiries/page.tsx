@@ -104,7 +104,8 @@ export default function ProviderEnquiriesPage() {
  </div>
  ) : (
  <div className="bg-surface rounded-xl shadow-sm border overflow-hidden">
- <table className="w-full text-left border-collapse">
+ <div className="overflow-x-auto">
+ <table className="w-full min-w-[680px] text-left border-collapse">
  <thead>
  <tr className="bg-surface-muted border-b text-sm text-text-secondary uppercase tracking-wider">
  <th className="p-4 font-semibold">Seeker</th>
@@ -170,6 +171,7 @@ export default function ProviderEnquiriesPage() {
  })}
  </tbody>
  </table>
+ </div>
  </div>
  )}
  </div>

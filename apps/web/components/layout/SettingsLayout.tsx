@@ -26,8 +26,8 @@ export default function SettingsLayout({ title, description, links, children }: 
  <PageHeader title={title} description={description} />
 
  <div className="mt-6 flex min-w-0 flex-col gap-6 md:flex-row md:gap-8 items-start">
- <aside className="min-w-0 flex-shrink-0 md:w-64 md:sticky md:top-6">
- <nav className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:block md:space-y-1">
+ <aside className="w-full min-w-0 flex-shrink-0 md:w-64 md:sticky md:top-6">
+ <nav className="flex overflow-x-auto gap-2 pb-2 md:block md:space-y-1 md:pb-0">
  {links.map((link) => {
  const isActive = pathname === link.href || (pathname.startsWith(link.href) && link.href !== '/settings' && link.href !== '/portal/settings' && link.href !== '/admin/settings');
  // Strict exact match for root settings path to prevent all links matching root
@@ -38,7 +38,7 @@ export default function SettingsLayout({ title, description, links, children }: 
  key={link.href}
  href={link.href}
  className={clsx(
- "flex min-h-11 min-w-0 items-center rounded-md px-3 py-2 text-sm font-medium",
+ "flex min-h-11 shrink-0 whitespace-nowrap items-center rounded-md px-3 py-2 text-sm font-medium",
  isStrictActive
  ? "bg-accent/10 text-accent"
  : "text-primary hover:bg-surface-muted hover:text-primary"

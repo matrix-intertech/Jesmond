@@ -37,7 +37,11 @@ type SearchParams = {
   openNow?: string;
 };
 
-async function getStores(params: SearchParams) {
+async function getStores(params: SearchParams): Promise<{
+  data: any[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+  error: string | null;
+}> {
   try {
     const url = new URL(`${getApiUrl()}/api/v1/retail/marketplace/stores`);
     if (params.q)           url.searchParams.set("q", params.q);
@@ -64,16 +68,16 @@ async function getStores(params: SearchParams) {
     url.searchParams.set("limit", "20");
 
     const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) return { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } };
+    if (!res.ok) return { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 }, error: "Failed to load businesses. Please try again." };
     const raw = await res.json();
     const data = Array.isArray(raw) ? raw : (raw.data ?? []);
     const meta = Array.isArray(raw)
       ? { total: data.length, page: 1, limit: 20, totalPages: Math.ceil(data.length / 20) }
       : (raw.meta ?? { total: data.length, page: 1, limit: 20, totalPages: Math.ceil(data.length / 20) });
-    return { data, meta };
+    return { data, meta, error: null };
   } catch (err) {
     console.error("Failed to fetch businesses", err);
-    return { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 } };
+    return { data: [], meta: { total: 0, page: 1, limit: 20, totalPages: 0 }, error: "Failed to load businesses. Please try again." };
   }
 }
 
@@ -90,16 +94,16 @@ export default async function BusinessesDiscoveryPage({
   const currentPage     = parseInt(resolvedParams.page || "1", 10);
 
   return (
-    <div className="flex-1 max-w-[1440px] w-full mx-auto px-6 sm:px-12 lg:px-16 py-12">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+    <div className="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-8 lg:px-16 py-8 sm:py-12">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 sm:mb-12">
         <div className="max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-muted text-accent font-bold text-sm rounded-full mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface-muted text-accent font-bold text-sm rounded-full mb-4 sm:mb-6">
             <Briefcase size={16} /> Businesses Directory
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-primary tracking-tight leading-tight">
             Discover Local <span className="text-accent">Businesses</span> Near You.
           </h1>
-          <p className="mt-4 text-lg text-text-secondary">
+          <p className="mt-3 sm:mt-4 text-base sm:text-lg text-text-secondary">
             Browse our partnered businesses, from retail and food to mechanics and services. Connect with what you need locally.
           </p>
         </div>
@@ -108,6 +112,7 @@ export default async function BusinessesDiscoveryPage({
       <RetailStoreList
         initialStores={result.data ?? []}
         meta={result.meta}
+        initialError={result.error ?? null}
         currentCategory={currentCategory}
         currentSuburb={currentSuburb}
         currentPage={currentPage}

@@ -182,6 +182,7 @@ export function BusinessSubscriptionPanel() {
             No feature entitlements configured for this profile.
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-border-subtle text-sm">
             <thead className="bg-surface-muted text-left text-xs uppercase text-text-secondary">
               <tr>
@@ -222,6 +223,7 @@ export function BusinessSubscriptionPanel() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

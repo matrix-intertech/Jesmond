@@ -107,8 +107,8 @@ export default function BusinessCustomersPage() {
       )}
 
       {/* Search Bar */}
-      <div className="bg-surface p-4 rounded-2xl border border-border-strong flex items-center justify-between">
-        <div className="relative w-full max-w-md">
+      <div className="bg-surface p-4 rounded-2xl border border-border-strong flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="relative w-full sm:max-w-md">
           <Search
             size={16}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary"
@@ -118,15 +118,15 @@ export default function BusinessCustomersPage() {
             placeholder="Search by customer name, email or phone..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-border-strong focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full min-h-11 pl-9 pr-3 py-2 text-sm rounded-xl border border-border-strong focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
-        <div className="text-xs font-semibold text-text-secondary">
+        <div className="text-xs font-semibold text-text-secondary shrink-0">
           Total Customers: {customers.length}
         </div>
       </div>
 
-      {/* Customers Table */}
+      {/* Customers Table / Mobile Cards */}
       {loading ? (
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="animate-spin text-accent" size={32} />
@@ -140,7 +140,61 @@ export default function BusinessCustomersPage() {
           </p>
         </div>
       ) : (
-        <div className="bg-surface rounded-2xl border border-border-strong overflow-hidden shadow-sm">
+        <>
+          {/* Mobile Stacked Record Cards */}
+          <div className="md:hidden space-y-3">
+            {filteredCustomers.map((cust) => (
+              <div
+                key={cust.id}
+                className="bg-surface rounded-2xl border border-border-strong p-4 shadow-sm space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-primary text-base truncate">
+                      {cust.firstName} {cust.lastName}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-1 break-all">
+                      <Mail size={13} className="shrink-0" />
+                      <span>{cust.email}</span>
+                    </div>
+                    {cust.phone && (
+                      <div className="flex items-center gap-1.5 text-xs text-text-secondary mt-1">
+                        <Phone size={13} className="shrink-0" />
+                        <span>{cust.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="shrink-0 px-2.5 py-1 bg-surface-muted border border-border-strong rounded-full text-xs font-bold text-primary">
+                    {cust.totalAppointments}{" "}
+                    {cust.totalAppointments === 1 ? "booking" : "bookings"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3 pt-2 border-t border-border-strong/60">
+                  <span className="text-xs text-text-secondary">
+                    Last:{" "}
+                    {cust.lastAppointmentDate
+                      ? new Date(cust.lastAppointmentDate).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "—"}
+                  </span>
+                  <Link
+                    href={`/portal/business/customers/${cust.id}/history`}
+                    data-testid={`customer-history-btn-mobile-${cust.id}`}
+                    className="min-h-10 px-3.5 py-2 bg-surface-muted hover:bg-border-strong text-primary text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5"
+                  >
+                    <Eye size={14} />
+                    View History
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block bg-surface rounded-2xl border border-border-strong overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-surface-muted/60 text-text-secondary font-semibold border-b border-border-strong text-xs uppercase tracking-wider">
@@ -212,6 +266,7 @@ export default function BusinessCustomersPage() {
             </table>
           </div>
         </div>
+        </>
       )}
     </div>
   );

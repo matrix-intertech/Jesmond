@@ -95,7 +95,7 @@ export default function ProviderPortalPage() {
  return (
  <>
  <PageHeader title="Provider Dashboard" description="Manage your accommodations and applications" />
- <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+ <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
  <StatCard label="My Properties" value="..." loading />
  <StatCard label="Draft" value="..." loading />
  <StatCard label="Pending Approval" value="..." loading />
@@ -113,7 +113,7 @@ export default function ProviderPortalPage() {
  return (
  <>
  <PageHeader title={getDashboardHeading(user || (typeof window !== 'undefined' ? getCurrentUser() : null))} description="Manage your accommodations and applications" primaryAction={{ label: 'Create Accommodation', href: '/portal/create' }} />
- <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+ <section className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-8">
  <StatCard label="My Properties" value={total} />
  <StatCard label="Draft" value={drafts.length} />
  <StatCard label="Pending Approval" value={pending.length} />

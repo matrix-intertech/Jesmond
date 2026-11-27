@@ -1076,16 +1076,52 @@ const navConfig: NavItem[] = [
   },
 ];
 
-export default function Sidebar({ role }: { role: string }) {
+interface SidebarProps {
+  role: string;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const unreadChatCount = useUnreadChatCount();
+
+  const isControlled = typeof mobileOpen === "boolean";
+  const open = isControlled ? mobileOpen : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(next);
+    } else if (!next) {
+      onMobileClose?.();
+    }
+  };
 
   useEffect(() => {
     setUser(getCurrentUser());
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   const visibleItems = navConfig.filter((i) => {
     if (!i.roles.includes(role as any)) return false;
@@ -1172,31 +1208,43 @@ export default function Sidebar({ role }: { role: string }) {
 
   return (
     <>
-      {/* Mobile toggle button */}
-      <button
-        className="fixed left-3 top-3 z-[70] flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong bg-surface text-primary shadow-sm transition hover:bg-surface-muted lg:hidden"
-        onClick={() => setOpen(!open)}
-        aria-label="Toggle navigation"
-      >
-        {/* Simple menu icon */}
-        <svg
-          className="w-6 h-6"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      {/* Fallback mobile toggle button only when Sidebar is rendered standalone */}
+      {!isControlled && (
+        <button
+          className="fixed left-3 top-3 z-[70] flex h-11 w-11 items-center justify-center rounded-xl border border-border-strong bg-surface text-primary shadow-sm transition hover:bg-surface-muted lg:hidden"
+          onClick={() => setOpen(!open)}
+          aria-label="Toggle navigation"
         >
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
+          <svg
+            className="w-6 h-6"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      )}
+
+      {/* Dark backdrop behind mobile drawer */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[65] bg-black/60 backdrop-blur-[2px] lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+          data-testid="sidebar-backdrop"
+        />
+      )}
 
       {/* Sidebar hidden on mobile unless open */}
       <nav
-        className={`fixed inset-y-0 left-0 z-[70] flex w-[min(18rem,calc(100vw-2rem))] flex-shrink-0 flex-col border-r border-border-strong/60 bg-surface transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 ${open ? "translate-x-0 shadow-2xl" : "-translate-x-[110%]"}`}
+        aria-label="Business navigation"
+        className={`fixed inset-y-0 left-0 z-[70] flex h-dvh w-[min(18rem,calc(100vw-2.5rem))] flex-shrink-0 flex-col border-r border-border-strong/60 bg-surface pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:translate-x-0 lg:pb-0 ${open ? "translate-x-0 shadow-2xl" : "-translate-x-[110%]"}`}
       >
         <div className="flex items-center justify-between px-6 py-6">
           <Link href="/" className="group">

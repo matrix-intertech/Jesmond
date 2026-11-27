@@ -77,13 +77,13 @@ export function SubscriptionRequiredModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="subscription-required-title"
       data-testid="subscription-required-modal"
     >
-      <div className="w-full max-w-md rounded-2xl border border-border-strong bg-surface p-6 shadow-2xl space-y-4">
+      <div className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-border-strong bg-surface p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 shadow-2xl space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2

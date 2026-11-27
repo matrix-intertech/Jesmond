@@ -3,17 +3,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentUser, getDashboardHeading, getAccessToken, isAuthenticated, User } from "@/utils/auth";
+import { getCurrentUser, getDashboardHeading, getAccessToken, isAuthenticated, isBusinessHost, User } from "@/utils/auth";
 import { NotificationDropdown } from "../notifications/NotificationDropdown";
 import { QuickstartHeaderButton } from "../quickstart/QuickstartHeaderButton";
-import { ShieldAlert, ShieldCheck } from "lucide-react";
+import { JesmondBusinessLogo } from "../branding/JesmondBusinessLogo";
+import { Menu, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getCredentialsRequirements } from "@/services/credentials.service";
 
 interface HeaderProps {
   user?: User | null;
+  mobileNavOpen?: boolean;
+  onOpenMobileNav?: () => void;
 }
 
-export default function Header({ user: propUser }: HeaderProps) {
+export default function Header({ user: propUser, mobileNavOpen = false, onOpenMobileNav }: HeaderProps) {
   const [user, setUser] = useState<User | null>(propUser ?? null);
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
 
@@ -62,12 +65,30 @@ export default function Header({ user: propUser }: HeaderProps) {
 
   const heading = getDashboardHeading(effectiveUser);
 
+  const isBusinessPortal = effectiveUser?.role === "ORG_STAFF" || (typeof window !== "undefined" && isBusinessHost());
+
   return (
-    <header className="flex items-center justify-between bg-surface/80 backdrop-blur-md border-b border-border-strong/60 px-4 sm:px-6 h-[76px] sticky top-0 z-20">
-      <div className="flex items-center gap-3 pl-12 lg:pl-0 min-w-0">
+    <header className="flex items-center justify-between gap-2 bg-surface/90 backdrop-blur-md border-b border-border-strong/60 px-3 sm:px-6 h-16 lg:h-[76px] sticky top-0 z-20">
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        {onOpenMobileNav && (
+          <button
+            type="button"
+            onClick={onOpenMobileNav}
+            aria-label="Toggle navigation"
+            aria-expanded={mobileNavOpen}
+            className="lg:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border-strong bg-surface text-primary shadow-sm transition hover:bg-surface-muted focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+        {isBusinessPortal && (
+          <Link href="/" className="lg:hidden flex items-center min-w-0 group">
+            <JesmondBusinessLogo size="sm" />
+          </Link>
+        )}
         <h2
           data-testid="dashboard-header-title"
-          className="text-lg sm:text-xl md:text-2xl font-bold font-outfit text-primary tracking-tight truncate"
+          className={`${isBusinessPortal ? "sr-only lg:not-sr-only" : ""} text-lg sm:text-xl md:text-2xl font-bold font-outfit text-primary tracking-tight truncate`}
         >
           {heading}
         </h2>

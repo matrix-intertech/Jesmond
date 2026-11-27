@@ -22,6 +22,7 @@ interface DashboardShellProps {
  */
 export default function DashboardShell({ role, user: propUser, children }: DashboardShellProps) {
   const [user, setUser] = useState<User | null>(propUser ?? null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     setUser(propUser ?? getCurrentUser());
@@ -32,15 +33,23 @@ export default function DashboardShell({ role, user: propUser, children }: Dashb
 
   return (
     <QuickstartProvider user={effectiveUser}>
-      <div className="flex min-h-screen min-w-0 bg-surface-muted">
+      <div className="flex min-h-dvh min-w-0 bg-surface-muted">
         {/* Sidebar */}
-        <Sidebar role={effectiveRole as any} />
+        <Sidebar
+          role={effectiveRole as any}
+          mobileOpen={mobileNavOpen}
+          onMobileClose={() => setMobileNavOpen(false)}
+        />
         {/* Main area */}
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Header */}
-          <Header user={effectiveUser} />
+          <Header
+            user={effectiveUser}
+            mobileNavOpen={mobileNavOpen}
+            onOpenMobileNav={() => setMobileNavOpen(true)}
+          />
           {/* Content */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
+          <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:p-8">{children}</main>
         </div>
       </div>
       <SubscriptionRequiredModal />

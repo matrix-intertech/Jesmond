@@ -613,9 +613,9 @@ export default function BusinessAvailabilityPage() {
       )}
 
       {/* Control Bar: Professional Filter & View Switcher */}
-      <div className="bg-surface rounded-2xl border border-border-strong p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
+      <div className="bg-surface rounded-2xl border border-border-strong p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs min-w-0">
         {/* Professional Selector */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 w-full md:w-auto">
           <span className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1 shrink-0">
             <User size={14} className="text-accent" /> Professional:
           </span>
@@ -728,8 +728,10 @@ export default function BusinessAvailabilityPage() {
       ) : viewMode === "CALENDAR" ? (
         /* CALENDAR VIEW */
         <div className="bg-surface rounded-2xl border border-border-strong overflow-hidden shadow-sm">
-          {/* Weekday Header */}
-          <div className="grid grid-cols-7 border-b border-border-strong bg-surface-muted text-center py-3">
+          <div className="overflow-x-auto">
+            <div className="min-w-[700px]">
+              {/* Weekday Header */}
+              <div className="grid grid-cols-7 border-b border-border-strong bg-surface-muted text-center py-3">
             {weekDays.map((date, idx) => {
               const isToday = formatLocalDate(date) === formatLocalDate(new Date());
               return (
@@ -917,6 +919,8 @@ export default function BusinessAvailabilityPage() {
                 </div>
               );
             })}
+          </div>
+            </div>
           </div>
         </div>
       ) : (

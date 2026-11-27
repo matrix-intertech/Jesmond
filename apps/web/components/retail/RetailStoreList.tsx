@@ -20,6 +20,7 @@ type Meta = {
 type RetailStoreListProps = {
   initialStores: any[];
   meta: Meta;
+  initialError?: string | null;
   currentCategory: string;
   currentSuburb?: string;
   currentPage: number;
@@ -83,6 +84,7 @@ function StoreSkeleton() {
 export function RetailStoreList({
   initialStores,
   meta: initialMeta,
+  initialError = null,
   currentCategory,
   currentSuburb = "ALL",
   currentPage,
@@ -107,11 +109,12 @@ export function RetailStoreList({
   const [stores, setStores]                 = useState<any[]>(initialStores);
   const [meta, setMeta]                     = useState<Meta>(initialMeta);
   const [isLoading, setIsLoading]           = useState(false);
-  const [error, setError]                   = useState<string | null>(null);
+  const [error, setError]                   = useState<string | null>(initialError);
 
   const debounceTimer    = useRef<NodeJS.Timeout | null>(null);
   const abortRef         = useRef<AbortController | null>(null);
   const isSyncingFromUrl = useRef(false);
+  const hasMountedRef    = useRef(false);
 
   // ── URL sync helper ────────────────────────────────────────────────────────
   const pushToUrl = useCallback(
@@ -184,17 +187,21 @@ export function RetailStoreList({
       setError(null);
 
       try {
-        const url = new URL(`${getApiUrl()}/api/v1/retail/marketplace/stores`);
-        if (params.q)                  url.searchParams.set("q", params.q);
-        if (params.category !== "ALL") url.searchParams.set("category", params.category);
-        if (params.suburb !== "ALL")   url.searchParams.set("suburb", params.suburb);
-        if (params.verifiedOnly)       url.searchParams.set("verifiedOnly", "true");
-        else                           url.searchParams.set("verifiedOnly", "false");
-        url.searchParams.set("openNow", String(params.openNow));
-        url.searchParams.set("page",    String(params.page));
-        url.searchParams.set("limit",   "20");
+        const searchParams = new URLSearchParams();
+        if (params.q)                  searchParams.set("q", params.q);
+        if (params.category !== "ALL") searchParams.set("category", params.category);
+        if (params.suburb !== "ALL")   searchParams.set("suburb", params.suburb);
+        if (params.verifiedOnly)       searchParams.set("verifiedOnly", "true");
+        else                           searchParams.set("verifiedOnly", "false");
+        searchParams.set("openNow", String(params.openNow));
+        searchParams.set("page",    String(params.page));
+        searchParams.set("limit",   "20");
 
-        const res = await fetch(url.toString(), { signal: controller.signal });
+        const apiBase = getApiUrl().replace(/\/+$/, "");
+        const res = await fetch(
+          `${apiBase}/api/v1/retail/marketplace/stores?${searchParams.toString()}`,
+          { signal: controller.signal },
+        );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const raw = await res.json();
         const data = Array.isArray(raw) ? raw : (raw.data ?? []);
@@ -205,6 +212,8 @@ export function RetailStoreList({
         setMeta(metaInfo);
       } catch (err: any) {
         if (err.name !== "AbortError") {
+          setStores([]);
+          setMeta({ total: 0, page: 1, limit: 20, totalPages: 0 });
           setError("Failed to load businesses. Please try again.");
         }
       } finally {
@@ -223,10 +232,14 @@ export function RetailStoreList({
     return () => { if (debounceTimer.current) clearTimeout(debounceTimer.current); };
   }, [searchInput]);
 
-  // ── Fetch whenever active filters change ──────────────────────────────────
+  // ── Fetch whenever active filters change (skip redundant initial SSR pass unless SSR failed) ──
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      if (!initialError) return;
+    }
     fetchStores({ q: activeQ, category, suburb, verifiedOnly, openNow, page });
-  }, [activeQ, category, suburb, verifiedOnly, openNow, page, fetchStores]);
+  }, [activeQ, category, suburb, verifiedOnly, openNow, page, fetchStores, initialError]);
 
   // ── URL param sync (on filter changes — reset to page 1 except pagination) ─
   useEffect(() => {
@@ -323,7 +336,7 @@ export function RetailStoreList({
           </div>
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="w-full sm:w-auto sm:ml-auto flex flex-wrap items-center gap-2">
           {/* Verified only toggle (default: OFF) */}
           <button
             onClick={handleVerifiedToggle}
@@ -368,10 +381,12 @@ export function RetailStoreList({
 
       {/* ── Results count ───────────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-6">
-        <p className="text-sm font-medium text-text-secondary">
+        <p className="text-sm font-medium text-text-secondary" data-testid="businesses-results-count">
           {isLoading
             ? "Searching…"
-            : `${meta.total} business${meta.total !== 1 ? "es" : ""} found${showingSearch ? ` for "${activeQ}"` : ""}`}
+            : error
+              ? "Unable to load businesses"
+              : `${meta.total} business${meta.total !== 1 ? "es" : ""} found${showingSearch ? ` for "${activeQ}"` : ""}`}
         </p>
         {isPending && (
           <span className="text-xs text-text-muted animate-pulse">Updating…</span>
@@ -398,7 +413,7 @@ export function RetailStoreList({
           <p className="text-text-secondary mb-6">{error}</p>
           <button
             onClick={() => fetchStores({ q: activeQ, category, suburb, verifiedOnly, openNow, page })}
-            className="px-6 py-2 bg-accent text-white rounded-full font-semibold hover:bg-accent/90 transition-colors"
+            className="min-h-11 px-6 py-2.5 bg-accent text-white rounded-full font-semibold hover:bg-accent/90 transition-colors"
           >
             Retry
           </button>

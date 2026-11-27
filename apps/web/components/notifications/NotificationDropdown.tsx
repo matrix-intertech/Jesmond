@@ -53,14 +53,14 @@ export function NotificationDropdown({ organizationId }: NotificationDropdownPro
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 text-text-muted hover:text-text-secondary hover:bg-surface-muted rounded-full transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="relative flex h-11 w-11 items-center justify-center text-text-muted hover:text-text-secondary hover:bg-surface-muted rounded-full transition focus:outline-none focus:ring-2 focus:ring-primary/20"
         aria-label="Notifications"
         data-testid="notification-bell-button"
       >
         {unreadCount > 0 && (
           <span
             data-testid="notification-unread-badge"
-            className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 bg-accent text-white text-[10px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none"
+            className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-accent text-white text-[10px] font-bold rounded-full ring-2 ring-white flex items-center justify-center leading-none"
           >
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
@@ -71,7 +71,7 @@ export function NotificationDropdown({ organizationId }: NotificationDropdownPro
       {open && (
         <div
           data-testid="notification-dropdown-panel"
-          className="absolute right-0 mt-2 w-84 sm:w-96 bg-surface border border-border-strong shadow-xl rounded-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+          className="fixed inset-x-3 top-[68px] sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96 bg-surface border border-border-strong shadow-xl rounded-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
         >
           {/* Header */}
           <div className="px-4 py-3 border-b border-border-subtle flex justify-between items-center bg-surface-muted/50">

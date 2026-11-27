@@ -269,10 +269,10 @@ export default function BusinessAppointmentsDashboard() {
           title="Appointments Management"
           description="Review requests, assign qualified professionals, and oversee business scheduling."
         />
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => router.push("/portal/business/availability")}
-            className="flex items-center gap-2 px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors shadow-xs"
+            className="min-h-11 flex items-center gap-2 px-3.5 py-2 bg-surface border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors shadow-xs"
           >
             <CalendarIcon size={16} className="text-accent" />
             Manage Availability
@@ -280,7 +280,7 @@ export default function BusinessAppointmentsDashboard() {
           <button
             onClick={fetchAppointments}
             disabled={loading}
-            className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors"
+            className="min-h-11 flex items-center gap-2 px-4 py-2 border border-border-strong rounded-xl text-sm font-semibold hover:bg-surface-muted transition-colors"
           >
             <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
             Refresh
@@ -296,7 +296,7 @@ export default function BusinessAppointmentsDashboard() {
       )}
 
       {/* Tabs */}
-      <div className="flex border-b border-border-strong overflow-x-auto">
+      <div className="flex min-w-0 border-b border-border-strong overflow-x-auto">
         {[
           { id: "OVERVIEW", label: "Overview" },
           { id: "LIST", label: `All Appointments (${appointments.length})` },
@@ -309,7 +309,7 @@ export default function BusinessAppointmentsDashboard() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-5 py-3 font-semibold text-sm whitespace-nowrap transition-colors border-b-2 ${
+            className={`min-h-11 shrink-0 px-3.5 sm:px-5 py-3 font-semibold text-sm whitespace-nowrap transition-colors border-b-2 ${
               activeTab === tab.id
                 ? "border-accent text-accent"
                 : "border-transparent text-text-secondary hover:text-primary"
@@ -322,8 +322,8 @@ export default function BusinessAppointmentsDashboard() {
 
       {/* OVERVIEW TAB */}
       {activeTab === "OVERVIEW" && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
             <StatCard
               label="Pending Requests"
               value={pendingRequests.length.toString()}

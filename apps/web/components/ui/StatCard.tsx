@@ -29,12 +29,12 @@ export default function StatCard({
  loading = false,
 }: StatCardProps) {
  return (
- <div className="flex items-center rounded-xl bg-surface p-4 shadow-sm border border-border-strong space-x-4">
+ <div className="flex min-w-0 items-center gap-3 sm:gap-4 rounded-xl bg-surface p-3.5 sm:p-4 shadow-sm border border-border-strong">
  {loading ? (
  // Skeleton for icon/value when loading
- <div className="animate-pulse flex space-x-4">
- <div className="rounded bg-secondary w-8 h-8" />
- <div className="flex-1 space-y-2 py-1">
+ <div className="animate-pulse flex w-full gap-3 sm:gap-4">
+ <div className="rounded bg-secondary w-8 h-8 shrink-0" />
+ <div className="flex-1 space-y-2 py-1 min-w-0">
  <div className="h-4 bg-secondary rounded w-3/4" />
  <div className="h-6 bg-secondary rounded w-1/2" />
  </div>
@@ -42,15 +42,15 @@ export default function StatCard({
  ) : (
  <>
  {icon && <div className="flex-shrink-0 text-text-secondary">{icon}</div>}
- <div>
- <p className="text-sm text-text-secondary font-medium uppercase tracking-wider">
+ <div className="min-w-0 flex-1">
+ <p className="text-xs sm:text-sm text-text-secondary font-medium uppercase tracking-wider leading-snug break-words">
  {label}
  </p>
- <p className="mt-1 text-2xl font-semibold text-primary">
+ <p className="mt-1 text-xl sm:text-2xl font-semibold text-primary truncate">
  {value}
  </p>
  {description && (
- <p className="mt-1 text-xs text-text-muted">{description}</p>
+ <p className="mt-1 text-xs text-text-muted break-words">{description}</p>
  )}
  </div>
  </>
