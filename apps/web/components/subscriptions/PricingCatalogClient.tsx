@@ -164,8 +164,8 @@ export function PricingCatalogClient() {
             className="px-3 py-2 rounded-xl border border-border-strong bg-surface text-xs font-medium text-primary"
           >
             <option value="MONTHLY">Monthly</option>
-            <option value="QUARTERLY">Quarterly</option>
-            <option value="ANNUAL">Annual</option>
+            <option value="QUARTERLY">Quarterly (Save 5%)</option>
+            <option value="ANNUAL">Annual (Save 15%)</option>
           </select>
           {availableCurrencies.length > 0 && (
             <select
@@ -248,6 +248,16 @@ export function PricingCatalogClient() {
                       <span className="text-text-muted text-sm ml-2">
                         / {matchedPrice.interval.toLowerCase()}
                       </span>
+                      {matchedPrice.interval === "QUARTERLY" && (
+                        <div className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+                          5% quarterly discount applied
+                        </div>
+                      )}
+                      {matchedPrice.interval === "ANNUAL" && (
+                        <div className="mt-1 inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700">
+                          15% annual discount applied
+                        </div>
+                      )}
                     </>
                   )}
                 </div>

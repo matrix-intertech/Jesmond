@@ -1,8 +1,10 @@
 import {
   PrismaClient,
+  SubscriptionBillingInterval,
   SubscriptionFeatureValueType,
   SubscriptionPlanTier,
   SubscriptionProfileType,
+  SubscriptionTaxBehavior,
 } from '@prisma/client';
 
 export interface SeedFeatureDef {
@@ -23,6 +25,41 @@ export interface SeedFreePlanDef {
     enabled: boolean;
     limitValue: number | null;
   }>;
+}
+
+export interface SeedPaidPlanDef {
+  profileType: SubscriptionProfileType;
+  code: string;
+  name: string;
+  description: string;
+  tier: SubscriptionPlanTier;
+  sortOrder: number;
+  monthlyAmountMinor: number;
+  limits: Array<{
+    featureKey: string;
+    enabled: boolean;
+    limitValue: number | null;
+  }>;
+}
+
+export function computeAudIntervalPricesMinor(monthlyAmountMinor: number): Array<{
+  interval: SubscriptionBillingInterval;
+  unitAmountMinor: number;
+}> {
+  return [
+    {
+      interval: SubscriptionBillingInterval.MONTHLY,
+      unitAmountMinor: monthlyAmountMinor,
+    },
+    {
+      interval: SubscriptionBillingInterval.QUARTERLY,
+      unitAmountMinor: Math.round(monthlyAmountMinor * 3 * 0.95),
+    },
+    {
+      interval: SubscriptionBillingInterval.ANNUAL,
+      unitAmountMinor: Math.round(monthlyAmountMinor * 12 * 0.85),
+    },
+  ];
 }
 
 export const SUBSCRIPTION_GLOBAL_FLAGS = [
@@ -233,6 +270,189 @@ export const SEED_FREE_PLANS: SeedFreePlanDef[] = [
   },
 ];
 
+export const SEED_PAID_PLANS: SeedPaidPlanDef[] = [
+  // 1. ACCOMMODATION
+  {
+    profileType: SubscriptionProfileType.ACCOMMODATION,
+    code: 'ACCOMMODATION_GROWTH',
+    name: 'Accommodation Growth',
+    description: 'Expanded listings, rooms, team members, and custom agency roles.',
+    tier: SubscriptionPlanTier.STANDARD,
+    sortOrder: 1,
+    monthlyAmountMinor: 4900,
+    limits: [
+      { featureKey: 'ACCOMMODATION_LISTINGS', enabled: true, limitValue: 10 },
+      { featureKey: 'ACCOMMODATION_ROOMS', enabled: true, limitValue: 50 },
+      { featureKey: 'AGENCY_TEAM_MEMBERS', enabled: true, limitValue: 5 },
+      { featureKey: 'AGENCY_CUSTOM_ROLES', enabled: true, limitValue: null },
+      { featureKey: 'LEAD_MANAGEMENT', enabled: true, limitValue: null },
+    ],
+  },
+  {
+    profileType: SubscriptionProfileType.ACCOMMODATION,
+    code: 'ACCOMMODATION_PRO',
+    name: 'Accommodation Professional',
+    description: 'High-capacity accommodation and agency operations plan.',
+    tier: SubscriptionPlanTier.PRO,
+    sortOrder: 2,
+    monthlyAmountMinor: 9900,
+    limits: [
+      { featureKey: 'ACCOMMODATION_LISTINGS', enabled: true, limitValue: 30 },
+      { featureKey: 'ACCOMMODATION_ROOMS', enabled: true, limitValue: 200 },
+      { featureKey: 'AGENCY_TEAM_MEMBERS', enabled: true, limitValue: 15 },
+      { featureKey: 'AGENCY_CUSTOM_ROLES', enabled: true, limitValue: null },
+      { featureKey: 'LEAD_MANAGEMENT', enabled: true, limitValue: null },
+    ],
+  },
+  // 2. RETAIL
+  {
+    profileType: SubscriptionProfileType.RETAIL,
+    code: 'RETAIL_GROWTH',
+    name: 'Retail Growth',
+    description: 'Multi-branch retail catalog, POS terminals, and staff scaling.',
+    tier: SubscriptionPlanTier.STANDARD,
+    sortOrder: 1,
+    monthlyAmountMinor: 3900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 3 },
+      { featureKey: 'RETAIL_PRODUCTS', enabled: true, limitValue: 250 },
+      { featureKey: 'RETAIL_POS_TERMINALS', enabled: true, limitValue: 3 },
+      { featureKey: 'RETAIL_EMPLOYEES', enabled: true, limitValue: 10 },
+      { featureKey: 'RETAIL_ORDERS', enabled: true, limitValue: null },
+      { featureKey: 'RETAIL_INVENTORY', enabled: true, limitValue: null },
+    ],
+  },
+  {
+    profileType: SubscriptionProfileType.RETAIL,
+    code: 'RETAIL_PRO',
+    name: 'Retail Professional',
+    description: 'Full-scale multi-store retail operations and POS fleet.',
+    tier: SubscriptionPlanTier.PRO,
+    sortOrder: 2,
+    monthlyAmountMinor: 8900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 10 },
+      { featureKey: 'RETAIL_PRODUCTS', enabled: true, limitValue: 2000 },
+      { featureKey: 'RETAIL_POS_TERMINALS', enabled: true, limitValue: 10 },
+      { featureKey: 'RETAIL_EMPLOYEES', enabled: true, limitValue: 50 },
+      { featureKey: 'RETAIL_ORDERS', enabled: true, limitValue: null },
+      { featureKey: 'RETAIL_INVENTORY', enabled: true, limitValue: null },
+    ],
+  },
+  // 3. FOOD (Customer orders remain CASH-only; only supported features configured)
+  {
+    profileType: SubscriptionProfileType.FOOD,
+    code: 'FOOD_GROWTH',
+    name: 'Food Growth',
+    description: 'Multi-location food menu management and order fulfillment.',
+    tier: SubscriptionPlanTier.STANDARD,
+    sortOrder: 1,
+    monthlyAmountMinor: 3900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 3 },
+      { featureKey: 'FOOD_MENU_MANAGEMENT', enabled: true, limitValue: null },
+      { featureKey: 'FOOD_ORDER_FULFILLMENT', enabled: true, limitValue: null },
+    ],
+  },
+  {
+    profileType: SubscriptionProfileType.FOOD,
+    code: 'FOOD_PRO',
+    name: 'Food Professional',
+    description: 'High-volume multi-branch hospitality and food operations.',
+    tier: SubscriptionPlanTier.PRO,
+    sortOrder: 2,
+    monthlyAmountMinor: 7900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 10 },
+      { featureKey: 'FOOD_MENU_MANAGEMENT', enabled: true, limitValue: null },
+      { featureKey: 'FOOD_ORDER_FULFILLMENT', enabled: true, limitValue: null },
+    ],
+  },
+  // 4. MECHANICS
+  {
+    profileType: SubscriptionProfileType.MECHANICS,
+    code: 'MECHANICS_GROWTH',
+    name: 'Mechanics Growth',
+    description: 'Growing workshop plan with expanded services, staff, and branches.',
+    tier: SubscriptionPlanTier.STANDARD,
+    sortOrder: 1,
+    monthlyAmountMinor: 3900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 3 },
+      { featureKey: 'APPOINTMENT_SERVICES', enabled: true, limitValue: 20 },
+      { featureKey: 'APPOINTMENT_STAFF', enabled: true, limitValue: 10 },
+      { featureKey: 'APPOINTMENT_BOOKINGS', enabled: true, limitValue: null },
+    ],
+  },
+  {
+    profileType: SubscriptionProfileType.MECHANICS,
+    code: 'MECHANICS_PRO',
+    name: 'Mechanics Professional',
+    description: 'Multi-site automotive workshop operations and large service teams.',
+    tier: SubscriptionPlanTier.PRO,
+    sortOrder: 2,
+    monthlyAmountMinor: 8900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 10 },
+      { featureKey: 'APPOINTMENT_SERVICES', enabled: true, limitValue: 100 },
+      { featureKey: 'APPOINTMENT_STAFF', enabled: true, limitValue: 30 },
+      { featureKey: 'APPOINTMENT_BOOKINGS', enabled: true, limitValue: null },
+    ],
+  },
+  // 5. SERVICES
+  {
+    profileType: SubscriptionProfileType.SERVICES,
+    code: 'SERVICES_GROWTH',
+    name: 'Services Growth',
+    description: 'Expanded appointment catalog, staff scheduling, and branches.',
+    tier: SubscriptionPlanTier.STANDARD,
+    sortOrder: 1,
+    monthlyAmountMinor: 2900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 3 },
+      { featureKey: 'APPOINTMENT_SERVICES', enabled: true, limitValue: 20 },
+      { featureKey: 'APPOINTMENT_STAFF', enabled: true, limitValue: 10 },
+      { featureKey: 'APPOINTMENT_BOOKINGS', enabled: true, limitValue: null },
+    ],
+  },
+  {
+    profileType: SubscriptionProfileType.SERVICES,
+    code: 'SERVICES_PRO',
+    name: 'Services Professional',
+    description: 'Multi-branch professional services booking and team management.',
+    tier: SubscriptionPlanTier.PRO,
+    sortOrder: 2,
+    monthlyAmountMinor: 6900,
+    limits: [
+      { featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 10 },
+      { featureKey: 'APPOINTMENT_SERVICES', enabled: true, limitValue: 100 },
+      { featureKey: 'APPOINTMENT_STAFF', enabled: true, limitValue: 30 },
+      { featureKey: 'APPOINTMENT_BOOKINGS', enabled: true, limitValue: null },
+    ],
+  },
+  // 6. RENTALS (Only RETAIL_BRANCHES is currently implemented; rental-specific quotas pending)
+  {
+    profileType: SubscriptionProfileType.RENTALS,
+    code: 'RENTALS_GROWTH',
+    name: 'Rentals Growth',
+    description: 'Multi-branch rental business plan.',
+    tier: SubscriptionPlanTier.STANDARD,
+    sortOrder: 1,
+    monthlyAmountMinor: 3900,
+    limits: [{ featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 3 }],
+  },
+  {
+    profileType: SubscriptionProfileType.RENTALS,
+    code: 'RENTALS_PRO',
+    name: 'Rentals Professional',
+    description: 'Large multi-branch rental operations plan.',
+    tier: SubscriptionPlanTier.PRO,
+    sortOrder: 2,
+    monthlyAmountMinor: 8900,
+    limits: [{ featureKey: 'RETAIL_BRANCHES', enabled: true, limitValue: 10 }],
+  },
+];
+
 export async function seedSubscriptions(prisma: PrismaClient) {
   // 1. Seed global subscription FeatureFlags with default false (never overwrite existing values)
   for (const key of SUBSCRIPTION_GLOBAL_FLAGS) {
@@ -322,10 +542,96 @@ export async function seedSubscriptions(prisma: PrismaClient) {
     });
   }
 
+  // 4. Seed 12 Growth & Professional plans + AUD prices (Monthly, Quarterly -5%, Annual -15%) + limits
+  let seededPricesCount = 0;
+  for (const planDef of SEED_PAID_PLANS) {
+    const plan = await prisma.subscriptionPlan.upsert({
+      where: {
+        profileType_code: {
+          profileType: planDef.profileType,
+          code: planDef.code,
+        },
+      },
+      update: {},
+      create: {
+        profileType: planDef.profileType,
+        code: planDef.code,
+        planVersion: 1,
+        name: planDef.name,
+        description: planDef.description,
+        tier: planDef.tier,
+        isFree: false,
+        isEnterprise: false,
+        isActive: true,
+        isPublic: true,
+        gracePeriodDays: 7,
+        sortOrder: planDef.sortOrder,
+      },
+    });
+
+    for (const limit of planDef.limits) {
+      const featureId = featureIdByKey.get(limit.featureKey);
+      if (!featureId) continue;
+
+      await prisma.planFeatureLimit.upsert({
+        where: {
+          planId_planVersion_featureId: {
+            planId: plan.id,
+            planVersion: plan.planVersion,
+            featureId,
+          },
+        },
+        update: {},
+        create: {
+          planId: plan.id,
+          planVersion: plan.planVersion,
+          featureId,
+          enabled: limit.enabled,
+          limitValue: limit.limitValue,
+        },
+      });
+    }
+
+    const intervalPrices = computeAudIntervalPricesMinor(planDef.monthlyAmountMinor);
+    for (const priceDef of intervalPrices) {
+      const existingPrice = await prisma.subscriptionPlanPrice.findFirst({
+        where: {
+          planId: plan.id,
+          interval: priceDef.interval,
+          currency: 'AUD',
+        },
+      });
+
+      if (!existingPrice) {
+        await prisma.subscriptionPlanPrice.create({
+          data: {
+            planId: plan.id,
+            priceVersion: 1,
+            interval: priceDef.interval,
+            unitAmountMinor: priceDef.unitAmountMinor,
+            currency: 'AUD',
+            currencyDecimals: 2,
+            taxBehavior: SubscriptionTaxBehavior.UNSPECIFIED,
+            taxRateBps: null,
+            isActive: true,
+          },
+        });
+        seededPricesCount += 1;
+      }
+    }
+
+    seededPlans.push({
+      id: plan.id,
+      code: plan.code,
+      profileType: plan.profileType,
+    });
+  }
+
   return {
     flagsCount: SUBSCRIPTION_GLOBAL_FLAGS.length,
     featuresCount: featureIdByKey.size,
     plans: seededPlans,
+    seededPricesCount,
   };
 }
 

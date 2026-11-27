@@ -75,10 +75,11 @@ describe('Subscriptions Phase 1 Integration (Local DB)', () => {
     return org;
   };
 
-  it('seeds 6 Free plans, 16 features, and 3 false flags idempotently', async () => {
+  it('seeds 18 plans (6 Free + 12 Growth/Pro), 16 features, and 3 false flags idempotently', async () => {
     const first = await seedSubscriptions(prisma);
     const second = await seedSubscriptions(prisma);
-    expect(first.plans).toHaveLength(6);
+    expect(first.plans).toHaveLength(18);
+    expect(second.seededPricesCount).toBe(0);
     expect(second.plans.map((p) => p.id)).toEqual(first.plans.map((p) => p.id));
 
     const flags = await prisma.featureFlag.findMany({

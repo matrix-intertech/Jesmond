@@ -51,6 +51,7 @@ test.describe('Phase 4 — Public Pricing, Subscription Modal & Business Subscri
     await page.goto(`${MAIN_HOST}/pricing`);
     await expect(page.getByTestId('pricing-unavailable-notice')).toBeVisible();
     await expect(page.locator('[data-testid^="pricing-plan-"]')).toHaveCount(0);
+    await expect(page.locator('nav a[href="/pricing"]')).toHaveCount(0);
     await expect(
       page.locator('footer a[href="/pricing"]'),
     ).toHaveCount(0);
