@@ -75,8 +75,12 @@ export default async function RootLayout({
   const isBusinessPortal = reqHeaders.get("x-portal") === "business";
 
   return (
-    <html lang="en" data-theme={isBusinessPortal ? "business" : undefined}>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      data-theme={isBusinessPortal ? "business" : undefined}
+      className={`${geistSans.variable} ${geistMono.variable}`}
+    >
+      <body className="font-outfit antialiased">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-accent focus:text-white focus:font-bold focus:rounded-lg focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-white transition-all"

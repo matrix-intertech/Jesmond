@@ -136,6 +136,20 @@
   color: #120D09 !important;
 }
 
+[data-theme="business"] .static-page-hero {
+  background-color: #120D09 !important;
+  color: #FFF9EF !important;
+  border-bottom: 1px solid rgba(214, 166, 79, 0.22);
+}
+
+[data-theme="business"] .static-page-hero h1 {
+  color: #FFF9EF !important;
+}
+
+[data-theme="business"] .static-page-hero p {
+  color: #C9B69C !important;
+}
+
 [data-theme="business"] .bg-accent.text-white {
   color: #120D09 !important;
 }

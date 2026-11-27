@@ -610,6 +610,33 @@ test.describe('Phase 4 — Public Pricing, Subscription Modal & Business Subscri
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${BUSINESS_HOST}/privacy`);
     await expect(page.locator('nav').getByText('BUSINESS', { exact: true })).toBeVisible();
+
+    // 5. Business /terms renders non-serif Outfit/Geist typography with readable desktop sizing
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto(`${BUSINESS_HOST}/terms`);
+    const termsMetrics = await page.evaluate(() => {
+      const h1 = document.querySelector('h1');
+      const h2 = document.querySelector('main h2');
+      const p = document.querySelector('main p');
+      return {
+        h1Font: h1 ? getComputedStyle(h1).fontFamily : '',
+        h1Size: h1 ? parseFloat(getComputedStyle(h1).fontSize) : 0,
+        h2Size: h2 ? parseFloat(getComputedStyle(h2).fontSize) : 0,
+        h2Weight: h2 ? Number(getComputedStyle(h2).fontWeight) : 0,
+        pFont: p ? getComputedStyle(p).fontFamily : '',
+        pSize: p ? parseFloat(getComputedStyle(p).fontSize) : 0,
+        pLineHeight: p ? parseFloat(getComputedStyle(p).lineHeight) : 0,
+        pWeight: p ? Number(getComputedStyle(p).fontWeight) : 0,
+      };
+    });
+    expect(termsMetrics.h1Font.toLowerCase()).not.toContain('times');
+    expect(termsMetrics.pFont.toLowerCase()).not.toContain('times');
+    expect(termsMetrics.h1Size).toBeGreaterThanOrEqual(42);
+    expect(termsMetrics.h2Size).toBeGreaterThanOrEqual(21);
+    expect(termsMetrics.h2Weight).toBeGreaterThanOrEqual(600);
+    expect(termsMetrics.pSize).toBeGreaterThanOrEqual(16);
+    expect(termsMetrics.pLineHeight / termsMetrics.pSize).toBeGreaterThanOrEqual(1.7);
+    expect(termsMetrics.pWeight).toBeGreaterThanOrEqual(400);
     expect(consoleErrors).toEqual([]);
   });
 });
