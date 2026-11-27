@@ -40,11 +40,15 @@ export default function AppViewportWrapper({
   }, [isBusinessPortalContext, pathname]);
 
   if (isBusinessPortalContext) {
-    return <div className="min-h-dvh bg-[#1A100A]">{children}</div>;
+    return (
+      <div className="min-h-dvh bg-[#1A100A] pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
+        {children}
+      </div>
+    );
   }
 
   return (
-    <div className="pb-[calc(5.75rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <div className="pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0">
       {children}
     </div>
   );

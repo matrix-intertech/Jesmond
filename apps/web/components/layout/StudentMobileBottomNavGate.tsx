@@ -29,15 +29,20 @@ export default function StudentMobileBottomNavGate() {
  const [isBusinessDomain, setIsBusinessDomain] = useState(false);
 
  useEffect(() => {
+ const sync = () => {
  setUser(getCurrentUser());
  setIsBusinessDomain(isBusinessHost());
- }, []);
+ };
+ sync();
+ window.addEventListener("storage", sync);
+ return () => window.removeEventListener("storage", sync);
+ }, [pathname]);
 
- if (isBusinessDomain) {
+ if (hiddenPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
  return null;
  }
 
- if (hiddenPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+ if (isBusinessDomain && !user) {
  return null;
  }
 
@@ -45,5 +50,5 @@ export default function StudentMobileBottomNavGate() {
  return null;
  }
 
- return <MobileBottomNav role={user?.role as any} />;
+ return <MobileBottomNav role={user?.role as any} isBusinessTheme={isBusinessDomain} />;
 }
