@@ -12,18 +12,18 @@ datasource db {
 }
 
 model User {
-  id            String        @id @default(uuid())
-  email         String        @unique
-  password      String // Argon2id Hashed
-  role          UserRole      @default(STUDENT)
-  firstName     String
-  lastName      String
-  phone         String?
-  countryCode   String?
+  id              String        @id @default(uuid())
+  email           String        @unique
+  password        String // Argon2id Hashed
+  role            UserRole      @default(STUDENT)
+  firstName       String
+  lastName        String
+  phone           String?
+  countryCode     String?
   countryOfOrigin String?
-  ethnicity     String? // Deprecated: Replaced by countryOfOrigin
-  dateOfBirth   DateTime?
-  accountStatus AccountStatus @default(PENDING_VERIFICATION)
+  ethnicity       String? // Deprecated: Replaced by countryOfOrigin
+  dateOfBirth     DateTime?
+  accountStatus   AccountStatus @default(PENDING_VERIFICATION)
 
   // Auth Tracking
   emailVerified              Boolean   @default(false)
@@ -87,17 +87,17 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  notifications          Notification[]           @relation("UserNotifications")
-  pushSubscriptions      PushSubscription[]
-  FoodOrder              FoodOrder[]
-  FoodOrderStatusHistory FoodOrderStatusHistory[]
-  appointments           Appointment[]
+  notifications            Notification[]               @relation("UserNotifications")
+  pushSubscriptions        PushSubscription[]
+  FoodOrder                FoodOrder[]
+  FoodOrderStatusHistory   FoodOrderStatusHistory[]
+  appointments             Appointment[]
   whatsAppNotificationLogs WhatsAppNotificationLog[]
   emailNotificationLogs    EmailNotificationLog[]
-  reviewedCredentials      BusinessCredential[]     @relation("CredentialReviewer")
+  reviewedCredentials      BusinessCredential[]         @relation("CredentialReviewer")
   credentialDocuments      CredentialDocument[]
-  requestedNameChanges     BusinessNameChangeRequest[] @relation("RequestedNameChanges")
-  reviewedNameChanges      BusinessNameChangeRequest[] @relation("ReviewedNameChanges")
+  requestedNameChanges     BusinessNameChangeRequest[]  @relation("RequestedNameChanges")
+  reviewedNameChanges      BusinessNameChangeRequest[]  @relation("ReviewedNameChanges")
   nameChangeDocuments      BusinessNameChangeDocument[] @relation("UploadedNameChangeDocs")
   customerAddresses        CustomerAddress[]
   notificationPreferences  NotificationPreference[]
@@ -175,6 +175,15 @@ model Organization {
   nameChangeRequests  BusinessNameChangeRequest[]
   nameChangeDocuments BusinessNameChangeDocument[]
   notifications       Notification[]
+
+  // Subscriptions & Entitlements
+  subscriptions                    OrganizationSubscription[]
+  subscriptionUsageCounters        SubscriptionUsageCounter[]
+  subscriptionEntitlementSnapshots SubscriptionEntitlementSnapshot[]
+  subscriptionEntitlementOverrides OrganizationEntitlementOverride[]
+  subscriptionBillingPeriods       SubscriptionBillingPeriod[]
+  subscriptionPaymentTransactions  SubscriptionPaymentTransaction[]
+  subscriptionAuditEvents          SubscriptionAuditEvent[]
 
   @@index([abn])
   @@index([isPubliclyVisible])
@@ -1650,10 +1659,10 @@ model Notification {
   idempotencyKey String?                @unique
   deliveries     NotificationDelivery[]
 
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @default(now()) @updatedAt
-  readAt         DateTime?
-  deletedAt      DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  readAt    DateTime?
+  deletedAt DateTime?
 
   @@index([recipientId, isRead])
   @@index([createdAt])
@@ -1663,23 +1672,23 @@ model Notification {
 }
 
 model NotificationDelivery {
-  id                String              @id @default(uuid())
-  notificationId    String
-  notification      Notification        @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
-  channel           NotificationChannel
-  status            DeliveryStatus      @default(PENDING)
-  attemptCount      Int                 @default(0)
-  maxAttempts       Int                 @default(3)
+  channel      NotificationChannel
+  status       DeliveryStatus      @default(PENDING)
+  attemptCount Int                 @default(0)
+  maxAttempts  Int                 @default(3)
 
   recipientAddress  String
   providerMessageId String?
   failureReason     String?
 
-  sentAt            DateTime?
-  deliveredAt       DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@unique([notificationId, channel])
   @@index([channel, status])
@@ -1688,16 +1697,16 @@ model NotificationDelivery {
 }
 
 model NotificationPreference {
-  id        String               @id @default(uuid())
-  userId    String
-  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  channel   NotificationChannel
-  category  NotificationCategory
-  enabled   Boolean              @default(true)
+  channel  NotificationChannel
+  category NotificationCategory
+  enabled  Boolean              @default(true)
 
-  createdAt DateTime             @default(now())
-  updatedAt DateTime             @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, category, channel])
   @@index([userId])
@@ -1710,17 +1719,17 @@ model NotificationOutbox {
   aggregateId   String
   payload       Json
 
-  status        OutboxStatus          @default(PENDING)
-  lockedBy      String?
-  lockedAt      DateTime?
-  retryCount    Int                   @default(0)
-  errorMessage  String?
+  status       OutboxStatus @default(PENDING)
+  lockedBy     String?
+  lockedAt     DateTime?
+  retryCount   Int          @default(0)
+  errorMessage String?
 
-  scheduledFor  DateTime              @default(now())
-  processedAt   DateTime?
+  scheduledFor DateTime  @default(now())
+  processedAt  DateTime?
 
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status, scheduledFor])
   @@index([status, lockedAt])
@@ -1729,26 +1738,26 @@ model NotificationOutbox {
 }
 
 model AppointmentReminder {
-  id                 String                @id @default(uuid())
-  appointmentId      String
-  appointment        Appointment           @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  id            String      @id @default(uuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 
-  reminderType       ReminderType
-  recipientType      ReminderRecipientType
-  recipientUserId    String
-  recipientUser      User                  @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
+  reminderType    ReminderType
+  recipientType   ReminderRecipientType
+  recipientUserId String
+  recipientUser   User                  @relation(fields: [recipientUserId], references: [id], onDelete: Cascade)
 
-  scheduledFor       DateTime
-  timezone           String
-  scheduleVersion    Int                   @default(1)
-  status             ReminderStatus        @default(SCHEDULED)
+  scheduledFor    DateTime
+  timezone        String
+  scheduleVersion Int            @default(1)
+  status          ReminderStatus @default(SCHEDULED)
 
   sentAt             DateTime?
   cancelledAt        DateTime?
   cancellationReason String?
 
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([appointmentId, reminderType, recipientType, recipientUserId, scheduleVersion])
   @@index([status, scheduledFor])
@@ -1999,7 +2008,7 @@ model ServiceCategory {
 
   name        String
   description String?
-  isActive    Boolean   @default(true)
+  isActive    Boolean @default(true)
 
   services BusinessService[]
 
@@ -2031,11 +2040,11 @@ model BusinessService {
   name             String
   description      String?
   durationMins     Int
-  bufferBeforeMins Int     @default(0)
-  bufferAfterMins  Int     @default(0)
-  price            Int     @default(0) // In cents
-  currency         String  @default("AUD")
-  isActive         Boolean @default(true)
+  bufferBeforeMins Int                 @default(0)
+  bufferAfterMins  Int                 @default(0)
+  price            Int                 @default(0) // In cents
+  currency         String              @default("AUD")
+  isActive         Boolean             @default(true)
   locationType     ServiceLocationType @default(AT_BRANCH)
 
   appointments     Appointment[]
@@ -2096,27 +2105,27 @@ enum RecurrenceRule {
 }
 
 model StaffTimeOff {
-  id             String         @id @default(uuid())
+  id             String       @id @default(uuid())
   organizationId String
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   staffId        String
-  staff          OrgStaff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  staff          OrgStaff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
-  startTime      DateTime       // UTC
-  endTime        DateTime       // UTC
-  timezone       String         @default("Australia/Sydney")
+  startTime DateTime // UTC
+  endTime   DateTime // UTC
+  timezone  String   @default("Australia/Sydney")
 
-  type           TimeOffType    @default(LEAVE)
-  reason         String?
+  type   TimeOffType @default(LEAVE)
+  reason String?
 
-  recurrence     RecurrenceRule @default(NONE)
-  recurrenceEnd  DateTime?      // UTC end for recurring series
+  recurrence    RecurrenceRule @default(NONE)
+  recurrenceEnd DateTime? // UTC end for recurring series
 
-  createdById    String?
-  deletedAt      DateTime?
+  createdById String?
+  deletedAt   DateTime?
 
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
   @@index([staffId])
@@ -2181,11 +2190,11 @@ model Appointment {
 }
 
 model CustomerAddress {
-  id            String    @id @default(uuid())
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  label         String    @default("Home") // Home, Work, Other
+  label         String  @default("Home") // Home, Work, Other
   recipientName String?
   phone         String?
   streetAddress String
@@ -2194,15 +2203,15 @@ model CustomerAddress {
   city          String
   state         String
   postcode      String
-  country       String    @default("Australia")
+  country       String  @default("Australia")
   instructions  String?
-  isDefault     Boolean   @default(false)
+  isDefault     Boolean @default(false)
 
-  appointments  Appointment[]
+  appointments Appointment[]
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([userId])
   @@index([userId, isDefault])
@@ -2247,7 +2256,7 @@ enum WhatsAppNotificationStatus {
 model WhatsAppNotificationLog {
   id                String                     @id @default(uuid())
   eventType         String
-  recipient         String                     // E.164 / normalized phone number
+  recipient         String // E.164 / normalized phone number
   userId            String?
   user              User?                      @relation(fields: [userId], references: [id], onDelete: SetNull)
   templateId        String
@@ -2256,7 +2265,7 @@ model WhatsAppNotificationLog {
   status            WhatsAppNotificationStatus @default(PENDING)
   attemptCount      Int                        @default(1)
   failureReason     String?
-  metadata          Json?                      // Sanitized non-sensitive metadata (never OTPs or passwords)
+  metadata          Json? // Sanitized non-sensitive metadata (never OTPs or passwords)
   idempotencyKey    String?                    @unique
   createdAt         DateTime                   @default(now())
   updatedAt         DateTime                   @updatedAt
@@ -2284,7 +2293,7 @@ enum EmailNotificationStatus {
 model EmailNotificationLog {
   id              String                  @id @default(uuid())
   eventType       String
-  recipient       String                  // Recipient email address
+  recipient       String // Recipient email address
   userId          String?
   user            User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
   templateId      String?
@@ -2293,7 +2302,7 @@ model EmailNotificationLog {
   status          EmailNotificationStatus @default(PENDING)
   attemptCount    Int                     @default(1)
   failureReason   String?
-  metadata        Json?                   // Sanitized non-sensitive metadata (never OTPs or passwords)
+  metadata        Json? // Sanitized non-sensitive metadata (never OTPs or passwords)
   idempotencyKey  String?                 @unique
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
@@ -2359,67 +2368,67 @@ model CredentialType {
   numberPattern      String?
   isPublic           Boolean           @default(true)
 
-  requirements       CredentialRequirement[]
-  credentials        BusinessCredential[]
+  requirements CredentialRequirement[]
+  credentials  BusinessCredential[]
 
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  deletedAt          DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([category, jurisdiction])
   @@index([code])
 }
 
 model CredentialRequirement {
-  id               String           @id @default(uuid())
+  id               String         @id @default(uuid())
   credentialTypeId String
-  credentialType   CredentialType   @relation(fields: [credentialTypeId], references: [id], onDelete: Cascade)
-  
+  credentialType   CredentialType @relation(fields: [credentialTypeId], references: [id], onDelete: Cascade)
+
   businessCategory BusinessCategory
   serviceName      String?
   state            String?
   isMandatory      Boolean          @default(true)
 
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([credentialTypeId, businessCategory, serviceName, state])
   @@index([businessCategory, state])
 }
 
 model BusinessCredential {
-  id                 String             @id @default(uuid())
-  organizationId     String
-  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  credentialTypeId   String
-  credentialType     CredentialType     @relation(fields: [credentialTypeId], references: [id])
+  id               String         @id @default(uuid())
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  credentialTypeId String
+  credentialType   CredentialType @relation(fields: [credentialTypeId], references: [id])
 
-  credentialNumber   String?
-  holderName         String?
-  issuingAuthority   String?
-  state              String?
+  credentialNumber String?
+  holderName       String?
+  issuingAuthority String?
+  state            String?
 
-  issuedAt           DateTime?
-  expiresAt          DateTime?
-  metadata           Json?
+  issuedAt  DateTime?
+  expiresAt DateTime?
+  metadata  Json?
 
-  status             CredentialStatus   @default(NOT_SUBMITTED)
-  isDraft            Boolean            @default(false)
+  status  CredentialStatus @default(NOT_SUBMITTED)
+  isDraft Boolean          @default(false)
 
   submittedAt        DateTime?
   verifiedAt         DateTime?
   verifiedByUserId   String?
-  verifiedByUser     User?              @relation("CredentialReviewer", fields: [verifiedByUserId], references: [id])
+  verifiedByUser     User?               @relation("CredentialReviewer", fields: [verifiedByUserId], references: [id])
   verificationMethod VerificationMethod?
   reviewerNotes      String?
   internalNotes      String?
   rejectionReason    String?
 
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  deletedAt          DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  documents          CredentialDocument[]
+  documents CredentialDocument[]
 
   @@unique([organizationId, credentialTypeId])
   @@index([organizationId, status])
@@ -2428,48 +2437,48 @@ model BusinessCredential {
 }
 
 model CredentialDocument {
-  id                 String             @id @default(uuid())
-  credentialId       String
-  credential         BusinessCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  organizationId     String
-  organization       Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id             String             @id @default(uuid())
+  credentialId   String
+  credential     BusinessCredential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  key                String
-  filename           String
-  mimeType           String
-  size               Int
+  key      String
+  filename String
+  mimeType String
+  size     Int
 
-  uploadedByUserId   String
-  uploadedByUser     User               @relation(fields: [uploadedByUserId], references: [id])
+  uploadedByUserId String
+  uploadedByUser   User   @relation(fields: [uploadedByUserId], references: [id])
 
-  createdAt          DateTime           @default(now())
-  deletedAt          DateTime?
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
   @@index([credentialId])
   @@index([organizationId])
 }
 
 model BusinessProfileCompletion {
-  id                     String                     @id @default(uuid())
-  organizationId         String                     @unique
-  organization           Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id             String       @id @default(uuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  isCompleted            Boolean                    @default(false)
-  completedAt            DateTime?
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
 
-  dismissedUntil         DateTime?
-  lastPromptedAt         DateTime?
-  dismissCount           Int                        @default(0)
+  dismissedUntil DateTime?
+  lastPromptedAt DateTime?
+  dismissCount   Int       @default(0)
 
-  currentStep            Int                        @default(1)
-  completedSteps         Json?
+  currentStep           Int      @default(1)
+  completedSteps        Json?
   missingRequirementIds String[]
 
-  overallStatus          BusinessVerificationStatus @default(NOT_SUBMITTED)
+  overallStatus BusinessVerificationStatus @default(NOT_SUBMITTED)
 
   // ABN Exemption Controlled Workflow
-  abnExempt                 Boolean                    @default(false)
-  abnExemptionStatus        AbnExemptionStatus         @default(NOT_REQUESTED)
+  abnExempt                 Boolean            @default(false)
+  abnExemptionStatus        AbnExemptionStatus @default(NOT_REQUESTED)
   abnExemptionReason        String?
   abnExemptionRequestedAt   DateTime?
   abnExemptionReviewedAt    DateTime?
@@ -2477,8 +2486,8 @@ model BusinessProfileCompletion {
   abnExemptionReviewNotes   String?
   abnExemptionInternalNotes String?
 
-  createdAt              DateTime                   @default(now())
-  updatedAt              DateTime                   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
   @@index([overallStatus])
@@ -2498,29 +2507,29 @@ enum BusinessNameChangeStatus {
 }
 
 model BusinessNameChangeRequest {
-  id                String                   @id @default(uuid())
+  id                String       @id @default(uuid())
   organizationId    String
-  organization      Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   requestedByUserId String
-  requestedByUser   User                     @relation("RequestedNameChanges", fields: [requestedByUserId], references: [id])
+  requestedByUser   User         @relation("RequestedNameChanges", fields: [requestedByUserId], references: [id])
 
-  currentName       String
-  proposedName      String
-  reason            String
+  currentName  String
+  proposedName String
+  reason       String
 
-  status            BusinessNameChangeStatus @default(SUBMITTED)
-  reviewerNotes     String?
-  internalNotes     String?
-  reviewedByUserId  String?
-  reviewedByUser    User?                    @relation("ReviewedNameChanges", fields: [reviewedByUserId], references: [id])
+  status           BusinessNameChangeStatus @default(SUBMITTED)
+  reviewerNotes    String?
+  internalNotes    String?
+  reviewedByUserId String?
+  reviewedByUser   User?                    @relation("ReviewedNameChanges", fields: [reviewedByUserId], references: [id])
 
-  submittedAt       DateTime                 @default(now())
-  reviewedAt        DateTime?
+  submittedAt DateTime  @default(now())
+  reviewedAt  DateTime?
 
-  documents         BusinessNameChangeDocument[]
+  documents BusinessNameChangeDocument[]
 
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId, status])
   @@index([status])
@@ -2528,20 +2537,20 @@ model BusinessNameChangeRequest {
 }
 
 model BusinessNameChangeDocument {
-  id               String                    @id @default(uuid())
-  requestId        String
-  request          BusinessNameChangeRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  organizationId   String
-  organization     Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id             String                    @id @default(uuid())
+  requestId      String
+  request        BusinessNameChangeRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   key              String
   filename         String
   mimeType         String
   size             Int
   uploadedByUserId String
-  uploadedByUser   User                      @relation("UploadedNameChangeDocs", fields: [uploadedByUserId], references: [id])
+  uploadedByUser   User   @relation("UploadedNameChangeDocs", fields: [uploadedByUserId], references: [id])
 
-  createdAt        DateTime                  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([requestId])
   @@index([organizationId])
@@ -2571,3 +2580,346 @@ model DashboardOnboarding {
   @@index([userId])
 }
 
+enum SubscriptionProfileType {
+  ACCOMMODATION
+  RETAIL
+  FOOD
+  MECHANICS
+  SERVICES
+  RENTALS
+}
+
+enum SubscriptionPlanTier {
+  FREE
+  STANDARD
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionBillingInterval {
+  FREE
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  CUSTOM
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  GRACE_PERIOD
+  EXPIRED
+  CANCELED
+  SUSPENDED
+}
+
+enum SubscriptionSource {
+  FREE_AUTO
+  MANUAL_ADMIN
+  ONLINE_CHECKOUT
+  ENTERPRISE_CONTRACT
+}
+
+enum SubscriptionFeatureValueType {
+  BOOLEAN
+  NUMERIC_LIMIT
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum SubscriptionWebhookStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum SubscriptionBillingPeriodStatus {
+  OPEN
+  PAID
+  PAST_DUE
+  VOID
+}
+
+enum SubscriptionTaxBehavior {
+  EXCLUSIVE
+  INCLUSIVE
+  UNSPECIFIED
+}
+
+enum SubscriptionActorType {
+  USER
+  SYSTEM
+  API_KEY
+}
+
+model SubscriptionPlan {
+  id              String                  @id @default(uuid())
+  profileType     SubscriptionProfileType
+  code            String
+  planVersion     Int                     @default(1)
+  name            String
+  description     String?
+  tier            SubscriptionPlanTier    @default(FREE)
+  isFree          Boolean                 @default(false)
+  isEnterprise    Boolean                 @default(false)
+  isActive        Boolean                 @default(true)
+  isPublic        Boolean                 @default(true)
+  gracePeriodDays Int                     @default(7)
+  sortOrder       Int                     @default(0)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  prices        SubscriptionPlanPrice[]
+  featureLimits PlanFeatureLimit[]
+  subscriptions OrganizationSubscription[]
+
+  @@unique([profileType, code])
+  @@index([profileType, isActive, isPublic])
+}
+
+model SubscriptionPlanPrice {
+  id               String                      @id @default(uuid())
+  planId           String
+  plan             SubscriptionPlan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+  priceVersion     Int                         @default(1)
+  interval         SubscriptionBillingInterval
+  unitAmountMinor  Int                         @default(0)
+  currency         String                      @db.VarChar(3)
+  currencyDecimals Int                         @default(2)
+  taxBehavior      SubscriptionTaxBehavior     @default(UNSPECIFIED)
+  taxRateBps       Int?
+  isActive         Boolean                     @default(true)
+  externalPriceId  String?
+  effectiveFrom    DateTime                    @default(now())
+  effectiveTo      DateTime?
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+
+  subscriptions  OrganizationSubscription[]
+  billingPeriods SubscriptionBillingPeriod[]
+
+  @@unique([planId, interval, currency, priceVersion])
+  @@index([planId, isActive])
+}
+
+model SubscriptionFeature {
+  id                 String                       @id @default(uuid())
+  key                String                       @unique
+  name               String
+  description        String?
+  valueType          SubscriptionFeatureValueType @default(BOOLEAN)
+  applicableProfiles SubscriptionProfileType[]
+  isActive           Boolean                      @default(true)
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+
+  planLimits PlanFeatureLimit[]
+  overrides  OrganizationEntitlementOverride[]
+}
+
+model PlanFeatureLimit {
+  id          String              @id @default(uuid())
+  planId      String
+  plan        SubscriptionPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planVersion Int                 @default(1)
+  featureId   String
+  feature     SubscriptionFeature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  enabled     Boolean             @default(true)
+  limitValue  Int?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@unique([planId, planVersion, featureId])
+  @@index([planId])
+  @@index([featureId])
+}
+
+model OrganizationSubscription {
+  id                       String                      @id @default(uuid())
+  organizationId           String
+  organization             Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  planId                   String
+  plan                     SubscriptionPlan            @relation(fields: [planId], references: [id])
+  planVersion              Int                         @default(1)
+  planPriceId              String?
+  planPrice                SubscriptionPlanPrice?      @relation(fields: [planPriceId], references: [id])
+  profileType              SubscriptionProfileType
+  status                   SubscriptionStatus          @default(ACTIVE)
+  billingInterval          SubscriptionBillingInterval @default(FREE)
+  source                   SubscriptionSource          @default(FREE_AUTO)
+  cancelAtPeriodEnd        Boolean                     @default(false)
+  startsAt                 DateTime                    @default(now())
+  currentPeriodStart       DateTime                    @default(now())
+  currentPeriodEnd         DateTime?
+  graceEndsAt              DateTime?
+  canceledAt               DateTime?
+  suspendedAt              DateTime?
+  currentSnapshotId        String?
+  replacedBySubscriptionId String?
+  enterpriseBillingDetails Json?
+  externalCustomerId       String?
+  externalSubscriptionId   String?
+  assignedByUserId         String?
+  notes                    String?
+  createdAt                DateTime                    @default(now())
+  updatedAt                DateTime                    @updatedAt
+
+  overrides           OrganizationEntitlementOverride[]
+  snapshots           SubscriptionEntitlementSnapshot[]
+  billingPeriods      SubscriptionBillingPeriod[]
+  paymentTransactions SubscriptionPaymentTransaction[]
+  auditEvents         SubscriptionAuditEvent[]
+
+  @@index([organizationId, status])
+  @@index([currentPeriodEnd, status])
+  @@index([profileType, status])
+}
+
+model OrganizationEntitlementOverride {
+  id              String                   @id @default(uuid())
+  subscriptionId  String
+  subscription    OrganizationSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  featureId       String
+  feature         SubscriptionFeature      @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  enabled         Boolean                  @default(true)
+  limitValue      Int?
+  expiresAt       DateTime?
+  reason          String
+  updatedByUserId String
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@unique([subscriptionId, featureId])
+  @@index([organizationId])
+  @@index([subscriptionId])
+}
+
+model SubscriptionEntitlementSnapshot {
+  id                   String                            @id @default(uuid())
+  subscriptionId       String
+  subscription         OrganizationSubscription          @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  organizationId       String
+  organization         Organization                      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  version              Int
+  effectiveFrom        DateTime                          @default(now())
+  effectiveTo          DateTime?
+  planId               String
+  planVersion          Int
+  planSnapshot         Json
+  overridesSnapshot    Json
+  resolvedEntitlements Json
+  actorId              String?
+  actorType            SubscriptionActorType             @default(SYSTEM)
+  reason               String?
+  previousSnapshotId   String?
+  previousSnapshot     SubscriptionEntitlementSnapshot?  @relation("SnapshotChain", fields: [previousSnapshotId], references: [id])
+  nextSnapshots        SubscriptionEntitlementSnapshot[] @relation("SnapshotChain")
+  createdAt            DateTime                          @default(now())
+
+  @@unique([subscriptionId, version])
+  @@index([organizationId, effectiveFrom, effectiveTo])
+  @@index([subscriptionId, effectiveFrom])
+}
+
+model SubscriptionUsageCounter {
+  id               String       @id @default(uuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  featureKey       String
+  currentCount     Int          @default(0)
+  lastReconciledAt DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([organizationId, featureKey])
+  @@index([organizationId])
+}
+
+model SubscriptionBillingPeriod {
+  id              String                          @id @default(uuid())
+  subscriptionId  String
+  subscription    OrganizationSubscription        @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  organizationId  String
+  organization    Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  planPriceId     String?
+  planPrice       SubscriptionPlanPrice?          @relation(fields: [planPriceId], references: [id])
+  unitAmountMinor Int                             @default(0)
+  currency        String                          @db.VarChar(3)
+  taxAmountMinor  Int                             @default(0)
+  periodStart     DateTime
+  periodEnd       DateTime
+  status          SubscriptionBillingPeriodStatus @default(OPEN)
+  createdAt       DateTime                        @default(now())
+  updatedAt       DateTime                        @updatedAt
+
+  transactions SubscriptionPaymentTransaction[]
+
+  @@index([organizationId, periodStart, periodEnd])
+  @@index([subscriptionId])
+}
+
+model SubscriptionPaymentTransaction {
+  id                String                     @id @default(uuid())
+  organizationId    String
+  organization      Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId    String
+  subscription      OrganizationSubscription   @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  billingPeriodId   String?
+  billingPeriod     SubscriptionBillingPeriod? @relation(fields: [billingPeriodId], references: [id])
+  provider          String
+  externalPaymentId String?                    @unique
+  idempotencyKey    String                     @unique
+  amountMinor       Int
+  currency          String                     @db.VarChar(3)
+  taxAmountMinor    Int                        @default(0)
+  status            SubscriptionPaymentStatus  @default(PENDING)
+  metadata          Json?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  @@index([organizationId])
+  @@index([subscriptionId])
+}
+
+model SubscriptionWebhookEvent {
+  id              String                    @id @default(uuid())
+  provider        String
+  externalEventId String
+  eventType       String
+  status          SubscriptionWebhookStatus @default(RECEIVED)
+  payload         Json
+  error           String?
+  receivedAt      DateTime                  @default(now())
+  processedAt     DateTime?
+
+  @@unique([provider, externalEventId])
+  @@index([status, receivedAt])
+}
+
+model SubscriptionAuditEvent {
+  id             String                    @id @default(uuid())
+  organizationId String
+  organization   Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId String?
+  subscription   OrganizationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  actorId        String?
+  actorType      SubscriptionActorType     @default(SYSTEM)
+  action         String
+  beforeState    Json?
+  afterState     Json?
+  reason         String?
+  createdAt      DateTime                  @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([subscriptionId, createdAt])
+}

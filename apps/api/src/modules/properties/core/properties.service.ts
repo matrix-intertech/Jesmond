@@ -4,8 +4,10 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UsageCounterService } from '../../subscriptions/services/usage-counter.service';
 import { Prisma } from '@prisma/client';
 import {
   CreatePropertyDto,
@@ -48,6 +50,7 @@ export class PropertiesService {
     private readonly storage: StorageService,
     private readonly propertyWhatsAppService: PropertyWhatsAppService,
     private readonly propertyEmailService: PropertyEmailService,
+    @Optional() private readonly usageCounterService?: UsageCounterService,
   ) {}
 
   async createProperty(dto: CreatePropertyDto, user: any) {
@@ -59,62 +62,84 @@ export class PropertiesService {
       throw new NotFoundException('Suburb not found');
     }
 
-    const property = await this.prisma.property.create({
-      data: {
-        name: dto.name,
-        address: dto.address,
-        postcode: dto.postcode,
-        lat: dto.lat,
-        lng: dto.lng,
-        description: dto.description,
-        status: 'DRAFT',
-        suburbId: dto.suburbId,
-        organizationId: user.organizationId,
-        listingMode: dto.listingMode || 'MULTI_UNIT',
-        listingType: dto.listingType || 'NORMAL',
-        propertyType: dto.propertyType,
-        offeringType: dto.offeringType,
-        furnishingType: dto.furnishingType,
-        furnishingFeatures: dto.furnishingFeatures,
-        availableFrom: dto.availableFrom
-          ? new Date(dto.availableFrom)
-          : undefined,
-        minimumStay: dto.minimumStay,
-        minimumStayUnit: dto.minimumStayUnit,
-        maximumStay: dto.maximumStay,
-        maximumStayUnit: dto.maximumStayUnit,
-        maximumOccupancy: dto.maximumOccupancy,
-        hasExistingResidents: dto.hasExistingResidents || false,
-        configuration: dto.configuration,
-        showContactDetails: dto.showContactDetails || false,
-      },
-    });
+    const propertyData = {
+      name: dto.name,
+      address: dto.address,
+      postcode: dto.postcode,
+      lat: dto.lat,
+      lng: dto.lng,
+      description: dto.description,
+      status: 'DRAFT' as const,
+      suburbId: dto.suburbId,
+      organizationId: user.organizationId,
+      listingMode: dto.listingMode || 'MULTI_UNIT',
+      listingType: dto.listingType || 'NORMAL',
+      propertyType: dto.propertyType,
+      offeringType: dto.offeringType,
+      furnishingType: dto.furnishingType,
+      furnishingFeatures: dto.furnishingFeatures,
+      availableFrom: dto.availableFrom
+        ? new Date(dto.availableFrom)
+        : undefined,
+      minimumStay: dto.minimumStay,
+      minimumStayUnit: dto.minimumStayUnit,
+      maximumStay: dto.maximumStay,
+      maximumStayUnit: dto.maximumStayUnit,
+      maximumOccupancy: dto.maximumOccupancy,
+      hasExistingResidents: dto.hasExistingResidents || false,
+      configuration: dto.configuration,
+      showContactDetails: dto.showContactDetails || false,
+    };
 
-    if (
-      property.listingMode === 'INDIVIDUAL' ||
-      property.offeringType === 'ENTIRE_PLACE'
-    ) {
-      const room = await this.prisma.roomType.create({
-        data: {
-          propertyId: property.id,
-          name: 'Entire Property',
-          description: property.description,
-          pricePerWeek: dto.pricePerWeek || 0,
-          inventory: 1,
-        },
+    const runCreate = async (tx: any) => {
+      if (this.usageCounterService && user?.organizationId) {
+        await this.usageCounterService.enforceAndIncrementInTransaction(
+          tx,
+          user.organizationId,
+          'ACCOMMODATION_LISTINGS',
+          1,
+        );
+      }
+
+      const property = await tx.property.create({
+        data: propertyData,
       });
-      if (dto.pricePerWeek !== undefined) {
-        await this.prisma.pricingHistory.create({
+
+      if (
+        property.listingMode === 'INDIVIDUAL' ||
+        property.offeringType === 'ENTIRE_PLACE'
+      ) {
+        const room = await tx.roomType.create({
           data: {
-            roomTypeId: room.id,
-            pricePerWeek: dto.pricePerWeek,
-            effectiveFrom: new Date(),
+            propertyId: property.id,
+            name: 'Entire Property',
+            description: property.description,
+            pricePerWeek: dto.pricePerWeek || 0,
+            inventory: 1,
           },
         });
+        if (dto.pricePerWeek !== undefined) {
+          await tx.pricingHistory.create({
+            data: {
+              roomTypeId: room.id,
+              pricePerWeek: dto.pricePerWeek,
+              effectiveFrom: new Date(),
+            },
+          });
+        }
       }
+
+      return property;
+    };
+
+    if (
+      this.usageCounterService &&
+      typeof this.prisma.$transaction === 'function'
+    ) {
+      return this.prisma.$transaction((tx) => runCreate(tx));
     }
 
-    return property;
+    return runCreate(this.prisma);
   }
 
   async updateProperty(id: string, user: any, dto: any) {
@@ -1424,12 +1449,30 @@ export class PropertiesService {
 
   // --- Rooms ---
   async addRoom(propertyId: string, user: any, roomTypeId: string, dto: any) {
-    await this.getPropertyForProvider(propertyId, user);
+    const property = await this.getPropertyForProvider(propertyId, user);
     const rt = await this.prisma.roomType.findUnique({
       where: { id: roomTypeId, propertyId },
     });
     if (!rt) throw new NotFoundException('RoomType not found');
+    const orgId = property.organizationId || user?.organizationId;
     try {
+      if (
+        this.usageCounterService &&
+        orgId &&
+        typeof this.prisma.$transaction === 'function'
+      ) {
+        return await this.prisma.$transaction(async (tx) => {
+          await this.usageCounterService!.enforceAndIncrementInTransaction(
+            tx,
+            orgId,
+            'ACCOMMODATION_ROOMS',
+            1,
+          );
+          return tx.room.create({
+            data: { roomTypeId, identifier: dto.identifier },
+          });
+        });
+      }
       return await this.prisma.room.create({
         data: { roomTypeId, identifier: dto.identifier },
       });
@@ -1449,13 +1492,32 @@ export class PropertiesService {
     roomTypeId: string,
     roomId: string,
   ) {
-    await this.getPropertyForProvider(propertyId, user);
+    const property = await this.getPropertyForProvider(propertyId, user);
     const r = await this.prisma.room.findUnique({
       where: { id: roomId, roomTypeId },
       include: { roomType: true },
     });
     if (!r || r.roomType.propertyId !== propertyId)
       throw new NotFoundException('Room not found');
+    const orgId = property.organizationId || user?.organizationId;
+    if (
+      this.usageCounterService &&
+      orgId &&
+      typeof this.prisma.$transaction === 'function'
+    ) {
+      return this.prisma.$transaction(async (tx) => {
+        const deleted = await tx.room.delete({ where: { id: roomId } });
+        if (!r.deletedAt) {
+          await this.usageCounterService!.decrementCounterInTransaction(
+            tx,
+            orgId,
+            'ACCOMMODATION_ROOMS',
+            1,
+          );
+        }
+        return deleted;
+      });
+    }
     return this.prisma.room.delete({ where: { id: roomId } });
   }
 

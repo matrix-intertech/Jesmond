@@ -22,6 +22,8 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('food/menu')
 export class MenuController {
@@ -55,8 +57,9 @@ export class MenuController {
     return this.menuService.getMenuById(this.getOrgId(req), id);
   }
 
-  @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
+  @UseGuards(JwtAuthGuard, BusinessCapabilityGuard, SubscriptionGuard)
   @RequireCapability(BusinessCapability.MENU)
+  @RequireSubscriptionFeature('FOOD_MENU_MANAGEMENT')
   @Post()
   createMenu(@Request() req: any, @Body() dto: CreateFoodMenuDto) {
     return this.menuService.createMenu(this.getOrgId(req), dto);

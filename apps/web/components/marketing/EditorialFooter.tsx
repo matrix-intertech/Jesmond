@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FooterPricingLink } from "../subscriptions/FooterPricingLink";
 import Image from "next/image";
 
 export function EditorialFooter() {
@@ -76,7 +77,7 @@ export function EditorialFooter() {
               <li><Link href="/list" className="hover:text-primary transition-colors">List Your Property</Link></li>
               <li><Link href="/portal" className="hover:text-primary transition-colors">Business Portal</Link></li>
               <li><Link href="/verification" className="hover:text-primary transition-colors">Verification Process</Link></li>
-              <li><Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
+              <FooterPricingLink />
               <li><Link href="/support" className="hover:text-primary transition-colors">Support</Link></li>
             </ul>
           </div>

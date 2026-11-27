@@ -34,6 +34,8 @@ interface NavItem {
   icon: ReactNode;
   roles: ("SUPER_ADMIN" | "ADMIN" | "ORG_STAFF" | "STUDENT")[];
   orgTypes?: string[];
+  businessCategories?: string[];
+  excludeBusinessCategories?: string[];
   requiredPermissions?: string[];
   requiredCapabilities?: import("@/utils/capabilities").BusinessCapability[];
 }
@@ -121,6 +123,92 @@ const navConfig: NavItem[] = [
       </svg>
     ),
     roles: ["SUPER_ADMIN", "ADMIN"],
+  },
+  {
+    href: "/admin/subscriptions",
+    label: "Subscriptions",
+    section: "operations",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+      </svg>
+    ),
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    requiredPermissions: ["SUBSCRIPTION_BILLING_VIEW"],
+  },
+  {
+    href: "/admin/subscriptions/plans",
+    label: "Subscription Plans",
+    section: "operations",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5" />
+        <path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    requiredPermissions: ["SUBSCRIPTION_PLANS_MANAGE"],
+  },
+  {
+    href: "/admin/subscriptions/enterprise",
+    label: "Enterprise Plans",
+    section: "operations",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M3 21h18" />
+        <path d="M5 21V7l8-4v18" />
+        <path d="M19 21V11l-6-4" />
+      </svg>
+    ),
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    requiredPermissions: ["SUBSCRIPTION_ENTERPRISE_MANAGE"],
+  },
+  {
+    href: "/admin/subscriptions/features",
+    label: "Feature Controls",
+    section: "operations",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+      </svg>
+    ),
+    roles: ["SUPER_ADMIN", "ADMIN"],
+    requiredPermissions: ["SUBSCRIPTION_FEATURES_MANAGE", "SUBSCRIPTION_SWITCHES_MANAGE"],
   },
   {
     href: "/admin/settings",
@@ -382,7 +470,30 @@ const navConfig: NavItem[] = [
     ),
     roles: ["ORG_STAFF"],
     orgTypes: ["RETAIL"],
+    excludeBusinessCategories: ["FOOD", "MECHANICS", "SERVICES", "RENTALS"],
     requiredPermissions: ["RETAIL_SETTINGS_VIEW"],
+  },
+  {
+    href: "/portal/settings/subscription",
+    label: "Settings",
+    section: "settings",
+    icon: (
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+      </svg>
+    ),
+    roles: ["ORG_STAFF"],
+    orgTypes: ["RETAIL"],
+    businessCategories: ["FOOD", "MECHANICS", "SERVICES", "RENTALS"],
   },
   {
     href: "/portal/business/verification",
@@ -978,6 +1089,21 @@ export default function Sidebar({ role }: { role: string }) {
   const visibleItems = navConfig.filter((i) => {
     if (!i.roles.includes(role as any)) return false;
 
+    if (
+      role === "ADMIN" &&
+      !i.orgTypes &&
+      i.requiredPermissions &&
+      i.requiredPermissions.length > 0
+    ) {
+      const adminPerms = user?.permissions || [];
+      if (!adminPerms.includes("*")) {
+        const hasAdminPerm = i.requiredPermissions.some((p) =>
+          adminPerms.includes(p),
+        );
+        if (!hasAdminPerm) return false;
+      }
+    }
+
     if (i.requiredCapabilities?.length) {
       const hasCap = i.requiredCapabilities.every((cap) =>
         canUseBusinessCapability(user?.businessCategory as any, cap),
@@ -988,14 +1114,34 @@ export default function Sidebar({ role }: { role: string }) {
       // Determine effective organization type
       let userOrgType = user?.orgType;
       const userCat = (user?.businessCategory || "").toUpperCase();
-      if (!userOrgType || userCat === "RETAIL" || userCat === "SERVICES" || userCat === "MECHANICS" || userCat === "FOOD") {
-        if (userCat === "RETAIL" || userCat === "SERVICES" || userCat === "MECHANICS" || userCat === "FOOD") {
+      if (
+        !userOrgType ||
+        userCat === "RETAIL" ||
+        userCat === "SERVICES" ||
+        userCat === "MECHANICS" ||
+        userCat === "FOOD" ||
+        (userCat === "RENTALS" && user?.orgType !== "PROVIDER" && user?.orgType !== "AGENCY")
+      ) {
+        if (
+          userCat === "RETAIL" ||
+          userCat === "SERVICES" ||
+          userCat === "MECHANICS" ||
+          userCat === "FOOD" ||
+          (userCat === "RENTALS" && user?.orgType !== "PROVIDER" && user?.orgType !== "AGENCY")
+        ) {
           userOrgType = "RETAIL";
         } else {
           userOrgType = userOrgType || "PROVIDER";
         }
       }
       if (!i.orgTypes.includes(userOrgType)) return false;
+
+      if (i.businessCategories && !i.businessCategories.includes(userCat)) {
+        return false;
+      }
+      if (i.excludeBusinessCategories && i.excludeBusinessCategories.includes(userCat)) {
+        return false;
+      }
 
       // If it's a RETAIL org, check permissions
       if (userOrgType === "RETAIL" && i.requiredPermissions) {

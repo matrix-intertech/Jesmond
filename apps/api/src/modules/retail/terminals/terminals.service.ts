@@ -3,13 +3,18 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TerminalStatus } from '@prisma/client';
+import { UsageCounterService } from '../../subscriptions/services/usage-counter.service';
 
 @Injectable()
 export class TerminalsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly usageCounterService?: UsageCounterService,
+  ) {}
 
   private async validateBranchOwnership(
     organizationId: string,
@@ -41,26 +46,61 @@ export class TerminalsService {
   ) {
     await this.validateBranchOwnership(organizationId, data.branchId);
 
-    const terminal = await this.prisma.posTerminal.create({
-      data: {
-        branchId: data.branchId,
-        name: data.name,
-        externalId: data.externalId,
-        metadata: data.metadata,
-        status: TerminalStatus.OFFLINE,
-      },
-    });
+    const useTx =
+      this.usageCounterService &&
+      typeof this.prisma.$transaction === 'function';
 
-    await this.prisma.auditLog.create({
-      data: {
-        actorId: userId,
-        actorType: 'USER',
-        action: 'terminal.create',
-        resourceType: 'PosTerminal',
-        resourceId: terminal.id,
-        changes: { new: terminal as any },
-      },
-    });
+    const terminal = useTx
+      ? await this.prisma.$transaction(async (tx) => {
+          await this.usageCounterService!.enforceAndIncrementInTransaction(
+            tx,
+            organizationId,
+            'RETAIL_POS_TERMINALS',
+            1,
+          );
+          const created = await tx.posTerminal.create({
+            data: {
+              branchId: data.branchId,
+              name: data.name,
+              externalId: data.externalId,
+              metadata: data.metadata,
+              status: TerminalStatus.OFFLINE,
+            },
+          });
+          await tx.auditLog.create({
+            data: {
+              actorId: userId,
+              actorType: 'USER',
+              action: 'terminal.create',
+              resourceType: 'PosTerminal',
+              resourceId: created.id,
+              changes: { new: created as any },
+            },
+          });
+          return created;
+        })
+      : await (async () => {
+          const created = await this.prisma.posTerminal.create({
+            data: {
+              branchId: data.branchId,
+              name: data.name,
+              externalId: data.externalId,
+              metadata: data.metadata,
+              status: TerminalStatus.OFFLINE,
+            },
+          });
+          await this.prisma.auditLog.create({
+            data: {
+              actorId: userId,
+              actorType: 'USER',
+              action: 'terminal.create',
+              resourceType: 'PosTerminal',
+              resourceId: created.id,
+              changes: { new: created as any },
+            },
+          });
+          return created;
+        })();
 
     return terminal;
   }

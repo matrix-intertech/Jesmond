@@ -36,6 +36,8 @@ import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.g
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
 import { OrgType } from '@prisma/client';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('business-appointments')
 export class BusinessAppointmentsController {
@@ -79,9 +81,10 @@ export class BusinessAppointmentsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard, SubscriptionGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @RequireSubscriptionFeature('APPOINTMENT_BOOKINGS')
   @Post(':id/approve')
   async approveAppointment(
     @Param('id') id: string,
@@ -96,9 +99,10 @@ export class BusinessAppointmentsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard, SubscriptionGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @RequireSubscriptionFeature('APPOINTMENT_BOOKINGS')
   @Post(':id/reject')
   async rejectAppointment(
     @Param('id') id: string,
@@ -190,9 +194,10 @@ export class BusinessAppointmentsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard, SubscriptionGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @RequireSubscriptionFeature('APPOINTMENT_SERVICES', { checkUsage: true })
   @Post('services')
   async createService(
     @Request() req: any,
@@ -357,9 +362,10 @@ export class BusinessAppointmentsController {
     return this.appointmentsService.getBusinessStaff(req.user.organizationId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, BusinessCapabilityGuard, SubscriptionGuard)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @RequireCapability(BusinessCapability.APPOINTMENTS)
+  @RequireSubscriptionFeature('APPOINTMENT_STAFF', { checkUsage: true })
   @Post('staff')
   async addStaff(@Request() req: any, @Body() dto: AddBusinessStaffDto) {
     if (!req.user.organizationId) {

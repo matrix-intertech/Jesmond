@@ -4,8 +4,10 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UsageCounterService } from '../../subscriptions/services/usage-counter.service';
 import {
   UserRole,
   AccountStatus,
@@ -18,7 +20,10 @@ import * as crypto from 'crypto';
 
 @Injectable()
 export class AgencyService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional() private usageCounterService?: UsageCounterService,
+  ) {}
 
   async getMyAgency(organizationId: string) {
     const agency = await this.prisma.organization.findUnique({
@@ -151,6 +156,15 @@ export class AgencyService {
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
     return this.prisma.$transaction(async (tx) => {
+      if (this.usageCounterService) {
+        await this.usageCounterService.enforceAndIncrementInTransaction(
+          tx,
+          organizationId,
+          'AGENCY_TEAM_MEMBERS',
+          1,
+        );
+      }
+
       let user = existingUser;
       if (!user) {
         user = await tx.user.create({
@@ -286,7 +300,16 @@ export class AgencyService {
 
     return this.prisma.$transaction(async (tx) => {
       await tx.propertyManager.deleteMany({ where: { orgStaffId: staffId } });
-      return tx.orgStaff.delete({ where: { id: staffId } });
+      const deleted = await tx.orgStaff.delete({ where: { id: staffId } });
+      if (!staff.deletedAt && this.usageCounterService) {
+        await this.usageCounterService.decrementCounterInTransaction(
+          tx,
+          organizationId,
+          'AGENCY_TEAM_MEMBERS',
+          1,
+        );
+      }
+      return deleted;
     });
   }
 

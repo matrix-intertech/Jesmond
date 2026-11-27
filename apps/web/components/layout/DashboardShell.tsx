@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { QuickstartProvider } from '../quickstart/QuickstartProvider';
+import { SubscriptionRequiredModal } from '../subscriptions/SubscriptionRequiredModal';
 import type { ReactNode } from 'react';
 import { getCurrentUser, User } from '@/utils/auth';
 
@@ -42,6 +43,7 @@ export default function DashboardShell({ role, user: propUser, children }: Dashb
           <main className="flex-1 overflow-x-hidden overflow-y-auto px-3 py-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-16 sm:px-6 sm:py-6 lg:p-8">{children}</main>
         </div>
       </div>
+      <SubscriptionRequiredModal />
     </QuickstartProvider>
   );
 }

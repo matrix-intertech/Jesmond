@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SubscriptionProvisioningService } from '../../subscriptions/services/subscription-provisioning.service';
 import {
   BusinessCategory,
   CredentialStatus,
@@ -35,7 +36,11 @@ export interface ResolvedRequirement {
 export class RequirementsEngineService {
   private readonly logger = new Logger(RequirementsEngineService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional()
+    private readonly subscriptionProvisioning?: SubscriptionProvisioningService,
+  ) {}
 
   /**
    * Resolves the exact applicable requirements for an organization dynamically
@@ -314,6 +319,24 @@ export class RequirementsEngineService {
         isCompleted: false,
       },
     });
+
+    if (
+      overallStatus === BusinessVerificationStatus.VERIFIED &&
+      this.subscriptionProvisioning
+    ) {
+      try {
+        await this.subscriptionProvisioning.provisionFreePlanForOrganization(
+          organizationId,
+          {
+            reason: 'Organization verified via credentials requirements engine',
+          },
+        );
+      } catch (err: any) {
+        this.logger.warn(
+          `Post-verification Free-plan provisioning failed safely for ${organizationId}: ${err?.message || err}`,
+        );
+      }
+    }
 
     return overallStatus;
   }

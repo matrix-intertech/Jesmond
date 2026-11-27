@@ -32,6 +32,7 @@ import { BusinessNameRequestsModule } from './modules/business-name-requests/bus
 import { CustomerAddressesModule } from './modules/customer-addresses/customer-addresses.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
     EmailModule,
     CredentialsModule,
     BusinessNameRequestsModule,
+    SubscriptionsModule,
     CustomerAddressesModule,
     NotificationsModule,
     OnboardingModule,

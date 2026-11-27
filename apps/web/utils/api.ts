@@ -1,3 +1,5 @@
+import { emitSubscriptionRequired } from './subscriptions';
+
 export function getApiUrl(): string {
   if (typeof window !== 'undefined') {
     // Browser requests always use same-origin /api/v1/* BFF proxy
@@ -21,7 +23,16 @@ export async function handleApiError(
     return 'unauthorized';
   }
   if (response.status === 403) {
-    // Authorization error – do not logout
+    // Authorization error – do not logout; check if subscription restriction applies
+    try {
+      const cloned = response.clone();
+      const body = await cloned.json();
+      if (body && body.code === 'SUBSCRIPTION_REQUIRED') {
+        emitSubscriptionRequired(body);
+      }
+    } catch {
+      // Ignore non-JSON 403 bodies
+    }
     return 'forbidden';
   }
   if (response.status === 404) {

@@ -22,6 +22,8 @@ import { UserRole, OrgType } from '@prisma/client';
 import { AgencyPermissionGuard } from '../auth/guards/agency-permission.guard';
 import { RequireAgencyPermissions } from '../auth/decorators/require-agency-permissions.decorator';
 import { AgencyPermission } from '../auth/agency-permissions.enum';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('agency')
 export class AgencyController {
@@ -82,10 +84,17 @@ export class AgencyController {
   }
 
   // POST /agency/my/members — Invite Team Member
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
+  @UseGuards(
+    JwtAuthGuard,
+    RolesGuard,
+    OrgTypesGuard,
+    AgencyPermissionGuard,
+    SubscriptionGuard,
+  )
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @RequireAgencyPermissions(AgencyPermission.TEAM_INVITE)
+  @RequireSubscriptionFeature('AGENCY_TEAM_MEMBERS', { checkUsage: true })
   @Post('my/members')
   async inviteTeamMember(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)
@@ -191,10 +200,17 @@ export class AgencyController {
     return this.agencyService.getRoles(req.user.organizationId);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, AgencyPermissionGuard)
+  @UseGuards(
+    JwtAuthGuard,
+    RolesGuard,
+    OrgTypesGuard,
+    AgencyPermissionGuard,
+    SubscriptionGuard,
+  )
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
   @RequireAgencyPermissions(AgencyPermission.AGENCY_MANAGE_ROLES)
+  @RequireSubscriptionFeature('AGENCY_CUSTOM_ROLES')
   @Post('my/roles')
   async createCustomRole(@Body() data: any, @Request() req: any) {
     if (!req.user?.organizationId)

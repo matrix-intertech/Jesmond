@@ -25,6 +25,8 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { StorageService } from '../../properties/core/storage.service';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('retail/catalog')
 @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, BusinessCapabilityGuard)
@@ -37,6 +39,8 @@ export class CatalogController {
   ) {}
 
   @Post('products')
+  @UseGuards(SubscriptionGuard)
+  @RequireSubscriptionFeature('RETAIL_PRODUCTS', { checkUsage: true })
   async createProduct(
     @Request() req: any,
     @Body()

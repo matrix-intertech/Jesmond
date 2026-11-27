@@ -6,6 +6,7 @@ const links = [
  { label: "Delivery & Takeaway", href: "/portal/retail/settings", icon: <Building className="w-5 h-5" /> },
  { label: "Employee Permissions", href: "/portal/retail/settings/permissions", icon: <Shield className="w-5 h-5" /> },
  { label: "Payment Settings", href: "/portal/retail/settings/payments", icon: <CreditCard className="w-5 h-5" /> },
+ { label: "Subscription", href: "/portal/retail/settings/subscription", icon: <CreditCard className="w-5 h-5" /> },
 ];
 
 export default function RetailSettingsLayout({ children }: { children: React.ReactNode }) {

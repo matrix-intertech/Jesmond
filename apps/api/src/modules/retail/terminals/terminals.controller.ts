@@ -23,6 +23,8 @@ import { RetailPermission } from '../auth/retail-permissions.enum';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('retail/terminals')
 @UseGuards(
@@ -38,7 +40,9 @@ export class TerminalsController {
   constructor(private readonly terminalsService: TerminalsService) {}
 
   @Post()
+  @UseGuards(SubscriptionGuard)
   @RequirePermissions(RetailPermission.TERMINALS_MANAGE)
+  @RequireSubscriptionFeature('RETAIL_POS_TERMINALS', { checkUsage: true })
   async createTerminal(
     @Request() req: any,
     @Body()

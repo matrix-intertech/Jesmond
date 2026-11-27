@@ -28,6 +28,10 @@ export class StripePaymentGateway implements PaymentGateway {
     return this.stripe !== null;
   }
 
+  getClient(): Stripe | null {
+    return this.stripe;
+  }
+
   async createPaymentIntent(
     params: CreatePaymentIntentParams,
     idempotencyKey?: string,

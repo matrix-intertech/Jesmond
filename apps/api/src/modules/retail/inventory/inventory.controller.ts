@@ -22,6 +22,8 @@ import { RetailPermission } from '../auth/retail-permissions.enum';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('retail/inventory')
 @UseGuards(
@@ -37,7 +39,9 @@ export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}
 
   @Post(':branchId/:productId/adjust')
+  @UseGuards(SubscriptionGuard)
   @RequirePermissions(RetailPermission.INVENTORY_ADJUST)
+  @RequireSubscriptionFeature('RETAIL_INVENTORY')
   async adjustInventory(
     @Request() req: any,
     @Param('branchId') branchId: string,
@@ -68,7 +72,9 @@ export class InventoryController {
   }
 
   @Post(':branchId/receive')
+  @UseGuards(SubscriptionGuard)
   @RequirePermissions(RetailPermission.INVENTORY_ADJUST)
+  @RequireSubscriptionFeature('RETAIL_INVENTORY')
   async receiveStock(
     @Request() req: any,
     @Param('branchId') branchId: string,

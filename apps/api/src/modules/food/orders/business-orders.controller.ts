@@ -16,6 +16,8 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('food/business/orders')
 @UseGuards(JwtAuthGuard, BusinessCapabilityGuard)
@@ -50,7 +52,9 @@ export class BusinessOrdersController {
   }
 
   @Patch(':id/status')
+  @UseGuards(SubscriptionGuard)
   @RequireCapability(BusinessCapability.ORDERS)
+  @RequireSubscriptionFeature('FOOD_ORDER_FULFILLMENT')
   async updateOrderStatus(
     @Request() req: any,
     @Param('id') orderId: string,

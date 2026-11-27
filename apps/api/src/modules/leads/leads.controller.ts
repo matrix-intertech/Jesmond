@@ -17,10 +17,12 @@ import { OrgTypesGuard } from '../auth/guards/org-types.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { OrgTypes } from '../auth/decorators/org-types.decorator';
 import { UserRole, OrgType } from '@prisma/client';
+import { SubscriptionGuard } from '../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../subscriptions/decorators/subscription.decorators';
 
 @Controller('leads')
 export class LeadsController {
-  constructor(private readonly leadsService: LeadsService) {}
+  constructor(private readonly leadsService: LeadsService) { }
 
   // 1. Track Visit (must be authenticated)
   @UseGuards(JwtAuthGuard)
@@ -78,9 +80,10 @@ export class LeadsController {
   }
 
   // 4. Update Lead Status/Temperature
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, SubscriptionGuard)
   @OrgTypes(OrgType.PROVIDER, OrgType.AGENCY)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.ORG_STAFF)
+  @RequireSubscriptionFeature('LEAD_MANAGEMENT')
   @Patch('my/:id')
   async updateLead(
     @Param('id') id: string,
@@ -95,9 +98,10 @@ export class LeadsController {
   }
 
   // 5. Assign Lead
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, SubscriptionGuard)
   @OrgTypes(OrgType.PROVIDER, OrgType.AGENCY)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireSubscriptionFeature('LEAD_MANAGEMENT')
   @Post('my/:id/assign')
   async assignLead(
     @Param('id') id: string,

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { RedisModule } from '../redis/redis.module';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { StorageService } from '../properties/core/storage.service';
 import { AbnLookupService } from './services/abn-lookup.service';
 import { RequirementsEngineService } from './services/requirements-engine.service';
@@ -10,7 +11,7 @@ import { AdminCredentialsService } from './admin-credentials.service';
 import { AdminCredentialsController } from './admin-credentials.controller';
 
 @Module({
-  imports: [PrismaModule, RedisModule],
+  imports: [PrismaModule, RedisModule, SubscriptionsModule],
   controllers: [
     BusinessCredentialsController,
     AdminCredentialsController,

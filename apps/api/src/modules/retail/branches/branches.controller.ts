@@ -19,6 +19,8 @@ import { OrgType } from '@prisma/client';
 import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 import { RetailPermission } from '../auth/retail-permissions.enum';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('retail/branches')
 @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
@@ -49,7 +51,9 @@ export class BranchesController {
   }
 
   @Post()
+  @UseGuards(SubscriptionGuard)
   @RequirePermissions(RetailPermission.BRANCH_MANAGE)
+  @RequireSubscriptionFeature('RETAIL_BRANCHES', { checkUsage: true })
   async createBranch(@Request() req: any, @Body() body: any) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');

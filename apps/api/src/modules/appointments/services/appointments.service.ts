@@ -3,8 +3,10 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UsageCounterService } from '../../subscriptions/services/usage-counter.service';
 import {
   AppointmentStatus,
   Prisma,
@@ -33,6 +35,7 @@ export class AppointmentsService {
     private readonly appointmentWhatsAppService: AppointmentWhatsAppService,
     private readonly appointmentEmailService: AppointmentEmailService,
     private readonly availabilityService: AvailabilityService,
+    @Optional() private readonly usageCounterService?: UsageCounterService,
   ) { }
 
   // 1. List active services for an eligible business/branch
@@ -1356,6 +1359,15 @@ export class AppointmentsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      if (this.usageCounterService) {
+        await this.usageCounterService.enforceAndIncrementInTransaction(
+          tx,
+          organizationId,
+          'APPOINTMENT_SERVICES',
+          1,
+        );
+      }
+
       const service = await tx.businessService.create({
         data: {
           organizationId,
@@ -1459,6 +1471,38 @@ export class AppointmentsService {
     }
 
     return this.prisma.$transaction(async (tx) => {
+      let currentActive = existing.isActive;
+      let currentDeletedAt = existing.deletedAt;
+      if (typeof (tx as any).$queryRaw === 'function') {
+        const rows = await (tx as any).$queryRaw<
+          Array<{ isActive: boolean; deletedAt: Date | null }>
+        >`SELECT "isActive", "deletedAt" FROM "BusinessService" WHERE id = ${serviceId} FOR UPDATE`;
+        if (rows[0]) {
+          currentActive = rows[0].isActive;
+          currentDeletedAt = rows[0].deletedAt;
+        }
+      }
+
+      const activating =
+        this.usageCounterService &&
+        !currentDeletedAt &&
+        !currentActive &&
+        data.isActive === true;
+      const deactivating =
+        this.usageCounterService &&
+        !currentDeletedAt &&
+        currentActive &&
+        data.isActive === false;
+
+      if (activating) {
+        await this.usageCounterService!.enforceAndIncrementInTransaction(
+          tx,
+          organizationId,
+          'APPOINTMENT_SERVICES',
+          1,
+        );
+      }
+
       const updateData: Prisma.BusinessServiceUpdateInput = {
         ...categoryUpdate,
         name: data.name,
@@ -1478,6 +1522,15 @@ export class AppointmentsService {
         where: { id: serviceId },
         data: updateData,
       });
+
+      if (deactivating) {
+        await this.usageCounterService!.decrementCounterInTransaction(
+          tx,
+          organizationId,
+          'APPOINTMENT_SERVICES',
+          1,
+        );
+      }
 
       if (data.staffIds !== undefined) {
         await tx.staffServiceAssignment.deleteMany({
@@ -1534,6 +1587,41 @@ export class AppointmentsService {
     });
     if (!existing || existing.organizationId !== organizationId) {
       throw new NotFoundException('Service not found');
+    }
+
+    const wasActive = existing.isActive && !existing.deletedAt;
+
+    if (
+      this.usageCounterService &&
+      typeof this.prisma.$transaction === 'function'
+    ) {
+      return this.prisma.$transaction(async (tx) => {
+        let txWasActive = wasActive;
+        if (typeof (tx as any).$queryRaw === 'function') {
+          const rows = await (tx as any).$queryRaw<
+            Array<{ isActive: boolean; deletedAt: Date | null }>
+          >`SELECT "isActive", "deletedAt" FROM "BusinessService" WHERE id = ${serviceId} FOR UPDATE`;
+          if (rows[0]) {
+            txWasActive = rows[0].isActive && !rows[0].deletedAt;
+          }
+        }
+        const updated = await tx.businessService.update({
+          where: { id: serviceId },
+          data: {
+            isActive: false,
+            deletedAt: new Date(),
+          },
+        });
+        if (txWasActive) {
+          await this.usageCounterService!.decrementCounterInTransaction(
+            tx,
+            organizationId,
+            'APPOINTMENT_SERVICES',
+            1,
+          );
+        }
+        return updated;
+      });
     }
 
     // Soft delete by setting deletedAt and isActive: false
@@ -1861,6 +1949,14 @@ export class AppointmentsService {
           );
         }
         if (existingStaff && existingStaff.deletedAt) {
+          if (this.usageCounterService) {
+            await this.usageCounterService.enforceAndIncrementInTransaction(
+              tx,
+              organizationId,
+              'APPOINTMENT_STAFF',
+              1,
+            );
+          }
           // Re-activate the soft-deleted record
           const reactivated = await tx.orgStaff.update({
             where: { id: existingStaff.id },
@@ -1886,6 +1982,15 @@ export class AppointmentsService {
             accountStatus: 'PENDING_VERIFICATION' as any,
           },
         });
+      }
+
+      if (this.usageCounterService) {
+        await this.usageCounterService.enforceAndIncrementInTransaction(
+          tx,
+          organizationId,
+          'APPOINTMENT_STAFF',
+          1,
+        );
       }
 
       // 2. Create OrgStaff record

@@ -19,6 +19,8 @@ import { OrgType } from '@prisma/client';
 import { RetailPermissionGuard } from '../auth/guards/retail-permission.guard';
 import { RequirePermissions } from '../auth/decorators/require-permissions.decorator';
 import { RetailPermission } from '../auth/retail-permissions.enum';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('retail/employees')
 @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, RetailPermissionGuard)
@@ -27,7 +29,9 @@ export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
   @Post()
+  @UseGuards(SubscriptionGuard)
   @RequirePermissions(RetailPermission.EMPLOYEES_MANAGE)
+  @RequireSubscriptionFeature('RETAIL_EMPLOYEES', { checkUsage: true })
   async createEmployee(@Request() req: any, @Body() body: any) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException('Organization context is required');

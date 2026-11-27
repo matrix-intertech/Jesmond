@@ -24,6 +24,8 @@ import { ListOrdersQueryDto } from './dtos/list-orders.dto';
 import { BusinessCapabilityGuard } from '../../auth/guards/business-capability.guard';
 import { RequireCapability } from '../../auth/decorators/require-capability.decorator';
 import { BusinessCapability } from '../../auth/business-capabilities';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 
 @Controller('retail/orders')
 @UseGuards(
@@ -40,7 +42,9 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
+  @UseGuards(SubscriptionGuard)
   @RequirePermissions(RetailPermission.ORDERS_MANAGE)
+  @RequireSubscriptionFeature('RETAIL_ORDERS')
   async createOrder(@Request() req: any, @Body() data: any) {
     if (!req.user || !req.user.organizationId) {
       throw new ForbiddenException(

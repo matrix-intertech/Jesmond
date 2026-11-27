@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ActorType } from '@prisma/client';
 
@@ -26,6 +30,33 @@ export class FeatureFlagService {
   }
 
   async setFeatureState(key: string, enabled: boolean, adminId: string) {
+    if (
+      (key === 'SUBSCRIPTION_CHECKOUT_ENABLED' ||
+        key === 'SUBSCRIPTION_ENFORCEMENT_ENABLED') &&
+      enabled
+    ) {
+      const subscriptionsEnabled = await this.isEnabled(
+        'SUBSCRIPTIONS_ENABLED',
+      );
+      if (!subscriptionsEnabled) {
+        throw new BadRequestException(
+          `${key} cannot be enabled while SUBSCRIPTIONS_ENABLED is false`,
+        );
+      }
+    }
+
+    if (key === 'SUBSCRIPTIONS_ENABLED' && !enabled) {
+      const [enforcementEnabled, checkoutEnabled] = await Promise.all([
+        this.isEnabled('SUBSCRIPTION_ENFORCEMENT_ENABLED'),
+        this.isEnabled('SUBSCRIPTION_CHECKOUT_ENABLED'),
+      ]);
+      if (enforcementEnabled || checkoutEnabled) {
+        throw new BadRequestException(
+          'Disable SUBSCRIPTION_ENFORCEMENT_ENABLED and SUBSCRIPTION_CHECKOUT_ENABLED before disabling SUBSCRIPTIONS_ENABLED',
+        );
+      }
+    }
+
     try {
       // We use upsert so it gets created if it doesn't exist
       const feature = await this.prisma.featureFlag.upsert({
@@ -48,6 +79,9 @@ export class FeatureFlagService {
 
       return { key, enabled: feature.enabled };
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Failed to update feature state');
     }
   }

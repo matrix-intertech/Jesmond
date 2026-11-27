@@ -3,18 +3,21 @@ import {
   ForbiddenException,
   NotFoundException,
   ConflictException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthService } from '../../auth/services/auth.service';
 import { UserRole, AccountStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { UsageCounterService } from '../../subscriptions/services/usage-counter.service';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
+    @Optional() private usageCounterService?: UsageCounterService,
   ) {}
 
   async createEmployee(
@@ -54,6 +57,15 @@ export class EmployeesService {
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
     const result = await this.prisma.$transaction(async (tx) => {
+      if (this.usageCounterService) {
+        await this.usageCounterService.enforceAndIncrementInTransaction(
+          tx,
+          organizationId,
+          'RETAIL_EMPLOYEES',
+          1,
+        );
+      }
+
       const user = await tx.user.create({
         data: {
           email: email.toLowerCase(),
@@ -317,6 +329,40 @@ export class EmployeesService {
 
       // Update User if needed (like accountStatus)
       if (accountStatus) {
+        if (this.usageCounterService) {
+          const lockedUsers = await tx.$queryRaw<
+            Array<{ accountStatus: AccountStatus }>
+          >`
+            SELECT "accountStatus" FROM "User"
+            WHERE id = ${employee.userId}
+            FOR UPDATE
+          `;
+          const prevStatus =
+            lockedUsers[0]?.accountStatus ?? employee.user?.accountStatus;
+
+          if (
+            prevStatus !== AccountStatus.DEACTIVATED &&
+            accountStatus === AccountStatus.DEACTIVATED
+          ) {
+            await this.usageCounterService.decrementCounterInTransaction(
+              tx,
+              organizationId,
+              'RETAIL_EMPLOYEES',
+              1,
+            );
+          } else if (
+            prevStatus === AccountStatus.DEACTIVATED &&
+            accountStatus !== AccountStatus.DEACTIVATED
+          ) {
+            await this.usageCounterService.enforceAndIncrementInTransaction(
+              tx,
+              organizationId,
+              'RETAIL_EMPLOYEES',
+              1,
+            );
+          }
+        }
+
         await tx.user.update({
           where: { id: employee.userId },
           data: { accountStatus },
@@ -330,13 +376,42 @@ export class EmployeesService {
   async deactivateEmployee(organizationId: string, employeeId: string) {
     const employee = await this.getEmployee(organizationId, employeeId);
 
-    // Deactivate User
-    await this.prisma.user.update({
-      where: { id: employee.userId },
-      data: {
-        accountStatus: AccountStatus.DEACTIVATED,
-      },
-    });
+    if (
+      this.usageCounterService &&
+      typeof this.prisma.$transaction === 'function'
+    ) {
+      await this.prisma.$transaction(async (tx) => {
+        const lockedUsers = await tx.$queryRaw<
+          Array<{ accountStatus: AccountStatus }>
+        >`
+          SELECT "accountStatus" FROM "User"
+          WHERE id = ${employee.userId}
+          FOR UPDATE
+        `;
+        const prevStatus =
+          lockedUsers[0]?.accountStatus ?? employee.user?.accountStatus;
+
+        await tx.user.update({
+          where: { id: employee.userId },
+          data: { accountStatus: AccountStatus.DEACTIVATED },
+        });
+        if (prevStatus !== AccountStatus.DEACTIVATED) {
+          await this.usageCounterService!.decrementCounterInTransaction(
+            tx,
+            organizationId,
+            'RETAIL_EMPLOYEES',
+            1,
+          );
+        }
+      });
+    } else {
+      await this.prisma.user.update({
+        where: { id: employee.userId },
+        data: {
+          accountStatus: AccountStatus.DEACTIVATED,
+        },
+      });
+    }
 
     return { success: true, message: 'Employee deactivated' };
   }

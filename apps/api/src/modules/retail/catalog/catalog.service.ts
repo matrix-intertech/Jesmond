@@ -5,12 +5,17 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
+  Optional,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UsageCounterService } from '../../subscriptions/services/usage-counter.service';
 
 @Injectable()
 export class CatalogService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Optional() private usageCounterService?: UsageCounterService,
+  ) {}
 
   async createProduct(
     organizationId: string,
@@ -46,30 +51,69 @@ export class CatalogService {
     }
 
     try {
-      const product = await this.prisma.product.create({
-        data: {
-          organizationId,
-          sku: data.sku,
-          barcode: cleanBarcode,
-          name: data.name,
-          sellingPrice: data.sellingPrice,
-          imageUrl: data.imageUrl,
-        },
-      });
+      const useTx =
+        this.usageCounterService &&
+        typeof this.prisma.$transaction === 'function';
 
-      await this.prisma.auditLog.create({
-        data: {
-          actorId: userId,
-          actorType: 'USER',
-          action: 'product.create',
-          resourceType: 'Product',
-          resourceId: product.id,
-          changes: { new: product as any },
-        },
-      });
+      const product = useTx
+        ? await this.prisma.$transaction(async (tx) => {
+            await this.usageCounterService!.enforceAndIncrementInTransaction(
+              tx,
+              organizationId,
+              'RETAIL_PRODUCTS',
+              1,
+            );
+            const created = await tx.product.create({
+              data: {
+                organizationId,
+                sku: data.sku,
+                barcode: cleanBarcode,
+                name: data.name,
+                sellingPrice: data.sellingPrice,
+                imageUrl: data.imageUrl!,
+              },
+            });
+            await tx.auditLog.create({
+              data: {
+                actorId: userId,
+                actorType: 'USER',
+                action: 'product.create',
+                resourceType: 'Product',
+                resourceId: created.id,
+                changes: { new: created as any },
+              },
+            });
+            return created;
+          })
+        : await (async () => {
+            const created = await this.prisma.product.create({
+              data: {
+                organizationId,
+                sku: data.sku,
+                barcode: cleanBarcode,
+                name: data.name,
+                sellingPrice: data.sellingPrice,
+                imageUrl: data.imageUrl!,
+              },
+            });
+            await this.prisma.auditLog.create({
+              data: {
+                actorId: userId,
+                actorType: 'USER',
+                action: 'product.create',
+                resourceType: 'Product',
+                resourceId: created.id,
+                changes: { new: created as any },
+              },
+            });
+            return created;
+          })();
 
       return product;
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       if (error && error.code === 'P2002') {
         throw new ConflictException('SKU must be unique for the organization');
       }
@@ -130,36 +174,97 @@ export class CatalogService {
     }
 
     try {
-      const product = await this.prisma.product.update({
-        where: { id: productId },
-        data: {
-          sku: data.sku !== undefined ? data.sku : existing.sku,
-          barcode: finalBarcode,
-          name: data.name !== undefined ? data.name : existing.name,
-          sellingPrice:
-            data.sellingPrice !== undefined
-              ? data.sellingPrice
-              : existing.sellingPrice,
-          imageUrl:
-            data.imageUrl !== undefined ? data.imageUrl : existing.imageUrl,
-          isActive:
-            data.isActive !== undefined ? data.isActive : existing.isActive,
-        },
-      });
+      const nextIsActive =
+        data.isActive !== undefined ? data.isActive : existing.isActive;
+      const deactivating = existing.isActive && nextIsActive === false;
+      const restoring = !existing.isActive && nextIsActive === true;
+      const useTx =
+        this.usageCounterService &&
+        typeof this.prisma.$transaction === 'function' &&
+        (deactivating || restoring);
 
-      await this.prisma.auditLog.create({
-        data: {
-          actorId: userId,
-          actorType: 'USER',
-          action: 'product.update',
-          resourceType: 'Product',
-          resourceId: product.id,
-          changes: { old: existing as any, new: product as any },
-        },
-      });
+      const updateData = {
+        sku: data.sku !== undefined ? data.sku : existing.sku,
+        barcode: finalBarcode,
+        name: data.name !== undefined ? data.name : existing.name,
+        sellingPrice:
+          data.sellingPrice !== undefined
+            ? data.sellingPrice
+            : existing.sellingPrice,
+        imageUrl:
+          data.imageUrl !== undefined ? data.imageUrl : existing.imageUrl,
+        isActive: nextIsActive,
+      };
+
+      const product = useTx
+        ? await this.prisma.$transaction(async (tx) => {
+            let currentActive = existing.isActive;
+            if (typeof (tx as any).$queryRaw === 'function') {
+              const rows = await (tx as any).$queryRaw<
+                Array<{ isActive: boolean }>
+              >`SELECT "isActive" FROM "Product" WHERE id = ${productId} FOR UPDATE`;
+              if (rows[0]) {
+                currentActive = rows[0].isActive;
+              }
+            }
+            const txDeactivating = currentActive && nextIsActive === false;
+            const txRestoring = !currentActive && nextIsActive === true;
+
+            if (txRestoring) {
+              await this.usageCounterService!.enforceAndIncrementInTransaction(
+                tx,
+                organizationId,
+                'RETAIL_PRODUCTS',
+                1,
+              );
+            }
+            const updated = await tx.product.update({
+              where: { id: productId },
+              data: updateData,
+            });
+            if (txDeactivating) {
+              await this.usageCounterService!.decrementCounterInTransaction(
+                tx,
+                organizationId,
+                'RETAIL_PRODUCTS',
+                1,
+              );
+            }
+            await tx.auditLog.create({
+              data: {
+                actorId: userId,
+                actorType: 'USER',
+                action: 'product.update',
+                resourceType: 'Product',
+                resourceId: updated.id,
+                changes: { old: existing as any, new: updated as any },
+              },
+            });
+            return updated;
+          })
+        : await (async () => {
+            const updated = await this.prisma.product.update({
+              where: { id: productId },
+              data: updateData,
+            });
+            await this.prisma.auditLog.create({
+              data: {
+                actorId: userId,
+                actorType: 'USER',
+                action: 'product.update',
+                resourceType: 'Product',
+                resourceId: updated.id,
+                changes: { old: existing as any, new: updated as any },
+              },
+            });
+            return updated;
+          })();
 
       return product;
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       if (error && error.code === 'P2002') {
         throw new ConflictException('SKU must be unique for the organization');
       }

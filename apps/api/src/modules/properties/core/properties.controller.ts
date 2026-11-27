@@ -28,6 +28,8 @@ import {
 } from '@prisma/client';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
+import { SubscriptionGuard } from '../../subscriptions/guards/subscription.guard';
+import { RequireSubscriptionFeature } from '../../subscriptions/decorators/subscription.decorators';
 import {
   CreatePropertyDto,
   CreateRoomTypeDto,
@@ -45,9 +47,10 @@ import {
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, SubscriptionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireSubscriptionFeature('ACCOMMODATION_LISTINGS', { checkUsage: true })
   @Post()
   async createProperty(@Body() dto: CreatePropertyDto, @Request() req: any) {
     if (!req.user?.organizationId) {
@@ -308,9 +311,10 @@ export class PropertiesController {
   }
 
   // --- Actual Rooms ---
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, SubscriptionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireSubscriptionFeature('ACCOMMODATION_ROOMS', { checkUsage: true })
   @Post('my/:id/room-types/:roomTypeId/rooms')
   async createRoom(
     @Param('id') id: string,
@@ -377,9 +381,10 @@ export class PropertiesController {
     return this.propertiesService.updateAvailability(id, req.user, roomId, dto);
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard, OrgTypesGuard, SubscriptionGuard)
   @OrgTypes(OrgType.PROVIDER)
   @Roles(UserRole.ORG_STAFF, UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @RequireSubscriptionFeature('ACCOMMODATION_LISTINGS')
   @Post('my/:id/submit')
   async submitProperty(@Param('id') id: string, @Request() req: any) {
     await this.propertiesService.verifyPropertyAccess(id, req.user, true);
