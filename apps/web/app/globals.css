@@ -159,13 +159,17 @@
 }
 
 [data-theme="business"] .bg-gray-50,
-[data-theme="business"] .bg-slate-50 {
+[data-theme="business"] .bg-slate-50,
+[data-theme="business"] [class*="bg-slate-50/"],
+[data-theme="business"] [class*="bg-gray-50/"] {
   background-color: #1A100A;
 }
 
 [data-theme="business"] .bg-gray-100,
 [data-theme="business"] .bg-gray-200,
-[data-theme="business"] .bg-slate-100 {
+[data-theme="business"] .bg-gray-300,
+[data-theme="business"] .bg-slate-100,
+[data-theme="business"] .bg-slate-200 {
   background-color: #24160D;
 }
 
@@ -194,7 +198,8 @@
 
 /* Indigo & Purple accents mapped to Business orangish-gold */
 [data-theme="business"] .bg-indigo-50,
-[data-theme="business"] .bg-purple-50 {
+[data-theme="business"] .bg-purple-50,
+[data-theme="business"] [class*="bg-purple-50/"] {
   background-color: rgba(234, 138, 50, 0.14);
 }
 [data-theme="business"] .bg-purple-100 {
@@ -225,8 +230,13 @@
 
 /* Semantic status indicators adapted for dark espresso surfaces (hue preserved) */
 [data-theme="business"] .bg-emerald-50,
-[data-theme="business"] .bg-green-50 {
-  background-color: rgba(16, 185, 129, 0.14);
+[data-theme="business"] .bg-emerald-100,
+[data-theme="business"] .bg-emerald-200,
+[data-theme="business"] .bg-green-50,
+[data-theme="business"] .bg-green-100,
+[data-theme="business"] [class*="bg-emerald-50/"],
+[data-theme="business"] [class*="bg-emerald-200/"] {
+  background-color: rgba(16, 185, 129, 0.16);
 }
 [data-theme="business"] .border-emerald-200,
 [data-theme="business"] .border-green-200 {
@@ -239,20 +249,32 @@
   color: #6EE7B7;
 }
 
-[data-theme="business"] .bg-amber-50 {
-  background-color: rgba(245, 158, 11, 0.14);
+[data-theme="business"] .bg-amber-50,
+[data-theme="business"] .bg-amber-100,
+[data-theme="business"] .bg-orange-100,
+[data-theme="business"] .bg-yellow-100,
+[data-theme="business"] [class*="bg-amber-50/"],
+[data-theme="business"] [class*="bg-amber-100/"] {
+  background-color: rgba(245, 158, 11, 0.16);
 }
 [data-theme="business"] .border-amber-200 {
   border-color: rgba(245, 158, 11, 0.32);
 }
 [data-theme="business"] .text-amber-700,
-[data-theme="business"] .text-amber-800 {
+[data-theme="business"] .text-amber-800,
+[data-theme="business"] .text-orange-700,
+[data-theme="business"] .text-yellow-700,
+[data-theme="business"] .text-yellow-800 {
   color: #FCD34D;
 }
 
 [data-theme="business"] .bg-red-50,
-[data-theme="business"] .bg-rose-50 {
-  background-color: rgba(239, 68, 68, 0.14);
+[data-theme="business"] .bg-red-100,
+[data-theme="business"] .bg-red-200,
+[data-theme="business"] .bg-rose-50,
+[data-theme="business"] .bg-rose-100,
+[data-theme="business"] [class*="bg-rose-50/"] {
+  background-color: rgba(239, 68, 68, 0.16);
 }
 [data-theme="business"] .border-red-200,
 [data-theme="business"] .border-rose-200 {
@@ -266,8 +288,13 @@
 }
 
 [data-theme="business"] .bg-blue-50,
-[data-theme="business"] .bg-teal-50 {
-  background-color: rgba(59, 130, 246, 0.14);
+[data-theme="business"] .bg-blue-100,
+[data-theme="business"] .bg-blue-200,
+[data-theme="business"] .bg-teal-50,
+[data-theme="business"] .bg-teal-100,
+[data-theme="business"] [class*="bg-blue-50/"],
+[data-theme="business"] [class*="bg-blue-200/"] {
+  background-color: rgba(59, 130, 246, 0.16);
 }
 [data-theme="business"] .border-blue-200,
 [data-theme="business"] .border-teal-200 {
