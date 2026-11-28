@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import { GlobalNav } from "../../components/marketing/GlobalNav";
 import { EditorialFooter } from "../../components/marketing/EditorialFooter";
-import { PricingCatalogClient } from "../../components/subscriptions/PricingCatalogClient";
+import {
+  PricingCatalogClient,
+  PricingCatalogSkeleton,
+} from "../../components/subscriptions/PricingCatalogClient";
 
 export const metadata = {
   title: {
@@ -34,13 +37,7 @@ export default function PricingPage() {
           </div>
         </section>
 
-        <Suspense
-          fallback={
-            <div className="max-w-[1100px] mx-auto px-6 py-16 text-center text-text-secondary">
-              Loading pricing...
-            </div>
-          }
-        >
+        <Suspense fallback={<PricingCatalogSkeleton />}>
           <PricingCatalogClient />
         </Suspense>
       </main>

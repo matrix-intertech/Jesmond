@@ -39,6 +39,7 @@ export function HeroSection({
           sizes="100vw"
           className="object-cover object-[center_60%]"
           priority
+          fetchPriority="high"
         />
       </div>
 
@@ -50,34 +51,22 @@ export function HeroSection({
         <div className="grid grid-cols-12 gap-6 sm:gap-8 items-end">
           {/* Left Side: Typography & Metrics */}
           <div className="col-span-12 lg:col-span-8 flex flex-col items-start text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
+            <div>
               <span className="block text-accent font-[family-name:var(--font-outfit)] text-sm tracking-[0.2em] uppercase font-bold mb-4">
                 Australia's Premium Network
               </span>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            <h1
               className="max-w-full text-[2.5rem] sm:text-[4rem] lg:text-[5rem] font-bold text-white tracking-tight leading-[1.05] mb-6 sm:max-w-3xl drop-shadow-lg"
               style={{ fontFamily: 'var(--font-outfit)' }}
             >
               Find your perfect place.
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="max-w-full text-base sm:text-xl text-white/90 mb-8 sm:mb-10 sm:max-w-2xl leading-relaxed font-light drop-shadow-md"
-            >
+            <p className="max-w-full text-base sm:text-xl text-white/90 mb-8 sm:mb-10 sm:max-w-2xl leading-relaxed font-light drop-shadow-md">
               Discover places that suit your needs. Explore listings and connect with businesses across Australia.
-            </motion.p>
+            </p>
 
             {/* Trust Metrics */}
             {displayCount && (
@@ -140,14 +129,9 @@ export function HeroSection({
 
       {/* 4. FLOATING SEARCH BAR CONTAINER */}
       <div className="absolute bottom-0 translate-y-1/2 left-0 right-0 z-30 flex justify-center w-full px-4 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[1100px]"
-        >
+        <div className="w-full max-w-[1100px]">
           <HeroSearchBar />
-        </motion.div>
+        </div>
       </div>
     </section>
   );

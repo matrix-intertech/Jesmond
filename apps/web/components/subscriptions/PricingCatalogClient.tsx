@@ -11,6 +11,52 @@ import {
   formatPriceMinor,
 } from "@/utils/subscriptions";
 
+export function PricingCatalogSkeleton() {
+  return (
+    <section
+      className="max-w-[1100px] mx-auto px-6 -mt-10 relative z-20 space-y-8 min-h-[460px]"
+      data-testid="pricing-loading"
+      aria-busy="true"
+    >
+      <span className="sr-only">Loading pricing...</span>
+      <div className="bg-surface rounded-2xl p-4 border border-border-strong shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-2">
+          {SUBSCRIPTION_PROFILES.map((p) => (
+            <div
+              key={p.id}
+              className="h-8 w-24 rounded-xl bg-surface-muted animate-pulse"
+            />
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-28 rounded-xl bg-surface-muted animate-pulse" />
+          <div className="h-8 w-16 rounded-xl bg-surface-muted animate-pulse" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {[0, 1, 2].map((idx) => (
+          <div
+            key={idx}
+            className="bg-surface rounded-[24px] p-8 border border-border-strong shadow-[0_8px_30px_rgb(0,0,0,0.04)] min-h-[340px] flex flex-col justify-between"
+          >
+            <div className="space-y-4">
+              <div className="h-6 w-1/2 rounded bg-surface-muted animate-pulse" />
+              <div className="h-4 w-3/4 rounded bg-surface-muted animate-pulse" />
+              <div className="h-10 w-1/3 rounded bg-surface-muted animate-pulse mt-4" />
+            </div>
+            <div className="space-y-2.5 pt-6">
+              <div className="h-3.5 w-full rounded bg-surface-muted animate-pulse" />
+              <div className="h-3.5 w-5/6 rounded bg-surface-muted animate-pulse" />
+              <div className="h-10 w-full rounded-xl bg-surface-muted animate-pulse mt-4" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function PricingCatalogClient() {
   const searchParams = useSearchParams();
   const initialProfile = useMemo(() => {
@@ -84,14 +130,7 @@ export function PricingCatalogClient() {
   }, [availableCurrencies, currency]);
 
   if (loading) {
-    return (
-      <div
-        className="max-w-[1100px] mx-auto px-6 py-16 text-center text-text-secondary"
-        data-testid="pricing-loading"
-      >
-        Loading pricing...
-      </div>
-    );
+    return <PricingCatalogSkeleton />;
   }
 
   if (error) {

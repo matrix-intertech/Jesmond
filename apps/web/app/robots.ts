@@ -1,14 +1,29 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 import { getSiteUrl, isProductionEnvironment } from "@/utils/site";
 
 export const dynamic = "force-dynamic";
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
   const siteUrl = getSiteUrl();
   const isProd = isProductionEnvironment();
+  const reqHeaders = await headers();
+  const host = (
+    reqHeaders.get("x-forwarded-host") ||
+    reqHeaders.get("host") ||
+    ""
+  )
+    .toLowerCase()
+    .trim();
 
-  // In non-production environments (staging, preview, local dev), disallow all crawling
-  if (!isProd) {
+  const isBusinessSubdomain =
+    host.startsWith("business.jesmond.com.au") ||
+    host.startsWith("business.localhost") ||
+    host.startsWith("business.");
+
+  // In non-production environments or on the isolated Business Portal subdomain,
+  // disallow all crawling and do not advertise the customer sitemap.
+  if (!isProd || isBusinessSubdomain) {
     return {
       rules: [
         {
