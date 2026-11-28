@@ -127,7 +127,6 @@ export function MapPreviewSection() {
                 fill
                 sizes="100vw"
                 className="object-cover opacity-20 grayscale"
-                priority
               />
             </motion.div>
           </AnimatePresence>

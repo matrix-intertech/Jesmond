@@ -146,7 +146,6 @@ export function StudyDestinations() {
  fill
  sizes="100vw"
  className="object-cover opacity-80"
- priority
  />
  {/* Complex gradient to ensure text readability */}
  <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-primary/30 to-transparent" />

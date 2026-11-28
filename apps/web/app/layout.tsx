@@ -52,9 +52,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/assets/icon.svg", type: "image/svg+xml" },
-      { url: "/assets/icon.png" },
+      { url: "/assets/icon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
-    apple: "/assets/icon.png",
+    apple: [
+      { url: "/assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
     ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
