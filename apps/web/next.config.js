@@ -85,6 +85,8 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   images: {
+    formats: ['image/avif', 'image/webp'],
+    qualities: [70, 75],
     remotePatterns,
   },
   async headers() {

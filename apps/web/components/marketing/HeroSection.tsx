@@ -1,8 +1,6 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Image from "next/image";
 import { HeroSearchBar } from "./HeroSearchBar";
+import { HeroAnimatedBadges, HeroAnimatedMetrics } from "./HeroAnimations";
 import Link from "next/link";
 
 interface FeaturedPropertyData {
@@ -37,6 +35,7 @@ export function HeroSection({
           aria-hidden="true"
           fill
           sizes="100vw"
+          quality={70}
           className="object-cover object-[center_60%]"
           priority
           fetchPriority="high"
@@ -70,28 +69,18 @@ export function HeroSection({
 
             {/* Trust Metrics */}
             {displayCount && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1, delay: 0.4 }}
-                className="inline-flex max-w-full justify-start items-center mt-2 bg-primary/40 backdrop-blur-md rounded-2xl p-4 sm:px-8 sm:py-5 border border-white/10 shadow-xl"
-              >
+              <HeroAnimatedMetrics>
                 <div className="text-center sm:text-left">
                   <p className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{displayCount}</p>
                   <p className="text-[10px] sm:text-xs text-white/70 font-semibold tracking-widest uppercase mt-1">Verified Properties</p>
                 </div>
-              </motion.div>
+              </HeroAnimatedMetrics>
             )}
           </div>
 
           {/* Right Side: Badges */}
           <div className="col-span-12 lg:col-span-4 flex flex-col items-start lg:items-end justify-end gap-3 pb-2 pt-8 lg:pt-0">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="flex flex-col gap-4 w-full sm:w-auto items-start lg:items-end"
-            >
+            <HeroAnimatedBadges>
               <div className="max-w-full bg-surface/10 backdrop-blur-md rounded-full px-4 sm:px-5 py-2 border border-white/20 shadow-lg flex items-center gap-2 font-medium text-white text-sm whitespace-nowrap">
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -122,7 +111,7 @@ export function HeroSection({
                   </div>
                 </Link>
               )}
-            </motion.div>
+            </HeroAnimatedBadges>
           </div>
         </div>
       </div>

@@ -10,10 +10,13 @@ import { getSiteUrl } from "@/utils/site";
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
+  display: "swap",
 });
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
+  display: "swap",
+  preload: false,
 });
 
 const siteUrl = getSiteUrl();
