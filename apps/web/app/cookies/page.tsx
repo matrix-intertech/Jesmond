@@ -40,10 +40,10 @@ export default function CookiesPage() {
         Jesmond classifies cookies into the following categories:
       </p>
       <ul>
-        <li><strong>Strictly Necessary Cookies:</strong> Essential for you to browse the platform and use features such as student account authentication, CSRF security verification, and booking application submissions. Without these cookies, the core services cannot function.</li>
+        <li><strong>Strictly Necessary Cookies:</strong> Essential for you to browse the platform and use features such as customer account authentication, CSRF security verification, and booking application submissions. Without these cookies, the core services cannot function.</li>
         <li><strong>Functional Cookies:</strong> Enable the platform to remember choices you make, such as selected city filters, preferred search dates, and currency or localization settings.</li>
         <li><strong>Performance and Analytics Cookies:</strong> Collect aggregated, anonymous data on how visitors interact with our pages, helping us identify broken links, measure page load speeds, and optimize user experience.</li>
-        <li><strong>Security Cookies:</strong> Help identify and prevent potential security risks, automated abuse, and fraud on student applications.</li>
+        <li><strong>Security Cookies:</strong> Help identify and prevent potential security risks, automated abuse, and fraud on customer applications.</li>
       </ul>
 
       <h2>3. Third-Party Integrations</h2>

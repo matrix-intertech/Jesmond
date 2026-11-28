@@ -42,7 +42,7 @@ export default function AdminApplicationsPage() {
 
  return (
  <>
- <PageHeader title="Admin Applications" description="Read‑only view of all student applications" />
+ <PageHeader title="Admin Applications" description="Read‑only view of all customer applications" />
  <div className="mt-6 space-y-3 md:hidden">
  {applications.map((app) => (
  <div key={app.id} className="rounded-xl border bg-surface p-4 shadow-sm">
@@ -69,7 +69,7 @@ export default function AdminApplicationsPage() {
  <table className="min-w-full table-auto">
  <thead className="bg-surface-muted">
  <tr>
- <th className="px-4 py-2 text-left font-medium text-primary">Student</th>
+ <th className="px-4 py-2 text-left font-medium text-primary">Customer</th>
  <th className="px-4 py-2 text-left font-medium text-primary">Property</th>
  <th className="px-4 py-2 text-left font-medium text-primary">Room Type</th>
  <th className="px-4 py-2 text-left font-medium text-primary">Provider</th>

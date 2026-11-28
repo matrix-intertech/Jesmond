@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Create a Jesmond Account | Student Accommodation",
+    absolute: "Create a Jesmond Account | Customer Registration",
   },
-  description: "Create your free Jesmond account to find, compare, and apply for verified student accommodation in Australia.",
+  description: "Create your free Jesmond account to find, compare, and book verified accommodation, retail, and local services in Australia.",
   robots: { index: false, follow: false },
 };
 

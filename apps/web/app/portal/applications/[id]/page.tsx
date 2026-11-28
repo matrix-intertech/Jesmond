@@ -68,7 +68,7 @@ export default function ApplicationDetailPage() {
  };
 
  const handleAction = async (action: 'approve' | 'reject' | 'remove') => {
- if (action === 'remove' && !confirm('Are you sure you want to remove this student from the application? This action cannot be undone.')) {
+ if (action === 'remove' && !confirm('Are you sure you want to remove this customer from the application? This action cannot be undone.')) {
  return;
  }
 
@@ -125,7 +125,7 @@ export default function ApplicationDetailPage() {
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
  <div>
- <h3 className="font-bold text-lg mb-4 text-primary border-b pb-2">Student Information</h3>
+ <h3 className="font-bold text-lg mb-4 text-primary border-b pb-2">Customer Information</h3>
  <p className="text-text-secondary mb-2"><span className="font-semibold w-24 inline-block">Name:</span> {app.student.firstName} {app.student.lastName}</p>
  <p className="text-text-secondary mb-2"><span className="font-semibold w-24 inline-block">Email:</span> {app.student.email}</p>
  </div>
@@ -189,7 +189,7 @@ export default function ApplicationDetailPage() {
  disabled={actionLoading}
  className="flex-1 bg-rose-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-700 transition"
  >
- {actionLoading ? 'Processing...' : 'Remove Student'}
+ {actionLoading ? 'Processing...' : 'Remove Customer'}
  </button>
  </div>
  )}

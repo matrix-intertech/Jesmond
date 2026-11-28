@@ -91,7 +91,7 @@ export default function StudentSavedPage() {
  <div className="bg-surface p-8 rounded-xl shadow-sm border">
  <EmptyState
  title="No saved properties yet"
- description="Start exploring to find your perfect student home."
+ description="Start exploring to find your perfect home."
  action={{ label: "Explore Properties", href: "/search" }}
  />
  </div>

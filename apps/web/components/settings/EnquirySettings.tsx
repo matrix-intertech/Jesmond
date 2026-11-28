@@ -58,7 +58,7 @@ export default function EnquirySettings() {
  <div className="max-w-2xl mx-auto space-y-6">
  <div>
  <h2 className="text-xl font-semibold">Enquiry Preferences</h2>
- <p className="text-sm text-text-secondary">Manage how you receive student enquiries.</p>
+ <p className="text-sm text-text-secondary">Manage how you receive customer enquiries.</p>
  </div>
 
  <div className="space-y-4">

@@ -439,7 +439,7 @@ function BusinessOnboardingContent() {
               <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <span className="font-semibold text-white">Public Marketplace Visibility: </span>
-                <span className="text-slate-300">Public student bookings and customer checkouts will activate once regulatory credentials (ABN and industry licenses) are verified.</span>
+                <span className="text-slate-300">Public customer bookings and checkouts will activate once regulatory credentials (ABN and industry licenses) are verified.</span>
               </div>
             </div>
           </div>
@@ -913,13 +913,13 @@ function BusinessOnboardingContent() {
                   >
                     <option value="1-5 Rooms / Units">1-5 Rooms / Private Units</option>
                     <option value="6-20 Rooms">6-20 Rooms / Shared Housing</option>
-                    <option value="20+ Enterprise Units">20+ Enterprise Student Accommodation</option>
+                    <option value="20+ Enterprise Units">20+ Enterprise Accommodation Units</option>
                   </select>
                 </div>
 
                 <div>
                   <label htmlFor="lease-term" className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Default Minimum Student Lease Period
+                    Default Minimum Lease Period
                   </label>
                   <select
                     id="lease-term"
@@ -1023,7 +1023,7 @@ function BusinessOnboardingContent() {
                       onChange={(e) => updateField('takeawayEnabled', e.target.checked)}
                       className="rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span className="text-xs text-slate-300 font-semibold">Enable Mobile Student Takeaway Orders</span>
+                    <span className="text-xs text-slate-300 font-semibold">Enable Mobile Customer Takeaway Orders</span>
                   </label>
                 </div>
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import StudentLayoutClient from "./StudentLayoutClient";
 
 export const metadata: Metadata = {
-  title: "Student Portal",
+  title: "Customer Portal",
   robots: { index: false, follow: false },
 };
 

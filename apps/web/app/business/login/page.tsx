@@ -295,7 +295,7 @@ function BusinessLoginContent() {
           </div>
 
           <div className="pt-3 flex items-center justify-between text-xs text-[#C9B69C] border-t border-[rgba(214,166,79,0.22)]">
-            <span>Are you a student or customer?</span>
+            <span>Are you a customer?</span>
             <a
               href="https://jesmond.com.au/login"
               className="text-[#F3D69A] hover:text-[#FFF9EF] font-semibold inline-flex items-center gap-1 transition-colors"

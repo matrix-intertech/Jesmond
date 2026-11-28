@@ -140,7 +140,7 @@ export default function AgencySettingsPage() {
                       Public Directory Visibility
                     </label>
                     <p className="mt-1 text-xs text-text-secondary leading-relaxed">
-                      When enabled, your agency profile appears in student agency listings and public search.
+                      When enabled, your agency profile appears in customer agency listings and public search.
                       When disabled, your agency is excluded from public search while staff members retain dashboard access.
                     </p>
                   </div>

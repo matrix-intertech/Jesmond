@@ -3,25 +3,25 @@ import Link from "next/link";
 
 export const metadata = {
   title: {
-    absolute: "Contact Jesmond | Student & Provider Support",
+    absolute: "Contact Jesmond | Customer & Provider Support",
   },
   description:
-    "Get in touch with the Jesmond team. Contact our student support desk, accommodation provider relations team, or Sydney headquarters.",
+    "Get in touch with the Jesmond team. Contact our customer support desk, accommodation provider relations team, or Sydney headquarters.",
   alternates: {
     canonical: "/contact",
   },
   openGraph: {
-    title: "Contact Jesmond | Student & Provider Support",
+    title: "Contact Jesmond | Customer & Provider Support",
     description:
-      "Get in touch with the Jesmond team. Contact our student support desk, accommodation provider relations team, or Sydney headquarters.",
+      "Get in touch with the Jesmond team. Contact our customer support desk, accommodation provider relations team, or Sydney headquarters.",
     url: "/contact",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Contact Jesmond | Student & Provider Support",
+    title: "Contact Jesmond | Customer & Provider Support",
     description:
-      "Get in touch with the Jesmond team. Contact our student support desk, accommodation provider relations team, or Sydney headquarters.",
+      "Get in touch with the Jesmond team. Contact our customer support desk, accommodation provider relations team, or Sydney headquarters.",
   },
 };
 
@@ -29,11 +29,11 @@ export default function ContactPage() {
   return (
     <StaticPageLayout
       title="Get in Touch"
-      subtitle="We're here to assist students, accommodation providers, and university partners across Australia."
+      subtitle="We're here to assist customers, accommodation providers, and university partners across Australia."
     >
-      <h2>Student Support Desk</h2>
+      <h2>Customer Support Desk</h2>
       <p>
-        If you are an international or domestic student seeking assistance with accommodation applications, booking confirmations, or account navigation:
+        If you are a customer seeking assistance with accommodation applications, booking confirmations, or account navigation:
       </p>
       <ul>
         <li><strong>Email:</strong> support@jesmond.com.au</li>

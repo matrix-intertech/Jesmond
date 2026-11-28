@@ -37,7 +37,7 @@ export default function TermsPage() {
 
       <h2>2. Description of Service</h2>
       <p>
-        Jesmond provides a marketplace platform connecting verified student accommodation providers ("Providers") with students looking for housing ("Students"). Jesmond is not a real estate agent or a property manager. We simply facilitate the connection and application process.
+        Jesmond provides a marketplace platform connecting verified accommodation providers ("Providers") with customers looking for housing ("Customers"). Jesmond is not a real estate agent or a property manager. We simply facilitate the connection and application process.
       </p>
 
       <h2>3. User Accounts</h2>
@@ -47,7 +47,7 @@ export default function TermsPage() {
 
       <h2>4. Booking and Applications</h2>
       <p>
-        Submitting an application through the Platform does not guarantee a room. Providers retain the right to review and accept or reject applications based on their own criteria. Jesmond does not dictate the lease terms, which are agreed upon directly between the Student and the Provider.
+        Submitting an application through the Platform does not guarantee a room. Providers retain the right to review and accept or reject applications based on their own criteria. Jesmond does not dictate the lease terms, which are agreed upon directly between the Customer and the Provider.
       </p>
 
       <h2>5. Provider Responsibilities</h2>

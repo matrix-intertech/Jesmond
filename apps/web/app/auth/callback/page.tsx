@@ -179,7 +179,7 @@ function SsoCallbackContent() {
                 href="https://jesmond.com.au"
                 className="text-xs text-slate-400 hover:text-white transition-colors"
               >
-                Return to Student Portal
+                Return to Customer Portal
               </a>
             </div>
           </div>

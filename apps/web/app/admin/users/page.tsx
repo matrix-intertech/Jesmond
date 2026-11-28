@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
@@ -46,8 +46,10 @@ function AccountStatusBadge({ status }: { status: string }) {
 }
 
 function ProfileTypeBadge({ profileType }: { profileType: string }) {
+ const displayLabel = profileType === 'Student' ? 'Customer' : profileType;
  const colorMap: Record<string, string> = {
  Student: 'bg-info-bg text-brand-indigo',
+ Customer: 'bg-info-bg text-brand-indigo',
  Parent: 'bg-surface-pink text-brand-indigo',
  Host: 'bg-teal-50 text-teal-800',
  Retailer: 'bg-surface-lavender text-brand-indigo',
@@ -59,7 +61,7 @@ function ProfileTypeBadge({ profileType }: { profileType: string }) {
  const cls = colorMap[profileType] ?? 'bg-secondary text-text-secondary';
  return (
  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>
- {profileType}
+ {displayLabel}
  </span>
  );
 }

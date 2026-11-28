@@ -75,7 +75,7 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     await page.goto('/student');
 
     await expect(page).toHaveURL(/\/student/);
-    await expect(page.locator('h1:has-text("Student Dashboard")')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('h1:has-text("Customer Dashboard")')).toBeVisible({ timeout: 10_000 });
   });
 
   test('2. Accommodation Provider Dashboard genuine navigation', async ({ page }) => {
@@ -320,9 +320,9 @@ test.describe('Jesmond 2.0 - Genuine Browser Navigation & Dashboard E2E Tests', 
     // Links for Profile, Security, Notifications, Privacy must be visible
     await expect(page.locator('a:has-text("Profile")').first()).toBeVisible();
     await expect(page.locator('a:has-text("Security")').first()).toBeVisible();
-    // Must NOT be stuck in student loading UI
-    await expect(page.locator('text=Student Portal')).not.toBeVisible();
-    await expect(page.locator('text=Loading student account...')).not.toBeVisible();
+    // Must NOT be stuck in customer loading UI
+    await expect(page.locator('text=Customer Portal')).not.toBeVisible();
+    await expect(page.locator('text=Loading customer account...')).not.toBeVisible();
   });
 
   test('14. Production reproduction: demo.services ORG_STAFF visiting /student redirects to /settings/profile safely', async ({ page }) => {

@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: {
     absolute: "Forgot Password | Jesmond Account Recovery",
   },
-  description: "Reset your Jesmond student or partner account password.",
+  description: "Reset your Jesmond customer or partner account password.",
   robots: { index: false, follow: false },
 };
 

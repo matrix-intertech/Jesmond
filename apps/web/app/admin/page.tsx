@@ -164,7 +164,7 @@ export default function AdminDashboardPage() {
  <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-surface-muted p-6 rounded-xl border">
  <div className="mb-4 md:mb-0 max-w-lg">
  <h3 className="font-bold text-lg text-primary mb-2">Payments &amp; Booking</h3>
- <p className="text-text-secondary mb-3">Allow students to make payments and activate accommodation bookings.</p>
+ <p className="text-text-secondary mb-3">Allow customers to make payments and activate accommodation bookings.</p>
  <div className="flex items-center gap-2">
  <span className="text-sm font-semibold text-text-secondary">Status:</span>
  {paymentsEnabled ? (
@@ -191,7 +191,7 @@ export default function AdminDashboardPage() {
  <ConfirmationDialog
  open={showConfirm}
  title={pendingAction === 'enable' ? 'Enable Payments & Booking' : 'Disable Payments & Booking'}
- message={pendingAction === 'enable' ? 'Enable Payments & Booking? Students will be able to make payments and activate bookings.' : 'Are you sure you want to disable Payments & Booking? Students will no longer be able to start new payments or activate bookings.'}
+ message={pendingAction === 'enable' ? 'Enable Payments & Booking? Customers will be able to make payments and activate bookings.' : 'Are you sure you want to disable Payments & Booking? Customers will no longer be able to start new payments or activate bookings.'}
  onConfirm={performToggle}
  onCancel={() => setShowConfirm(false)}
  />

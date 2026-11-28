@@ -460,7 +460,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
               priority
             />
             <span className="text-[11px] text-slate-500 font-semibold tracking-wider uppercase border-l border-slate-200 pl-3">
-              Student &amp; Customer Portal
+              Customer Portal
             </span>
           </Link>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
@@ -511,13 +511,13 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                 <>
                   <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 mb-3">
                     <GraduationCap className="w-4 h-4 text-indigo-600" />
-                    <span>Students & General Customers</span>
+                    <span>Customer Account</span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-outfit">
                     Sign in to Jesmond
                   </h1>
                   <p className="mt-2 text-sm text-slate-600">
-                    Access your student accommodation, bookings, dining orders, and services.
+                    Access your accommodation, bookings, dining orders, and services.
                   </p>
                 </>
               )}
@@ -526,13 +526,13 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                 <>
                   <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 mb-3">
                     <GraduationCap className="w-4 h-4 text-indigo-600" />
-                    <span>New Student Registration</span>
+                    <span>New Customer Registration</span>
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-outfit">
                     Create your account
                   </h1>
                   <p className="mt-2 text-sm text-slate-600">
-                    Find accommodation, reserve appointments, and unlock verified student discounts.
+                    Find accommodation, reserve appointments, and unlock verified customer discounts.
                   </p>
                 </>
               )}
@@ -656,7 +656,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@example.edu.au"
+                      placeholder="customer@example.com"
                       className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all sm:text-sm"
                     />
                     <Mail className="w-5 h-5 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
@@ -759,7 +759,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="student@example.edu.au"
+                    placeholder="customer@example.com"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                   />
                 </div>
@@ -875,7 +875,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="student@example.edu.au"
+                      placeholder="customer@example.com"
                       className="w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
                     />
                     <Mail className="w-5 h-5 text-slate-400 absolute right-3.5 top-3.5 pointer-events-none" />
@@ -1068,7 +1068,7 @@ function StudentAuthContent({ initialMode = 'login' }: StudentAuthSplitScreenPro
                 <div>
                   <h3 className="text-sm font-semibold text-white">Property &amp; Accommodation Hosting</h3>
                   <p className="text-xs text-amber-100/70 mt-0.5">
-                    Room listings, student leases, tenancy records, maintenance tickets, and occupancy tracking.
+                    Room listings, customer leases, tenancy records, maintenance tickets, and occupancy tracking.
                   </p>
                 </div>
               </div>

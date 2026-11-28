@@ -88,7 +88,7 @@ export function TrustExperience() {
  <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 text-center md:text-left divide-x divide-border-strong">
  <div className="px-4">
  <p className="text-4xl lg:text-5xl font-bold text-primary mb-2">18k+</p>
- <p className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Students Helped</p>
+ <p className="text-sm font-semibold text-text-secondary uppercase tracking-wider">Customers Helped</p>
  </div>
  <div className="px-4 lg:pl-12">
  <p className="text-4xl lg:text-5xl font-bold text-primary mb-2">420+</p>

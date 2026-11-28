@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
       !verifyData.isAdmin
     ) {
       return NextResponse.json(
-        { message: 'Student accounts cannot establish a business SSO session' },
+        { message: 'Customer accounts cannot establish a business SSO session' },
         { status: 403 },
       );
     }

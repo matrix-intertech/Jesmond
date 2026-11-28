@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Sign in to Jesmond | Student & Partner Account",
+    absolute: "Sign in to Jesmond | Customer & Partner Account",
   },
   description: "Sign in to your Jesmond account to manage accommodation bookings and partner listings.",
   robots: { index: false, follow: false },

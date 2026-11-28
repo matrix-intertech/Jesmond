@@ -152,7 +152,7 @@ export default function StudentDashboardPage() {
         )}
  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
  <div>
- <h1 className="font-outfit text-2xl font-bold text-primary sm:text-3xl">Student Dashboard</h1>
+ <h1 className="font-outfit text-2xl font-bold text-primary sm:text-3xl">Customer Dashboard</h1>
  <p className="text-text-secondary mt-1">Your accommodation journey at a glance</p>
  </div>
  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">

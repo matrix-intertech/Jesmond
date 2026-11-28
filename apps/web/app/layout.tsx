@@ -21,15 +21,15 @@ const siteUrl = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Jesmond | Student Accommodation, Retail & Local Services",
+    default: "Jesmond | Accommodation, Retail & Local Services",
     template: "%s | Jesmond",
   },
   description:
-    "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
+    "Jesmond connects customers with verified accommodation, local retail stores, and essential services across Australia.",
   openGraph: {
-    title: "Jesmond | Student Accommodation, Retail & Local Services",
+    title: "Jesmond | Accommodation, Retail & Local Services",
     description:
-      "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
+      "Jesmond connects customers with verified accommodation, local retail stores, and essential services across Australia.",
     url: siteUrl,
     siteName: "Jesmond",
     locale: "en_AU",
@@ -45,9 +45,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jesmond | Student Accommodation, Retail & Local Services",
+    title: "Jesmond | Accommodation, Retail & Local Services",
     description:
-      "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
+      "Jesmond connects customers with verified accommodation, local retail stores, and essential services across Australia.",
   },
   icons: {
     icon: [

@@ -179,7 +179,7 @@ export default function ProviderPortalPage() {
  <table className="w-full text-left border-collapse">
  <thead className="bg-surface-muted border-b">
  <tr className="text-sm text-text-secondary uppercase tracking-wider">
- <th className="p-4 font-semibold">Student</th>
+ <th className="p-4 font-semibold">Customer</th>
  <th className="p-4 font-semibold">Property</th>
  <th className="p-4 font-semibold">Status</th>
  <th className="p-4 font-semibold">Move‑In</th>

@@ -471,7 +471,7 @@ async function performRestoreUserSession(options?: {
             return {
               user: null,
               status: 'forbidden',
-              error: 'Student accounts cannot access the Business Portal.',
+              error: 'Customer accounts cannot access the Business Portal.',
             };
           }
           const bffUser: User = {
@@ -759,7 +759,7 @@ export const getDashboardHeading = (user: Partial<User> | null | undefined): str
     case 'ADMIN':
       return 'Admin Dashboard';
     case 'STUDENT':
-      return 'Student Dashboard';
+      return 'Customer Dashboard';
     case 'PARENT':
       return 'Parent Dashboard';
     case 'ORG_STAFF': {

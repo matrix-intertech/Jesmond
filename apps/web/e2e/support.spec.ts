@@ -102,7 +102,7 @@ test.describe('Support Page — Functional Interactions & Theme Cleanup', () => 
 
     const expectedCategories = [
       { slug: 'finding-accommodation', title: 'Finding Accommodation' },
-      { slug: 'students', title: 'Students' },
+      { slug: 'students', title: 'Customers' },
       { slug: 'providers', title: 'Providers' },
       { slug: 'applications', title: 'Applications' },
       { slug: 'account-security', title: 'Account & Security' },
@@ -154,7 +154,7 @@ test.describe('Support Page — Functional Interactions & Theme Cleanup', () => 
     // Navigate to Students
     await page.locator('section[aria-label="Support Categories"] a[href="/support?category=students"]').click();
     await expect(page).toHaveURL(/\/support\?category=students/);
-    await expect(page.locator('h2', { hasText: 'Students' })).toBeVisible();
+    await expect(page.locator('h2', { hasText: 'Customers' })).toBeVisible();
 
     // Browser back to /support
     await page.goBack();

@@ -28,7 +28,7 @@ export function getOrganizationSchema(siteUrl: string) {
     name: "Jesmond",
     url: siteUrl,
     logo: `${siteUrl}/assets/logo_navbar.png`,
-    description: "Jesmond connects students with verified accommodation, local retail stores, and essential services across Australia.",
+    description: "Jesmond connects customers with verified accommodation, local retail stores, and essential services across Australia.",
     sameAs: [
       "https://instagram.com",
       "https://linkedin.com",

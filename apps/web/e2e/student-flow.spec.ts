@@ -38,7 +38,7 @@ test.describe('Student Marketplace Flow', () => {
     await page.getByRole('button', { name: /sign in/i }).click();
 
     await page.waitForURL('**/student', { timeout: 30000 });
-    await expect(page.locator('h1', { hasText: 'Student Dashboard' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Customer Dashboard' })).toBeVisible();
 
     // 2. Search
     await page.getByRole('link', { name: 'Find Accommodation' }).first().click();

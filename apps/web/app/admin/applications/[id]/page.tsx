@@ -46,7 +46,7 @@ export default function AdminApplicationDetailPage() {
  <>
  <PageHeader title="Application Detail" description={`Application ${application.id}`} />
  <div className="grid grid-cols-2 gap-4 mt-6 bg-surface p-6 rounded-xl shadow-sm">
- <div className="col-span-2 text-lg font-semibold text-primary mb-4">Student</div>
+ <div className="col-span-2 text-lg font-semibold text-primary mb-4">Customer</div>
  <div className="text-primary">{application.student?.firstName} {application.student?.lastName}</div>
  <div className="text-text-secondary">{application.student?.email}</div>
 

@@ -20,7 +20,7 @@ test.describe('Phase 3: Student Portal Split-Screen Authentication & Business Sw
 
     // --- Left Panel: Student / Customer ---
     await expect(page.getByRole('heading', { name: /sign in to jesmond/i })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Students & General Customers')).toBeVisible();
+    await expect(page.getByText('Customer Account')).toBeVisible();
     await expect(page.getByLabel('Email address')).toBeVisible();
     await expect(page.getByLabel('Password')).toBeVisible();
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();

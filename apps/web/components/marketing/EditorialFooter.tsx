@@ -68,9 +68,9 @@ export function EditorialFooter() {
             </ul>
           </div>
 
-          {/* Column 4: Students */}
+          {/* Column 4: Customers */}
           <div className="col-span-1 lg:col-span-2 min-w-0">
-            <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5 lg:mb-6">Students</h3>
+            <h3 className="text-[11px] font-bold text-primary uppercase tracking-widest mb-1.5 lg:mb-6">Customers</h3>
             <ul className="flex flex-col gap-0 lg:gap-4 text-sm text-text-secondary font-medium [&_a]:inline-flex [&_a]:min-h-[44px] lg:[&_a]:min-h-0 [&_a]:items-center">
               <li><Link href="/guide" className="hover:text-primary transition-colors">Accommodation Guide</Link></li>
               <li><Link href="/moving" className="hover:text-primary transition-colors">Moving to Australia</Link></li>

@@ -57,7 +57,7 @@ const APPOINTMENT_STEPS = [
 export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> = {
   STUDENT: {
     dashboardId: 'STUDENT',
-    title: 'Student Dashboard Quickstart',
+    title: 'Customer Dashboard Quickstart',
     subtitle: 'Search accommodation, track applications, save listings, and message providers.',
     tutorialVersion: 1,
     targetRoles: ['STUDENT'],
@@ -76,7 +76,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         title: 'Key Navigation',
         summary: 'Use the left sidebar to switch between discovery, saved listings, and support.',
         bullets: [
-          'Search Accommodation: Filter verified student listings by city, university, and budget.',
+          'Search Accommodation: Filter verified listings by city, university, and budget.',
           'Saved: Revisit bookmarked properties and compare room options.',
           'Messages & My Applications: Follow up directly with providers.',
         ],
@@ -93,7 +93,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
     steps: [
       {
         id: 'student-welcome',
-        title: 'Welcome to Your Student Dashboard',
+        title: 'Welcome to Your Customer Dashboard',
         description:
           'View your accommodation applications, booking statuses, and key updates right from this workspace.',
         targetSelector: '[data-testid="dashboard-header-title"]',
@@ -103,7 +103,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         id: 'student-search',
         title: 'Search Accommodation',
         description:
-          'Browse student housing near your university with filters for location, room type, and weekly rent.',
+          'Browse accommodation near your university with filters for location, room type, and weekly rent.',
         targetSelector: 'nav a[href="/search"]',
         placement: 'right',
       },
@@ -135,7 +135,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         id: 'student-help',
         title: 'Quickstart Guide Always Available',
         description:
-          'Click this icon anytime to review the Student Quickstart Guide or restart this walkthrough.',
+          'Click this icon anytime to review the Customer Quickstart Guide or restart this walkthrough.',
         targetSelector: '[data-testid="quickstart-header-btn"]',
         placement: 'bottom',
       },
@@ -198,7 +198,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         id: 'admin-users',
         title: 'User Management',
         description:
-          'Look up student, business, and staff accounts and manage account status or roles.',
+          'Look up customer, business, and staff accounts and manage account status or roles.',
         targetSelector: 'nav a[href="/admin/users"]',
         placement: 'right',
       },
@@ -303,26 +303,26 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
   ACCOMMODATION: {
     dashboardId: 'ACCOMMODATION',
     title: 'Accommodation Partner Quickstart',
-    subtitle: 'Manage properties, room listings, student applications, enquiries, and agency teams.',
+    subtitle: 'Manage properties, room listings, customer applications, enquiries, and agency teams.',
     tutorialVersion: 1,
     targetRoles: ['ORG_STAFF'],
     sections: [
       {
         id: 'intro',
         title: 'Partner Overview',
-        summary: 'Monitor your property portfolio, draft listings, and incoming student accommodation applications.',
+        summary: 'Monitor your property portfolio, draft listings, and incoming customer accommodation applications.',
         bullets: [
-          'Track published vs draft properties and pending student applications at a glance.',
+          'Track published vs draft properties and pending customer applications at a glance.',
           'Complete Business Verification to display the Verified Partner badge.',
         ],
       },
       {
         id: 'workflows',
         title: 'Listings, Applications & Chats',
-        summary: 'Keep room availability accurate and respond quickly to prospective students.',
+        summary: 'Keep room availability accurate and respond quickly to prospective customers.',
         bullets: [
           'My Properties: Create listings, configure room hierarchies, house rules, and residents.',
-          'Applications & Enquiries: Review student submissions and convert leads.',
+          'Applications & Enquiries: Review customer submissions and convert leads.',
           'Chats & Agency: Communicate with applicants and manage agency team members.',
         ],
       },
@@ -332,7 +332,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         id: 'acc-welcome',
         title: 'Accommodation Partner Dashboard',
         description:
-          'Monitor your properties, active listings, and incoming student applications from this overview.',
+          'Monitor your properties, active listings, and incoming customer applications from this overview.',
         targetSelector: '[data-testid="dashboard-header-title"]',
         placement: 'bottom',
       },
@@ -346,7 +346,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
       },
       {
         id: 'acc-applications',
-        title: 'Student Applications',
+        title: 'Customer Applications',
         description:
           'Review incoming accommodation applications, verify applicant details, and update booking statuses.',
         targetSelector: 'nav a[href="/portal/applications"]',
@@ -356,7 +356,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         id: 'acc-chats',
         title: 'Applicant Chats & Enquiries',
         description:
-          'Respond to student messages and enquiries directly inside your partner portal.',
+          'Respond to customer messages and enquiries directly inside your partner portal.',
         targetSelector: 'nav a[href="/portal/chats"]',
         placement: 'right',
       },
@@ -364,7 +364,7 @@ export const QUICKSTART_CONFIGS: Record<DashboardId, DashboardQuickstartConfig> 
         id: 'acc-verification',
         title: 'Verification & Licences',
         description:
-          'Upload your business credentials to verify your organisation and build student trust.',
+          'Upload your business credentials to verify your organisation and build customer trust.',
         targetSelector: 'nav a[href="/portal/business/verification"]',
         placement: 'right',
       },

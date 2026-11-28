@@ -27,7 +27,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
     }
 
     if (result.status === 'forbidden') {
-      setError(result.error || 'Access to student account is restricted.');
+      setError(result.error || 'Access to customer account is restricted.');
       setIsRetrying(false);
       return;
     }
@@ -36,7 +36,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
       if (result.user.role !== 'STUDENT') {
         const dest = getDashboardRouteForUser(result.user);
         if (typeof window !== 'undefined' && window.location.pathname === dest) {
-          setError('This portal is only accessible to student accounts.');
+          setError('This portal is only accessible to customer accounts.');
           setIsRetrying(false);
           return;
         }
@@ -49,7 +49,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
       return;
     }
 
-    setError(result.error || 'Unable to load student account. Please try again.');
+    setError(result.error || 'Unable to load customer account. Please try again.');
     setIsRetrying(false);
   }, [router]);
 
@@ -65,7 +65,7 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
             <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4">
               <AlertCircle size={24} />
             </div>
-            <h2 className="text-lg font-semibold text-text-primary mb-2">Student Account Recovery</h2>
+            <h2 className="text-lg font-semibold text-text-primary mb-2">Customer Account Recovery</h2>
             <p className="text-sm text-text-secondary mb-6">{error}</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
@@ -93,8 +93,8 @@ export default function StudentLayoutClient({ children }: { children: React.Reac
 
     return (
       <div className="min-h-screen bg-surface-muted flex flex-col items-center justify-center p-8">
-        <h1 className="text-xl font-semibold text-primary mb-2">Student Portal</h1>
-        <p className="text-sm text-text-secondary">Loading student account...</p>
+        <h1 className="text-xl font-semibold text-primary mb-2">Customer Portal</h1>
+        <p className="text-sm text-text-secondary">Loading customer account...</p>
       </div>
     );
   }

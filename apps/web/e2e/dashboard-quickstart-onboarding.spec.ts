@@ -185,7 +185,7 @@ test.describe('Unified Dashboard Quickstart Guide & Interactive Onboarding', () 
     const card = page.getByTestId('interactive-tutorial-card');
     await expect(card).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('tutorial-step-counter')).toHaveText('Step 1 of 6');
-    await expect(card).toContainText('Welcome to Your Student Dashboard');
+    await expect(card).toContainText('Welcome to Your Customer Dashboard');
 
     // Next & Previous navigation
     await page.getByTestId('tutorial-next-btn').click();
@@ -210,7 +210,7 @@ test.describe('Unified Dashboard Quickstart Guide & Interactive Onboarding', () 
     await page.getByTestId('quickstart-header-btn').click();
     const dialog = page.getByTestId('quickstart-guide-dialog');
     await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('Student Dashboard Quickstart');
+    await expect(dialog).toContainText('Customer Dashboard Quickstart');
     await expect(dialog).toContainText('Tutorial: Completed');
 
     await page.getByTestId('quickstart-start-tutorial-btn').click();

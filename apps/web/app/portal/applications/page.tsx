@@ -66,7 +66,7 @@ export default function ProviderApplicationsPage() {
  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
  const handleStatusAction = async (applicationId: string, action: 'approve' | 'reject' | 'remove') => {
- const actionText = action === 'remove' ? 'remove this student from the application' : `${action} this application`;
+ const actionText = action === 'remove' ? 'remove this customer from the application' : `${action} this application`;
  if (!confirm(`Are you sure you want to ${actionText}? This action cannot be undone.`)) return;
 
  setActionLoadingId(applicationId);
@@ -98,7 +98,7 @@ export default function ProviderApplicationsPage() {
 
  return (
  <>
- <PageHeader title="Student Applications" description="Review applications for your properties" onBack={() => router.push('/portal')} />
+ <PageHeader title="Customer Applications" description="Review applications for your properties" onBack={() => router.push('/portal')} />
  <div className="max-w-7xl mx-auto py-8">
 
  {applications.length === 0 ? (
@@ -112,7 +112,7 @@ export default function ProviderApplicationsPage() {
  <table className="w-full min-w-[720px] text-left border-collapse">
  <thead>
  <tr className="bg-surface-muted border-b text-sm text-text-secondary uppercase tracking-wider">
- <th className="p-4 font-semibold">Student</th>
+ <th className="p-4 font-semibold">Customer</th>
  <th className="p-4 font-semibold">Property</th>
  <th className="p-4 font-semibold">Room</th>
  <th className="p-4 font-semibold">Move In</th>
@@ -173,7 +173,7 @@ export default function ProviderApplicationsPage() {
  disabled={actionLoadingId !== null}
  className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
  >
- {actionLoadingId === app.id ? 'Removing...' : 'Remove Student'}
+ {actionLoadingId === app.id ? 'Removing...' : 'Remove Customer'}
  </button>
  )}
  </div>

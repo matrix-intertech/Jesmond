@@ -5,14 +5,14 @@ export const metadata = {
     absolute: "Accessibility Statement & Standards | Jesmond",
   },
   description:
-    "Jesmond is committed to digital accessibility and WCAG 2.1 AA standards for students, accommodation seekers, and partners across Australia.",
+    "Jesmond is committed to digital accessibility and WCAG 2.1 AA standards for customers, accommodation seekers, and partners across Australia.",
   alternates: {
     canonical: "/accessibility",
   },
   openGraph: {
     title: "Accessibility Statement & Standards | Jesmond",
     description:
-      "Jesmond is committed to digital accessibility and WCAG 2.1 AA standards for students, accommodation seekers, and partners across Australia.",
+      "Jesmond is committed to digital accessibility and WCAG 2.1 AA standards for customers, accommodation seekers, and partners across Australia.",
     url: "/accessibility",
     type: "website",
   },
@@ -20,7 +20,7 @@ export const metadata = {
     card: "summary",
     title: "Accessibility Statement & Standards | Jesmond",
     description:
-      "Jesmond is committed to digital accessibility and WCAG 2.1 AA standards for students, accommodation seekers, and partners across Australia.",
+      "Jesmond is committed to digital accessibility and WCAG 2.1 AA standards for customers, accommodation seekers, and partners across Australia.",
   },
 };
 
@@ -28,7 +28,7 @@ export default function AccessibilityPage() {
   return (
     <StaticPageLayout
       title="Accessibility Statement"
-      subtitle="Committed to providing an inclusive, accessible web experience for all students and partners."
+      subtitle="Committed to providing an inclusive, accessible web experience for all customers and partners."
     >
       <h2>Our Digital Accessibility Commitment</h2>
       <p>
@@ -40,7 +40,7 @@ export default function AccessibilityPage() {
         The Web Content Accessibility Guidelines (WCAG) define requirements for designers and developers to improve accessibility for people with disabilities. It outlines three levels of conformance: Level A, Level AA, and Level AAA.
       </p>
       <p>
-        Jesmond aims to conform with <strong>WCAG 2.1 Level AA</strong> across all core student search, accommodation discovery, and account flows. Key measures include:
+        Jesmond aims to conform with <strong>WCAG 2.1 Level AA</strong> across all core customer search, accommodation discovery, and account flows. Key measures include:
       </p>
       <ul>
         <li><strong>Keyboard Navigation:</strong> All interactive elements, including search filters, forms, and navigation menus, are operable via keyboard tab navigation.</li>

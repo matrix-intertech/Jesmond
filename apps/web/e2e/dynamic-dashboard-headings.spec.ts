@@ -4,9 +4,9 @@ import { getDashboardHeading, User } from '../utils/auth';
 test.describe('Dynamic Dashboard Headings & Signup Form Terminology', () => {
 
   test.describe('1. getDashboardHeading unit mappings for all profile types and business categories', () => {
-    test('resolves Student -> Student Dashboard', () => {
+    test('resolves Student -> Customer Dashboard', () => {
       const user: Partial<User> = { role: 'STUDENT' };
-      expect(getDashboardHeading(user)).toBe('Student Dashboard');
+      expect(getDashboardHeading(user)).toBe('Customer Dashboard');
     });
 
     test('resolves Parent -> Parent Dashboard', () => {
@@ -146,11 +146,11 @@ test.describe('Dynamic Dashboard Headings & Signup Form Terminology', () => {
       }, { tokenVal: token, userVal: user });
     };
 
-    test('Student sees "Student Dashboard" in top header', async ({ page }) => {
+    test('Customer sees "Customer Dashboard" in top header', async ({ page }) => {
       const user = { id: 'u-std', role: 'STUDENT', email: 'std@jesmond.demo' };
       await setupAuthSession(page, user);
       await page.goto('/student');
-      await expect(page.locator('[data-testid="dashboard-header-title"]')).toHaveText('Student Dashboard');
+      await expect(page.locator('[data-testid="dashboard-header-title"]')).toHaveText('Customer Dashboard');
     });
 
     test('Admin sees "Admin Dashboard" in top header', async ({ page }) => {
